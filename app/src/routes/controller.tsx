@@ -1,5 +1,6 @@
 import { useState } from "react";
 import WindowVisualizer from "@/components/controller/window-visualizer";
+import SlideVisualizer from "@/components/controller/slide-visualizer";
 import { Button } from "@/components/ui/button";
 
 import ArrowLeftIcon from "@heroicons/react/24/outline/ArrowLeftIcon";
@@ -8,53 +9,76 @@ import StopSolidIcon from "@heroicons/react/24/solid/StopIcon";
 import FingerPrintSolidIcon from "@heroicons/react/24/solid/FingerPrintIcon";
 
 export default function Controller() {
-  const slides = [
-    '',
-    'Eu Te busco\n\
-Te procuro, oh Deus\n\
+  const song = {
+    title: 'Senhor, Te Quero',
+    artist: 'Vineyard',
+    parts: [],
+    slides: [
+      {},
+      {
+        title: 'Senhor, Te Quero',
+        subtitle: 'Vineyard',
+        text: 'Eu Te busco, Te procuro, oh Deus\n\
 No silêncio Tu estás\n\
-Eu Te busco\n\
-Toda hora espero em Ti\n\
+Eu Te busco, toda hora espero em Ti\n\
 Revela-Te a mim\n\
 Conhecer-Te eu quero mais',
-    'Senhor, Te quero\n\
-Quero ouvir Tua voz\n\
+      },
+      {
+        text: 'Senhor, Te quero, quero ouvir Tua voz\n\
 Senhor, Te quero mais\n\
-Quero tocar-Te\n\
-Tua face eu quero ver\n\
+Quero tocar-Te, Tua face eu quero ver\n\
 Senhor, Te quero mais',
-    '',
-    'Prosseguindo para o alvo eu vou\n\
+      },
+      {},
+      {
+        text: 'Prosseguindo para o alvo eu vou\n\
 A coroa conquistar\n\
 Vou lutando, nada pode me impedir\n\
 Eu vou Te seguir\n\
 Conhecer-Te eu quero mais',
-    'Senhor, Te quero\n\
-Quero ouvir Tua voz\n\
+      },
+      {
+        text: 'Senhor, Te quero, quero ouvir Tua voz\n\
 Senhor, Te quero mais\n\
-Quero tocar-Te\n\
-Tua face eu quero ver\n\
+Quero tocar-Te, Tua face eu quero ver\n\
 Senhor, Te quero mais',
-    'Senhor, Te quero\n\
-Quero ouvir Tua voz\n\
+      },
+      {},
+      {
+        text: 'Prosseguindo para o alvo eu vou\n\
+A coroa conquistar\n\
+Vou lutando, nada pode me impedir\n\
+Eu vou Te seguir\n\
+Conhecer-Te eu quero mais',
+      },
+      {
+        text: 'Senhor, Te quero, quero ouvir Tua voz\n\
 Senhor, Te quero mais\n\
-Quero tocar-Te\n\
-Tua face eu quero ver\n\
+Quero tocar-Te, Tua face eu quero ver\n\
 Senhor, Te quero mais',
-    '',
-  ];
+      },
+      {
+        text: 'Senhor, Te quero, quero ouvir Tua voz\n\
+Senhor, Te quero mais\n\
+Quero tocar-Te, Tua face eu quero ver\n\
+Senhor, Te quero mais',
+      },
+      {},
+    ]
+  }
+
   const [slideIx, setSlideIx] = useState(0);
 
   const prevSlide = () => {
-    let newSlideIx = slideIx - 1;
-    if (newSlideIx < 0) {
-      newSlideIx = slides.length - 1;
+    if (slideIx > 0) {
+      setSlideIx(slideIx - 1);
     }
-    setSlideIx(newSlideIx);
   }
   const nextSlide = () => {
-    const newSlideIx = (slideIx + 1) % slides.length;
-    setSlideIx(newSlideIx);
+    if (slideIx < song.slides.length - 1) {
+      setSlideIx(slideIx + 1);
+    }
   }
 
   const [windows, setWindows] = useState<{name: string}[]>([]);
@@ -75,16 +99,17 @@ Senhor, Te quero mais',
         <div id="plan" className="w-1/3 p-3 bg-background rounded">
           <div>Search songs</div>
           <div>Add song to schedule</div>
-        </div>
-        <div id="schedule" className="w-1/3 p-3 bg-background rounded flex flex-col items-stretch">
           <Button onClick={toggleWindow}>
             Toggle window
           </Button>
+        </div>
+        <div id="schedule" className="w-1/3 p-3 bg-background rounded flex flex-col items-stretch">
           <div className="flex-1 overflow-y-auto">
-            <h3>Song name</h3>
+            <h3>{song.title}</h3>
+            <h4>{song.artist}</h4>
             <ul className="overflow-y-auto">
-              {slides.map((s, ix) => (
-                <li key={ix} className="whitespace-pre-wrap mt-4">{s}</li>
+              {song.slides.map((s, ix) => (
+                <li key={ix} className="whitespace-pre-wrap mt-4">{s?.text}</li>
               ))}
             </ul>
           </div>
@@ -106,24 +131,19 @@ Senhor, Te quero mais',
           </div>
           <div id="content" className="flex-1 overflow-y-auto">
             <ul>
-              {slides.map((s, ix) => (
-                <li key={ix} className={'py-3 px-4 whitespace-pre-wrap rounded ' + (ix == slideIx ? 'bg-card' : '')}>{s}</li>
+              {song.slides.map((s, ix) => (
+                <li key={ix} className={'py-3 px-4 whitespace-pre-wrap rounded ' + (ix == slideIx ? 'bg-card' : '')}>{s?.text}</li>
               ))}
             </ul>
           </div>
-          <div id="preview flex-0">
-            Preview
+          <div id="preview" className="flex-0 aspect-[16/9]">
+            <SlideVisualizer content={song.slides[slideIx]} fontSize={'1.1em'}></SlideVisualizer>
           </div>
         </div>
       </div>
       {windows.map((w) => (
         <WindowVisualizer key={w.name}>
-          <div className="whitespace-pre-wrap">
-            {slides[slideIx]}
-          </div>
-          <Button type="button" onClick={toggleWindow}>
-            Close window
-          </Button>
+          <SlideVisualizer content={song.slides[slideIx]}></SlideVisualizer>
         </WindowVisualizer>
       ))}
     </>

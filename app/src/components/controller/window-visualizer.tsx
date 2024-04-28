@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-import ThemeProvider from "@/components/theme-provider";
-import { Button } from "@/components/ui/button";
-
 export default function WindowVisualizer({ children }) {
 
   const [externalWind, setExternalWind] = useState<Window | null>(null);
@@ -31,26 +28,35 @@ export default function WindowVisualizer({ children }) {
   };
 
   const [fullScreen, setFullScreen] = useState(false);
-  const toggleFullscreen = () => {
+  const toggleFullscreen = async () => {
     const doc = externalWind?.document;
     if (!doc) return;
 
     const elem = doc.documentElement;
     if (!fullScreen) {
+      const options = {
+        navigationUI: "hide",
+        screen: undefined,
+      };
+      if (window.screen.isExtended == true) {
+        const screenDetails = (await window.getScreenDetails() ).screens;
+        options.screen = screenDetails[1];
+      }
+
       const requestMethod = elem.requestFullScreen || elem.webkitRequestFullScreen || elem.mozRequestFullScreen || elem.msRequestFullScreen;
-      requestMethod.call(elem);
+      await requestMethod.call(elem, options);
       setFullScreen(true);
     } else {
-      if (doc.exitFullscreen) doc.exitFullscreen();
-      else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
-      else if (doc.mozExitFullScreen) doc.mozExitFullScreen();
-      else if (doc.msExitFullscreen) doc.msExitFullscreen();
+      if (doc.exitFullscreen) await doc.exitFullscreen();
+      else if (doc.webkitExitFullscreen) await doc.webkitExitFullscreen();
+      else if (doc.mozExitFullScreen) await doc.mozExitFullScreen();
+      else if (doc.msExitFullscreen) await doc.msExitFullscreen();
       setFullScreen(false);
     }
   }
 
   useEffect(() => {
-    const externalDocument = window.open('', '', 'width=600,height=400,left=200,top=200,fullscreen=yes');
+    const externalDocument = window.open('', '_new', 'width=600,height=400,left=200,top=200,fullscreen=yes');
     if (externalDocument) {
       setExternalWind(externalDocument);
       copyStyles(document, externalDocument?.document)
@@ -68,10 +74,8 @@ export default function WindowVisualizer({ children }) {
   return (
     <>
       {externalWind && externalEl && createPortal((
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen w-full bg-black">
           {children}
-          <br/>
-          <Button onClick={toggleFullscreen}>Toggle FullScreen</Button>
         </div>
       ), externalEl)}
     </>
