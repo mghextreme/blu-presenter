@@ -6,7 +6,7 @@ import ControllerNavbar from "@/components/controller/navbar";
 
 export default function ControllerLayout() {
   return (
-    <div className="min-h-screen bg-card flex flex-col justify-stretch">
+    <div className="min-h-screen h-screen bg-card flex flex-col justify-stretch">
       <ControllerNavbar></ControllerNavbar>
       <Outlet />
     </div>

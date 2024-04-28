@@ -25,7 +25,6 @@ export default function ThemeProvider({
   children,
   defaultTheme = "system",
   storageKey = "ui-theme",
-  targetWindow = window,
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
@@ -33,7 +32,7 @@ export default function ThemeProvider({
   )
 
   useEffect(() => {
-    const root = targetWindow.document.documentElement
+    const root = window.document.documentElement
 
     root.classList.remove("light", "dark")
 

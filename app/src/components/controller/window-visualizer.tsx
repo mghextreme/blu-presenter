@@ -67,15 +67,13 @@ export default function WindowVisualizer({ children }) {
 
   return (
     <>
-      {externalWind && <ThemeProvider targetWindow={externalWind}>
-        {externalEl && createPortal((
-          <div className="min-h-screen bg-background">
-            {children}
-            <br/>
-            <Button onClick={toggleFullscreen}>Toggle FullScreen</Button>
-          </div>
-        ), externalEl)}
-      </ThemeProvider>}
+      {externalWind && externalEl && createPortal((
+        <div className="min-h-screen bg-background">
+          {children}
+          <br/>
+          <Button onClick={toggleFullscreen}>Toggle FullScreen</Button>
+        </div>
+      ), externalEl)}
     </>
   );
 }
