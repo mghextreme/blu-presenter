@@ -1,17 +1,13 @@
 import { useState } from "react";
-import WindowVisualizer from "../components/window-visualizer";
-import { useTheme } from "@/components/theme-provider";
+import WindowVisualizer from "@/components/controller/window-visualizer";
+import { Button } from "@/components/ui/button";
+
+import ArrowLeftIcon from "@heroicons/react/24/outline/ArrowLeftIcon";
+import ArrowRightIcon from "@heroicons/react/24/outline/ArrowRightIcon";
+import StopSolidIcon from "@heroicons/react/24/solid/StopIcon";
+import FingerPrintSolidIcon from "@heroicons/react/24/solid/FingerPrintIcon";
 
 export default function Controller() {
-  const { theme, setTheme } = useTheme();
-  const toggleTheme = () => {
-    if (theme == 'dark') {
-      setTheme('light');
-    } else {
-      setTheme('dark');
-    }
-  }
-
   const slides = [
     'Eu Te busco\n\
 Te procuro, oh Deus\n\
@@ -60,42 +56,59 @@ Conhecer-Te eu quero mais',
 
   return (
     <>
-      <div id="controller">
-        <button type="button" onClick={toggleTheme}>
-          Toggle theme
-        </button>
-        <br/>
-        <button type="button" onClick={toggleWindow}>
-          Toggle window
-        </button>
-        <br/>
-        <button type="button" onClick={prevSlide}>
-          Prev
-        </button>
-        <br/>
-        <button type="button" onClick={nextSlide}>
-          Next
-        </button>
-        <br/>
-        <br/>
-        <div className="w-3/4 whitespace-pre-wrap">
-          {slides[slideIx]}
+      <div id="controller" className="p-3 flex flex-1 gap-3">
+        <div id="plan" className="w-1/3 p-3 bg-background rounded">
+          <div>Search songs</div>
+          <div>Add song to schedule</div>
+        </div>
+        <div id="schedule" className="w-1/3 p-3 bg-background rounded">
+          <Button onClick={toggleWindow}>
+            Toggle window
+          </Button>
+          <div>
+            <h3>Song name</h3>
+            <ul>
+              {slides.map((s) => (
+                <li className="whitespace-pre-wrap mt-4">{s}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <div id="live" className="w-1/3 p-3 bg-background rounded flex flex-col items-stretch">
+          <div id="controls" className="mb-3 grid grid-cols-4 gap-2 flex-0">
+            <Button onClick={prevSlide} title="Previous">
+              <ArrowLeftIcon className="size-4"></ArrowLeftIcon>
+            </Button>
+            <Button title="Blank">
+              <StopSolidIcon className="size-4"></StopSolidIcon>
+            </Button>
+            <Button title="Visual identity">
+              <FingerPrintSolidIcon className="size-4"></FingerPrintSolidIcon>
+            </Button>
+            <Button onClick={nextSlide} title="Next">
+              <ArrowRightIcon className="size-4"></ArrowRightIcon>
+            </Button>
+          </div>
+          <div id="content" className="flex-1">
+            <ul>
+              {slides.map((s, ix) => (
+                <li className={'py-3 px-4 whitespace-pre-wrap rounded ' + (ix == slideIx ? 'bg-card' : '')}>{s}</li>
+              ))}
+            </ul>
+          </div>
+          <div id="preview">
+          </div>
         </div>
       </div>
-      <br/>
-      <br/>
-      <br/>
       {windows.map((w) => (
-        <>
-          <WindowVisualizer key={w.name}>
-            <div className="w-3/4 whitespace-pre-wrap">
-              {slides[slideIx]}
-            </div>
-            <button type="button" onClick={toggleWindow}>
-              Close window
-            </button>
-          </WindowVisualizer>
-        </>
+        <WindowVisualizer key={w.name}>
+          <div className="whitespace-pre-wrap">
+            {slides[slideIx]}
+          </div>
+          <Button type="button" onClick={toggleWindow}>
+            Close window
+          </Button>
+        </WindowVisualizer>
       ))}
     </>
   );

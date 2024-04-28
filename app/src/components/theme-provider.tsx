@@ -6,6 +6,7 @@ type ThemeProviderProps = {
   children: React.ReactNode
   defaultTheme?: Theme
   storageKey?: string
+  targetWindow?: Window
 }
 
 type ThemeProviderState = {
@@ -24,6 +25,7 @@ export default function ThemeProvider({
   children,
   defaultTheme = "system",
   storageKey = "ui-theme",
+  targetWindow = window,
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
@@ -31,7 +33,7 @@ export default function ThemeProvider({
   )
 
   useEffect(() => {
-    const root = window.document.documentElement
+    const root = targetWindow.document.documentElement
 
     root.classList.remove("light", "dark")
 

@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
+import ThemeProvider from "@/components/theme-provider";
+import { Button } from "@/components/ui/button";
+
 export default function WindowVisualizer({ children }) {
 
   const [externalWind, setExternalWind] = useState<Window | null>(null);
@@ -64,19 +67,15 @@ export default function WindowVisualizer({ children }) {
 
   return (
     <>
-      {externalEl && createPortal((
-        <div className="min-h-screen bg-white">
-          {fullScreen ? (
-            <>
-              {children}
-              <br/>
-              <button type="button" onClick={toggleFullscreen}>Toggle FullScreen</button>
-            </>
-          ): (
-            <button type="button" onClick={toggleFullscreen} className="text-2xl p-5">Toggle FullScreen</button>
-          )}
-        </div>
-      ), externalEl)}
+      {externalWind && <ThemeProvider targetWindow={externalWind}>
+        {externalEl && createPortal((
+          <div className="min-h-screen bg-background">
+            {children}
+            <br/>
+            <Button onClick={toggleFullscreen}>Toggle FullScreen</Button>
+          </div>
+        ), externalEl)}
+      </ThemeProvider>}
     </>
   );
 }
