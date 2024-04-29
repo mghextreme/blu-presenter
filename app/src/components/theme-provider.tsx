@@ -6,7 +6,6 @@ type ThemeProviderProps = {
   children: React.ReactNode
   defaultTheme?: Theme
   storageKey?: string
-  targetWindow?: Window
 }
 
 type ThemeProviderState = {

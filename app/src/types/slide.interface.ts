@@ -1,4 +1,4 @@
-export default interface ISlide {
+export interface ISlide {
   title?: string
   subtitle?: string
 
