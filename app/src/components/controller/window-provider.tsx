@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 type WindowProviderProps = {
+  name: string
   children: React.ReactNode
 }
 
@@ -16,6 +17,7 @@ const initialState: WindowProviderState = {
 const WindowProviderContext = createContext<WindowProviderState>(initialState);
 
 export default function WindowProvider({
+  name,
   children,
   ...props
 }: WindowProviderProps) {
@@ -45,7 +47,7 @@ export default function WindowProvider({
   };
 
   useEffect(() => {
-    const externalDocument = window.open('', '_new', 'width=600,height=400,left=300,top=300');
+    const externalDocument = window.open('', name, 'width=600,height=400,left=300,top=300');
     if (externalDocument) {
       setExternalWind(externalDocument);
       copyStyles(document, externalDocument?.document);

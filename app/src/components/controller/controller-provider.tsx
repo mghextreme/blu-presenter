@@ -153,7 +153,7 @@ export default function ControllerProvider({
     <ControllerProviderContext.Provider {...props} value={initialValue}>
       {children}
       {windows.map((w, ix) => (
-        <WindowProvider key={ix}>
+        <WindowProvider key={ix} name={`window-${ix}`}>
           <ScreenSelector>
             <SlideVisualizer theme={w.theme}></SlideVisualizer>
           </ScreenSelector>
