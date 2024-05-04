@@ -1,5 +1,7 @@
 import { createContext, useContext, useState } from "react"
 import { v4 as uuidv4 } from "uuid";
+import { useHotkeys } from 'react-hotkeys-hook';
+import { Key } from 'ts-key-enum';
 
 import SlideVisualizer from "./slide-visualizer"
 import ScreenSelector from "./screen-selector"
@@ -26,6 +28,9 @@ type ControllerProviderState = {
   setPartIndex: (slideIx:number, ix: number) => void,
   previousPart: () => void,
   nextPart: () => void,
+
+  previous: () => void,
+  next: () => void,
 
   windows: IWindow[],
   addWindow: (window: IWindow) => void,
@@ -121,6 +126,9 @@ Senhor, Te quero mais',
   previousPart: () => null,
   nextPart: () => null,
 
+  previous: () => null,
+  next: () => null,
+
   windows: [],
   addWindow: () => null,
   closeWindow: () => null,
@@ -171,6 +179,42 @@ export default function ControllerProvider({
     }
   };
 
+  const previousPart = () => {
+    if (!selectedSlide) return;
+
+    if (partIndex > 0) {
+      const newIndex = partIndex - 1;
+      setPartIx(newIndex);
+    } else {
+      previousSlide();
+    }
+  };
+  const nextPart = () => {
+    if (!selectedSlide) return;
+
+    if (partIndex + 1 < (selectedSlide.parts?.length ?? 1)) {
+      const newIndex = partIndex + 1;
+      setPartIx(newIndex);
+    } else {
+      nextSlide();
+    }
+  };
+
+  const previous = () => {
+    if (mode == 'part') {
+      previousPart();
+    } else {
+      previousSlide();
+    }
+  };
+  const next = () => {
+    if (mode == 'part') {
+      nextPart();
+    } else {
+      nextSlide();
+    }
+  };
+
   const initialValue = {
     mode,
 
@@ -192,26 +236,11 @@ export default function ControllerProvider({
         setPartIx(ix);
       }
     },
-    previousPart: () => {
-      if (!selectedSlide) return;
+    previousPart,
+    nextPart,
 
-      if (partIndex > 0) {
-        const newIndex = partIndex - 1;
-        setPartIx(newIndex);
-      } else {
-        previousSlide();
-      }
-    },
-    nextPart: () => {
-      if (!selectedSlide) return;
-
-      if (partIndex + 1 < (selectedSlide.parts?.length ?? 1)) {
-        const newIndex = partIndex + 1;
-        setPartIx(newIndex);
-      } else {
-        nextSlide();
-      }
-    },
+    previous,
+    next,
 
     windows,
     addWindow: (window: IWindow) => {
@@ -235,6 +264,9 @@ export default function ControllerProvider({
       setWindows([]);
     },
   } as ControllerProviderState
+
+  useHotkeys(Key.ArrowLeft, previous);
+  useHotkeys(Key.ArrowRight, next);
 
   return (
     <ControllerProviderContext.Provider {...props} value={initialValue}>

@@ -15,10 +15,8 @@ export default function Controller() {
     mode,
     slideIndex,
     selectedItem,
-    nextSlide,
-    previousSlide,
-    nextPart,
-    previousPart,
+    next,
+    previous,
     windows,
   } = useController();
   
@@ -62,7 +60,7 @@ export default function Controller() {
         </div>
         <div id="live" className="w-1/3 bg-background rounded flex flex-col items-stretch overflow-hidden">
           <div id="controls" className="p-3 grid grid-cols-4 gap-2 flex-0">
-            <Button onClick={mode == 'part' ? previousPart : previousSlide} title="Previous">
+            <Button onClick={previous} title="Previous">
               <ArrowLeftIcon className="size-4"></ArrowLeftIcon>
             </Button>
             <Button title="Blank">
@@ -71,7 +69,7 @@ export default function Controller() {
             <Button title="Visual identity">
               <FingerPrintSolidIcon className="size-4"></FingerPrintSolidIcon>
             </Button>
-            <Button onClick={mode == 'part' ? nextPart : nextSlide} title="Next">
+            <Button onClick={next} title="Next">
               <ArrowRightIcon className="size-4"></ArrowRightIcon>
             </Button>
           </div>

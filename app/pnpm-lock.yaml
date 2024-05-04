@@ -21,11 +21,13 @@ specifiers:
   postcss: ~8.1.14
   react: ^18.2.0
   react-dom: ^18.2.0
+  react-hotkeys-hook: ^4.5.0
   react-router-dom: ^6.22.3
   react-scripts: ^5.0.1
   tailwind-merge: ^2.3.0
   tailwindcss: ^3.4.3
   tailwindcss-animate: ^1.0.7
+  ts-key-enum: ^2.0.12
   typescript: ^5.2.2
   uuid: ^9.0.1
   vite: ^5.2.0
@@ -39,10 +41,12 @@ dependencies:
   clsx: 2.1.1
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
+  react-hotkeys-hook: 4.5.0_biqbaboplfbrettd7655fr4n2y
   react-router-dom: 6.22.3_biqbaboplfbrettd7655fr4n2y
   react-scripts: 5.0.1_72y4bszcxu7kjpvp7grltjskci
   tailwind-merge: 2.3.0
   tailwindcss-animate: 1.0.7_tailwindcss@3.4.3
+  ts-key-enum: 2.0.12
   uuid: 9.0.1
 
 devDependencies:
@@ -9265,6 +9269,16 @@ packages:
     resolution: {integrity: sha512-/6UZ2qgEyH2aqzYZgQPxEnz33NJ2gNsnHA2o5+o4wW9bLM/JYQitNP9xPhsXwC08hMMovfGe/8retsdDsczPRg==}
     dev: false
 
+  /react-hotkeys-hook/4.5.0_biqbaboplfbrettd7655fr4n2y:
+    resolution: {integrity: sha512-Samb85GSgAWFQNvVt3PS90LPPGSf9mkH/r4au81ZP1yOIFayLC3QAvqTgGtJ8YEDMXtPmaVBs6NgipHO6h4Mug==}
+    peerDependencies:
+      react: '>=16.8.1'
+      react-dom: '>=16.8.1'
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    dev: false
+
   /react-is/16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
     dev: false
@@ -10564,6 +10578,10 @@ packages:
 
   /ts-interface-checker/0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
+
+  /ts-key-enum/2.0.12:
+    resolution: {integrity: sha512-Ety4IvKMaeG34AyXMp5r11XiVZNDRL+XWxXbVVJjLvq2vxKRttEANBE7Za1bxCAZRdH2/sZT6jFyyTWxXz28hw==}
+    dev: false
 
   /tsconfig-paths/3.15.0:
     resolution: {integrity: sha512-2Ac2RgzDe/cn48GvOe3M+o82pEFewD3UPbyoUHHdKasHwJKjds4fLXWf/Ux5kATBKN20oaFGu+jbElp1pos0mg==}
