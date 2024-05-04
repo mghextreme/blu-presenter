@@ -55,7 +55,7 @@ export default function Controller() {
           </div>
           <div id="content" className="px-3 flex-1 overflow-y-auto">
           {selectedItem?.slides.map((s, ix) => (
-            <SlideSelector key={ix} slide={s} index={ix} selected={slideIndex == ix}></SlideSelector>
+            <SlideSelector key={`${mode}-${ix}`} slide={s} index={ix} selected={slideIndex == ix}></SlideSelector>
           ))}
           </div>
           {windows.length > 0 && <div id="preview" className="flex-0 aspect-[16/9]">

@@ -187,7 +187,8 @@ export default function ControllerProvider({
     setPartIndex: (slideIx: number, ix: number) => {
       setSlideIndex(slideIx);
 
-      if (selectedSlide && ix >= 0 && ix < (selectedSlide.parts?.length ?? 1)) {
+      const newSlide = selectedItem?.slides[slideIx];
+      if (newSlide && ix >= 0 && ix < (newSlide.parts?.length ?? 1)) {
         setPartIx(ix);
       }
     },
