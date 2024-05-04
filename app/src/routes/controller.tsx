@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+
 import SlideVisualizer from "@/components/controller/slide-visualizer";
 import SlideSelector from "@/components/controller/slide-selector";
 import { useController } from "@/components/controller/controller-provider";
@@ -19,6 +21,26 @@ export default function Controller() {
     previousPart,
     windows,
   } = useController();
+  
+  const contentWrapper = useRef();
+  const slideRefs = useRef([]);
+
+  useEffect(() => {
+    slideRefs.current = slideRefs.current.slice(0, (selectedItem?.slides?.length ?? 0));
+ }, [selectedItem]);
+
+ useEffect(() => {
+  const wrapper: Element = contentWrapper.current;
+  const slide: Element = slideRefs.current[slideIndex];
+
+  if (!wrapper || !slide) return;
+
+  const slideTo = slide.offsetTop - wrapper.offsetTop - 50;
+  wrapper?.scrollTo({
+    top: slideTo,
+    behavior: "smooth"
+  });
+}, [slideIndex]);
 
   return (
     <>
@@ -53,9 +75,14 @@ export default function Controller() {
               <ArrowRightIcon className="size-4"></ArrowRightIcon>
             </Button>
           </div>
-          <div id="content" className="px-3 flex-1 overflow-y-auto">
+          <div id="content" className="px-3 flex-1 overflow-y-auto" ref={contentWrapper}>
           {selectedItem?.slides.map((s, ix) => (
-            <SlideSelector key={`${mode}-${ix}`} slide={s} index={ix} selected={slideIndex == ix}></SlideSelector>
+            <div key={`${mode}-${ix}`} ref={el => slideRefs.current[ix] = el}>
+              <SlideSelector
+                slide={s}
+                index={ix}
+                selected={slideIndex == ix}></SlideSelector>
+            </div>
           ))}
           </div>
           {windows.length > 0 && <div id="preview" className="flex-0 aspect-[16/9]">
