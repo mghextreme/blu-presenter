@@ -18,8 +18,8 @@ export default function ControllerNavbar() {
           </Link>
         </div>
         <div>
-          <Button className="me-3" onClick={() => addWindow({theme: 'black'})}>Add presentation (black)</Button>
-          <Button className="me-3" onClick={() => addWindow({theme: 'chromaKey'})}>Add presentation (chroma key)</Button>
+          <Button className="me-3" onClick={() => addWindow({theme: 'black', mode: 'slide'})}>Add presentation (black)</Button>
+          <Button className="me-3" onClick={() => addWindow({theme: 'chromaKey', mode: 'part'})}>Add presentation (chroma key)</Button>
           <Button className="me-3" onClick={() => closeAllWindows()}>Close all presentations</Button>
           <ThemeToggler></ThemeToggler>
         </div>

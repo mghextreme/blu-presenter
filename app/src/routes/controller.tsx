@@ -1,4 +1,5 @@
 import SlideVisualizer from "@/components/controller/slide-visualizer";
+import SlideSelector from "@/components/controller/slide-selector";
 import { useController } from "@/components/controller/controller-provider";
 import { Button } from "@/components/ui/button";
 
@@ -9,10 +10,13 @@ import FingerPrintSolidIcon from "@heroicons/react/24/solid/FingerPrintIcon";
 
 export default function Controller() {
   const {
-    index,
+    mode,
+    slideIndex,
     selectedItem,
-    next,
-    previous,
+    nextSlide,
+    previousSlide,
+    nextPart,
+    previousPart,
     windows,
   } = useController();
 
@@ -29,14 +33,14 @@ export default function Controller() {
             <h4>{selectedItem?.artist}</h4>
             <ul className="overflow-y-auto">
               {selectedItem?.slides.map((s, ix) => (
-                <li key={ix} className="whitespace-pre-wrap mt-4">{s?.text}</li>
+                <li key={ix} className="whitespace-pre-wrap mt-4">{s?.parts?.join('\n')}</li>
               ))}
             </ul>
           </div>
         </div>
         <div id="live" className="w-1/3 bg-background rounded flex flex-col items-stretch overflow-hidden">
           <div id="controls" className="p-3 grid grid-cols-4 gap-2 flex-0">
-            <Button onClick={previous} title="Previous">
+            <Button onClick={mode == 'part' ? previousPart : previousSlide} title="Previous">
               <ArrowLeftIcon className="size-4"></ArrowLeftIcon>
             </Button>
             <Button title="Blank">
@@ -45,19 +49,17 @@ export default function Controller() {
             <Button title="Visual identity">
               <FingerPrintSolidIcon className="size-4"></FingerPrintSolidIcon>
             </Button>
-            <Button onClick={next} title="Next">
+            <Button onClick={mode == 'part' ? nextPart : nextSlide} title="Next">
               <ArrowRightIcon className="size-4"></ArrowRightIcon>
             </Button>
           </div>
           <div id="content" className="px-3 flex-1 overflow-y-auto">
-            <ul>
-              {selectedItem?.slides.map((s, ix) => (
-                <li key={ix} className={'py-3 px-4 whitespace-pre-wrap rounded ' + (ix == index ? 'bg-card' : '')}>{s?.text}</li>
-              ))}
-            </ul>
+          {selectedItem?.slides.map((s, ix) => (
+            <SlideSelector key={ix} slide={s} index={ix} selected={slideIndex == ix}></SlideSelector>
+          ))}
           </div>
           {windows.length > 0 && <div id="preview" className="flex-0 aspect-[16/9]">
-            <SlideVisualizer theme={windows[0].theme} fontSize={'2.2vh'}></SlideVisualizer>
+            <SlideVisualizer theme={windows[0].theme} fontSize={'2.2vh'} mode={windows[0].mode}></SlideVisualizer>
           </div>}
         </div>
       </div>

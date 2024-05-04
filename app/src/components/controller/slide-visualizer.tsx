@@ -1,18 +1,34 @@
-import { ISlide } from "@/types";
+import { ControllerMode, ISlide } from "@/types";
 import { useController } from "./controller-provider";
 import { useEffect, useState } from "react";
 
-export default function SlideVisualizer({ content, theme = 'black', fontSize = '8vh' }: { theme?: string, content?: ISlide, fontSize?: string }) {
-  const { selectedSlide } = useController();
+type SlideVisualizerProps = {
+  mode: ControllerMode
+  theme?: string
+  fontSize?: string
+}
+
+export default function SlideVisualizer({
+  mode,
+  theme = 'black',
+  fontSize = '8vh'
+}: SlideVisualizerProps) {
+  const {
+    selectedSlide,
+    partIndex,
+  } = useController();
 
   const [toShow, setToShow] = useState<ISlide | undefined>();
   useEffect(() => {
-    if (content) {
-      setToShow(content);
+    if (mode == 'part') {
+      const parts = selectedSlide?.parts;
+      setToShow({
+        parts: parts ? [parts[partIndex]] : []
+      } as ISlide);
     } else {
       setToShow(selectedSlide);
     }
-  }, [content, selectedSlide]);
+  }, [mode, selectedSlide, partIndex]);
 
   const [themeClass, setThemeClass] = useState<string>('');
   useEffect(() => {
@@ -29,8 +45,8 @@ export default function SlideVisualizer({ content, theme = 'black', fontSize = '
         <h1 className="text-[1.25em]">{toShow.title}</h1>
         {toShow?.subtitle && <h2 className="text-[.75em]">{toShow.subtitle}</h2>}
       </div>}
-      {toShow?.text && <div className="text-[1em] whitespace-pre-wrap">
-        {toShow?.text}
+      {toShow?.parts && <div className="text-[1em] whitespace-pre-wrap">
+        {toShow?.parts?.join('\n')}
       </div>}
     </div>
   );

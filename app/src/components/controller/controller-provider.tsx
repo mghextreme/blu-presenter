@@ -1,7 +1,9 @@
 import { createContext, useContext, useState } from "react"
+import { v4 as uuidv4 } from "uuid";
+
 import SlideVisualizer from "./slide-visualizer"
 import ScreenSelector from "./screen-selector"
-import { IScheduleItem, ISong, IWindow, ISlide } from "@/types"
+import { IScheduleItem, ISong, IWindow, ISlide, ControllerMode } from "@/types"
 import WindowProvider from "./window-provider"
 
 type ControllerProviderProps = {
@@ -9,20 +11,31 @@ type ControllerProviderProps = {
 }
 
 type ControllerProviderState = {
+  mode: ControllerMode,
+
   schedule: IScheduleItem[],
   selectedItem?: IScheduleItem,
+
   selectedSlide?: ISlide,
-  index: number,
+  slideIndex: number,
+  setSlideIndex: (ix: number) => void,
+  previousSlide: () => void,
+  nextSlide: () => void,
+
+  partIndex: number,
+  setPartIndex: (slideIx:number, ix: number) => void,
+  previousPart: () => void,
+  nextPart: () => void,
+
   windows: IWindow[],
-  setIndex: (ix: number) => void,
-  previous: () => void,
-  next: () => void,
   addWindow: (window: IWindow) => void,
   closeWindow: (ix: number) => void,
   closeAllWindows: () => void,
 }
 
 const initialState: ControllerProviderState = {
+  mode: 'part',
+
   schedule: [],
   selectedItem: {
     title: 'Senhor, Te Quero',
@@ -33,61 +46,82 @@ const initialState: ControllerProviderState = {
       {
         title: 'Senhor, Te Quero',
         subtitle: 'Vineyard',
-        text: 'Eu Te busco, Te procuro, oh Deus\n\
-No silêncio Tu estás\n\
-Eu Te busco, toda hora espero em Ti\n\
-Revela-Te a mim\n\
-Conhecer-Te eu quero mais',
+        parts: [
+          'Eu Te busco, Te procuro, oh Deus\n\
+No silêncio Tu estás',
+          'Eu Te busco, toda hora espero em Ti\n\
+Revela-Te a mim',
+          'Conhecer-Te eu quero mais',
+        ],
       },
       {
-        text: 'Senhor, Te quero, quero ouvir Tua voz\n\
-Senhor, Te quero mais\n\
-Quero tocar-Te, Tua face eu quero ver\n\
+        parts: [
+          'Senhor, Te quero, quero ouvir Tua voz\n\
 Senhor, Te quero mais',
+          'Quero tocar-Te, Tua face eu quero ver\n\
+Senhor, Te quero mais',
+        ],
       },
       {},
       {
-        text: 'Prosseguindo para o alvo eu vou\n\
-A coroa conquistar\n\
-Vou lutando, nada pode me impedir\n\
-Eu vou Te seguir\n\
-Conhecer-Te eu quero mais',
+        parts: [
+          'Prosseguindo para o alvo eu vou\n\
+A coroa conquistar',
+          'Vou lutando, nada pode me impedir\n\
+Eu vou Te seguir',
+          'Conhecer-Te eu quero mais',
+        ],
       },
       {
-        text: 'Senhor, Te quero, quero ouvir Tua voz\n\
-Senhor, Te quero mais\n\
-Quero tocar-Te, Tua face eu quero ver\n\
+        parts: [
+          'Senhor, Te quero, quero ouvir Tua voz\n\
 Senhor, Te quero mais',
+          'Quero tocar-Te, Tua face eu quero ver\n\
+Senhor, Te quero mais',
+        ],
       },
       {},
       {
-        text: 'Prosseguindo para o alvo eu vou\n\
-A coroa conquistar\n\
-Vou lutando, nada pode me impedir\n\
-Eu vou Te seguir\n\
-Conhecer-Te eu quero mais',
+        parts: [
+          'Prosseguindo para o alvo eu vou\n\
+A coroa conquistar',
+          'Vou lutando, nada pode me impedir\n\
+Eu vou Te seguir',
+          'Conhecer-Te eu quero mais',
+        ],
       },
       {
-        text: 'Senhor, Te quero, quero ouvir Tua voz\n\
-Senhor, Te quero mais\n\
-Quero tocar-Te, Tua face eu quero ver\n\
+        parts: [
+          'Senhor, Te quero, quero ouvir Tua voz\n\
 Senhor, Te quero mais',
+          'Quero tocar-Te, Tua face eu quero ver\n\
+Senhor, Te quero mais',
+        ],
       },
       {
-        text: 'Senhor, Te quero, quero ouvir Tua voz\n\
-Senhor, Te quero mais\n\
-Quero tocar-Te, Tua face eu quero ver\n\
+        parts: [
+          'Senhor, Te quero, quero ouvir Tua voz\n\
 Senhor, Te quero mais',
+          'Quero tocar-Te, Tua face eu quero ver\n\
+Senhor, Te quero mais',
+        ],
       },
       {},
     ]
   } as ISong,
+
   selectedSlide: {},
-  index: 0,
+  slideIndex: 0,
+  setSlideIndex: () => null,
+  previousSlide: () => null,
+  nextSlide: () => null,
+
+  partIndex: 0,
+  setPartIndex: () => null,
+  previousPart: () => null,
+  nextPart: () => null,
+
   windows: [],
-  setIndex: () => null,
-  previous: () => null,
-  next: () => null,
   addWindow: () => null,
   closeWindow: () => null,
   closeAllWindows: () => null,
@@ -99,39 +133,91 @@ export default function ControllerProvider({
   children,
   ...props
 }: ControllerProviderProps) {
+  const [mode, setMode] = useState<ControllerMode>(initialState.mode);
+
   const [schedule, setSchedule] = useState<IScheduleItem[]>(initialState.schedule);
   const [selectedItem, setSelectedItem] = useState<IScheduleItem | undefined>(initialState.selectedItem);
+
   const [selectedSlide, setSelectedSlide] = useState<ISlide | undefined>(initialState.selectedSlide);
-  const [index, setIndex] = useState<number>(initialState.index);
+  const [slideIndex, setSlideIx] = useState<number>(initialState.slideIndex);
+
+  const [partIndex, setPartIx] = useState<number>(initialState.partIndex);
+
   const [windows, setWindows] = useState<IWindow[]>([]);
 
+  const setSlideIndex = (ix: number) => {
+    if (selectedItem && ix >= 0 && ix < selectedItem.slides.length) {
+      setSlideIx(ix);
+      setSelectedSlide(selectedItem?.slides[ix]);
+      setPartIx(0);
+    }
+  };
+  const previousSlide = () => {
+    if (selectedItem && slideIndex > 0) {
+      const newIndex = slideIndex - 1;
+      setSlideIx(newIndex);
+
+      const newSlide = selectedItem?.slides[newIndex];
+      setSelectedSlide(newSlide);
+      setPartIx((newSlide?.parts?.length ?? 1) - 1);
+    }
+  };
+  const nextSlide = () => {
+    if (selectedItem && slideIndex + 1 < selectedItem.slides.length) {
+      const newIndex = slideIndex + 1;
+      setSlideIx(newIndex);
+      setSelectedSlide(selectedItem?.slides[newIndex]);
+      setPartIx(0);
+    }
+  };
+
   const initialValue = {
+    mode,
+
     schedule,
     selectedItem,
+
     selectedSlide,
-    index,
+    slideIndex,
+    setSlideIndex,
+    previousSlide,
+    nextSlide,
+
+    partIndex,
+    setPartIndex: (slideIx: number, ix: number) => {
+      setSlideIndex(slideIx);
+
+      if (selectedSlide && ix >= 0 && ix < (selectedSlide.parts?.length ?? 1)) {
+        setPartIx(ix);
+      }
+    },
+    previousPart: () => {
+      if (!selectedSlide) return;
+
+      if (partIndex > 0) {
+        const newIndex = partIndex - 1;
+        setPartIx(newIndex);
+      } else {
+        previousSlide();
+      }
+    },
+    nextPart: () => {
+      if (!selectedSlide) return;
+
+      if (partIndex + 1 < (selectedSlide.parts?.length ?? 1)) {
+        const newIndex = partIndex + 1;
+        setPartIx(newIndex);
+      } else {
+        nextSlide();
+      }
+    },
+
     windows,
-    setIndex: (ix: number) => {
-      if (selectedItem && ix >= 0 && ix < selectedItem.slides.length) {
-        setIndex(ix);
-        setSelectedSlide(selectedItem?.slides[ix]);
-      }
-    },
-    previous: () => {
-      if (selectedItem && index > 0) {
-        const newIndex = index - 1;
-        setIndex(newIndex);
-        setSelectedSlide(selectedItem?.slides[newIndex]);
-      }
-    },
-    next: () => {
-      if (selectedItem && index + 1 < selectedItem.slides.length) {
-        const newIndex = index + 1;
-        setIndex(newIndex);
-        setSelectedSlide(selectedItem?.slides[newIndex]);
-      }
-    },
     addWindow: (window: IWindow) => {
+      if (!window.id) {
+        window.id = uuidv4();
+      }
+
       const newValue = [
         ...windows,
         window
@@ -152,10 +238,10 @@ export default function ControllerProvider({
   return (
     <ControllerProviderContext.Provider {...props} value={initialValue}>
       {children}
-      {windows.map((w, ix) => (
-        <WindowProvider key={ix} name={`window-${ix}`}>
+      {windows.map((w) => (
+        <WindowProvider key={w.id} name={`window-${w.id}`}>
           <ScreenSelector>
-            <SlideVisualizer theme={w.theme}></SlideVisualizer>
+            <SlideVisualizer theme={w.theme} mode={w.mode}></SlideVisualizer>
           </ScreenSelector>
         </WindowProvider>
       ))}
