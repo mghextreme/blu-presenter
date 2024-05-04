@@ -47,6 +47,9 @@ export default function Controller() {
   const openPreview = () => {
     setPreview({id: v4(), theme: 'black', mode: 'slide'} as IWindow);
   }
+  const closePreview = () => {
+    setPreview(undefined);
+  }
 
   return (
     <>
@@ -67,13 +70,22 @@ export default function Controller() {
           </div>
         </div>
         <div id="live" className="w-1/3 bg-background rounded flex flex-col items-stretch overflow-hidden">
-          <div id="preview" className="p-3 pb-0 flex justify-stretch flex-0">
+          <div id="preview" className="relative p-3 pb-0 flex justify-stretch flex-0">
             {!preview && <Button onClick={openPreview} title="Open Preview" className="flex-1">
               Open preview
             </Button>}
-            {preview && <div className="flex-1 aspect-[16/9] rounded">
-              <SlideVisualizer theme={preview.theme} fontSize={'2.2vh'} mode={preview.mode}></SlideVisualizer>
-            </div>}
+            {preview && (
+              <>
+                <div className="absolute left-3 top-3 right-3 bottom-0 opacity-0 hover:opacity-100 transition-opacity">
+                  <div className="p-3 flex justify-end">
+                    <Button onClick={closePreview} title="Close preview">Close</Button>
+                  </div>
+                </div>
+                <div className="flex-1 aspect-[16/9] rounded overflow-hidden">
+                  <SlideVisualizer theme={preview.theme} fontSize={'2.2vh'} mode={preview.mode}></SlideVisualizer>
+                </div>
+              </>
+            )}
           </div>
           <div id="controls" className="p-3 grid grid-cols-4 gap-2 flex-0">
             <Button onClick={previous} title="Previous">
