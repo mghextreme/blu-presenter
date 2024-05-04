@@ -5,7 +5,7 @@ import { Key } from 'ts-key-enum';
 
 import SlideVisualizer from "./slide-visualizer"
 import ScreenSelector from "./screen-selector"
-import { IScheduleItem, ISong, IWindow, ISlide, ControllerMode } from "@/types"
+import { IScheduleItem, ISong, IWindow, ISlide, ControllerMode, ISlideTitleContent, ISlideTextContent, ISlideContent, ISlideImageContent } from "@/types"
 import WindowProvider from "./window-provider"
 
 type ControllerProviderProps = {
@@ -19,6 +19,10 @@ type ControllerProviderState = {
   selectedItem?: IScheduleItem,
 
   selectedSlide?: ISlide,
+  overrideSlide?: ISlide,
+  setBlank: () => void,
+  setLogo: () => void,
+
   slideIndex: number,
   setSlideIndex: (ix: number) => void,
   previousSlide: () => void,
@@ -34,7 +38,7 @@ type ControllerProviderState = {
 
   windows: IWindow[],
   addWindow: (window: IWindow) => void,
-  closeWindow: (ix: number) => void,
+  closeWindow: (id: string) => void,
   closeAllWindows: () => void,
 }
 
@@ -49,66 +53,120 @@ const initialState: ControllerProviderState = {
     slides: [
       {},
       {
-        title: 'Senhor, Te Quero',
-        subtitle: 'Vineyard',
-        parts: [
-          'Eu Te busco, Te procuro, oh Deus\n\
+        content: [
+          {
+            type: 'title',
+            title: 'Senhor, Te Quero',
+            subtitle: 'Vineyard',
+          } as ISlideTitleContent,
+          {
+            type: 'lyrics',
+            text: 'Eu Te busco, Te procuro, oh Deus\n\
 No silêncio Tu estás',
-          'Eu Te busco, toda hora espero em Ti\n\
+          } as ISlideTextContent,
+          {
+            type: 'lyrics',
+            text: 'Eu Te busco, toda hora espero em Ti\n\
 Revela-Te a mim',
-          'Conhecer-Te eu quero mais',
+          } as ISlideTextContent,
+          {
+            type: 'lyrics',
+            text: 'Conhecer-Te eu quero mais',
+          } as ISlideTextContent,
         ],
       },
       {
-        parts: [
-          'Senhor, Te quero, quero ouvir Tua voz\n\
+        content: [
+          {
+            type: 'lyrics',
+            text: 'Senhor, Te quero, quero ouvir Tua voz\n\
 Senhor, Te quero mais',
-          'Quero tocar-Te, Tua face eu quero ver\n\
+          } as ISlideTextContent,
+          {
+            type: 'lyrics',
+            text: 'Quero tocar-Te, Tua face eu quero ver\n\
 Senhor, Te quero mais',
-        ],
-      },
-      {},
-      {
-        parts: [
-          'Prosseguindo para o alvo eu vou\n\
-A coroa conquistar',
-          'Vou lutando, nada pode me impedir\n\
-Eu vou Te seguir',
-          'Conhecer-Te eu quero mais',
-        ],
-      },
-      {
-        parts: [
-          'Senhor, Te quero, quero ouvir Tua voz\n\
-Senhor, Te quero mais',
-          'Quero tocar-Te, Tua face eu quero ver\n\
-Senhor, Te quero mais',
+          } as ISlideTextContent,
         ],
       },
       {},
       {
-        parts: [
-          'Prosseguindo para o alvo eu vou\n\
+        content: [
+          {
+            type: 'lyrics',
+            text: 'Prosseguindo para o alvo eu vou\n\
 A coroa conquistar',
-          'Vou lutando, nada pode me impedir\n\
+          } as ISlideTextContent,
+          {
+            type: 'lyrics',
+            text: 'Vou lutando, nada pode me impedir\n\
 Eu vou Te seguir',
-          'Conhecer-Te eu quero mais',
+          } as ISlideTextContent,
+          {
+            type: 'lyrics',
+            text: 'Conhecer-Te eu quero mais',
+          } as ISlideTextContent,
         ],
       },
       {
-        parts: [
-          'Senhor, Te quero, quero ouvir Tua voz\n\
+        content: [
+          {
+            type: 'lyrics',
+            text: 'Senhor, Te quero, quero ouvir Tua voz\n\
 Senhor, Te quero mais',
-          'Quero tocar-Te, Tua face eu quero ver\n\
+          } as ISlideTextContent,
+          {
+            type: 'lyrics',
+            text: 'Quero tocar-Te, Tua face eu quero ver\n\
 Senhor, Te quero mais',
+          } as ISlideTextContent,
+        ],
+      },
+      {},
+      {
+        content: [
+          {
+            type: 'lyrics',
+            text: 'Prosseguindo para o alvo eu vou\n\
+A coroa conquistar',
+          } as ISlideTextContent,
+          {
+            type: 'lyrics',
+            text: 'Vou lutando, nada pode me impedir\n\
+Eu vou Te seguir',
+          } as ISlideTextContent,
+          {
+            type: 'lyrics',
+            text: 'Conhecer-Te eu quero mais',
+          } as ISlideTextContent,
         ],
       },
       {
-        parts: [
-          'Senhor, Te quero, quero ouvir Tua voz\n\
+        content: [
+          {
+            type: 'lyrics',
+            text: 'Senhor, Te quero, quero ouvir Tua voz\n\
 Senhor, Te quero mais',
-          'Quero tocar-Te, Tua face eu quero ver\n\
+          } as ISlideTextContent,
+          {
+            type: 'lyrics',
+            text: 'Quero tocar-Te, Tua face eu quero ver\n\
 Senhor, Te quero mais',
+          } as ISlideTextContent,
+        ],
+      },
+      {
+        content: [
+          {
+            type: 'lyrics',
+            text: 'Senhor, Te quero, quero ouvir Tua voz\n\
+Senhor, Te quero mais',
+          } as ISlideTextContent,
+          {
+            type: 'lyrics',
+            text: 'Quero tocar-Te, Tua face eu quero ver\n\
+Senhor, Te quero mais',
+          } as ISlideTextContent,
         ],
       },
       {},
@@ -116,6 +174,10 @@ Senhor, Te quero mais',
   } as ISong,
 
   selectedSlide: {},
+  overrideSlide: undefined,
+  setBlank: () => null,
+  setLogo: () => null,
+
   slideIndex: 0,
   setSlideIndex: () => null,
   previousSlide: () => null,
@@ -147,6 +209,7 @@ export default function ControllerProvider({
   const [selectedItem, setSelectedItem] = useState<IScheduleItem | undefined>(initialState.selectedItem);
 
   const [selectedSlide, setSelectedSlide] = useState<ISlide | undefined>(initialState.selectedSlide);
+  const [overrideSlide, setOverrideSlide] = useState<ISlide | undefined>(initialState.overrideSlide);
   const [slideIndex, setSlideIx] = useState<number>(initialState.slideIndex);
 
   const [partIndex, setPartIx] = useState<number>(initialState.partIndex);
@@ -157,6 +220,7 @@ export default function ControllerProvider({
     if (selectedItem && ix >= 0 && ix < selectedItem.slides.length) {
       setSlideIx(ix);
       setSelectedSlide(selectedItem?.slides[ix]);
+      setOverrideSlide(undefined);
       setPartIx(0);
     }
   };
@@ -167,7 +231,8 @@ export default function ControllerProvider({
 
       const newSlide = selectedItem?.slides[newIndex];
       setSelectedSlide(newSlide);
-      setPartIx((newSlide?.parts?.length ?? 1) - 1);
+      setOverrideSlide(undefined);
+      setPartIx((newSlide?.content?.length ?? 1) - 1);
     }
   };
   const nextSlide = () => {
@@ -175,6 +240,7 @@ export default function ControllerProvider({
       const newIndex = slideIndex + 1;
       setSlideIx(newIndex);
       setSelectedSlide(selectedItem?.slides[newIndex]);
+      setOverrideSlide(undefined);
       setPartIx(0);
     }
   };
@@ -185,6 +251,7 @@ export default function ControllerProvider({
     if (partIndex > 0) {
       const newIndex = partIndex - 1;
       setPartIx(newIndex);
+      setOverrideSlide(undefined);
     } else {
       previousSlide();
     }
@@ -192,9 +259,10 @@ export default function ControllerProvider({
   const nextPart = () => {
     if (!selectedSlide) return;
 
-    if (partIndex + 1 < (selectedSlide.parts?.length ?? 1)) {
+    if (partIndex + 1 < (selectedSlide.content?.length ?? 1)) {
       const newIndex = partIndex + 1;
       setPartIx(newIndex);
+      setOverrideSlide(undefined);
     } else {
       nextSlide();
     }
@@ -222,6 +290,32 @@ export default function ControllerProvider({
     selectedItem,
 
     selectedSlide,
+    overrideSlide,
+    setBlank: () => {
+      setOverrideSlide({
+        id: 'blank',
+        content: [
+          {
+            type: 'lyrics',
+            text: '',
+          } as ISlideTextContent,
+        ],
+      } as ISlide);
+    },
+    setLogo: () => {
+      setOverrideSlide({
+        id: 'logo',
+        content: [
+          {
+            type: 'image',
+            url: 'https://picsum.photos/300/200',
+            width: 300,
+            height: 200,
+          } as ISlideImageContent,
+        ],
+      } as ISlide);
+    },
+
     slideIndex,
     setSlideIndex,
     previousSlide,
@@ -232,7 +326,7 @@ export default function ControllerProvider({
       setSlideIndex(slideIx);
 
       const newSlide = selectedItem?.slides[slideIx];
-      if (newSlide && ix >= 0 && ix < (newSlide.parts?.length ?? 1)) {
+      if (newSlide && ix >= 0 && ix < (newSlide.content?.length ?? 1)) {
         setPartIx(ix);
       }
     },
@@ -254,11 +348,9 @@ export default function ControllerProvider({
       ];
       setWindows(() => newValue);
     },
-    closeWindow: (ix: number) => {
-      setWindows([
-        ...windows.slice(0, ix),
-        ...windows.slice(ix + 1),
-      ]);
+    closeWindow: (id: string) => {
+      const survivingWindows = windows.filter((v) => v.id != id);
+      setWindows(survivingWindows);
     },
     closeAllWindows: () => {
       setWindows([]);
@@ -272,7 +364,7 @@ export default function ControllerProvider({
     <ControllerProviderContext.Provider {...props} value={initialValue}>
       {children}
       {windows.map((w) => (
-        <WindowProvider key={w.id} name={`window-${w.id}`}>
+        <WindowProvider key={w.id} id={w.id}>
           <ScreenSelector>
             <SlideVisualizer theme={w.theme} mode={w.mode}></SlideVisualizer>
           </ScreenSelector>

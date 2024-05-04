@@ -1,4 +1,4 @@
-import { ControllerMode, ISlide } from "@/types";
+import { ControllerMode, ISlideContent, ISlideImageContent, ISlideTextContent, ISlideTitleContent } from "@/types";
 import { useController } from "./controller-provider";
 import { useEffect, useState } from "react";
 
@@ -15,20 +15,26 @@ export default function SlideVisualizer({
 }: SlideVisualizerProps) {
   const {
     selectedSlide,
+    overrideSlide,
     partIndex,
   } = useController();
 
-  const [toShow, setToShow] = useState<ISlide | undefined>();
+  const [toShow, setToShow] = useState<ISlideContent[]>([]);
   useEffect(() => {
-    if (mode == 'part') {
-      const parts = selectedSlide?.parts;
-      setToShow({
-        parts: parts ? [parts[partIndex]] : []
-      } as ISlide);
-    } else {
-      setToShow(selectedSlide);
+    let content: ISlideContent[] = [];
+    if (overrideSlide !== undefined) {
+      setToShow(overrideSlide.content ?? []);
+      return
     }
-  }, [mode, selectedSlide, partIndex]);
+
+    content = selectedSlide?.content ?? [];
+
+    if (mode == 'part') {
+      setToShow(content.length > 0 ? [content[partIndex]] : []);
+    } else {
+      setToShow(content);
+    }
+  }, [mode, selectedSlide, overrideSlide, partIndex]);
 
   const [themeClass, setThemeClass] = useState<string>('');
   useEffect(() => {
@@ -39,15 +45,40 @@ export default function SlideVisualizer({
     }
   }, [theme]);
 
+  const getTitleContent = (content: ISlideTitleContent) => {
+    return (
+      <>
+        <h1 className="text-[1.25em]">{content.title}</h1>
+        {content?.subtitle && <h2 className="text-[.75em]">{content.subtitle}</h2>}
+      </>
+    )
+  }
+
+  const getTextContent = (content: ISlideTextContent) => {
+    return (
+      <div className="text-[1em] whitespace-pre-wrap">
+        {content.text}
+      </div>
+    )
+  }
+
+  const getImageContent = (content: ISlideImageContent) => {
+    return (
+      <div className="flex justify-center">
+        <img src={content.url} alt={content.alt} />
+      </div>
+    )
+  }
+
   return (
     <div className={'w-full h-full leading-[1.15em] p-[.5em] flex flex-col items-stretch text-white text-center ' + themeClass} style={{fontSize: fontSize}}>
-      {toShow?.title && <div className="mb-[.5em]">
-        <h1 className="text-[1.25em]">{toShow.title}</h1>
-        {toShow?.subtitle && <h2 className="text-[.75em]">{toShow.subtitle}</h2>}
-      </div>}
-      {toShow?.parts && <div className="text-[1em] whitespace-pre-wrap">
-        {toShow?.parts?.join('\n')}
-      </div>}
+      {toShow.map((c, ix) => (
+        <div key={ix}>
+          {c.type == "title" ? getTitleContent(c as ISlideTitleContent) : undefined}
+          {c.type == "lyrics" ? getTextContent(c as ISlideTextContent) : undefined}
+          {c.type == "image" ? getImageContent(c as ISlideImageContent) : undefined}
+        </div>
+      ))}
     </div>
   );
 }

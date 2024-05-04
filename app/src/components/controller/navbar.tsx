@@ -2,6 +2,8 @@ import ThemeToggler from "@/components/ui/theme-toggler";
 import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useController } from "./controller-provider";
+import { v4 } from "uuid";
+import { IWindow } from "@/types";
 
 export default function ControllerNavbar() {
   const {
@@ -18,8 +20,8 @@ export default function ControllerNavbar() {
           </Link>
         </div>
         <div>
-          <Button className="me-3" onClick={() => addWindow({theme: 'black', mode: 'slide'})}>Add presentation (black)</Button>
-          <Button className="me-3" onClick={() => addWindow({theme: 'chromaKey', mode: 'part'})}>Add presentation (chroma key)</Button>
+          <Button className="me-3" onClick={() => addWindow({id: v4(), theme: 'black', mode: 'slide'} as IWindow)}>Add presentation (black)</Button>
+          <Button className="me-3" onClick={() => addWindow({id: v4(), theme: 'chromaKey', mode: 'part'} as IWindow)}>Add presentation (chroma key)</Button>
           <Button className="me-3" onClick={() => closeAllWindows()}>Close all presentations</Button>
           <ThemeToggler></ThemeToggler>
         </div>

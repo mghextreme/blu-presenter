@@ -1,6 +1,8 @@
-export interface ISlide {
-  title?: string
-  subtitle?: string
+import { ISlideContent } from "./slide-content.interface"
 
-  parts?: string[]
+export interface ISlide {
+  id?: string
+
+  content?: ISlideContent[]
+  background?: any
 }

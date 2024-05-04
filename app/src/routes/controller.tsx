@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import SlideVisualizer from "@/components/controller/slide-visualizer";
 import SlideSelector from "@/components/controller/slide-selector";
@@ -9,6 +9,8 @@ import ArrowLeftIcon from "@heroicons/react/24/outline/ArrowLeftIcon";
 import ArrowRightIcon from "@heroicons/react/24/outline/ArrowRightIcon";
 import StopSolidIcon from "@heroicons/react/24/solid/StopIcon";
 import FingerPrintSolidIcon from "@heroicons/react/24/solid/FingerPrintIcon";
+import { IWindow } from "@/types";
+import { v4 } from "uuid";
 
 export default function Controller() {
   const {
@@ -17,9 +19,10 @@ export default function Controller() {
     selectedItem,
     next,
     previous,
-    windows,
+    setBlank,
+    setLogo,
   } = useController();
-  
+
   const contentWrapper = useRef();
   const slideRefs = useRef([]);
 
@@ -40,6 +43,11 @@ export default function Controller() {
   });
 }, [slideIndex]);
 
+  const [preview, setPreview] = useState<IWindow | undefined>(undefined);
+  const openPreview = () => {
+    setPreview({id: v4(), theme: 'black', mode: 'slide'} as IWindow);
+  }
+
   return (
     <>
       <div id="controller" className="p-3 flex flex-1 gap-3 overflow-hidden">
@@ -53,20 +61,28 @@ export default function Controller() {
             <h4>{selectedItem?.artist}</h4>
             <ul className="overflow-y-auto">
               {selectedItem?.slides.map((s, ix) => (
-                <li key={ix} className="whitespace-pre-wrap mt-4">{s?.parts?.join('\n')}</li>
+                <li key={ix} className="whitespace-pre-wrap mt-4">{s?.content?.join('\n')}</li>
               ))}
             </ul>
           </div>
         </div>
         <div id="live" className="w-1/3 bg-background rounded flex flex-col items-stretch overflow-hidden">
+          <div id="preview" className="p-3 pb-0 flex justify-stretch flex-0">
+            {!preview && <Button onClick={openPreview} title="Open Preview" className="flex-1">
+              Open preview
+            </Button>}
+            {preview && <div className="flex-1 aspect-[16/9] rounded">
+              <SlideVisualizer theme={preview.theme} fontSize={'2.2vh'} mode={preview.mode}></SlideVisualizer>
+            </div>}
+          </div>
           <div id="controls" className="p-3 grid grid-cols-4 gap-2 flex-0">
             <Button onClick={previous} title="Previous">
               <ArrowLeftIcon className="size-4"></ArrowLeftIcon>
             </Button>
-            <Button title="Blank">
+            <Button onClick={setBlank} title="Blank">
               <StopSolidIcon className="size-4"></StopSolidIcon>
             </Button>
-            <Button title="Visual identity">
+            <Button onClick={setLogo} title="Visual identity">
               <FingerPrintSolidIcon className="size-4"></FingerPrintSolidIcon>
             </Button>
             <Button onClick={next} title="Next">
@@ -83,9 +99,6 @@ export default function Controller() {
             </div>
           ))}
           </div>
-          {windows.length > 0 && <div id="preview" className="flex-0 aspect-[16/9]">
-            <SlideVisualizer theme={windows[0].theme} fontSize={'2.2vh'} mode={windows[0].mode}></SlideVisualizer>
-          </div>}
         </div>
       </div>
     </>
