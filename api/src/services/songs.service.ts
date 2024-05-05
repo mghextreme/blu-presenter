@@ -15,11 +15,23 @@ export class SongsService {
   }
 
   async search(query: string): Promise<Song[]> {
-    return this.songsRepository.find({
+    const idsFound = await this.songsRepository.find({
       where: [
         { title: ILike(`%${query}%`) },
         { blocks: { text: ILike(`%${query}%`) } },
       ],
+      select: {
+        id: true,
+      },
     });
+
+    if (idsFound.length == 0) return [];
+
+    return await this.songsRepository
+      .createQueryBuilder('songs')
+      .innerJoinAndSelect('songs.blocks', 'parts')
+      .where('songs.id IN (:idsFound)', { idsFound: idsFound.map((x) => x.id) })
+      .orderBy('songs.title')
+      .getMany();
   }
 }

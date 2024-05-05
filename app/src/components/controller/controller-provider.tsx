@@ -1,140 +1,11 @@
 import { createContext, useContext, useState } from "react"
-import { v4 as uuidv4, v4 } from "uuid";
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
 
 import SlideVisualizer from "./slide-visualizer"
 import ScreenSelector from "./screen-selector"
-import { IScheduleItem, ISong, IWindow, ISlide, ControllerMode, ISlideTitleContent, ISlideTextContent, ISlideImageContent } from "@/types"
+import { IScheduleItem, IWindow, ISlide, ControllerMode, ISlideTextContent, ISlideImageContent } from "@/types"
 import WindowProvider from "./window-provider"
-
-const exampleSong = {
-  id: v4(),
-  title: 'Senhor, Te Quero',
-  artist: 'Vineyard',
-  blocks: [],
-  slides: [
-    {},
-    {
-      content: [
-        {
-          type: 'title',
-          title: 'Senhor, Te Quero',
-          subtitle: 'Vineyard',
-        } as ISlideTitleContent,
-        {
-          type: 'lyrics',
-          text: 'Eu Te busco, Te procuro, oh Deus\n\
-No silêncio Tu estás',
-        } as ISlideTextContent,
-        {
-          type: 'lyrics',
-          text: 'Eu Te busco, toda hora espero em Ti\n\
-Revela-Te a mim',
-        } as ISlideTextContent,
-        {
-          type: 'lyrics',
-          text: 'Conhecer-Te eu quero mais',
-        } as ISlideTextContent,
-      ],
-    },
-    {
-      content: [
-        {
-          type: 'lyrics',
-          text: 'Senhor, Te quero, quero ouvir Tua voz\n\
-Senhor, Te quero mais',
-        } as ISlideTextContent,
-        {
-          type: 'lyrics',
-          text: 'Quero tocar-Te, Tua face eu quero ver\n\
-Senhor, Te quero mais',
-        } as ISlideTextContent,
-      ],
-    },
-    {},
-    {
-      content: [
-        {
-          type: 'lyrics',
-          text: 'Prosseguindo para o alvo eu vou\n\
-A coroa conquistar',
-        } as ISlideTextContent,
-        {
-          type: 'lyrics',
-          text: 'Vou lutando, nada pode me impedir\n\
-Eu vou Te seguir',
-        } as ISlideTextContent,
-        {
-          type: 'lyrics',
-          text: 'Conhecer-Te eu quero mais',
-        } as ISlideTextContent,
-      ],
-    },
-    {
-      content: [
-        {
-          type: 'lyrics',
-          text: 'Senhor, Te quero, quero ouvir Tua voz\n\
-Senhor, Te quero mais',
-        } as ISlideTextContent,
-        {
-          type: 'lyrics',
-          text: 'Quero tocar-Te, Tua face eu quero ver\n\
-Senhor, Te quero mais',
-        } as ISlideTextContent,
-      ],
-    },
-    {},
-    {
-      content: [
-        {
-          type: 'lyrics',
-          text: 'Prosseguindo para o alvo eu vou\n\
-A coroa conquistar',
-        } as ISlideTextContent,
-        {
-          type: 'lyrics',
-          text: 'Vou lutando, nada pode me impedir\n\
-Eu vou Te seguir',
-        } as ISlideTextContent,
-        {
-          type: 'lyrics',
-          text: 'Conhecer-Te eu quero mais',
-        } as ISlideTextContent,
-      ],
-    },
-    {
-      content: [
-        {
-          type: 'lyrics',
-          text: 'Senhor, Te quero, quero ouvir Tua voz\n\
-Senhor, Te quero mais',
-        } as ISlideTextContent,
-        {
-          type: 'lyrics',
-          text: 'Quero tocar-Te, Tua face eu quero ver\n\
-Senhor, Te quero mais',
-        } as ISlideTextContent,
-      ],
-    },
-    {
-      content: [
-        {
-          type: 'lyrics',
-          text: 'Senhor, Te quero, quero ouvir Tua voz\n\
-Senhor, Te quero mais',
-        } as ISlideTextContent,
-        {
-          type: 'lyrics',
-          text: 'Quero tocar-Te, Tua face eu quero ver\n\
-Senhor, Te quero mais',
-        } as ISlideTextContent,
-      ],
-    },
-    {},
-  ]
-} as ISong;
 
 type ControllerProviderProps = {
   children: React.ReactNode
@@ -144,6 +15,8 @@ type ControllerProviderState = {
   mode: ControllerMode,
 
   schedule: IScheduleItem[],
+  addToSchedule: (item: IScheduleItem) => void,
+
   scheduleItemIndex: number,
   scheduleItem?: IScheduleItem,
   setScheduleItem: (ix: number) => void,
@@ -175,9 +48,11 @@ type ControllerProviderState = {
 const initialState: ControllerProviderState = {
   mode: 'part',
 
-  schedule: [exampleSong],
+  schedule: [],
+  addToSchedule: () => null,
+
   scheduleItemIndex: 0,
-  scheduleItem: exampleSong,
+  scheduleItem: undefined,
   setScheduleItem: () => null,
 
   selectedSlide: {},
@@ -295,6 +170,14 @@ export default function ControllerProvider({
     mode,
 
     schedule,
+    addToSchedule: (item: IScheduleItem) => {
+      const newValue = [
+        ...schedule,
+        item
+      ];
+      setSchedule(() => newValue);
+    },
+
     scheduleItemIndex,
     scheduleItem: scheduleItem,
     setScheduleItem: (ix: number) => {
@@ -357,10 +240,6 @@ export default function ControllerProvider({
 
     windows,
     addWindow: (window: IWindow) => {
-      if (!window.id) {
-        window.id = uuidv4();
-      }
-
       const newValue = [
         ...windows,
         window

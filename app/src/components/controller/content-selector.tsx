@@ -4,6 +4,7 @@ import { useController } from "./controller-provider";
 type ContentSelectorParams = {
   content: ISlideContent
   selected?: boolean
+  disabled?: boolean
   slideIndex: number
   contentIndex: number
 }
@@ -11,6 +12,7 @@ type ContentSelectorParams = {
 export default function ContentSelector({
   content,
   selected = false,
+  disabled = false,
   slideIndex,
   contentIndex,
 }: ContentSelectorParams) {
@@ -32,7 +34,7 @@ export default function ContentSelector({
   }
 
   return (
-    <div className={"flex flex-row align-stretch justify-stretch my-2 rounded" + (mode == 'part' ? ' cursor-pointer hover:bg-card' : '') + (mode == 'part' && selected ? ' bg-selected' : '')} onClick={mode == 'part' ? () => setPartIndex(slideIndex, contentIndex) : undefined}>
+    <div className={"flex flex-row align-stretch justify-stretch my-2 rounded" + (!disabled && mode == 'part' ? ' cursor-pointer hover:bg-card' : '') + (mode == 'part' && selected ? ' bg-selected' : '')} onClick={!disabled && mode == 'part' ? () => setPartIndex(slideIndex, contentIndex) : undefined}>
       {mode == 'part' ? (
         <div className={"flex-0 p-1 me-3 rounded min-h-8" + (selected ? '' : ' bg-card')}></div>
       ) : undefined}

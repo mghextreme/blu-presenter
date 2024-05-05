@@ -3,29 +3,24 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardHeaderActions, CardHeaderText, CardTitle } from "../ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
 import { useController } from "./controller-provider";
-import { IScheduleItem } from "@/types";
-import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
+import { IScheduleSong } from "@/types";
+import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
 import ChevronUpDownIcon from "@heroicons/react/24/solid/ChevronUpDownIcon";
 import SlideSelector from "./slide-selector";
 
-type ScheduleItemParams = {
-  item: IScheduleItem
-  selected?: boolean
-  index: number
+type SongSearchResultParams = {
+  item: IScheduleSong
 }
 
-export default function ScheduleItem({
+export default function SongSearchResult({
   item,
-  selected = false,
-  index,
-}: ScheduleItemParams) {
+}: SongSearchResultParams) {
   const {
-    mode,
-    setScheduleItem,
+    addToSchedule,
   } = useController();
 
-  const loadSong = () => {
-    setScheduleItem(index);
+  const addSong = () => {
+    addToSchedule(item);
   }
 
   const [isExpanded, setExpanded] = useState<boolean>(false);
@@ -36,7 +31,7 @@ export default function ScheduleItem({
         open={isExpanded}
         onOpenChange={setExpanded}
         className="w-full">
-        <CardHeader className={selected ? 'bg-selected' : ''}>
+        <CardHeader>
           <CardHeaderText>
             <CardTitle>{item?.title}</CardTitle>
             <CardDescription>{item?.artist}</CardDescription>
@@ -47,15 +42,15 @@ export default function ScheduleItem({
                 <ChevronUpDownIcon className="size-4"></ChevronUpDownIcon>
               </Button>
             </CollapsibleTrigger>
-            <Button size="sm" title="Load song" onClick={loadSong}>
-              <PlayIcon className="size-3"></PlayIcon>
+            <Button size="sm" title="Add song to schedule" onClick={addSong}>
+              <PlusIcon className="size-3"></PlusIcon>
             </Button>
           </CardHeaderActions>
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="bg-background pt-3">
             {item?.slides.map((s, ix) => (
-              <SlideSelector key={ix} slide={s} index={ix}></SlideSelector>
+              <SlideSelector key={ix} slide={s} index={ix} disabled={true}></SlideSelector>
             ))}
           </CardContent>
         </CollapsibleContent>

@@ -1,7 +1,7 @@
-import { IScheduleItem } from "./schedule-item.interface";
 import { ISongPart } from "./song-part.interface";
 
-export interface ISong extends IScheduleItem {
+export interface ISong {
+  title: string
   artist?: string
   blocks?: ISongPart[]
 }

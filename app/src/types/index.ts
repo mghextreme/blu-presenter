@@ -1,5 +1,6 @@
 export * from './controller-mode.type';
 export * from './schedule-item.interface';
+export * from './schedule-song.interface';
 export * from './slide-content.interface';
 export * from './slide-content-type.type';
 export * from './slide-image-content.interface';

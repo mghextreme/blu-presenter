@@ -1,21 +1,35 @@
+"use client"
+
 import { useEffect, useRef, useState } from "react";
 
 import SlideVisualizer from "@/components/controller/slide-visualizer";
 import SlideSelector from "@/components/controller/slide-selector";
 import ScheduleItem from "@/components/controller/schedule-item";
+import SongSearchResult from "@/components/controller/song-search-result";
 import { useController } from "@/components/controller/controller-provider";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 import ArrowLeftIcon from "@heroicons/react/24/outline/ArrowLeftIcon";
 import ArrowRightIcon from "@heroicons/react/24/outline/ArrowRightIcon";
 import StopSolidIcon from "@heroicons/react/24/solid/StopIcon";
 import FingerPrintSolidIcon from "@heroicons/react/24/solid/FingerPrintIcon";
+import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
-import { IWindow } from "@/types";
+import { IScheduleSong, IWindow } from "@/types";
 import { v4 } from "uuid";
 import { cn } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { SongsService } from "@/services/songs.service";
+
+const searchFormSchema = z.object({
+  query: z.string().min(3),
+});
 
 const themeOptions = [
   {
@@ -80,16 +94,63 @@ export default function Controller() {
     setPreviewTheme(theme);
   }
 
+  const form = useForm<z.infer<typeof searchFormSchema>>({
+    resolver: zodResolver(searchFormSchema),
+    defaultValues: {
+      query: "",
+    },
+  });
+  const [searching, setSearching] = useState<boolean>(false);
+  const [searchResults, setSearchResults] = useState<IScheduleSong[]>([]);
+  const songsService = new SongsService();
+
+  const onSubmit = async (values: z.infer<typeof searchFormSchema>) => {
+    try {
+      setSearching(true);
+      const songs = await songsService.search(values.query);
+      setSearchResults(songs.map(songsService.toScheduleSong));
+    } finally {
+      setSearching(false);
+    }
+  }
+
   return (
     <>
       <div id="controller" className="p-3 flex flex-1 gap-3 overflow-hidden">
-        <div id="plan" className="w-1/3 p-3 bg-background rounded">
-          <div>Search songs</div>
-          <div>Add song to schedule</div>
+        <div id="plan" className="w-1/3 bg-background rounded flex flex-col justify-start items-stretch overflow-hidden">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="p-3 flex flex-row w-full justify-stretch space-x-3">
+              <FormField
+                control={form.control}
+                name="query"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormControl>
+                      <Input placeholder="Search songs..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}></FormField>
+              <Button className="flex-0" type="submit" disabled={searching}>
+                {searching ? (
+                  <>
+                    Searching...
+                    <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+                  </>
+                ) : (
+                  <span>Search</span>
+                )}</Button>
+            </form>
+          </Form>
+          <div className="p-3 pt-0 flex-1 overflow-y-auto flex flex-col justify-start items-stretch overflow-y-auto gap-3">
+            {searchResults.length > 0 && searchResults.map((item, ix) => (
+              <SongSearchResult key={`${item.id}-${ix}`} item={item}></SongSearchResult>
+            ))}
+          </div>
         </div>
-        <div id="schedule" className="w-1/3 p-3 bg-background rounded flex flex-col justify-start items-stretch overflow-y-auto">
+        <div id="schedule" className="w-1/3 p-3 bg-background rounded flex flex-col justify-start items-stretch overflow-y-auto gap-3">
           {schedule.map((item, ix) => (
-            <ScheduleItem key={`${item.id}-${ix}`} item={item} selected={ix === scheduleItemIndex} index={ix}></ScheduleItem>
+            <ScheduleItem key={`${item.id}-${ix}`} item={item} selected={ix === scheduleItemIndex && scheduleItem?.id === item.id} index={ix}></ScheduleItem>
           ))}
         </div>
         <div id="live" className="w-1/3 bg-background rounded flex flex-col items-stretch overflow-hidden">
@@ -168,7 +229,7 @@ export default function Controller() {
               <ArrowRightIcon className="size-4"></ArrowRightIcon>
             </Button>
           </div>
-          <div id="content" className="px-3 flex-1 overflow-y-auto" ref={contentWrapper}>
+          <div id="content" className="p-3 pt-0 flex-1 overflow-y-auto" ref={contentWrapper}>
           {scheduleItem?.slides.map((s, ix) => (
             <div key={`${mode}-${ix}`} ref={el => slideRefs.current[ix] = el}>
               <SlideSelector
