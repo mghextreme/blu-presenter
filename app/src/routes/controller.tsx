@@ -39,6 +39,7 @@ export default function Controller() {
     previous,
     setBlank,
     setLogo,
+    overrideSlide,
   } = useController();
 
   const contentWrapper = useRef();
@@ -157,10 +158,10 @@ export default function Controller() {
             <Button onClick={previous} title="Previous">
               <ArrowLeftIcon className="size-4"></ArrowLeftIcon>
             </Button>
-            <Button onClick={setBlank} title="Blank">
+            <Button onClick={setBlank} title="Blank" variant={overrideSlide?.id == 'blank' ? 'muted' : 'default'}>
               <StopSolidIcon className="size-4"></StopSolidIcon>
             </Button>
-            <Button onClick={setLogo} title="Visual identity">
+            <Button onClick={setLogo} title="Visual identity" variant={overrideSlide?.id == 'logo' ? 'muted' : 'default'}>
               <FingerPrintSolidIcon className="size-4"></FingerPrintSolidIcon>
             </Button>
             <Button onClick={next} title="Next">
