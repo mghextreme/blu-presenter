@@ -1,12 +1,140 @@
 import { createContext, useContext, useState } from "react"
-import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4, v4 } from "uuid";
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
 
 import SlideVisualizer from "./slide-visualizer"
 import ScreenSelector from "./screen-selector"
-import { IScheduleItem, ISong, IWindow, ISlide, ControllerMode, ISlideTitleContent, ISlideTextContent, ISlideContent, ISlideImageContent } from "@/types"
+import { IScheduleItem, ISong, IWindow, ISlide, ControllerMode, ISlideTitleContent, ISlideTextContent, ISlideImageContent } from "@/types"
 import WindowProvider from "./window-provider"
+
+const exampleSong = {
+  id: v4(),
+  title: 'Senhor, Te Quero',
+  artist: 'Vineyard',
+  blocks: [],
+  slides: [
+    {},
+    {
+      content: [
+        {
+          type: 'title',
+          title: 'Senhor, Te Quero',
+          subtitle: 'Vineyard',
+        } as ISlideTitleContent,
+        {
+          type: 'lyrics',
+          text: 'Eu Te busco, Te procuro, oh Deus\n\
+No silêncio Tu estás',
+        } as ISlideTextContent,
+        {
+          type: 'lyrics',
+          text: 'Eu Te busco, toda hora espero em Ti\n\
+Revela-Te a mim',
+        } as ISlideTextContent,
+        {
+          type: 'lyrics',
+          text: 'Conhecer-Te eu quero mais',
+        } as ISlideTextContent,
+      ],
+    },
+    {
+      content: [
+        {
+          type: 'lyrics',
+          text: 'Senhor, Te quero, quero ouvir Tua voz\n\
+Senhor, Te quero mais',
+        } as ISlideTextContent,
+        {
+          type: 'lyrics',
+          text: 'Quero tocar-Te, Tua face eu quero ver\n\
+Senhor, Te quero mais',
+        } as ISlideTextContent,
+      ],
+    },
+    {},
+    {
+      content: [
+        {
+          type: 'lyrics',
+          text: 'Prosseguindo para o alvo eu vou\n\
+A coroa conquistar',
+        } as ISlideTextContent,
+        {
+          type: 'lyrics',
+          text: 'Vou lutando, nada pode me impedir\n\
+Eu vou Te seguir',
+        } as ISlideTextContent,
+        {
+          type: 'lyrics',
+          text: 'Conhecer-Te eu quero mais',
+        } as ISlideTextContent,
+      ],
+    },
+    {
+      content: [
+        {
+          type: 'lyrics',
+          text: 'Senhor, Te quero, quero ouvir Tua voz\n\
+Senhor, Te quero mais',
+        } as ISlideTextContent,
+        {
+          type: 'lyrics',
+          text: 'Quero tocar-Te, Tua face eu quero ver\n\
+Senhor, Te quero mais',
+        } as ISlideTextContent,
+      ],
+    },
+    {},
+    {
+      content: [
+        {
+          type: 'lyrics',
+          text: 'Prosseguindo para o alvo eu vou\n\
+A coroa conquistar',
+        } as ISlideTextContent,
+        {
+          type: 'lyrics',
+          text: 'Vou lutando, nada pode me impedir\n\
+Eu vou Te seguir',
+        } as ISlideTextContent,
+        {
+          type: 'lyrics',
+          text: 'Conhecer-Te eu quero mais',
+        } as ISlideTextContent,
+      ],
+    },
+    {
+      content: [
+        {
+          type: 'lyrics',
+          text: 'Senhor, Te quero, quero ouvir Tua voz\n\
+Senhor, Te quero mais',
+        } as ISlideTextContent,
+        {
+          type: 'lyrics',
+          text: 'Quero tocar-Te, Tua face eu quero ver\n\
+Senhor, Te quero mais',
+        } as ISlideTextContent,
+      ],
+    },
+    {
+      content: [
+        {
+          type: 'lyrics',
+          text: 'Senhor, Te quero, quero ouvir Tua voz\n\
+Senhor, Te quero mais',
+        } as ISlideTextContent,
+        {
+          type: 'lyrics',
+          text: 'Quero tocar-Te, Tua face eu quero ver\n\
+Senhor, Te quero mais',
+        } as ISlideTextContent,
+      ],
+    },
+    {},
+  ]
+} as ISong;
 
 type ControllerProviderProps = {
   children: React.ReactNode
@@ -16,7 +144,9 @@ type ControllerProviderState = {
   mode: ControllerMode,
 
   schedule: IScheduleItem[],
-  selectedItem?: IScheduleItem,
+  scheduleItemIndex: number,
+  scheduleItem?: IScheduleItem,
+  setScheduleItem: (ix: number) => void,
 
   selectedSlide?: ISlide,
   overrideSlide?: ISlide,
@@ -45,133 +175,10 @@ type ControllerProviderState = {
 const initialState: ControllerProviderState = {
   mode: 'part',
 
-  schedule: [],
-  selectedItem: {
-    title: 'Senhor, Te Quero',
-    artist: 'Vineyard',
-    blocks: [],
-    slides: [
-      {},
-      {
-        content: [
-          {
-            type: 'title',
-            title: 'Senhor, Te Quero',
-            subtitle: 'Vineyard',
-          } as ISlideTitleContent,
-          {
-            type: 'lyrics',
-            text: 'Eu Te busco, Te procuro, oh Deus\n\
-No silêncio Tu estás',
-          } as ISlideTextContent,
-          {
-            type: 'lyrics',
-            text: 'Eu Te busco, toda hora espero em Ti\n\
-Revela-Te a mim',
-          } as ISlideTextContent,
-          {
-            type: 'lyrics',
-            text: 'Conhecer-Te eu quero mais',
-          } as ISlideTextContent,
-        ],
-      },
-      {
-        content: [
-          {
-            type: 'lyrics',
-            text: 'Senhor, Te quero, quero ouvir Tua voz\n\
-Senhor, Te quero mais',
-          } as ISlideTextContent,
-          {
-            type: 'lyrics',
-            text: 'Quero tocar-Te, Tua face eu quero ver\n\
-Senhor, Te quero mais',
-          } as ISlideTextContent,
-        ],
-      },
-      {},
-      {
-        content: [
-          {
-            type: 'lyrics',
-            text: 'Prosseguindo para o alvo eu vou\n\
-A coroa conquistar',
-          } as ISlideTextContent,
-          {
-            type: 'lyrics',
-            text: 'Vou lutando, nada pode me impedir\n\
-Eu vou Te seguir',
-          } as ISlideTextContent,
-          {
-            type: 'lyrics',
-            text: 'Conhecer-Te eu quero mais',
-          } as ISlideTextContent,
-        ],
-      },
-      {
-        content: [
-          {
-            type: 'lyrics',
-            text: 'Senhor, Te quero, quero ouvir Tua voz\n\
-Senhor, Te quero mais',
-          } as ISlideTextContent,
-          {
-            type: 'lyrics',
-            text: 'Quero tocar-Te, Tua face eu quero ver\n\
-Senhor, Te quero mais',
-          } as ISlideTextContent,
-        ],
-      },
-      {},
-      {
-        content: [
-          {
-            type: 'lyrics',
-            text: 'Prosseguindo para o alvo eu vou\n\
-A coroa conquistar',
-          } as ISlideTextContent,
-          {
-            type: 'lyrics',
-            text: 'Vou lutando, nada pode me impedir\n\
-Eu vou Te seguir',
-          } as ISlideTextContent,
-          {
-            type: 'lyrics',
-            text: 'Conhecer-Te eu quero mais',
-          } as ISlideTextContent,
-        ],
-      },
-      {
-        content: [
-          {
-            type: 'lyrics',
-            text: 'Senhor, Te quero, quero ouvir Tua voz\n\
-Senhor, Te quero mais',
-          } as ISlideTextContent,
-          {
-            type: 'lyrics',
-            text: 'Quero tocar-Te, Tua face eu quero ver\n\
-Senhor, Te quero mais',
-          } as ISlideTextContent,
-        ],
-      },
-      {
-        content: [
-          {
-            type: 'lyrics',
-            text: 'Senhor, Te quero, quero ouvir Tua voz\n\
-Senhor, Te quero mais',
-          } as ISlideTextContent,
-          {
-            type: 'lyrics',
-            text: 'Quero tocar-Te, Tua face eu quero ver\n\
-Senhor, Te quero mais',
-          } as ISlideTextContent,
-        ],
-      },
-      {},
-    ]
-  } as ISong,
+  schedule: [exampleSong],
+  scheduleItemIndex: 0,
+  scheduleItem: exampleSong,
+  setScheduleItem: () => null,
 
   selectedSlide: {},
   overrideSlide: undefined,
@@ -206,7 +213,8 @@ export default function ControllerProvider({
   const [mode, setMode] = useState<ControllerMode>(initialState.mode);
 
   const [schedule, setSchedule] = useState<IScheduleItem[]>(initialState.schedule);
-  const [selectedItem, setSelectedItem] = useState<IScheduleItem | undefined>(initialState.selectedItem);
+  const [scheduleItem, setScheduleItem] = useState<IScheduleItem | undefined>(initialState.scheduleItem);
+  const [scheduleItemIndex, setScheduleItemIx] = useState<number>(initialState.scheduleItemIndex);
 
   const [selectedSlide, setSelectedSlide] = useState<ISlide | undefined>(initialState.selectedSlide);
   const [overrideSlide, setOverrideSlide] = useState<ISlide | undefined>(initialState.overrideSlide);
@@ -217,29 +225,29 @@ export default function ControllerProvider({
   const [windows, setWindows] = useState<IWindow[]>([]);
 
   const setSlideIndex = (ix: number) => {
-    if (selectedItem && ix >= 0 && ix < selectedItem.slides.length) {
+    if (scheduleItem && ix >= 0 && ix < scheduleItem.slides.length) {
       setSlideIx(ix);
-      setSelectedSlide(selectedItem?.slides[ix]);
+      setSelectedSlide(scheduleItem?.slides[ix]);
       setOverrideSlide(undefined);
       setPartIx(0);
     }
   };
   const previousSlide = () => {
-    if (selectedItem && slideIndex > 0) {
+    if (scheduleItem && slideIndex > 0) {
       const newIndex = slideIndex - 1;
       setSlideIx(newIndex);
 
-      const newSlide = selectedItem?.slides[newIndex];
+      const newSlide = scheduleItem?.slides[newIndex];
       setSelectedSlide(newSlide);
       setOverrideSlide(undefined);
       setPartIx((newSlide?.content?.length ?? 1) - 1);
     }
   };
   const nextSlide = () => {
-    if (selectedItem && slideIndex + 1 < selectedItem.slides.length) {
+    if (scheduleItem && slideIndex + 1 < scheduleItem.slides.length) {
       const newIndex = slideIndex + 1;
       setSlideIx(newIndex);
-      setSelectedSlide(selectedItem?.slides[newIndex]);
+      setSelectedSlide(scheduleItem?.slides[newIndex]);
       setOverrideSlide(undefined);
       setPartIx(0);
     }
@@ -287,7 +295,18 @@ export default function ControllerProvider({
     mode,
 
     schedule,
-    selectedItem,
+    scheduleItemIndex,
+    scheduleItem: scheduleItem,
+    setScheduleItem: (ix: number) => {
+      if (ix < 0 || ix >= schedule.length) return;
+
+      const newItem = schedule[ix];
+      setScheduleItemIx(ix);
+      setScheduleItem(newItem);
+      setSlideIx(0);
+      setSelectedSlide(newItem.slides[0]);
+      setPartIx(0);
+    },
 
     selectedSlide,
     overrideSlide,
@@ -325,7 +344,7 @@ export default function ControllerProvider({
     setPartIndex: (slideIx: number, ix: number) => {
       setSlideIndex(slideIx);
 
-      const newSlide = selectedItem?.slides[slideIx];
+      const newSlide = scheduleItem?.slides[slideIx];
       if (newSlide && ix >= 0 && ix < (newSlide.content?.length ?? 1)) {
         setPartIx(ix);
       }

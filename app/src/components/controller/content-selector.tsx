@@ -3,7 +3,7 @@ import { useController } from "./controller-provider";
 
 type ContentSelectorParams = {
   content: ISlideContent
-  selected: boolean
+  selected?: boolean
   slideIndex: number
   contentIndex: number
 }

@@ -5,7 +5,7 @@ import { ISlide } from "@/types";
 
 type SlideSelectorParams = {
   slide: ISlide
-  selected: boolean
+  selected?: boolean
   index: number
 }
 

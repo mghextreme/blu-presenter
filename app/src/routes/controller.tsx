@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import SlideVisualizer from "@/components/controller/slide-visualizer";
 import SlideSelector from "@/components/controller/slide-selector";
+import ScheduleItem from "@/components/controller/schedule-item";
 import { useController } from "@/components/controller/controller-provider";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -30,8 +31,10 @@ const themeOptions = [
 export default function Controller() {
   const {
     mode,
+    schedule,
     slideIndex,
-    selectedItem,
+    scheduleItem,
+    scheduleItemIndex,
     next,
     previous,
     setBlank,
@@ -42,8 +45,8 @@ export default function Controller() {
   const slideRefs = useRef([]);
 
   useEffect(() => {
-    slideRefs.current = slideRefs.current.slice(0, (selectedItem?.slides?.length ?? 0));
- }, [selectedItem]);
+    slideRefs.current = slideRefs.current.slice(0, (scheduleItem?.slides?.length ?? 0));
+ }, [scheduleItem]);
 
  useEffect(() => {
   const wrapper: Element = contentWrapper.current;
@@ -83,16 +86,10 @@ export default function Controller() {
           <div>Search songs</div>
           <div>Add song to schedule</div>
         </div>
-        <div id="schedule" className="w-1/3 p-3 bg-background rounded flex flex-col items-stretch">
-          <div className="flex-1 overflow-y-auto">
-            <h3>{selectedItem?.title}</h3>
-            <h4>{selectedItem?.artist}</h4>
-            <ul className="overflow-y-auto">
-              {selectedItem?.slides.map((s, ix) => (
-                <li key={ix} className="whitespace-pre-wrap mt-4">{s?.content?.join('\n')}</li>
-              ))}
-            </ul>
-          </div>
+        <div id="schedule" className="w-1/3 p-3 bg-background rounded flex flex-col justify-start items-stretch overflow-y-auto">
+          {schedule.map((item, ix) => (
+            <ScheduleItem key={`${item.id}-${ix}`} item={item} selected={ix === scheduleItemIndex} index={ix}></ScheduleItem>
+          ))}
         </div>
         <div id="live" className="w-1/3 bg-background rounded flex flex-col items-stretch overflow-hidden">
           <div id="preview" className="relative p-3 pb-0 flex justify-stretch flex-0">
@@ -171,7 +168,7 @@ export default function Controller() {
             </Button>
           </div>
           <div id="content" className="px-3 flex-1 overflow-y-auto" ref={contentWrapper}>
-          {selectedItem?.slides.map((s, ix) => (
+          {scheduleItem?.slides.map((s, ix) => (
             <div key={`${mode}-${ix}`} ref={el => slideRefs.current[ix] = el}>
               <SlideSelector
                 slide={s}
