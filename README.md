@@ -23,3 +23,27 @@ pnpm dev
 ```sh
 pnpm build
 ```
+
+## API
+
+```sh
+cd api
+```
+
+### Install
+
+```sh
+pnpm install
+```
+
+### Develop
+
+```sh
+pnpm start:dev
+```
+
+### Build
+
+```sh
+pnpm build
+```
