@@ -16,10 +16,11 @@ type ControllerProviderState = {
 
   schedule: IScheduleItem[],
   addToSchedule: (item: IScheduleItem) => void,
+  removeFromSchedule: (ix: number) => null,
 
-  scheduleItemIndex: number,
+  scheduleItemIndex?: number,
   scheduleItem?: IScheduleItem,
-  setScheduleItem: (ix: number) => void,
+  setScheduleItem: (ix: number, item?: IScheduleItem) => void,
 
   selectedSlide?: ISlide,
   overrideSlide?: ISlide,
@@ -50,8 +51,9 @@ const initialState: ControllerProviderState = {
 
   schedule: [],
   addToSchedule: () => null,
+  removeFromSchedule: () => null,
 
-  scheduleItemIndex: 0,
+  scheduleItemIndex: undefined,
   scheduleItem: undefined,
   setScheduleItem: () => null,
 
@@ -89,7 +91,7 @@ export default function ControllerProvider({
 
   const [schedule, setSchedule] = useState<IScheduleItem[]>(initialState.schedule);
   const [scheduleItem, setScheduleItem] = useState<IScheduleItem | undefined>(initialState.scheduleItem);
-  const [scheduleItemIndex, setScheduleItemIx] = useState<number>(initialState.scheduleItemIndex);
+  const [scheduleItemIndex, setScheduleItemIx] = useState<number | undefined>(initialState.scheduleItemIndex);
 
   const [selectedSlide, setSelectedSlide] = useState<ISlide | undefined>(initialState.selectedSlide);
   const [overrideSlide, setOverrideSlide] = useState<ISlide | undefined>(initialState.overrideSlide);
@@ -177,10 +179,34 @@ export default function ControllerProvider({
       ];
       setSchedule(() => newValue);
     },
+    removeFromSchedule: (ix: number) => {
+      if (scheduleItemIndex !== undefined) {
+        if (ix == scheduleItemIndex) {
+          setScheduleItemIx(undefined);
+        } else if (ix < scheduleItemIndex) {
+          setScheduleItemIx(scheduleItemIndex - 1);
+        }
+      }
+
+      const newValue = [
+        ...schedule.slice(0, ix),
+        ...schedule.slice(ix + 1),
+      ]
+      setSchedule(newValue);
+    },
 
     scheduleItemIndex,
     scheduleItem: scheduleItem,
-    setScheduleItem: (ix: number) => {
+    setScheduleItem: (ix: number, item?: IScheduleItem) => {
+      if (ix === undefined && item !== undefined) {
+        setScheduleItemIx(undefined);
+        setScheduleItem(item);
+        setSlideIx(0);
+        setSelectedSlide(item.slides[0]);
+        setPartIx(0);
+        return;
+      }
+
       if (ix < 0 || ix >= schedule.length) return;
 
       const newItem = schedule[ix];

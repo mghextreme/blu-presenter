@@ -6,6 +6,7 @@ import { useController } from "./controller-provider";
 import { IScheduleItem } from "@/types";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 import ChevronUpDownIcon from "@heroicons/react/24/solid/ChevronUpDownIcon";
+import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import SlideSelector from "./slide-selector";
 
 type ScheduleItemParams = {
@@ -20,12 +21,16 @@ export default function ScheduleItem({
   index,
 }: ScheduleItemParams) {
   const {
-    mode,
     setScheduleItem,
+    removeFromSchedule,
   } = useController();
 
   const loadSong = () => {
     setScheduleItem(index);
+  }
+
+  const removeSong = () => {
+    removeFromSchedule(index);
   }
 
   const [isExpanded, setExpanded] = useState<boolean>(false);
@@ -47,6 +52,9 @@ export default function ScheduleItem({
                 <ChevronUpDownIcon className="size-4"></ChevronUpDownIcon>
               </Button>
             </CollapsibleTrigger>
+            <Button size="sm" title="Remove song" onClick={removeSong}>
+              <TrashIcon className="size-3"></TrashIcon>
+            </Button>
             <Button size="sm" title="Load song" onClick={loadSong}>
               <PlayIcon className="size-3"></PlayIcon>
             </Button>

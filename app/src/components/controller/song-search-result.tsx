@@ -7,6 +7,7 @@ import { IScheduleSong } from "@/types";
 import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
 import ChevronUpDownIcon from "@heroicons/react/24/solid/ChevronUpDownIcon";
 import SlideSelector from "./slide-selector";
+import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 
 type SongSearchResultParams = {
   item: IScheduleSong
@@ -17,10 +18,15 @@ export default function SongSearchResult({
 }: SongSearchResultParams) {
   const {
     addToSchedule,
+    setScheduleItem,
   } = useController();
 
   const addSong = () => {
     addToSchedule(item);
+  }
+
+  const loadSong = () => {
+    setScheduleItem(undefined, item);
   }
 
   const [isExpanded, setExpanded] = useState<boolean>(false);
@@ -44,6 +50,9 @@ export default function SongSearchResult({
             </CollapsibleTrigger>
             <Button size="sm" title="Add song to schedule" onClick={addSong}>
               <PlusIcon className="size-3"></PlusIcon>
+            </Button>
+            <Button size="sm" title="Load song" onClick={loadSong}>
+              <PlayIcon className="size-3"></PlayIcon>
             </Button>
           </CardHeaderActions>
         </CardHeader>
