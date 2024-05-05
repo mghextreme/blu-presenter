@@ -4,13 +4,28 @@ import SlideVisualizer from "@/components/controller/slide-visualizer";
 import SlideSelector from "@/components/controller/slide-selector";
 import { useController } from "@/components/controller/controller-provider";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 
 import ArrowLeftIcon from "@heroicons/react/24/outline/ArrowLeftIcon";
 import ArrowRightIcon from "@heroicons/react/24/outline/ArrowRightIcon";
 import StopSolidIcon from "@heroicons/react/24/solid/StopIcon";
 import FingerPrintSolidIcon from "@heroicons/react/24/solid/FingerPrintIcon";
+import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 import { IWindow } from "@/types";
 import { v4 } from "uuid";
+import { cn } from "@/lib/utils";
+
+const themeOptions = [
+  {
+    value: "black",
+    label: "Black (slide)",
+  },
+  {
+    value: "chromaKey",
+    label: "Chroma Key (subtitles)",
+  },
+];
 
 export default function Controller() {
   const {
@@ -45,10 +60,20 @@ export default function Controller() {
 
   const [preview, setPreview] = useState<IWindow | undefined>(undefined);
   const openPreview = () => {
-    setPreview({id: v4(), theme: 'black', mode: 'slide'} as IWindow);
+    setPreview({id: v4(), theme: previewTheme, mode: previewTheme == 'black' ? 'slide' : 'part'} as IWindow);
   }
   const closePreview = () => {
     setPreview(undefined);
+  }
+
+  const [openPreviewSelector, setOpenPreviewSelector] = useState<boolean>(false);
+  const [previewTheme, setPreviewTheme] = useState<string>("black");
+
+  const updatePreviewTheme = (theme: string) => {
+    if (theme === preview?.theme) return;
+
+    setPreview({id: v4(), theme: theme, mode: theme == 'black' ? 'slide' : 'part'} as IWindow);
+    setPreviewTheme(theme);
   }
 
   return (
@@ -78,7 +103,51 @@ export default function Controller() {
               <>
                 <div className="absolute left-3 top-3 right-3 bottom-0 opacity-0 hover:opacity-100 transition-opacity">
                   <div className="p-3 flex justify-end">
-                    <Button onClick={closePreview} title="Close preview">Close</Button>
+                    <Popover open={openPreviewSelector} onOpenChange={setOpenPreviewSelector}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="flex-1 justify-between"
+                        >
+                          {themeOptions.find((option) => option.value === previewTheme)?.label}
+                          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput placeholder="Search theme..." className="h-9" />
+                          <CommandEmpty>No theme found.</CommandEmpty>
+                          <CommandGroup>
+                            {themeOptions.map((option) => (
+                              <CommandItem
+                                key={option.value}
+                                value={option.value}
+                                onSelect={(currentValue) => {
+                                  updatePreviewTheme(currentValue);
+                                  setOpenPreviewSelector(false);
+                                }}
+                              >
+                                {option.label}
+                                <CheckIcon
+                                  className={cn(
+                                    "ml-auto h-4 w-4",
+                                    previewTheme === option.value ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <Button
+                      onClick={closePreview}
+                      title="Close preview"
+                      className="ms-3"
+                      variant="outline">
+                      Close
+                    </Button>
                   </div>
                 </div>
                 <div className="flex-1 aspect-[16/9] rounded overflow-hidden">
