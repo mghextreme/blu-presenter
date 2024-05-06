@@ -1,4 +1,7 @@
 import { useTheme } from "@/components/theme-provider"
+import SunIcon from "@heroicons/react/24/solid/SunIcon";
+import MoonIcon from "@heroicons/react/24/solid/MoonIcon";
+import ComputerIcon from "@heroicons/react/24/solid/ComputerDesktopIcon";
 import { Button } from "./button";
 
 export default function ThemeToggler() {
@@ -7,12 +10,18 @@ export default function ThemeToggler() {
   const toggleTheme = () => {
     if (theme == 'dark') {
       setTheme('light');
+    } else if (theme == 'light') {
+      setTheme('system');
     } else {
       setTheme('dark');
     }
   }
 
   return (
-    <Button onClick={toggleTheme}>{theme == 'dark' ? 'Light' : 'Dark'} Mode</Button>
+    <Button onClick={toggleTheme} title={'Mode: ' + theme}>
+      {theme == 'light' && <SunIcon className="size-3"></SunIcon>}
+      {theme == 'dark' && <MoonIcon className="size-3"></MoonIcon>}
+      {theme == 'system' && <ComputerIcon className="size-3"></ComputerIcon>}
+    </Button>
   )
 }

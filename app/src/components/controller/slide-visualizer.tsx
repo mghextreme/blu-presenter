@@ -47,10 +47,10 @@ export default function SlideVisualizer({
 
   const getTitleContent = (content: ISlideTitleContent) => {
     return (
-      <>
+      <div className={theme == 'black' ? 'py-[1em]' : ''}>
         <h1 className="text-[1.25em]">{content.title}</h1>
         {content?.subtitle && <h2 className="text-[.75em]">{content.subtitle}</h2>}
-      </>
+      </div>
     )
   }
 
@@ -63,6 +63,10 @@ export default function SlideVisualizer({
   }
 
   const getImageContent = (content: ISlideImageContent) => {
+    if (mode == "part") {
+      return <></>;
+    }
+
     return (
       <div className="flex justify-center">
         <img src={content.url} alt={content.alt} />
@@ -74,9 +78,9 @@ export default function SlideVisualizer({
     <div className={'w-full h-full leading-[1.15em] p-[.5em] flex flex-col items-stretch text-white text-center ' + themeClass} style={{fontSize: fontSize}}>
       {toShow.map((c, ix) => (
         <div key={ix}>
-          {c.type == "title" ? getTitleContent(c as ISlideTitleContent) : undefined}
-          {c.type == "lyrics" ? getTextContent(c as ISlideTextContent) : undefined}
-          {c.type == "image" ? getImageContent(c as ISlideImageContent) : undefined}
+          {c.type == "title" && getTitleContent(c as ISlideTitleContent)}
+          {c.type == "lyrics" && getTextContent(c as ISlideTextContent)}
+          {c.type == "image" && getImageContent(c as ISlideImageContent)}
         </div>
       ))}
     </div>

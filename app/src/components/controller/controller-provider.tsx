@@ -26,6 +26,7 @@ type ControllerProviderState = {
   overrideSlide?: ISlide,
   setBlank: () => void,
   setLogo: () => void,
+  clearOverrideSlide: () => void,
 
   slideIndex: number,
   setSlideIndex: (ix: number) => void,
@@ -61,6 +62,7 @@ const initialState: ControllerProviderState = {
   overrideSlide: undefined,
   setBlank: () => null,
   setLogo: () => null,
+  clearOverrideSlide: () => null,
 
   slideIndex: 0,
   setSlideIndex: () => null,
@@ -242,6 +244,9 @@ export default function ControllerProvider({
           } as ISlideImageContent,
         ],
       } as ISlide);
+    },
+    clearOverrideSlide: () => {
+      setOverrideSlide(undefined);
     },
 
     slideIndex,

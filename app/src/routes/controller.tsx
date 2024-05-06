@@ -54,6 +54,7 @@ export default function Controller() {
     setBlank,
     setLogo,
     overrideSlide,
+    clearOverrideSlide,
   } = useController();
 
   const contentWrapper = useRef();
@@ -92,6 +93,21 @@ export default function Controller() {
 
     setPreview({id: v4(), theme: theme, mode: theme == 'black' ? 'slide' : 'part'} as IWindow);
     setPreviewTheme(theme);
+  }
+
+  const toggleBlank = () => {
+    if (overrideSlide?.id == 'blank') {
+      clearOverrideSlide();
+    } else {
+      setBlank();
+    }
+  }
+  const toggleLogo = () => {
+    if (overrideSlide?.id == 'logo') {
+      clearOverrideSlide();
+    } else {
+      setLogo();
+    }
   }
 
   const form = useForm<z.infer<typeof searchFormSchema>>({
@@ -219,10 +235,10 @@ export default function Controller() {
             <Button onClick={previous} title="Previous">
               <ArrowLeftIcon className="size-4"></ArrowLeftIcon>
             </Button>
-            <Button onClick={setBlank} title="Blank" variant={overrideSlide?.id == 'blank' ? 'muted' : 'default'}>
+            <Button onClick={toggleBlank} title="Blank" variant={overrideSlide?.id == 'blank' ? 'muted' : 'default'}>
               <StopSolidIcon className="size-4"></StopSolidIcon>
             </Button>
-            <Button onClick={setLogo} title="Visual identity" variant={overrideSlide?.id == 'logo' ? 'muted' : 'default'}>
+            <Button onClick={toggleLogo} title="Visual identity" variant={overrideSlide?.id == 'logo' ? 'muted' : 'default'}>
               <FingerPrintSolidIcon className="size-4"></FingerPrintSolidIcon>
             </Button>
             <Button onClick={next} title="Next">
