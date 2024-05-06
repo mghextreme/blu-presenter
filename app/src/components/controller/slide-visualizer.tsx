@@ -1,6 +1,7 @@
 import { ControllerMode, ISlideContent, ISlideImageContent, ISlideTextContent, ISlideTitleContent } from "@/types";
 import { useController } from "./controller-provider";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useWindow } from "./window-provider";
 
 type SlideVisualizerProps = {
   mode: ControllerMode
@@ -11,13 +12,38 @@ type SlideVisualizerProps = {
 export default function SlideVisualizer({
   mode,
   theme = 'black',
-  fontSize = '8vh'
 }: SlideVisualizerProps) {
   const {
     selectedSlide,
     overrideSlide,
     partIndex,
   } = useController();
+  
+  const {childWindow} = useWindow();
+
+  const wrapperDiv = useRef();
+  const [fontSize, setFontSize] = useState<string>('8vh');
+  const updateFontSize = () => {
+    const w = wrapperDiv?.current?.clientWidth ?? 1280;
+    const h = wrapperDiv?.current?.clientHeight ?? 720;
+
+    const relW = w / 16;
+    const relH = h / 9;
+    const minRel = Math.min(relW, relH);
+
+    setFontSize((minRel / 1.5).toFixed(2) + 'px');
+  }
+
+  useEffect(() => {
+    updateFontSize();
+
+    const targetWindow = childWindow ?? window;
+    targetWindow.addEventListener("resize", updateFontSize);
+
+    return () => {
+      targetWindow.removeEventListener("resize", updateFontSize);
+    }
+  }, [childWindow]);
 
   const [toShow, setToShow] = useState<ISlideContent[]>([]);
   useEffect(() => {
@@ -75,7 +101,10 @@ export default function SlideVisualizer({
   }
 
   return (
-    <div className={'w-full h-full leading-[1.15em] p-[.5em] flex flex-col items-stretch text-white text-center ' + themeClass} style={{fontSize: fontSize}}>
+    <div
+      ref={wrapperDiv}
+      className={'w-full h-full leading-[1.15em] p-[.5em] flex flex-col items-stretch text-white text-center ' + themeClass}
+      style={{fontSize: fontSize}}>
       {toShow.map((c, ix) => (
         <div key={ix}>
           {c.type == "title" && getTitleContent(c as ISlideTitleContent)}

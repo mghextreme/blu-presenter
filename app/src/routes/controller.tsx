@@ -85,15 +85,59 @@ export default function Controller() {
     setPreview(undefined);
   }
 
-  const [openPreviewSelector, setOpenPreviewSelector] = useState<boolean>(false);
+  const defaultRatioOptions = [
+    {
+      value: "16/9",
+      label: "16 x 9",
+    },
+    {
+      value: "4/3",
+      label: "4 x 3",
+    },
+  ];
+
+  const [openPreviewThemeSelector, setOpenPreviewThemeSelector] = useState<boolean>(false);
   const [previewTheme, setPreviewTheme] = useState<string>("black");
+  const [openPreviewRatioSelector, setOpenPreviewRatioSelector] = useState<boolean>(false);
+  const [previewRatio, setPreviewRatio] = useState<string>("16/9");
+  const [ratioOptions, setRatioOptions] = useState<{value: string, label: string}[]>(defaultRatioOptions);
 
   const updatePreviewTheme = (theme: string) => {
     if (theme === preview?.theme) return;
 
-    setPreview({id: v4(), theme: theme, mode: theme == 'black' ? 'slide' : 'part'} as IWindow);
     setPreviewTheme(theme);
+    setPreview({id: v4(), theme: theme, mode: theme == 'black' ? 'slide' : 'part'} as IWindow);
   }
+  const updatePreviewRatio = (ratio: string) => {
+    if (ratio === previewRatio) return;
+
+    setPreviewRatio(ratio);
+  }
+
+  useEffect(() => {
+    const screenDetailsPromise = window.getScreenDetails();
+    if (screenDetailsPromise) {
+      screenDetailsPromise.then((details) => {
+        const screenRatioOptions = details.screens.map((s, ix) => {
+          const screenZoom = s.devicePixelRatio;
+          const w = Math.round(s.width * screenZoom);
+          const h = Math.round(s.height * screenZoom);
+          const name = s.label == '' ? 'Display ' + (ix + 1) : s.label;
+          const resolution = '(' + (screenZoom != 1 ? 'aprox. ' : '') + w + ' x ' + h + ')';
+
+          return {
+            value: `${w}/${h}`,
+            label: `${name} ${resolution}`,
+          }
+        });
+
+        setRatioOptions([
+          ...defaultRatioOptions,
+          ...screenRatioOptions,
+        ]);
+      })
+    }
+  }, []);
 
   const toggleBlank = () => {
     if (overrideSlide?.id == 'blank') {
@@ -178,14 +222,14 @@ export default function Controller() {
               <>
                 <div className="absolute left-3 top-3 right-3 bottom-0 opacity-0 hover:opacity-100 transition-opacity">
                   <div className="p-3 flex justify-end">
-                    <Popover open={openPreviewSelector} onOpenChange={setOpenPreviewSelector}>
+                    <Popover open={openPreviewThemeSelector} onOpenChange={setOpenPreviewThemeSelector}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           role="combobox"
-                          className="flex-1 justify-between"
+                          className="flex-1 justify-between me-2"
                         >
-                          {themeOptions.find((option) => option.value === previewTheme)?.label}
+                          {themeOptions.find((option) => option.value == previewTheme)?.label}
                           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
@@ -200,7 +244,7 @@ export default function Controller() {
                                 value={option.value}
                                 onSelect={(currentValue) => {
                                   updatePreviewTheme(currentValue);
-                                  setOpenPreviewSelector(false);
+                                  setOpenPreviewThemeSelector(false);
                                 }}
                               >
                                 {option.label}
@@ -216,17 +260,54 @@ export default function Controller() {
                         </Command>
                       </PopoverContent>
                     </Popover>
+                    <Popover open={openPreviewRatioSelector} onOpenChange={setOpenPreviewRatioSelector}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className="flex-1 justify-between me-2"
+                        >
+                          {ratioOptions.find((option) => option.value == previewRatio)?.label}
+                          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0">
+                        <Command>
+                          <CommandInput placeholder="Search screen or ratio..." className="h-9" />
+                          <CommandEmpty>No screen or ratio found.</CommandEmpty>
+                          <CommandGroup>
+                            {ratioOptions.map((option) => (
+                              <CommandItem
+                                key={option.value}
+                                value={option.value}
+                                onSelect={(currentValue) => {
+                                  updatePreviewRatio(currentValue);
+                                  setOpenPreviewRatioSelector(false);
+                                }}
+                              >
+                                {option.label}
+                                <CheckIcon
+                                  className={cn(
+                                    "ml-auto h-4 w-4",
+                                    previewRatio === option.value ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <Button
                       onClick={closePreview}
                       title="Close preview"
-                      className="ms-3"
                       variant="outline">
                       Close
                     </Button>
                   </div>
                 </div>
-                <div className="flex-1 aspect-[16/9] rounded overflow-hidden">
-                  <SlideVisualizer theme={preview.theme} fontSize={'2.2vh'} mode={preview.mode}></SlideVisualizer>
+                <div className={"flex-1 rounded overflow-hidden "} style={{aspectRatio: previewRatio}}>
+                  <SlideVisualizer theme={preview.theme} mode={preview.mode}></SlideVisualizer>
                 </div>
               </>
             )}
