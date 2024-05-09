@@ -5,7 +5,7 @@ export default function AppSidebar() {
     <aside className="flex h-screen w-80 flex-col overflow-y-hidden bg-card">
       <div className="flex items-center justify-between px-6 py-5">
         <Link to="/">
-          <span className="text-2xl">Blu Slides</span>
+          <span className="text-2xl">Blu Presenter</span>
         </Link>
       </div>
       <div className="no-scrollbar flex flex-col overflow-y-auto">
