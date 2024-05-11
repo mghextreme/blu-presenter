@@ -18,7 +18,7 @@ export default function ThemeToggler() {
   }
 
   return (
-    <Button onClick={toggleTheme} title={'Mode: ' + theme}>
+    <Button onClick={toggleTheme} title={'Theme: ' + theme}>
       {theme == 'light' && <SunIcon className="size-3"></SunIcon>}
       {theme == 'dark' && <MoonIcon className="size-3"></MoonIcon>}
       {theme == 'system' && <ComputerIcon className="size-3"></ComputerIcon>}

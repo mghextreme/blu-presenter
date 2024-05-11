@@ -13,10 +13,11 @@ type ControllerProviderProps = {
 
 type ControllerProviderState = {
   mode: ControllerMode,
+  setMode: (mode: ControllerMode) => void,
 
   schedule: IScheduleItem[],
   addToSchedule: (item: IScheduleItem) => void,
-  removeFromSchedule: (ix: number) => null,
+  removeFromSchedule: (ix: number) => void,
 
   scheduleItemIndex?: number,
   scheduleItem?: IScheduleItem,
@@ -49,6 +50,7 @@ type ControllerProviderState = {
 
 const initialState: ControllerProviderState = {
   mode: 'part',
+  setMode: () => null,
 
   schedule: [],
   addToSchedule: () => null,
@@ -172,6 +174,7 @@ export default function ControllerProvider({
 
   const initialValue = {
     mode,
+    setMode,
 
     schedule,
     addToSchedule: (item: IScheduleItem) => {

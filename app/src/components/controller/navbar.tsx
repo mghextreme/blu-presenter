@@ -1,4 +1,5 @@
 import ThemeToggler from "@/components/ui/theme-toggler";
+import ModeToggler from "@/components/ui/mode-toggler";
 import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useController } from "./controller-provider";
@@ -10,6 +11,7 @@ import XMarkIcon from "@heroicons/react/24/solid/XMarkIcon";
 
 export default function ControllerNavbar() {
   const {
+    setMode,
     windows,
     addWindow,
     closeAllWindows,
@@ -23,22 +25,23 @@ export default function ControllerNavbar() {
             <span className="text-2xl">Blu Presenter</span>
           </Link>
         </div>
-        <div className="flex-0 flex flex-row items-center">
+        <div className="flex-0 flex flex-row items-center space-x-2">
           <DropdownMenu>
             <DropdownMenuTrigger>
-              <Button className="me-2">
+              <Button>
                 Go live
                 <PlayIcon className="ms-2 size-4"></PlayIcon>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem className="cursor-pointer" onClick={() => addWindow({id: v4(), theme: 'black', mode: 'slide'} as IWindow)}>Black (slide)</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => addWindow({id: v4(), theme: 'chromaKey', mode: 'part'} as IWindow)}>Chroma Key (subtitles)</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => {addWindow({id: v4(), theme: 'chromaKey', mode: 'part'} as IWindow); setMode('part')}}>Chroma Key (subtitles)</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          {windows.length > 0 && <Button className="me-2" title="Close presentations" onClick={() => closeAllWindows()}>
+          {windows.length > 0 && <Button title="Close presentations" onClick={() => closeAllWindows()}>
             <XMarkIcon className="size-4"></XMarkIcon>
           </Button>}
+          <ModeToggler></ModeToggler>
           <ThemeToggler></ThemeToggler>
         </div>
       </div>
