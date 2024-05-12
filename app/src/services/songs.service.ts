@@ -28,6 +28,7 @@ export class SongsService {
         content.push({
           type: 'title',
           title: song.title,
+          subtitle: song.artist,
         } as ISlideTitleContent);
       }
 

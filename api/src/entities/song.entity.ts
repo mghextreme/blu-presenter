@@ -9,6 +9,9 @@ export class Song {
   @Column({ name: 'name' })
   title: string;
 
+  @Column()
+  artist: string;
+
   @OneToMany(() => SongPart, (songPart) => songPart.song, { eager: true })
   blocks: SongPart[];
 }
