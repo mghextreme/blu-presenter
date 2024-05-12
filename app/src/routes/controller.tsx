@@ -221,15 +221,15 @@ export default function Controller() {
             {preview && (
               <>
                 <div className="absolute left-3 top-3 right-3 bottom-0 opacity-0 hover:opacity-100 transition-opacity">
-                  <div className="p-3 flex justify-end">
+                  <div className="p-3 flex justify-stretch max-w-full space-x-2">
                     <Popover open={openPreviewThemeSelector} onOpenChange={setOpenPreviewThemeSelector}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
                           role="combobox"
-                          className="flex-1 justify-between me-2"
+                          className="flex-1 justify-between overflow-hidden"
                         >
-                          {themeOptions.find((option) => option.value == previewTheme)?.label}
+                          <span className="truncate">{themeOptions.find((option) => option.value == previewTheme)?.label}</span>
                           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
@@ -242,8 +242,8 @@ export default function Controller() {
                               <CommandItem
                                 key={option.value}
                                 value={option.value}
-                                onSelect={(currentValue) => {
-                                  updatePreviewTheme(currentValue);
+                                onSelect={() => {
+                                  updatePreviewTheme(option.value);
                                   setOpenPreviewThemeSelector(false);
                                 }}
                               >
@@ -265,9 +265,9 @@ export default function Controller() {
                         <Button
                           variant="outline"
                           role="combobox"
-                          className="flex-1 justify-between me-2"
+                          className="flex-1 justify-between overflow-hidden"
                         >
-                          {ratioOptions.find((option) => option.value == previewRatio)?.label}
+                          <span className="truncate">{ratioOptions.find((option) => option.value == previewRatio)?.label}</span>
                           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                         </Button>
                       </PopoverTrigger>
