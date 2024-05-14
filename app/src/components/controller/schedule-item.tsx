@@ -63,7 +63,7 @@ export default function ScheduleItem({
         <CollapsibleContent>
           <CardContent className="bg-background pt-3">
             {item?.slides.map((s, ix) => (
-              <SlideSelector key={ix} slide={s} index={ix}></SlideSelector>
+              <SlideSelector key={ix} slide={s} index={ix} scheduleItemIndex={index}></SlideSelector>
             ))}
           </CardContent>
         </CollapsibleContent>

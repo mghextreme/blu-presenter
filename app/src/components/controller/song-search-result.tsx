@@ -26,7 +26,7 @@ export default function SongSearchResult({
   }
 
   const loadSong = () => {
-    setScheduleItem(undefined, item);
+    setScheduleItem(item);
   }
 
   const [isExpanded, setExpanded] = useState<boolean>(false);

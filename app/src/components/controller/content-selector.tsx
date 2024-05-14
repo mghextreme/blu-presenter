@@ -6,6 +6,7 @@ type ContentSelectorParams = {
   selected?: boolean
   disabled?: boolean
   slideIndex: number
+  scheduleItemIndex?: number
   contentIndex: number
 }
 
@@ -14,11 +15,12 @@ export default function ContentSelector({
   selected = false,
   disabled = false,
   slideIndex,
+  scheduleItemIndex = undefined,
   contentIndex,
 }: ContentSelectorParams) {
   const {
     mode,
-    setPartIndex,
+    setSelection,
   } = useController();
 
   const getTitleContent = (content: ISlideTitleContent) => {
@@ -34,7 +36,13 @@ export default function ContentSelector({
   }
 
   return (
-    <div className={"flex flex-row align-stretch justify-stretch my-2 rounded" + (!disabled && mode == 'part' ? ' cursor-pointer hover:bg-card' : '') + (mode == 'part' && selected ? ' bg-selected' : '')} onClick={!disabled && mode == 'part' ? () => setPartIndex(slideIndex, contentIndex) : undefined}>
+    <div
+      className={"flex flex-row align-stretch justify-stretch my-2 rounded" + (!disabled && mode == 'part' ? ' cursor-pointer hover:bg-card' : '') + (mode == 'part' && selected ? ' bg-selected' : '')}
+      onClick={!disabled && mode == 'part' ? () => setSelection({
+        scheduleItem: scheduleItemIndex,
+        slide: slideIndex,
+        part: contentIndex,
+      }) : undefined}>
       {mode == 'part' ? (
         <div className={"flex-0 p-1 me-3 rounded min-h-8" + (selected ? '' : ' bg-card')}></div>
       ) : undefined}

@@ -16,7 +16,7 @@ export default function SlideVisualizer({
   const {
     selectedSlide,
     overrideSlide,
-    partIndex,
+    selection,
   } = useController();
   
   const {childWindow} = useWindow();
@@ -56,11 +56,11 @@ export default function SlideVisualizer({
     content = selectedSlide?.content ?? [];
 
     if (mode == 'part') {
-      setToShow(content.length > 0 ? [content[partIndex]] : []);
+      setToShow(content.length > 0 ? [content[selection.part ?? 0]] : []);
     } else {
       setToShow(content);
     }
-  }, [mode, selectedSlide, overrideSlide, partIndex]);
+  }, [mode, selectedSlide, overrideSlide, selection]);
 
   const [themeClass, setThemeClass] = useState<string>('');
   useEffect(() => {

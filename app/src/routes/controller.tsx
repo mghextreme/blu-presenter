@@ -46,11 +46,10 @@ export default function Controller() {
   const {
     mode,
     schedule,
-    slideIndex,
     scheduleItem,
-    scheduleItemIndex,
     next,
     previous,
+    selection,
     setBlank,
     setLogo,
     overrideSlide,
@@ -66,7 +65,7 @@ export default function Controller() {
 
  useEffect(() => {
   const wrapper: Element = contentWrapper.current;
-  const slide: Element = slideRefs.current[slideIndex];
+  const slide: Element = slideRefs.current[selection.slide ?? 0];
 
   if (!wrapper || !slide) return;
 
@@ -75,7 +74,7 @@ export default function Controller() {
     top: slideTo,
     behavior: "smooth"
   });
-}, [slideIndex]);
+}, [selection]);
 
   const [preview, setPreview] = useState<IWindow | undefined>(undefined);
   const openPreview = () => {
@@ -210,7 +209,7 @@ export default function Controller() {
         </div>
         <div id="schedule" className="w-1/3 p-3 bg-background rounded flex flex-col justify-start items-stretch overflow-y-auto gap-3">
           {schedule.map((item, ix) => (
-            <ScheduleItem key={`${item.id}-${ix}`} item={item} selected={ix === scheduleItemIndex && scheduleItem?.id === item.id} index={ix}></ScheduleItem>
+            <ScheduleItem key={`${item.id}-${ix}`} item={item} selected={ix === selection.scheduleItem && scheduleItem?.id === item.id} index={ix}></ScheduleItem>
           ))}
         </div>
         <div id="live" className="w-1/3 bg-background rounded flex flex-col items-stretch overflow-hidden">
@@ -332,7 +331,7 @@ export default function Controller() {
               <SlideSelector
                 slide={s}
                 index={ix}
-                selected={slideIndex == ix}></SlideSelector>
+                selected={selection.slide == ix}></SlideSelector>
             </div>
           ))}
           </div>
