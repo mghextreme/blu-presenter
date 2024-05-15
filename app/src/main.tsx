@@ -14,6 +14,8 @@ import ControllerLayout from "./layouts/controller";
 import Welcome from "./routes/welcome";
 import Controller from "./routes/controller";
 
+import SongsIndex from "./routes/songs/index";
+
 import ThemeProvider from "@/components/theme-provider";
 
 const router = createBrowserRouter([
@@ -26,8 +28,8 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <Welcome /> },
           {
-            path: "controller",
-            element: <Controller />,
+            path: "songs",
+            element: <SongsIndex />,
           },
         ],
       },

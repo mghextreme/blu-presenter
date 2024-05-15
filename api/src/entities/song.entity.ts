@@ -12,6 +12,6 @@ export class Song {
   @Column()
   artist: string;
 
-  @OneToMany(() => SongPart, (songPart) => songPart.song, { eager: true })
+  @OneToMany(() => SongPart, (songPart) => songPart.song)
   blocks: SongPart[];
 }

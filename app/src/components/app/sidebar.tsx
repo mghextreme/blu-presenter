@@ -19,6 +19,11 @@ export default function AppSidebar() {
                   Controller
                 </Link>
               </li>
+              <li>
+                <Link to={'/songs'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                  Songs
+                </Link>
+              </li>
             </ul>
           </div>
         </nav>

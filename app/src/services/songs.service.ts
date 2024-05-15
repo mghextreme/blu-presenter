@@ -9,6 +9,16 @@ export class SongsService {
     this.url = api.url + '/songs';
   }
 
+  public async getAll(): Promise<ISong[]> {
+    const response = await fetch(this.url + '/');
+    if (!response.ok) {
+      return [];
+    }
+
+    const result = await response.json();
+    return result as ISong[];
+  }
+
   public async search(query: string): Promise<ISong[]> {
     const encodedQuery = encodeURIComponent(query);
     const response = await fetch(this.url + `/search/${encodedQuery}`);

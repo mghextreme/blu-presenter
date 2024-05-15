@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import configuration from './config/configuration';
 import { DatabaseConfigService, SongsService } from './services';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -21,6 +20,6 @@ import { SongsController } from './controllers';
     SongsModule,
   ],
   controllers: [AppController, SongsController],
-  providers: [AppService, SongsService],
+  providers: [SongsService],
 })
 export class AppModule {}

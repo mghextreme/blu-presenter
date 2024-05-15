@@ -6,6 +6,11 @@ import { SongsService } from 'src/services';
 export class SongsController {
   constructor(private songsService: SongsService) {}
 
+  @Get()
+  async findAll(): Promise<Song[]> {
+    return await this.songsService.findAll();
+  }
+
   @Get(':id')
   async findOne(@Param() params: any): Promise<Song> {
     return await this.songsService.findOne(params.id);

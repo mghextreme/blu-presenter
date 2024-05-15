@@ -11,7 +11,21 @@ export class SongsService {
   ) {}
 
   async findOne(id: number): Promise<Song | null> {
-    return this.songsRepository.findOneBy({ id });
+    return this.songsRepository.findOne({
+      where: { id },
+      relations: {
+        blocks: true,
+      },
+    });
+  }
+
+  async findAll(): Promise<Song[]> {
+    return this.songsRepository.find({
+      order: {
+        title: 'asc',
+        artist: 'asc',
+      },
+    });
   }
 
   async search(query: string): Promise<Song[]> {
