@@ -15,6 +15,7 @@ import Welcome from "./routes/welcome";
 import Controller from "./routes/controller";
 
 import SongsIndex from "./routes/songs/index";
+import EditSong, { loader as editSongLoader } from "./routes/songs/edit";
 
 import ThemeProvider from "@/components/theme-provider";
 
@@ -29,7 +30,14 @@ const router = createBrowserRouter([
           { index: true, element: <Welcome /> },
           {
             path: "songs",
-            element: <SongsIndex />,
+            children: [
+              { index: true, element: <SongsIndex /> },
+              {
+                path: ":id/edit",
+                element: <EditSong />,
+                loader: editSongLoader,
+              },
+            ]
           },
         ],
       },

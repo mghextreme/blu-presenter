@@ -1,7 +1,7 @@
 import { ISlide } from "./slide.interface"
 
 export interface IScheduleItem {
-  id: string
+  id: number
   index?: number
   title?: string
 

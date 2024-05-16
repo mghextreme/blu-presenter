@@ -1,5 +1,5 @@
 export interface ISongPart {
-  id?: string
+  id?: number
   text?: string
   chords?: string
 }

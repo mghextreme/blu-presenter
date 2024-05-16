@@ -1,7 +1,7 @@
 import { ISongPart } from "./song-part.interface";
 
 export interface ISong {
-  id?: number
+  id: number
   title: string
   artist?: string
   blocks?: ISongPart[]

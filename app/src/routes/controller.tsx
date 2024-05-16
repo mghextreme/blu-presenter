@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { SongsService } from "@/services/songs.service";
+import { SongsService } from "@/services";
 
 const searchFormSchema = z.object({
   query: z.string().min(3),

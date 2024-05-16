@@ -19,6 +19,16 @@ export class SongsService {
     return result as ISong[];
   }
 
+  public async getById(songId: number) {
+    const response = await fetch(this.url + `/${songId}`);
+    if (!response.ok) {
+      return [];
+    }
+
+    const result = await response.json();
+    return result as ISong;
+  }
+
   public async search(query: string): Promise<ISong[]> {
     const encodedQuery = encodeURIComponent(query);
     const response = await fetch(this.url + `/search/${encodedQuery}`);
@@ -69,6 +79,20 @@ export class SongsService {
         {},
       ],
     } as IScheduleSong;
+  }
+
+  async update(id: number, value: ISong) {
+    const response = await fetch(this.url + `/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(value),
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const result = await response.json();
+    return result as ISong[];
   }
 
 }
