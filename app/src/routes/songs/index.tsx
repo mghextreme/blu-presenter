@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLoaderData } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table"
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
@@ -8,6 +7,11 @@ import { Button } from "@/components/ui/button";
 import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
 import { SongsService } from "@/services";
+
+export async function loader() {
+  const songsService = new SongsService();
+  return await songsService.getAll();
+}
 
 const columns: ColumnDef<ISong>[] = [
   {
@@ -52,24 +56,12 @@ const columns: ColumnDef<ISong>[] = [
 
 export default function Songs() {
 
-  const songsService = new SongsService();
-
-  const [songs, setSongs] = useState<ISong[]>([]);
-
-  const updateSongs = () => {
-    songsService.getAll().then((songs) => {
-      setSongs(songs);
-    });
-  }
-
-  useEffect(() => {
-    updateSongs();
-  }, []);
+  const data = useLoaderData() as ISong[];
 
   return (
     <div className="p-8">
       <h1 className="text-3xl mb-4">Songs</h1>
-      <DataTable columns={columns} data={songs}></DataTable>
+      <DataTable columns={columns} data={data ?? []}></DataTable>
     </div>
   );
 }
