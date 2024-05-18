@@ -1,6 +1,7 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Put } from '@nestjs/common';
 import { Song } from 'src/entities';
 import { SongsService } from 'src/services';
+import { UpdateSongDto } from 'src/types';
 
 @Controller('songs')
 export class SongsController {
@@ -12,12 +13,20 @@ export class SongsController {
   }
 
   @Get(':id')
-  async findOne(@Param() params: any): Promise<Song> {
-    return await this.songsService.findOne(params.id);
+  async findOne(@Param('id') id: number): Promise<Song> {
+    return await this.songsService.findOne(id);
+  }
+
+  @Put(':id')
+  async update(
+    @Param('id') id: number,
+    @Body() updateSongDto: UpdateSongDto,
+  ): Promise<Song> {
+    return await this.songsService.update(id, updateSongDto);
   }
 
   @Get('search/:query')
-  async search(@Param() params: any): Promise<Song[]> {
-    return await this.songsService.search(params.query);
+  async search(@Param('query') query: string): Promise<Song[]> {
+    return await this.songsService.search(query);
   }
 }

@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
-import { Song } from '../entities';
+import { UpdateSongDto } from 'src/types';
+import { Song, SongPart } from 'src/entities';
 
 @Injectable()
 export class SongsService {
@@ -47,5 +48,24 @@ export class SongsService {
       .where('songs.id IN (:idsFound)', { idsFound: idsFound.map((x) => x.id) })
       .orderBy('songs.title')
       .getMany();
+  }
+
+  async update(id: number, updateSongDto: UpdateSongDto): Promise<Song> {
+    const song = await this.findOne(id);
+    song.title = updateSongDto.title;
+    song.artist = updateSongDto.artist;
+    song.blocks = updateSongDto.blocks.map((block, ix) => {
+      return {
+        order: ix,
+        text: block.text,
+        songId: id,
+      } as SongPart;
+    });
+
+    this.songsRepository.save(song).catch((err) => {
+      console.log(err);
+    });
+
+    return {} as Song;
   }
 }

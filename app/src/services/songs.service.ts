@@ -19,10 +19,10 @@ export class SongsService {
     return result as ISong[];
   }
 
-  public async getById(songId: number) {
+  public async getById(songId: number): Promise<ISong | undefined> {
     const response = await fetch(this.url + `/${songId}`);
     if (!response.ok) {
-      return [];
+      return;
     }
 
     const result = await response.json();
@@ -81,18 +81,21 @@ export class SongsService {
     } as IScheduleSong;
   }
 
-  async update(id: number, value: ISong) {
+  async update(id: number, value: ISong): Promise<ISong | undefined> {
     const response = await fetch(this.url + `/${id}`, {
       method: 'PUT',
+      headers: {
+        'content-type': 'application/json',
+      },
       body: JSON.stringify(value),
     });
 
     if (!response.ok) {
-      return [];
+      return;
     }
 
     const result = await response.json();
-    return result as ISong[];
+    return result as ISong;
   }
 
 }
