@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { useWindow } from "./window-provider";
+import { useWindow } from "@/hooks/window.provider";
 
 export default function ScreenSelector({ children }: { children: ReactNode }) {
   const [selected, setSelected] = useState(false);

@@ -6,7 +6,7 @@ import SlideVisualizer from "@/components/controller/slide-visualizer";
 import SlideSelector from "@/components/controller/slide-selector";
 import ScheduleItem from "@/components/controller/schedule-item";
 import SongSearchResult from "@/components/controller/song-search-result";
-import { useController } from "@/components/controller/controller-provider";
+import { useController } from "@/hooks/controller.provider";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";

@@ -4,7 +4,7 @@ export default function AppSidebar() {
   return (
     <aside className="flex h-screen w-80 flex-col overflow-y-hidden bg-card">
       <div className="flex items-center justify-between px-6 py-5">
-        <Link to="/">
+        <Link to="/app">
           <span className="text-2xl">Blu Presenter</span>
         </Link>
       </div>
@@ -15,12 +15,12 @@ export default function AppSidebar() {
 
             <ul className="mb-6 flex flex-col gap-1.5">
               <li>
-                <Link to={'/controller'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                <Link to={'/app/controller'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
                   Controller
                 </Link>
               </li>
               <li>
-                <Link to={'/songs'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                <Link to={'/app/songs'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
                   Songs
                 </Link>
               </li>

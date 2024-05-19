@@ -1,5 +1,5 @@
 import { ISlideContent, ISlideTextContent, ISlideTitleContent } from "@/types";
-import { useController } from "./controller-provider";
+import { useController } from "@/hooks/controller.provider";
 
 type ContentSelectorParams = {
   content: ISlideContent

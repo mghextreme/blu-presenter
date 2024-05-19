@@ -35,7 +35,7 @@ const columns: ColumnDef<ISong>[] = [
     cell: ({ row }) => {
       return (
         <div className="flex justify-end space-x-2 -m-1">
-          <Link to={`/songs/${row.original.id}/edit`}>
+          <Link to={`/app/songs/${row.original.id}/edit`}>
             <Button
               type="button"
               size="sm">

@@ -1,5 +1,25 @@
 # Blu Presenter
 
+## Supabase
+
+Check [Supabase documentation](https://supabase.com/docs).
+
+### Development
+
+```sh
+cd app
+supabase start
+```
+
+### Docker
+
+```sh
+cd docker
+docker compose up
+# Or the following to include some development helpers
+# docker compose up -f ./dev/docker-compose.dev.yml up
+```
+
 ## App
 
 Built around [react-router-dom](https://reactrouter.com/).

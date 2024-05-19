@@ -141,7 +141,7 @@ export default function EditSong() {
               ) : (
                 <span>Update</span>
               )}</Button>
-            <Link to={'/songs'}><Button className="flex-0" type="button" variant="secondary">Cancel</Button></Link>
+            <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">Cancel</Button></Link>
           </div>
         </form>
       </Form>
