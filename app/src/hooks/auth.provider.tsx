@@ -1,8 +1,8 @@
 import { createContext, useContext, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase as config } from "@/lib/config";
-import { Session, SignInWithPasswordCredentials, SignUpWithPasswordCredentials, User, createClient } from '@supabase/supabase-js'
+import { Session, SignInWithPasswordCredentials, SignUpWithPasswordCredentials, User } from '@supabase/supabase-js'
 import { useLocalStorage } from "./localstorage.hook";
+import { useSupabase } from "./supabase.provider";
 
 type AuthProviderProps = {
   children: React.ReactNode
@@ -30,7 +30,10 @@ const AuthContext = createContext<AuthProviderState>(initialState);
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
 
-  const supabase = useMemo(() => createClient(config.url, config.key), [config]);
+  const { supabase } = useSupabase();
+  if (!supabase) {
+    throw new Error("Supabase not initialized");
+  }
 
   const [user, setUser] = useLocalStorage("user", initialState.user);
   const [session, setSession] = useLocalStorage("session", initialState.session);
