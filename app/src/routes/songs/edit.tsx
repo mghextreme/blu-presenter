@@ -6,13 +6,13 @@ import { z } from "zod";
 import { ISong } from "@/types";
 import { SongsService } from "@/services";
 import { useServices } from "@/hooks/services.provider";
-import { cn } from "@/lib/utils";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, Params, useLoaderData, useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
+import Square2StackIcon from "@heroicons/react/24/solid/Square2StackIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 
 export async function loader({ params, songsService }: { params: Params, songsService: SongsService }) {
@@ -68,7 +68,7 @@ export default function EditSong({
     },
   });
 
-  const { fields: blocks, append, remove } = useFieldArray({
+  const { fields: blocks, append, remove, insert } = useFieldArray({
     name: "blocks",
     control: form.control,
   });
@@ -119,32 +119,40 @@ export default function EditSong({
             )}></FormField>
 
             <div className="flex flex-col items-stretch space-y-2">
+              <FormLabel>Parts</FormLabel>
               {blocks.map((field, ix: number) => (
-                <FormField
-                  control={form.control}
-                  key={field.id}
-                  name={`blocks.${ix}.text`}
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel className={cn(ix !== 0 && "sr-only")}>Parts</FormLabel>
-                      <div className="flex justify-stretch align-start space-x-2">
-                        <FormControl>
-                          <Textarea resize="auto" {...field} />
-                        </FormControl>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          disabled={blocks.length <= 1}
-                          onClick={() => remove(ix)}
-                        >
-                          <TrashIcon className="size-3" />
-                        </Button>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    key={field.id}
+                    name={`blocks.${ix}.text`}
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <div className="flex justify-stretch align-start space-x-2">
+                          <FormControl>
+                            <Textarea resize="auto" {...field} />
+                          </FormControl>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => insert(ix + 1, { text: field.value })}
+                          >
+                            <Square2StackIcon className="size-3" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            disabled={blocks.length <= 1}
+                            onClick={() => remove(ix)}
+                          >
+                            <TrashIcon className="size-3" />
+                          </Button>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
               ))}
             <Button
               type="button"
