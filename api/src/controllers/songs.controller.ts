@@ -1,7 +1,15 @@
-import { Body, Controller, Get, Param, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { Song } from 'src/entities';
 import { SongsService } from 'src/services';
-import { UpdateSongDto } from 'src/types';
+import { CreateSongDto, UpdateSongDto } from 'src/types';
 
 @Controller('songs')
 export class SongsController {
@@ -17,6 +25,16 @@ export class SongsController {
     return await this.songsService.findOne(id);
   }
 
+  @Get('search/:query')
+  async search(@Param('query') query: string): Promise<Song[]> {
+    return await this.songsService.search(query);
+  }
+
+  @Post()
+  async create(@Body() createSongDto: CreateSongDto): Promise<Song> {
+    return await this.songsService.create(createSongDto);
+  }
+
   @Put(':id')
   async update(
     @Param('id') id: number,
@@ -25,8 +43,8 @@ export class SongsController {
     return await this.songsService.update(id, updateSongDto);
   }
 
-  @Get('search/:query')
-  async search(@Param('query') query: string): Promise<Song[]> {
-    return await this.songsService.search(query);
+  @Delete(':id')
+  async delete(@Param('id') id: number): Promise<void> {
+    return await this.songsService.delete(id);
   }
 }

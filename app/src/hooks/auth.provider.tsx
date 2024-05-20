@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Session, SignInWithPasswordCredentials, SignUpWithPasswordCredentials, User } from '@supabase/supabase-js'
 import { useLocalStorage } from "./localstorage.hook";
@@ -31,17 +31,28 @@ const AuthContext = createContext<AuthProviderState>(initialState);
 export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const { supabase } = useSupabase();
-  if (!supabase) {
-    throw new Error("Supabase not initialized");
-  }
 
   const [user, setUser] = useLocalStorage("user", initialState.user);
   const [session, setSession] = useLocalStorage("session", initialState.session);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(user && session ? true : initialState.isLoggedIn);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    supabase!.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase!.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const login = async (credentials: SignInWithPasswordCredentials) => {
-    const result = await supabase.auth.signInWithPassword(credentials);
+    const result = await supabase!.auth.signInWithPassword(credentials);
     
     if (result.error) {
       throw new Error("Error signing up");
@@ -54,7 +65,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signUp = async (credentials: SignUpWithPasswordCredentials) => {
-    const result = await supabase.auth.signUp(credentials);
+    const result = await supabase!.auth.signUp(credentials);
     
     if (result.error) {
       throw new Error("Error signing up");

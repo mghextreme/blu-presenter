@@ -7,7 +7,6 @@ Check [Supabase documentation](https://supabase.com/docs).
 ### Development
 
 ```sh
-cd app
 supabase start
 ```
 

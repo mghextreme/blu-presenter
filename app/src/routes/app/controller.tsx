@@ -7,6 +7,7 @@ import SlideSelector from "@/components/controller/slide-selector";
 import ScheduleItem from "@/components/controller/schedule-item";
 import SongSearchResult from "@/components/controller/song-search-result";
 import { useController } from "@/hooks/controller.provider";
+import { useServices } from "@/hooks/services.provider";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
@@ -25,7 +26,6 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { SongsService } from "@/services";
 
 const searchFormSchema = z.object({
   query: z.string().min(3),
@@ -55,6 +55,8 @@ export default function Controller() {
     overrideSlide,
     clearOverrideSlide,
   } = useController();
+
+  const { songsService } = useServices();
 
   const contentWrapper = useRef();
   const slideRefs = useRef([]);
@@ -161,7 +163,6 @@ export default function Controller() {
   });
   const [searching, setSearching] = useState<boolean>(false);
   const [searchResults, setSearchResults] = useState<IScheduleSong[]>([]);
-  const songsService = new SongsService();
 
   const onSubmit = async (values: z.infer<typeof searchFormSchema>) => {
     try {

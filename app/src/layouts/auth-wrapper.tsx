@@ -4,7 +4,7 @@ import {
 
 import { AuthProvider } from "@/hooks/auth.provider";
 
-export default function AuthLayout() {
+export default function AuthWrapper() {
   return (
     <AuthProvider>
       <Outlet />

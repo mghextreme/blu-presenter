@@ -5,24 +5,24 @@ import { z } from "zod";
 
 import { ISong } from "@/types";
 import { SongsService } from "@/services";
+import { useServices } from "@/hooks/services.provider";
 import { cn } from "@/lib/utils";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link, useLoaderData } from "react-router-dom";
+import { Link, Params, useLoaderData, useNavigate } from "react-router-dom";
 import { Textarea } from "@/components/ui/textarea";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 
-export async function loader({ params }) {
-  const service = new SongsService();
-  return await service.getById(Number(params.id));
+export async function loader({ params, songsService }: { params: Params, songsService: SongsService }) {
+  return await songsService.getById(Number(params.id));
 }
 
 const formSchema = z.object({
   id: z.number(),
-  title: z.string().min(3),
-  artist: z.string().min(3).optional().or(z.literal('')),
+  title: z.string().min(2),
+  artist: z.string().min(2).optional().or(z.literal('')),
   blocks: z.array(
     z.object({
       id: z.number().optional(),
@@ -31,10 +31,30 @@ const formSchema = z.object({
   ),
 });
 
-export default function EditSong() {
+type EditSongProps = {
+  edit?: boolean
+}
 
-  const data = useLoaderData() as ISong;
-  const songsService = new SongsService();
+export default function EditSong({
+  edit = true
+}: EditSongProps) {
+
+  const loadedData = useLoaderData() as ISong;
+  const data = edit ? loadedData : {
+    id: 0,
+    title: '',
+    blocks: [{
+      text: '',
+    }]
+  };
+
+  const navigate = useNavigate();
+
+  const { songsService } = useServices();
+
+  if (!data) {
+    throw new Error("Can't find song");
+  }
 
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -56,7 +76,12 @@ export default function EditSong() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setLoading(true);
-      await songsService.update(data.id, values);
+      if (edit) {
+        await songsService.update(data.id, values);
+      } else {
+        await songsService.add(values);
+      }
+      navigate("/app/songs", { replace: true });
     } finally {
       setLoading(false);
     }
@@ -135,11 +160,11 @@ export default function EditSong() {
             <Button className="flex-0" type="submit" disabled={loading}>
               {loading ? (
                 <>
-                  Updating...
+                  {edit ? 'Updating...' : 'Adding...'}
                   <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
                 </>
               ) : (
-                <span>Update</span>
+                <span>{edit ? 'Update' : 'Add'}</span>
               )}</Button>
             <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">Cancel</Button></Link>
           </div>

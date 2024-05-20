@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 
 import {
   ColumnDef,
@@ -69,12 +69,14 @@ export const fuzzySort: SortingFn<any> = (rowA, rowB, columnId) => {
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+  data: TData[],
+  addButton: ReactNode
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  addButton = null,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -101,7 +103,7 @@ export function DataTable<TData, TValue>({
  
   return (
     <div className="space-y-4">
-      <DataTableHeader table={table} />
+      <DataTableHeader table={table} actions={addButton} />
       <div className="rounded border">
         <Table>
           <TableHeader>
