@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { Song } from './song.entity';
 
-@Entity({ name: 'parts', orderBy: () => 'order' })
+@Entity({ name: 'songparts', orderBy: () => 'order' })
 export class SongPart {
   @PrimaryGeneratedColumn()
   id: number;
@@ -9,7 +9,7 @@ export class SongPart {
   @Column()
   order: number;
 
-  @Column({ name: 'text' })
+  @Column()
   text: string;
 
   @Column()

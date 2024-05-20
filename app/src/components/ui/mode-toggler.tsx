@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useController } from "../controller/controller-provider";
+import { useController } from "@/hooks/controller.provider";
 import { Button } from "./button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./dialog";
 

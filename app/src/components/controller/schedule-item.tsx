@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardHeaderActions, CardHeaderText, CardTitle } from "../ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
-import { useController } from "./controller-provider";
+import { useController } from "@/hooks/controller.provider";
 import { IScheduleItem } from "@/types";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 import ChevronUpDownIcon from "@heroicons/react/24/solid/ChevronUpDownIcon";

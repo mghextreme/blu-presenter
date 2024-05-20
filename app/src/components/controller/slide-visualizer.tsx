@@ -1,7 +1,7 @@
 import { ControllerMode, ISlideContent, ISlideImageContent, ISlideTextContent, ISlideTitleContent } from "@/types";
-import { useController } from "./controller-provider";
+import { useController } from "@/hooks/controller.provider";
 import { useEffect, useRef, useState } from "react";
-import { useWindow } from "./window-provider";
+import { useWindow } from "@/hooks/window.provider";
 
 type SlideVisualizerProps = {
   mode: ControllerMode
@@ -74,15 +74,15 @@ export default function SlideVisualizer({
   const getTitleContent = (content: ISlideTitleContent) => {
     return (
       <div className={theme == 'black' ? 'py-[1em]' : ''}>
-        <h1 className="text-[1.25em]">{content.title}</h1>
-        {content?.subtitle && <h2 className="text-[.75em]">{content.subtitle}</h2>}
+        <h1 className="text-[1.25em] font-bold">{content.title}</h1>
+        {content?.subtitle && <h2 className="text-[.75em] font-medium">{content.subtitle}</h2>}
       </div>
     )
   }
 
   const getTextContent = (content: ISlideTextContent) => {
     return (
-      <div className="text-[1em] whitespace-pre-wrap">
+      <div className="text-[1em] whitespace-pre-wrap uppercase font-medium">
         {content.text}
       </div>
     )

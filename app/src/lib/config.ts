@@ -6,3 +6,11 @@ export const api = {
   port,
   url: `http://${host}:${port}`,
 }
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+
+export const supabase = {
+  url: supabaseUrl,
+  key: supabaseKey,
+}

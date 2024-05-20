@@ -6,12 +6,15 @@ export class Song {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ name: 'name' })
+  @Column()
   title: string;
 
   @Column()
   artist: string;
 
-  @OneToMany(() => SongPart, (songPart) => songPart.song)
+  @OneToMany(() => SongPart, (songPart) => songPart.song, {
+    cascade: true,
+    orphanedRowAction: 'delete',
+  })
   blocks: SongPart[];
 }

@@ -2,10 +2,10 @@ import { createContext, useContext, useEffect, useState } from "react"
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
 
-import SlideVisualizer from "./slide-visualizer"
-import ScreenSelector from "./screen-selector"
+import SlideVisualizer from "@/components/controller/slide-visualizer"
+import ScreenSelector from "@/components/controller/screen-selector"
 import { IScheduleItem, IWindow, ISlide, ControllerMode, ISlideTextContent, ISlideImageContent, IControllerSelection } from "@/types"
-import WindowProvider from "./window-provider"
+import WindowProvider from "./window.provider"
 
 type ControllerProviderProps = {
   children: React.ReactNode

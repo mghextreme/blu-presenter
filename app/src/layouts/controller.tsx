@@ -2,16 +2,19 @@ import {
   Outlet,
 } from "react-router-dom";
 
+import ProtectedRoute from "@/components/protected-route";
 import ControllerNavbar from "@/components/controller/navbar";
-import ControllerProvider from "@/components/controller/controller-provider";
+import ControllerProvider from "@/hooks/controller.provider";
 
 export default function ControllerLayout() {
   return (
-    <div className="min-h-screen h-screen bg-card flex flex-col justify-stretch">
-      <ControllerProvider>
-        <ControllerNavbar></ControllerNavbar>
-        <Outlet />
-      </ControllerProvider>
-    </div>
+    <ProtectedRoute>
+      <div className="min-h-screen h-screen bg-card flex flex-col justify-stretch">
+        <ControllerProvider>
+          <ControllerNavbar></ControllerNavbar>
+          <Outlet />
+        </ControllerProvider>
+      </div>
+    </ProtectedRoute>
   );
 }
