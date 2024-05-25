@@ -1,4 +1,4 @@
-import { useTheme } from "@/hooks/theme.provider"
+import { useTheme } from "@/hooks/useTheme";
 import SunIcon from "@heroicons/react/24/solid/SunIcon";
 import MoonIcon from "@heroicons/react/24/solid/MoonIcon";
 import ComputerIcon from "@heroicons/react/24/solid/ComputerDesktopIcon";
