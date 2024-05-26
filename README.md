@@ -12,6 +12,8 @@ supabase start
 
 ### Docker
 
+> This is an alternative to the development command
+
 ```sh
 cd docker
 docker compose up
@@ -70,8 +72,3 @@ pnpm start:dev
 ```sh
 pnpm build
 ```
-
-## Database
-
-Temporarily connect to the legacy application database using the environment variables.  
-Start a database from scratch support coming soon.
