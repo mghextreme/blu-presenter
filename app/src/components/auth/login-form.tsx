@@ -4,7 +4,7 @@ import * as React from "react";
 import { Navigate } from "react-router-dom";
 
 import { cn } from "@/lib/utils"
-import { useAuth } from "@/hooks/auth.provider";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SocialLogin } from "./social-login";
@@ -26,7 +26,7 @@ const formSchema = z.object({
 export function LoginForm({ className, ...props }: LoginFormProps) {
 
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const { isLoggedIn, login } = useAuth();
+  const { isLoggedIn, signIn } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,12 +39,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsLoading(true);
-      login({
-        ...values,
-        options: {
-          emailRedirectTo: window.location.origin + '/app',
-        },
-      });
+      signIn(values);
     } finally {
       setIsLoading(false);
     }

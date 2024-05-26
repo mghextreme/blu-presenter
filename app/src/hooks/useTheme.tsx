@@ -38,6 +38,9 @@ export const useTheme = create<ThemeState>()(
     {
       name: "theme",
       getStorage: () => localStorage,
+      partialize: (state: ThemeState) => ({
+        theme: state.theme,
+      }),
       onRehydrateStorage: () => ((state?: ThemeState) => {
         if (!state) return;
 

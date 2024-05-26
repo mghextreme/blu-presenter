@@ -42,12 +42,20 @@ export class SongsService {
 
     if (idsFound.length == 0) return [];
 
-    return await this.songsRepository
-      .createQueryBuilder('songs')
-      .innerJoinAndSelect('songs.blocks', 'parts')
-      .where('songs.id IN (:idsFound)', { idsFound: idsFound.map((x) => x.id) })
-      .orderBy('songs.title')
-      .getMany();
+    const idsList = idsFound.map((x) => x.id);
+    console.log(idsList);
+
+    return await this.songsRepository.find({
+      where: {
+        id: In(idsList),
+      },
+      relations: {
+        blocks: true,
+      },
+      order: {
+        title: 'asc',
+      },
+    });
   }
 
   async create(createSongDto: CreateSongDto): Promise<Song> {

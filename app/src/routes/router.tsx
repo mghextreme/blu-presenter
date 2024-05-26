@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 
 import AuthLayout from "@/layouts/auth";
-import AuthWrapperLayout from "@/layouts/auth-wrapper";
 import AppLayout from "@/layouts/app";
 import ErrorLayout from "@/layouts/error";
 import ControllerLayout from "@/layouts/controller";
@@ -27,7 +26,7 @@ export const buildRouter = (services: ServicesProviderState) => {
 
   return createBrowserRouter(
     createRoutesFromElements(
-      <Route element={<AuthWrapperLayout />}>
+      <>
         <Route path="/" errorElement={<ErrorLayout />}>
           <Route index={true} element={<Home />} />
           <Route element={<AuthLayout />}>
@@ -46,7 +45,7 @@ export const buildRouter = (services: ServicesProviderState) => {
         <Route path="/app/controller" element={<ControllerLayout />} errorElement={<ErrorLayout />}>
           <Route index={true} element={<Controller />} />
         </Route>
-      </Route>
+      </>
     )
   );
 }

@@ -6,7 +6,7 @@ import { Navigate } from "react-router-dom";
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/auth.provider";
+import { useAuth } from "@/hooks/useAuth";
 
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 
