@@ -10,11 +10,12 @@ interface AuthState {
   signIn: (credentials: SignInWithPasswordCredentials) => Promise<void>
   signUp: (credentials: SignUpWithPasswordCredentials) => Promise<void>
   signOut: () => Promise<void>
+  refreshSession: () => Promise<void>
 }
 
 export const useAuth = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       isLoggedIn: false,
       user: null,
       session: null,
@@ -51,6 +52,30 @@ export const useAuth = create<AuthState>()(
           session: null,
         });
       },
+      refreshSession: async () => {
+        const session = get().session;
+        if (!session) throw Error("No session to refresh.");
+
+        console.log('refreshing');
+        const { data, error } = await supabase.auth.refreshSession({ refresh_token: session.refresh_token });
+        console.log('data', data);
+        console.log('error', error);
+
+        if (error) {
+          set({
+            isLoggedIn: false,
+            user: undefined,
+            session: undefined,
+          });
+          throw error;
+        }
+
+        set({
+          isLoggedIn: true,
+          user: data.user,
+          session: data.session,
+        });
+      }
     }),
     {
       name: "auth",

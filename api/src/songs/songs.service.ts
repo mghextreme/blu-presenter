@@ -43,7 +43,6 @@ export class SongsService {
     if (idsFound.length == 0) return [];
 
     const idsList = idsFound.map((x) => x.id);
-    console.log(idsList);
 
     return await this.songsRepository.find({
       where: {

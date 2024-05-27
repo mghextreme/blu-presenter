@@ -8,8 +8,8 @@ import {
   Put,
 } from '@nestjs/common';
 import { Song } from 'src/entities';
-import { SongsService } from 'src/services';
 import { CreateSongDto, UpdateSongDto } from 'src/types';
+import { SongsService } from './songs.service';
 
 @Controller('songs')
 export class SongsController {

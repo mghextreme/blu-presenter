@@ -1,88 +1,35 @@
+import { ApiService } from "./api.service";
 import { IScheduleSong, ISlide, ISlideContent, ISlideTextContent, ISlideTitleContent, ISong } from "@/types"
 
-export class SongsService {
-
-  private url: string;
-
-  constructor(config: { url: string }) {
-    this.url = config.url + '/songs';
-  }
+export class SongsService extends ApiService {
 
   public async getAll(): Promise<ISong[]> {
-    const response = await fetch(this.url + '/');
-    if (!response.ok) {
-      return [];
-    }
-
-    const result = await response.json();
-    return result as ISong[];
+    return await this.getRequest('/songs') as ISong[];
   }
 
   public async getById(songId: number): Promise<ISong | null> {
-    const response = await fetch(this.url + `/${songId}`);
-    if (!response.ok) {
-      return null;
-    }
-
-    const result = await response.json();
-    return result as ISong;
+    return await this.getRequest(`/songs/${songId}`) as ISong;
   }
 
   public async search(query: string): Promise<ISong[]> {
     const encodedQuery = encodeURIComponent(query);
-    const response = await fetch(this.url + `/search/${encodedQuery}`);
-    if (!response.ok) {
-      return [];
-    }
-
-    const result = await response.json();
-    return result as ISong[];
+    return await this.getRequest(`/songs/search/${encodedQuery}`) as ISong[];
   }
 
   public async add(value: ISong): Promise<ISong | null> {
-    const response = await fetch(this.url, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(value),
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const result = await response.json();
-    return result as ISong;
+    return await this.postRequest('/songs', JSON.stringify(value), {
+      'content-type': 'application/json',
+    }) as ISong;
   }
 
   public async update(id: number, value: ISong): Promise<ISong | null> {
-    const response = await fetch(this.url + `/${id}`, {
-      method: 'PUT',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(value),
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const result = await response.json();
-    return result as ISong;
+    return await this.putRequest(`/songs/${id}`, JSON.stringify(value), {
+      'content-type': 'application/json',
+    }) as ISong;
   }
 
   public async delete(songId: number): Promise<void> {
-    const response = await fetch(this.url + `/${songId}`, {
-      method: 'DELETE',
-    });
-
-    if (!response.ok) {
-      return;
-    }
-
-    return;
+    return await this.deleteRequest(`/songs/${songId}`);
   }
 
   public toScheduleSong(song: ISong): IScheduleSong {

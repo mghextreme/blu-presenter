@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import configuration from './config/configuration';
-import { DatabaseConfigService, SongsService } from './services';
+import { DatabaseConfigService } from './services';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SongsModule } from './modules';
-import { SongsController } from './controllers';
+import { JwtModule } from '@nestjs/jwt';
+import { SongsModule } from './songs/songs.module';
+import { AuthGuard } from './auth/auth.guard';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -17,9 +19,25 @@ import { SongsController } from './controllers';
     TypeOrmModule.forRootAsync({
       useClass: DatabaseConfigService,
     }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        return {
+          global: true,
+          secret: configService.get('auth.jwtSecret'),
+        };
+      },
+    }),
     SongsModule,
   ],
-  controllers: [AppController, SongsController],
-  providers: [SongsService],
+  exports: [TypeOrmModule],
+  controllers: [AppController],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AppModule {}
