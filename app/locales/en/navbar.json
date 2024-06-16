@@ -7,5 +7,9 @@
     "dark": "Dark",
     "light": "Light",
     "system": "System"
+  },
+  "profile": {
+    "profilePage": "Profile page",
+    "signOut": "Sign out"
   }
 }

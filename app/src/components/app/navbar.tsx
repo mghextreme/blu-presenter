@@ -1,11 +1,8 @@
 import ThemeToggler from "@/components/ui/theme-toggler";
-import { Button } from "../ui/button";
-import { useAuth } from "@/hooks/useAuth";
 import LanguageToggler from "../ui/language-toggler";
+import ProfileButton from "./profile-button";
 
 export default function AppNavbar() {
-  const { signOut } = useAuth();
-
   return (
     <header className="sticky top-0 z-999 flex w-full drop-shadow-1 bg-card">
       <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-2 xl:px-6">
@@ -15,7 +12,7 @@ export default function AppNavbar() {
         <div className="space-x-2">
           <LanguageToggler></LanguageToggler>
           <ThemeToggler></ThemeToggler>
-          <Button onClick={signOut}>Logout</Button>
+          <ProfileButton></ProfileButton>
         </div>
       </div>
     </header>

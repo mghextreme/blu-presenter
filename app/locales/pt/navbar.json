@@ -7,5 +7,9 @@
     "dark": "Escuro",
     "light": "Claro",
     "system": "Sistema"
+  },
+  "profile": {
+    "profilePage": "Minha conta",
+    "signOut": "Sair"
   }
 }

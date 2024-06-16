@@ -9,8 +9,11 @@ import { buttonVariants } from "@/components/ui/button"
 import ThemeToggler from "@/components/ui/theme-toggler";
 import { useEffect, useState } from "react";
 import LanguageToggler from "@/components/ui/language-toggler";
+import { useTranslation } from "react-i18next";
 
 export default function AuthLayout() {
+
+  const { t } = useTranslation("auth");
 
   const location = useLocation();
 
@@ -29,7 +32,7 @@ export default function AuthLayout() {
             ""
           )}
         >
-          {isLogin ? 'Sign Up' : 'Login'}
+          {t((isLogin ? 'signUp' : 'signIn') + '.title')}
         </Link>
         <LanguageToggler variant="ghost"></LanguageToggler>
         <ThemeToggler variant="ghost"></ThemeToggler>
