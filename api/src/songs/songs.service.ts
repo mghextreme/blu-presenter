@@ -1,6 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Equal, ILike, In, Not, Repository } from 'typeorm';
+import {
+  DataSource,
+  Equal,
+  ILike,
+  In,
+  InsertResult,
+  Not,
+  Repository,
+  UpdateResult,
+} from 'typeorm';
 import { CreateSongDto, UpdateSongDto } from 'src/types';
 import { Song, SongPart } from 'src/entities';
 
@@ -16,6 +25,11 @@ export class SongsService {
       where: { id },
       relations: {
         blocks: true,
+      },
+      order: {
+        blocks: {
+          order: 'asc',
+        },
       },
     });
   }
@@ -53,6 +67,9 @@ export class SongsService {
       },
       order: {
         title: 'asc',
+        blocks: {
+          order: 'asc',
+        },
       },
     });
   }
@@ -96,27 +113,43 @@ export class SongsService {
       result = await this.songsRepository.save(song);
 
       const songPartRepository = manager.getRepository(SongPart);
-      songPartRepository.delete({
+      await songPartRepository.delete({
         songId: Equal(song.id),
         id: Not(In(updateSongDto.blocks.map((b) => b.id).filter((b) => b))),
       });
 
-      await manager
-        .createQueryBuilder()
-        .insert()
-        .into(SongPart, ['id', 'order', 'text', 'songId'])
-        .values(
-          updateSongDto.blocks.map((b, ix) => {
-            return {
-              id: b.id,
-              order: ix,
-              text: b.text,
-              songId: song.id,
-            } as SongPart;
-          }),
-        )
-        .orUpdate(['text', 'order'], ['id'])
-        .execute();
+      const partsToAdd = [];
+      const partsToUpdate = [];
+
+      updateSongDto.blocks.forEach((b, ix) => {
+        const part = {
+          id: b.id,
+          order: ix,
+          text: b.text,
+          songId: song.id,
+        } as SongPart;
+
+        if (part.id) {
+          partsToUpdate.push(part);
+        } else {
+          partsToAdd.push(part);
+        }
+      });
+
+      const promises: Promise<InsertResult | UpdateResult>[] = [];
+      partsToUpdate.forEach((sp) => {
+        promises.push(
+          songPartRepository.update(
+            {
+              id: sp.id,
+            },
+            sp,
+          ),
+        );
+      });
+      promises.push(songPartRepository.insert(partsToAdd));
+
+      await Promise.all(promises);
 
       return result;
     });

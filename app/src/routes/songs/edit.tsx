@@ -76,12 +76,19 @@ export default function EditSong({
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setLoading(true);
+      let action;
       if (edit) {
-        await songsService.update(data.id, values);
+        action = songsService.update(data.id, values);
       } else {
-        await songsService.add(values);
+        action = songsService.add(values);
       }
-      navigate("/app/songs", { replace: true });
+      action
+        .then(() => {
+          navigate("/app/songs", { replace: true });
+        })
+        .catch((err) => {
+          console.error(err);
+        })
     } finally {
       setLoading(false);
     }
