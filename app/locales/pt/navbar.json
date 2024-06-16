@@ -1,0 +1,11 @@
+{
+  "language": {
+    "title": "Idioma"
+  },
+  "theme": {
+    "title": "Tema",
+    "dark": "Escuro",
+    "light": "Claro",
+    "system": "Sistema"
+  }
+}

@@ -15,6 +15,7 @@ import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 
 interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -24,6 +25,8 @@ const formSchema = z.object({
 });
 
 export function LoginForm({ className, ...props }: LoginFormProps) {
+
+  const { t } = useTranslation("auth");
 
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const { isLoggedIn, signIn } = useAuth();
@@ -59,7 +62,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input type="email" placeholder="Email" autoComplete="email" autoCorrect="off" autoCapitalize="none" disabled={isLoading} {...field} />
+                  <Input type="email" placeholder={t('input.email')} autoComplete="email" autoCorrect="off" autoCapitalize="none" disabled={isLoading} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -71,7 +74,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input type="password" placeholder="Password" disabled={isLoading} {...field} />
+                  <Input type="password" placeholder={t('input.password')} disabled={isLoading} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -81,7 +84,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
             {isLoading && (
               <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
             )}
-            Login
+            {t('button.signIn')}
           </Button>
         </form>
       </Form>
@@ -91,7 +94,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-card px-2 text-muted-foreground">
-            Or continue with
+            {t('socials.continueWith')}
           </span>
         </div>
       </div>

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import ThemeToggler from "@/components/ui/theme-toggler";
 import { useEffect, useState } from "react";
+import LanguageToggler from "@/components/ui/language-toggler";
 
 export default function AuthLayout() {
 
@@ -30,6 +31,7 @@ export default function AuthLayout() {
         >
           {isLogin ? 'Sign Up' : 'Login'}
         </Link>
+        <LanguageToggler variant="ghost"></LanguageToggler>
         <ThemeToggler variant="ghost"></ThemeToggler>
       </div>
       <div className="relative hidden h-full flex-col p-10 text-foreground lg:flex dark:border-r">

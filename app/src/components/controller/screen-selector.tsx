@@ -1,8 +1,12 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { useWindow } from "@/hooks/window.provider";
+import { useTranslation } from "react-i18next";
 
 export default function ScreenSelector({ children }: { children: ReactNode }) {
+
+  const { t } = useTranslation("controller");
+
   const [selected, setSelected] = useState(false);
   const [displayOptions, setDisplayOptions] = useState([]);
   const {childWindow} = useWindow();
@@ -46,11 +50,11 @@ export default function ScreenSelector({ children }: { children: ReactNode }) {
         </>
       ) : (
         <div className="min-h-screen w-full p-4 flex flex-col justify-center items-stretch text-center bg-black text-white text-[8vh]">
-          <h3 className="mb-4">Select screen</h3>
-          <Button size={'lg'} onClick={() => setSelected(true)} className="text-xl">This window</Button>
+          <h3 className="mb-4">{t('screenSelector.title')}</h3>
+          <Button size={'lg'} onClick={() => setSelected(true)} className="text-xl">{t('screenSelector.windowed')}</Button>
           {displayOptions.map((m, ix) => (
             <Button key={ix} size={'lg'} onClick={() => setFullScreen(ix)} className="text-xl mt-2">
-              Display {ix}{m.label && (
+              {t('screenSelector.fullScreen')} - {t('screenSelector.display')} {ix}{m.label && (
                 <span className="ms-2">({m.label})</span>
               )}</Button>
           ))}

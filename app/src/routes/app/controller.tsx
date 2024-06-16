@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { useTranslation } from "react-i18next";
+
 import SlideVisualizer from "@/components/controller/slide-visualizer";
 import SlideSelector from "@/components/controller/slide-selector";
 import ScheduleItem from "@/components/controller/schedule-item";
@@ -43,6 +45,9 @@ const themeOptions = [
 ];
 
 export default function Controller() {
+
+  const { t } = useTranslation('controller');
+
   const {
     mode,
     schedule,
@@ -186,7 +191,7 @@ export default function Controller() {
                 render={({ field }) => (
                   <FormItem className="flex-1">
                     <FormControl>
-                      <Input placeholder="Search songs..." {...field} />
+                      <Input placeholder={t('importer.search.inputPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -194,11 +199,11 @@ export default function Controller() {
               <Button className="flex-0" type="submit" disabled={searching}>
                 {searching ? (
                   <>
-                    Searching...
+                    {t('importer.search.buttonLoading')}
                     <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
                   </>
                 ) : (
-                  <span>Search</span>
+                  <span>{t('importer.search.button')}</span>
                 )}</Button>
             </form>
           </Form>
@@ -215,8 +220,8 @@ export default function Controller() {
         </div>
         <div id="live" className="w-1/3 bg-background rounded flex flex-col items-stretch overflow-hidden">
           <div id="preview" className="relative p-3 pb-0 flex justify-stretch flex-0">
-            {!preview && <Button onClick={openPreview} title="Open Preview" className="flex-1">
-              Open preview
+            {!preview && <Button onClick={openPreview} title={t('preview.openTitle')} className="flex-1">
+              {t('preview.open')}
             </Button>}
             {preview && (
               <>
@@ -228,6 +233,7 @@ export default function Controller() {
                           variant="outline"
                           role="combobox"
                           className="flex-1 justify-between overflow-hidden"
+                          title={t('preview.theme.title')}
                         >
                           <span className="truncate">{themeOptions.find((option) => option.value == previewTheme)?.label}</span>
                           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -235,8 +241,8 @@ export default function Controller() {
                       </PopoverTrigger>
                       <PopoverContent className="w-full p-0">
                         <Command>
-                          <CommandInput placeholder="Search theme..." className="h-9" />
-                          <CommandEmpty>No theme found.</CommandEmpty>
+                          <CommandInput placeholder={t('preview.theme.searchPlaceholder')} className="h-9" />
+                          <CommandEmpty>{t('preview.theme.searchNoneFound')}</CommandEmpty>
                           <CommandGroup>
                             {themeOptions.map((option) => (
                               <CommandItem
@@ -266,6 +272,7 @@ export default function Controller() {
                           variant="outline"
                           role="combobox"
                           className="flex-1 justify-between overflow-hidden"
+                          title={t('preview.resolution.title')}
                         >
                           <span className="truncate">{ratioOptions.find((option) => option.value == previewRatio)?.label}</span>
                           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -273,8 +280,8 @@ export default function Controller() {
                       </PopoverTrigger>
                       <PopoverContent className="w-full p-0">
                         <Command>
-                          <CommandInput placeholder="Search screen or ratio..." className="h-9" />
-                          <CommandEmpty>No screen or ratio found.</CommandEmpty>
+                          <CommandInput placeholder={t('preview.resolution.searchPlaceholder')} className="h-9" />
+                          <CommandEmpty>{t('preview.resolution.searchNoneFound')}</CommandEmpty>
                           <CommandGroup>
                             {ratioOptions.map((option) => (
                               <CommandItem
@@ -300,9 +307,9 @@ export default function Controller() {
                     </Popover>
                     <Button
                       onClick={closePreview}
-                      title="Close preview"
+                      title={t('preview.closeTitle')}
                       variant="outline">
-                      Close
+                      {t('preview.close')}
                     </Button>
                   </div>
                 </div>
@@ -313,16 +320,16 @@ export default function Controller() {
             )}
           </div>
           <div id="controls" className="p-3 grid grid-cols-4 gap-2 flex-0">
-            <Button onClick={previous} title="Previous">
+            <Button onClick={previous} title={t('controls.previous')}>
               <ArrowLeftIcon className="size-4"></ArrowLeftIcon>
             </Button>
-            <Button onClick={toggleBlank} title="Blank" variant={overrideSlide?.id == 'blank' ? 'muted' : 'default'}>
+            <Button onClick={toggleBlank} title={t('controls.blank')} variant={overrideSlide?.id == 'blank' ? 'muted' : 'default'}>
               <StopSolidIcon className="size-4"></StopSolidIcon>
             </Button>
-            <Button onClick={toggleLogo} title="Visual identity" variant={overrideSlide?.id == 'logo' ? 'muted' : 'default'}>
+            <Button onClick={toggleLogo} title={t('controls.logo')} variant={overrideSlide?.id == 'logo' ? 'muted' : 'default'}>
               <FingerPrintSolidIcon className="size-4"></FingerPrintSolidIcon>
             </Button>
-            <Button onClick={next} title="Next">
+            <Button onClick={next} title={t('controls.next')}>
               <ArrowRightIcon className="size-4"></ArrowRightIcon>
             </Button>
           </div>

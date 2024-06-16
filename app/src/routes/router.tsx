@@ -19,8 +19,8 @@ import Login from "./login";
 import Welcome from "./app/welcome";
 import Controller from "./app/controller";
 
-import SongsIndex, { loader as indexSongLoader } from "./songs/index";
-import EditSong, { loader as editSongLoader } from "./songs/edit";
+import SongsIndex, { loader as indexSongLoader } from "./app/songs/index";
+import EditSong, { loader as editSongLoader } from "./app/songs/edit";
 
 export const buildRouter = (services: ServicesProviderState) => {
 

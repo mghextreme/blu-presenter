@@ -1,0 +1,9 @@
+{
+  "welcome": {
+    "message": "Bem-vindo!"
+  },
+  "menu": {
+    "controller": "Painel de Controle",
+    "songs": "Músicas"
+  }
+}

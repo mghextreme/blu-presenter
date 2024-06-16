@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { SocialLogin } from "./social-login";
+import { useTranslation } from "react-i18next";
 
 interface SignUpFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -24,6 +25,8 @@ const formSchema = z.object({
 });
 
 export function SignUpForm({ className, ...props }: SignUpFormProps) {
+
+  const { t } = useTranslation("auth");
 
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const { isLoggedIn, signUp } = useAuth();
@@ -64,7 +67,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input type="email" placeholder="Email" autoComplete="email" autoCorrect="off" autoCapitalize="none" disabled={isLoading} {...field} />
+                  <Input type="email" placeholder={t('input.email')} autoComplete="email" autoCorrect="off" autoCapitalize="none" disabled={isLoading} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -76,7 +79,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input type="password" placeholder="Password" disabled={isLoading} {...field} />
+                  <Input type="password" placeholder={t('input.password')} disabled={isLoading} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -86,7 +89,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
             {isLoading && (
               <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
             )}
-            Sign up with Email
+            {t('button.signUpWithEmail')}
           </Button>
         </form>
       </Form>
@@ -96,7 +99,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-card px-2 text-muted-foreground">
-            Or continue with
+            {t('socials.continueWith')}
           </span>
         </div>
       </div>

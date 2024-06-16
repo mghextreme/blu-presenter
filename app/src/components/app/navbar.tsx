@@ -1,6 +1,7 @@
 import ThemeToggler from "@/components/ui/theme-toggler";
 import { Button } from "../ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import LanguageToggler from "../ui/language-toggler";
 
 export default function AppNavbar() {
   const { signOut } = useAuth();
@@ -12,6 +13,7 @@ export default function AppNavbar() {
           Breadcrumbs...
         </div>
         <div className="space-x-2">
+          <LanguageToggler></LanguageToggler>
           <ThemeToggler></ThemeToggler>
           <Button onClick={signOut}>Logout</Button>
         </div>

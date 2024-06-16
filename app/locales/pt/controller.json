@@ -1,0 +1,60 @@
+{
+  "importer": {
+    "search": {
+      "inputPlaceholder": "Pesquisar músicas...",
+      "button": "Pesquisar",
+      "buttonLoading": "Pesquisando..."
+    }
+  },
+  "songs": {
+    "expand": "Expandir",
+    "addToSchedule": "Adicionar à programação",
+    "removeFromSchedule": "Remover da pragramação",
+    "open": "Abrir música"
+  },
+  "mode": {
+    "mode": "Método",
+    "slide": "Slides",
+    "part": "Partes",
+    "areYouSure": {
+      "title": "Tem certeza?",
+      "description": "Você tem pelo menos uma janela aberta com o método \"partes\".",
+      "cancel": "Cancelar",
+      "confirm": "Confirmar"
+    }
+  },
+  "controls": {
+    "next": "Próximo",
+    "previous": "Anterior",
+    "blank": "Em branco",
+    "logo": "Logo",
+    "windows": {
+      "open": "Abrir janela",
+      "closeAll": "Fechar todas janelas",
+      "projector": "Projetor (fundo preto)",
+      "chromaKey": "Chroma Key (fundo verde)"
+    }
+  },
+  "screenSelector": {
+    "title": "Selecione tela",
+    "windowed": "Em janela",
+    "fullScreen": "Tela cheia",
+    "display": "Tela"
+  },
+  "preview": {
+    "open": "Abrir visualização",
+    "openTitle": "Abrir visualização",
+    "close": "Fechar",
+    "closeTitle": "Fechar visualização",
+    "theme": {
+      "title": "Tema da visualização",
+      "searchPlaceholder": "Pesquisar temas...",
+      "searchNoneFound": "Nenhum tema encontrado"
+    },
+    "resolution": {
+      "title": "Resolução da visualização",
+      "searchPlaceholder": "Pesquisar tela ou proporção...",
+      "searchNoneFound": "Nenhuma tela ou proporção encontrada"
+    }
+  }
+}

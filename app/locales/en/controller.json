@@ -1,0 +1,60 @@
+{
+  "importer": {
+    "search": {
+      "inputPlaceholder": "Search songs...",
+      "button": "Search",
+      "buttonLoading": "Searching..."
+    }
+  },
+  "songs": {
+    "expand": "Expand",
+    "addToSchedule": "Add to schedule",
+    "removeFromSchedule": "Remove from schedule",
+    "open": "Open song"
+  },
+  "mode": {
+    "mode": "Mode",
+    "slide": "Slides",
+    "part": "Parts",
+    "areYouSure": {
+      "title": "Are you sure?",
+      "description": "You have at least one window open with the mode \"parts\".",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    }
+  },
+  "controls": {
+    "next": "Next",
+    "previous": "Previous",
+    "blank": "Blank",
+    "logo": "Logo",
+    "windows": {
+      "open": "Open window",
+      "closeAll": "Close all windows",
+      "projector": "Projector (black)",
+      "chromaKey": "Chroma Key (green)"
+    }
+  },
+  "screenSelector": {
+    "title": "Select screen",
+    "windowed": "Windowed",
+    "fullScreen": "Full Screen",
+    "display": "Display"
+  },
+  "preview": {
+    "open": "Open preview",
+    "openTitle": "Open preview",
+    "close": "Close",
+    "closeTitle": "Close preview",
+    "theme": {
+      "title": "Preview theme",
+      "searchPlaceholder": "Search theme...",
+      "searchNoneFound": "No theme found"
+    },
+    "resolution": {
+      "title": "Preview resolution",
+      "searchPlaceholder": "Search screen or ratio...",
+      "searchNoneFound": "No screen or ratio found"
+    }
+  }
+}

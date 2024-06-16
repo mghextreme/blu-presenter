@@ -8,6 +8,7 @@ import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 import ChevronUpDownIcon from "@heroicons/react/24/solid/ChevronUpDownIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import SlideSelector from "./slide-selector";
+import { useTranslation } from "react-i18next";
 
 type ScheduleItemParams = {
   item: IScheduleItem
@@ -20,6 +21,9 @@ export default function ScheduleItem({
   selected = false,
   index,
 }: ScheduleItemParams) {
+
+  const { t } = useTranslation("controller");
+
   const {
     setScheduleItem,
     removeFromSchedule,
@@ -48,14 +52,14 @@ export default function ScheduleItem({
           </CardHeaderText>
           <CardHeaderActions>
             <CollapsibleTrigger asChild>
-              <Button size="sm" title="Expand">
+              <Button size="sm" title={t('songs.expand')}>
                 <ChevronUpDownIcon className="size-4"></ChevronUpDownIcon>
               </Button>
             </CollapsibleTrigger>
-            <Button size="sm" title="Remove song" onClick={removeSong}>
+            <Button size="sm" title={t('songs.removeFromSchedule')} onClick={removeSong}>
               <TrashIcon className="size-3"></TrashIcon>
             </Button>
-            <Button size="sm" title="Load song" onClick={loadSong}>
+            <Button size="sm" title={t('songs.open')} onClick={loadSong}>
               <PlayIcon className="size-3"></PlayIcon>
             </Button>
           </CardHeaderActions>

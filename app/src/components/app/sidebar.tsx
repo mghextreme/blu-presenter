@@ -1,6 +1,10 @@
+import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 
 export default function AppSidebar() {
+
+  const { t } = useTranslation("app");
+
   return (
     <aside className="flex h-screen w-80 flex-col overflow-y-hidden bg-card">
       <div className="flex items-center justify-between px-6 py-5">
@@ -16,12 +20,12 @@ export default function AppSidebar() {
             <ul className="mb-6 flex flex-col gap-1.5">
               <li>
                 <Link to={'/app/controller'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
-                  Controller
+                  {t('menu.controller')}
                 </Link>
               </li>
               <li>
                 <Link to={'/app/songs'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
-                  Songs
+                  {t('menu.songs')}
                 </Link>
               </li>
             </ul>

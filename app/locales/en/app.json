@@ -1,0 +1,9 @@
+{
+  "welcome": {
+    "message": "Welcome!"
+  },
+  "menu": {
+    "controller": "Controller",
+    "songs": "Songs"
+  }
+}
