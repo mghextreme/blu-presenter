@@ -9,6 +9,6 @@ export default () => ({
     name: process.env.DATABASE_NAME,
   },
   auth: {
-    jwtSecret: process.env.JWT_SECRET,
+    jwtSecret: process.env.SUPABASE_JWT_SECRET,
   },
 });

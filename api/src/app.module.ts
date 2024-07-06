@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import configuration from './config/configuration';
 import { DatabaseConfigService } from './services';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtModule } from '@nestjs/jwt';
 import { SongsModule } from './songs/songs.module';
-import { AuthGuard } from './auth/auth.guard';
+import { SupabaseGuard } from './supabase/supabase.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { SupabaseModule } from './supabase/supabase.module';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
@@ -19,16 +20,8 @@ import { APP_GUARD } from '@nestjs/core';
     TypeOrmModule.forRootAsync({
       useClass: DatabaseConfigService,
     }),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        return {
-          global: true,
-          secret: configService.get('auth.jwtSecret'),
-        };
-      },
-    }),
+    PassportModule,
+    SupabaseModule,
     SongsModule,
   ],
   exports: [TypeOrmModule],
@@ -36,7 +29,7 @@ import { APP_GUARD } from '@nestjs/core';
   providers: [
     {
       provide: APP_GUARD,
-      useClass: AuthGuard,
+      useClass: SupabaseGuard,
     },
   ],
 })
