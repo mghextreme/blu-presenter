@@ -20,11 +20,6 @@ import { useToast } from "../ui/use-toast";
 
 interface SignUpFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-const formSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-});
-
 export function SignUpForm({ className, ...props }: SignUpFormProps) {
 
   const { t } = useTranslation("auth");
@@ -33,11 +28,26 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const { isLoggedIn, signUp } = useAuth();
 
+  const formSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(8),
+    confirmPassword: z.string().min(8),
+  }).superRefine(({ confirmPassword, password }, ctx) => {
+    if (confirmPassword !== password) {
+      ctx.addIssue({
+        code: "custom",
+        message: t('input.messages.passwordsDontMatch'),
+        path: ['confirmPassword']
+      });
+    }
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
       password: '',
+      confirmPassword: '',
     },
   });
 
@@ -92,6 +102,18 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
                 <FormMessage />
               </FormItem>
             )}></FormField>
+
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input type="password" placeholder={t('input.confirmPassword')} disabled={isLoading} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}></FormField>
 
           <Button disabled={isLoading}>
             {isLoading && (
