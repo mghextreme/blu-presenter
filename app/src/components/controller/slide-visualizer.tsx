@@ -82,7 +82,7 @@ export default function SlideVisualizer({
 
   const getTextContent = (content: ISlideTextContent) => {
     return (
-      <div className="text-[1em] whitespace-pre-wrap uppercase font-medium">
+      <div className="text-[1em] whitespace-pre-wrap font-medium">
         {content.text}
       </div>
     )

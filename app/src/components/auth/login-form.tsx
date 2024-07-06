@@ -16,6 +16,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
+import { useToast } from "../ui/use-toast";
 
 interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -27,6 +28,7 @@ const formSchema = z.object({
 export function LoginForm({ className, ...props }: LoginFormProps) {
 
   const { t } = useTranslation("auth");
+  const { toast } = useToast();
 
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const { isLoggedIn, signIn } = useAuth();
@@ -42,12 +44,18 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsLoading(true);
-      signIn(values);
+      await signIn(values);
+    } catch (e) {
+      toast({
+        title: t('signIn.error'),
+        description: e?.message || '',
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   }
-  
+
   if (isLoggedIn) {
     return <Navigate to="/app" />;
   }

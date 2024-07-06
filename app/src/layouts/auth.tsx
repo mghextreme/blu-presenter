@@ -10,6 +10,7 @@ import ThemeToggler from "@/components/ui/theme-toggler";
 import { useEffect, useState } from "react";
 import LanguageToggler from "@/components/ui/language-toggler";
 import { useTranslation } from "react-i18next";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function AuthLayout() {
 
@@ -46,6 +47,7 @@ export default function AuthLayout() {
       <div className="lg:p-8">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
           <Outlet />
+          <Toaster />
         </div>
       </div>
     </div>

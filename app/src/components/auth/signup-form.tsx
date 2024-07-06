@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { SocialLogin } from "./social-login";
 import { useTranslation } from "react-i18next";
+import { useToast } from "../ui/use-toast";
 
 interface SignUpFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -27,6 +28,7 @@ const formSchema = z.object({
 export function SignUpForm({ className, ...props }: SignUpFormProps) {
 
   const { t } = useTranslation("auth");
+  const { toast } = useToast();
 
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const { isLoggedIn, signUp } = useAuth();
@@ -42,11 +44,17 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsLoading(true);
-      signUp({
+      await signUp({
         ...values,
         options: {
           emailRedirectTo: window.location.origin + '/app',
         },
+      });
+    } catch (e) {
+      toast({
+        title: t('signUp.error'),
+        description: e?.message || '',
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
