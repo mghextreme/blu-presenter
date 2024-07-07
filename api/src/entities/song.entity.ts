@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 import { SongPart } from './song-part.entity';
 
 @Entity({ name: 'songs' })
@@ -12,9 +12,12 @@ export class Song {
   @Column()
   artist: string;
 
-  @OneToMany(() => SongPart, (songPart) => songPart.song, {
-    cascade: true,
-    orphanedRowAction: 'delete',
+  @Column({
+    type: 'json',
+    array: true,
+    select: false,
+    default: () => "'[]'",
+    nullable: false,
   })
   blocks: SongPart[];
 }
