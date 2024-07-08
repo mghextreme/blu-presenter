@@ -1,7 +1,7 @@
 create table if not exists public.users (
   "id" serial primary key,
-  "auth_id" uuid not null references auth.users on delete cascade,
+  "authId" uuid not null references auth.users on delete cascade,
   "name" varchar(511),
   "nickname" varchar(40),
-  unique (auth_id)
+  unique ("authId")
 );

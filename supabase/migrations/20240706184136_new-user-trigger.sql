@@ -8,15 +8,15 @@ declare
   new_user_id integer;
   new_org_id integer;
 begin
-  insert into public.users (auth_id)
+  insert into public.users ("authId")
   values (new.id)
   returning id into new_user_id;
 
-  insert into public.organizations (owner_id)
+  insert into public.organizations ("ownerId")
   values (new_user_id)
   returning id into new_org_id;
 
-  insert into public.organization_users (org_id, user_id)
+  insert into public.organization_users ("orgId", "userId")
   values (new_org_id, new_user_id);
 
   return new;
