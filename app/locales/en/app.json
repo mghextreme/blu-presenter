@@ -4,6 +4,7 @@
   },
   "menu": {
     "controller": "Controller",
-    "songs": "Songs"
+    "songs": "Songs",
+    "profile": "My profile"
   }
 }

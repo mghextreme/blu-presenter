@@ -26,7 +26,7 @@ export class SupabaseGuard extends AuthGuard('jwt') {
     const result = (await super.canActivate(context)) as boolean;
 
     const request = context.switchToHttp().getRequest();
-    const internalUser = await this.userService.findOne(request.user.sub);
+    const internalUser = await this.userService.findByAuthId(request.user.sub);
     request['user']['internal'] = internalUser;
 
     return result;

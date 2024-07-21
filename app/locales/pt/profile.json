@@ -1,0 +1,15 @@
+{
+  "input": {
+    "nickname": "Apelido",
+    "name": "Nome completo"
+  },
+  "button": {
+    "update": "Atualizar",
+    "cancel": "Cancelar"
+  },
+  "update": {
+    "title": "Atualizar perfil",
+    "failed": "Erro atualizando perfil",
+    "succeeded": "Perfil atualizado!"
+  }
+}

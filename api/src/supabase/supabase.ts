@@ -18,7 +18,7 @@ export class Supabase {
   ) {}
 
   getClient() {
-    this.logger.log('getting supabase client...');
+    this.logger.log('Getting supabase client...');
     if (this.clientInstance) {
       return this.clientInstance;
     }

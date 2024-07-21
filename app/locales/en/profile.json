@@ -1,0 +1,15 @@
+{
+  "input": {
+    "nickname": "Nickname",
+    "name": "Full name"
+  },
+  "button": {
+    "update": "Update",
+    "cancel": "Cancel"
+  },
+  "update": {
+    "title": "Update profile",
+    "failed": "Error updating profile",
+    "succeeded": "Profile updated!"
+  }
+}

@@ -4,6 +4,7 @@
   },
   "menu": {
     "controller": "Painel de Controle",
-    "songs": "Músicas"
+    "songs": "Músicas",
+    "profile": "Meu perfil"
   }
 }

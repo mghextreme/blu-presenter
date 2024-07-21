@@ -28,6 +28,11 @@ export default function AppSidebar() {
                   {t('menu.songs')}
                 </Link>
               </li>
+              <li>
+                <Link to={'/app/profile'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                  {t('menu.profile')}
+                </Link>
+              </li>
             </ul>
           </div>
         </nav>
