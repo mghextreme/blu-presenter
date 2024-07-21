@@ -1,11 +1,14 @@
 import { useAuth } from "@/hooks/useAuth";
+import { FetchQueryOptions, QueryClient } from "@tanstack/react-query";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export abstract class ApiService {
 
+  protected queryClient: QueryClient;
   protected url: string;
 
-  constructor(config: { url: string }) {
+  constructor(queryClient: QueryClient, config: { url: string }) {
+    this.queryClient = queryClient;
     this.url = config.url;
   }
 
@@ -15,6 +18,13 @@ export abstract class ApiService {
 
   private refreshSession = async () => {
     await useAuth.getState().refreshSession();
+  }
+
+  protected async getOrFetch<T>(query: FetchQueryOptions<T>): Promise<T> {
+    return (
+      this.queryClient.getQueryData(query.queryKey) ??
+      (await this.queryClient.fetchQuery(query))
+    );
   }
 
   private getHeaders = (baseHeaders: {[key: string]: string}): {[key: string]: string} => {

@@ -3,6 +3,7 @@
     "message": "Bem-vindo!"
   },
   "menu": {
+    "home": "Principal",
     "controller": "Painel de Controle",
     "songs": "Músicas",
     "profile": "Meu perfil"

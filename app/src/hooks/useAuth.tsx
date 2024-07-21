@@ -56,10 +56,8 @@ export const useAuth = create<AuthState>()(
         const session = get().session;
         if (!session) throw Error("No session to refresh.");
 
-        console.log('refreshing');
+        console.debug('Refreshing user session');
         const { data, error } = await supabase.auth.refreshSession({ refresh_token: session.refresh_token });
-        console.log('data', data);
-        console.log('error', error);
 
         if (error) {
           set({

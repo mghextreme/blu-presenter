@@ -4,16 +4,27 @@ import { IScheduleSong, ISlide, ISlideContent, ISlideTextContent, ISlideTitleCon
 export class SongsService extends ApiService {
 
   public async getAll(): Promise<ISong[]> {
-    return await this.getRequest('/songs') as ISong[];
+    return await this.getOrFetch({
+      queryKey: ['songs', 'all'],
+      queryFn: async () => await this.getRequest('/songs') as ISong[],
+    });
   }
 
   public async getById(songId: number): Promise<ISong | null> {
-    return await this.getRequest(`/songs/${songId}`) as ISong;
+    return await this.getOrFetch({
+      queryKey: ['songs', 'id', songId],
+      queryFn: async () => await this.getRequest(`/songs/${songId}`) as ISong,
+    });
   }
 
   public async search(query: string): Promise<ISong[]> {
-    const encodedQuery = encodeURIComponent(query);
-    return await this.getRequest(`/songs/search/${encodedQuery}`) as ISong[];
+    return await this.getOrFetch({
+      queryKey: ['songs', 'search', query],
+      queryFn: async () => {
+        const encodedQuery = encodeURIComponent(query);
+        return await this.getRequest(`/songs/search/${encodedQuery}`) as ISong[];
+      }
+    });
   }
 
   public async add(value: ISong): Promise<ISong | null> {

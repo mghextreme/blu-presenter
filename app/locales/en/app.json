@@ -3,6 +3,7 @@
     "message": "Welcome!"
   },
   "menu": {
+    "home": "Home",
     "controller": "Controller",
     "songs": "Songs",
     "profile": "My profile"

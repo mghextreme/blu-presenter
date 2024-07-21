@@ -1,8 +1,10 @@
 import { createContext, useContext, useMemo } from "react";
 import { SongsService, UsersService } from "@/services";
 import * as config from "@/lib/config";
+import { QueryClient } from "@tanstack/react-query";
 
 type ServicesProviderProps = {
+  queryClient: QueryClient
   children: React.ReactNode
 }
 
@@ -18,10 +20,10 @@ const initialState: ServicesProviderState = {
 
 const ServicesContext = createContext<ServicesProviderState>(initialState);
 
-export const ServicesProvider = ({ children }: ServicesProviderProps) => {
+export const ServicesProvider = ({ queryClient, children }: ServicesProviderProps) => {
 
-  const songsService = useMemo(() => new SongsService(config.api), [config]);
-  const usersService = useMemo(() => new UsersService(config.api), [config]);
+  const songsService = useMemo(() => new SongsService(queryClient, config.api), [queryClient, config]);
+  const usersService = useMemo(() => new UsersService(queryClient, config.api), [queryClient, config]);
 
   const value = {
     songsService,

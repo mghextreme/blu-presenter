@@ -19,6 +19,11 @@ export default function AppSidebar() {
 
             <ul className="mb-6 flex flex-col gap-1.5">
               <li>
+                <Link to={'/app'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                  {t('menu.home')}
+                </Link>
+              </li>
+              <li>
                 <Link to={'/app/controller'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
                   {t('menu.controller')}
                 </Link>
