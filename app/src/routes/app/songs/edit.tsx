@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import Square2StackIcon from "@heroicons/react/24/solid/Square2StackIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
+import { useTranslation } from "react-i18next";
 
 export async function loader({ params, songsService }: { params: Params, songsService: SongsService }) {
   return await songsService.getById(Number(params.id));
@@ -39,6 +40,8 @@ export default function EditSong({
   edit = true
 }: EditSongProps) {
 
+  const { t } = useTranslation("songs");
+
   const loadedData = useLoaderData() as ISong;
   const data = edit ? loadedData : {
     id: 0,
@@ -56,7 +59,7 @@ export default function EditSong({
     throw new Error("Can't find song");
   }
 
-  const [loading, setLoading] = useState<boolean>(false);
+  const [isLoading, setLoading] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -96,7 +99,7 @@ export default function EditSong({
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl mb-4">Edit song</h1>
+      <h1 className="text-3xl mb-4">{t('edit.title')}</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
           <FormField
@@ -104,7 +107,7 @@ export default function EditSong({
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title</FormLabel>
+                <FormLabel>{t('input.title')}</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -117,7 +120,7 @@ export default function EditSong({
             name="artist"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Artist</FormLabel>
+                <FormLabel>{t('input.artist')}</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -126,7 +129,7 @@ export default function EditSong({
             )}></FormField>
 
             <div className="flex flex-col items-stretch space-y-2">
-              <FormLabel>Parts</FormLabel>
+              <FormLabel>{t('input.parts')}</FormLabel>
               {blocks.map((field, ix: number) => (
                   <FormField
                     control={form.control}
@@ -142,6 +145,7 @@ export default function EditSong({
                             type="button"
                             variant="secondary"
                             size="sm"
+                            title={t('edit.duplicatePart')}
                             onClick={() => insert(ix + 1, { text: field.value })}
                           >
                             <Square2StackIcon className="size-3" />
@@ -150,6 +154,7 @@ export default function EditSong({
                             type="button"
                             variant="destructive"
                             size="sm"
+                            title={t('edit.deletePart')}
                             disabled={blocks.length <= 1}
                             onClick={() => remove(ix)}
                           >
@@ -167,21 +172,18 @@ export default function EditSong({
               size="sm"
               onClick={() => append({ text: "" })}
             >
-              Add Part
+              {t('edit.addPart')}
             </Button>
           </div>
 
           <div className="flex flex-row align-start space-x-2">
-            <Button className="flex-0" type="submit" disabled={loading}>
-              {loading ? (
-                <>
-                  {edit ? 'Updating...' : 'Adding...'}
-                  <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
-                </>
-              ) : (
-                <span>{edit ? 'Update' : 'Add'}</span>
-              )}</Button>
-            <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">Cancel</Button></Link>
+            <Button className="flex-0" type="submit" disabled={isLoading}>
+              {isLoading && (
+                <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+              )}
+              {t('button.' + (edit ? 'update' : 'add'))}
+              </Button>
+            <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
           </div>
         </form>
       </Form>

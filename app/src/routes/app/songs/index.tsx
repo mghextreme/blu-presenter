@@ -8,17 +8,19 @@ import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
 import { SongsService } from "@/services";
 import { useServices } from "@/hooks/services.provider";
+import { useTranslation } from "react-i18next";
+import { TFunction } from "i18next";
 
 export async function loader({ songsService }: { songsService: SongsService }) {
   return await songsService.getAll();
 }
 
-const buildColumns = (songsService: SongsService) => {
+const buildColumns = (t: TFunction, songsService: SongsService) => {
   const columns: ColumnDef<ISong>[] = [
     {
       accessorKey: "title",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Title" />
+        <DataTableColumnHeader column={column} title={t('input.title')} />
       ),
       filterFn: fuzzyFilter,
       sortingFn: fuzzySort,
@@ -26,7 +28,7 @@ const buildColumns = (songsService: SongsService) => {
     {
       accessorKey: "artist",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Artist" />
+        <DataTableColumnHeader column={column} title={t('input.artist')} />
       ),
       filterFn: fuzzyFilter,
       sortingFn: fuzzySort,
@@ -39,13 +41,15 @@ const buildColumns = (songsService: SongsService) => {
             <Link to={`/app/songs/${row.original.id}/edit`}>
               <Button
                 type="button"
-                size="sm">
+                size="sm"
+                title={t('actions.edit')}>
                 <PencilIcon className="size-3" />
               </Button>
             </Link>
             <Button
               size="sm"
               variant="destructive"
+              title={t('actions.delete')}
               onClick={() => songsService.delete(row.original.id)}>
               <TrashIcon className="size-3" />
             </Button>
@@ -60,16 +64,18 @@ const buildColumns = (songsService: SongsService) => {
 
 export default function Songs() {
 
+  const { t } = useTranslation("songs");
+
   const data = useLoaderData() as ISong[];
   const { songsService } = useServices();
 
-  const columns = buildColumns(songsService);
+  const columns = buildColumns(t, songsService);
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl mb-4">Songs</h1>
+      <h1 className="text-3xl mb-4">{t('list.title')}</h1>
       <DataTable columns={columns} data={data ?? []} addButton={(
-        <Link to="/app/songs/add"><Button>Add song</Button></Link>
+        <Link to="/app/songs/add"><Button>{t('actions.create')}</Button></Link>
       )}></DataTable>
     </div>
   );

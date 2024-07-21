@@ -1,0 +1,26 @@
+{
+  "input": {
+    "title": "Title",
+    "artist": "Artist",
+    "parts": "Parts"
+  },
+  "actions": {
+    "create": "Add song",
+    "edit": "Edit song",
+    "delete": "Delete song"
+  },
+  "button": {
+    "add": "Add",
+    "update": "Update",
+    "cancel": "Cancel"
+  },
+  "list": {
+    "title": "Songs"
+  },
+  "edit": {
+    "title": "Edit song",
+    "addPart": "Add part",
+    "duplicatePart": "Duplicate part",
+    "deletePart": "Delete part"
+  }
+}
