@@ -19,6 +19,16 @@ begin
   insert into public.organization_users ("orgId", "userId")
   values (new_org_id, new_user_id);
 
+  update auth.users
+  set
+    raw_user_meta_data = jsonb_set(
+      raw_user_meta_data::jsonb,
+      '{orgs}'::text[],
+      '[]'::jsonb || concat('[', new_org_id, ']')::jsonb,
+      true
+    )::jsonb
+  where id = new.id;
+
   return new;
 end;
 $$;
