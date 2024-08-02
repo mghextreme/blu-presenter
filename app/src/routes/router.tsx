@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 
 import AuthLayout from "@/layouts/auth";
-import AppLayout from "@/layouts/app";
+import AppLayout, { loader as appLoader } from "@/layouts/app";
 import ErrorLayout from "@/layouts/error";
 import ControllerLayout from "@/layouts/controller";
 import { useServices, ServicesProviderState } from "@/hooks/services.provider";
@@ -35,7 +35,7 @@ export const buildRouter = (services: ServicesProviderState) => {
             <Route path="signup" element={<SignUp />} />
           </Route>
         </Route>
-        <Route path="/app" element={<AppLayout />} errorElement={<ErrorLayout />}>
+        <Route path="/app" element={<AppLayout />} errorElement={<ErrorLayout />} loader={() => appLoader({ usersService: services.usersService })}>
           <Route index={true} element={<Welcome />} />
           <Route path="profile" element={<Profile />} loader={() => profileLoader({ usersService: services.usersService })} />
           <Route path="songs">

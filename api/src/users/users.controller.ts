@@ -7,7 +7,7 @@ import {
   Put,
   Scope,
 } from '@nestjs/common';
-import { User } from 'src/entities';
+import { Organization, User } from 'src/entities';
 import { UsersService } from './users.service';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
@@ -32,5 +32,11 @@ export class UsersController {
   ): Promise<Partial<User>> {
     const user = this.request.user['internal'];
     return await this.usersService.update(user.id, updateProfileDto);
+  }
+
+  @Get('organizations')
+  async getOrganizations(): Promise<Partial<Organization>[]> {
+    const user = this.request.user['internal'];
+    return await this.usersService.findOrganizations(user.id);
   }
 }

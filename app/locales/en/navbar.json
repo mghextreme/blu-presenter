@@ -8,6 +8,11 @@
     "light": "Light",
     "system": "System"
   },
+  "organizations": {
+    "create": "Create organization",
+    "defaultName": "Personal space",
+    "searchPlaceholder": "Search..."
+  },
   "profile": {
     "profilePage": "My profile",
     "signOut": "Sign out"

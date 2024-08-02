@@ -8,6 +8,11 @@
     "light": "Claro",
     "system": "Sistema"
   },
+  "organizations": {
+    "create": "Criar organização",
+    "defaultName": "Espaço individual",
+    "searchPlaceholder": "Pesquisar..."
+  },
   "profile": {
     "profilePage": "Meu perfil",
     "signOut": "Sair"
