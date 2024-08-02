@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { User } from 'src/entities';
+import { Organization, User } from 'src/entities';
 import { UpdateProfileDto } from 'src/types';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ConfigService } from '@nestjs/config';
@@ -23,7 +23,10 @@ export class UsersService {
   constructor(
     private dataSource: DataSource,
     private configService: ConfigService,
-    @InjectRepository(User) private usersRepository: Repository<User>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    @InjectRepository(Organization)
+    private organizationsRepository: Repository<Organization>,
   ) {}
 
   async findOne(id: number): Promise<User | null> {
@@ -57,5 +60,24 @@ export class UsersService {
     });
 
     return result as User;
+  }
+
+  async findOrganizations(userId: number): Promise<Partial<Organization>[]> {
+    const orgs = await this.organizationsRepository.find({
+      where: {
+        users: {
+          id: userId,
+        },
+      },
+      order: {
+        name: 'asc',
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    return orgs;
   }
 }
