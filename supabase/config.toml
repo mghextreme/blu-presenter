@@ -1,6 +1,6 @@
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
-project_id = "blu-presenter"
+project_id = "app"
 
 [api]
 enabled = true
@@ -35,6 +35,10 @@ pool_mode = "transaction"
 default_pool_size = 20
 # Maximum number of client connections allowed.
 max_client_conn = 100
+
+[db.seed]
+enabled = true
+sql_paths = ['./seeds/*.sql']
 
 [realtime]
 enabled = true
