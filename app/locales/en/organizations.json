@@ -1,0 +1,22 @@
+{
+  "defaultName": "Personal space",
+  "input": {
+    "name": "Name"
+  },
+  "actions": {
+    "create": "Create organization",
+    "edit": "Edit organization",
+    "delete": "Delete organization"
+  },
+  "button": {
+    "add": "Create",
+    "update": "Update",
+    "cancel": "Cancel"
+  },
+  "list": {
+    "title": "Organizations"
+  },
+  "edit": {
+    "title": "Edit organization"
+  }
+}

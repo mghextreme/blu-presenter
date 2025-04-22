@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { Organization, User } from 'src/entities';
+import { OrganizationUser, User } from 'src/entities';
 import { UpdateProfileDto } from 'src/types';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { ConfigService } from '@nestjs/config';
@@ -25,8 +25,8 @@ export class UsersService {
     private configService: ConfigService,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    @InjectRepository(Organization)
-    private organizationsRepository: Repository<Organization>,
+    @InjectRepository(OrganizationUser)
+    private organizationUsersRepository: Repository<OrganizationUser>,
   ) {}
 
   async findOne(id: number): Promise<User | null> {
@@ -62,19 +62,30 @@ export class UsersService {
     return result as User;
   }
 
-  async findOrganizations(userId: number): Promise<Partial<Organization>[]> {
-    const orgs = await this.organizationsRepository.find({
+  async findUserOrganizations(
+    userId: number,
+  ): Promise<Partial<OrganizationUser>[]> {
+    const orgs = await this.organizationUsersRepository.find({
       where: {
-        users: {
-          id: userId,
-        },
+        userId,
+      },
+      relations: {
+        organization: true,
       },
       order: {
-        name: 'asc',
+        organization: {
+          name: {
+            direction: 'asc',
+            nulls: 'first',
+          },
+        },
       },
       select: {
-        id: true,
-        name: true,
+        organization: {
+          id: true,
+          name: true,
+        },
+        role: true,
       },
     });
 

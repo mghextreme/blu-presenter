@@ -3,13 +3,12 @@ import {
   Column,
   PrimaryGeneratedColumn,
   ManyToOne,
-  ManyToMany,
   OneToMany,
-  JoinTable,
   JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Song } from './song.entity';
+import { OrganizationUser } from './organization-user.entity';
 
 @Entity({ name: 'organizations' })
 export class Organization {
@@ -19,15 +18,13 @@ export class Organization {
   @Column()
   name: string;
 
-  @ManyToMany(() => User, (user) => user.organizations, {
+  @OneToMany(() => OrganizationUser, (orgUser) => orgUser.organization, {
     createForeignKeyConstraints: true,
   })
-  @JoinTable({
-    name: 'organization_users',
-    joinColumn: { name: 'orgId' },
-    inverseJoinColumn: { name: 'userId' },
-  })
-  users: User[];
+  users: OrganizationUser[];
+
+  @Column()
+  ownerId: number;
 
   @ManyToOne(() => User, (user) => user.ownedOrganizations, {
     createForeignKeyConstraints: true,

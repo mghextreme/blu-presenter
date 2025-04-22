@@ -1,11 +1,6 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  ManyToMany,
-  OneToMany,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { Organization } from './organization.entity';
+import { OrganizationUser } from './organization-user.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -21,13 +16,9 @@ export class User {
   @Column()
   name: string;
 
-  @ManyToMany(() => Organization, (organization) => organization.users, {
-    createForeignKeyConstraints: true,
-  })
-  organizations: Organization[];
+  @OneToMany(() => OrganizationUser, (orgUser) => orgUser.user)
+  organizations: OrganizationUser[];
 
-  @OneToMany(() => Organization, (organization) => organization.owner, {
-    createForeignKeyConstraints: true,
-  })
+  @OneToMany(() => Organization, (organization) => organization.owner)
   ownedOrganizations: User;
 }

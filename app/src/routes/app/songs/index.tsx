@@ -1,4 +1,4 @@
-import { Link, useLoaderData } from "react-router-dom";
+import { Link, NavigateFunction, useLoaderData, useNavigate } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table"
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
@@ -15,7 +15,7 @@ export async function loader({ songsService }: { songsService: SongsService }) {
   return await songsService.getAll();
 }
 
-const buildColumns = (t: TFunction, songsService: SongsService) => {
+const buildColumns = (t: TFunction, navigate: NavigateFunction, songsService: SongsService) => {
   const columns: ColumnDef<ISong>[] = [
     {
       accessorKey: "title",
@@ -65,11 +65,12 @@ const buildColumns = (t: TFunction, songsService: SongsService) => {
 export default function Songs() {
 
   const { t } = useTranslation("songs");
+  const navigate = useNavigate();
 
   const data = useLoaderData() as ISong[];
   const { songsService } = useServices();
 
-  const columns = buildColumns(t, songsService);
+  const columns = buildColumns(t, navigate, songsService);
 
   return (
     <div className="p-8">

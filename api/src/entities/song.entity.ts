@@ -14,6 +14,9 @@ export class Song {
   id: number;
 
   @Column()
+  orgId: number;
+
+  @Column()
   title: string;
 
   @Column()

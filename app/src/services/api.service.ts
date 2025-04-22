@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
 import { FetchQueryOptions, QueryClient } from "@tanstack/react-query";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -10,6 +11,10 @@ export abstract class ApiService {
   constructor(queryClient: QueryClient, config: { url: string }) {
     this.queryClient = queryClient;
     this.url = config.url;
+  }
+
+  private get organization() {
+    return useOrganization.getState().organizationId;
   }
 
   private get session() {
@@ -28,13 +33,19 @@ export abstract class ApiService {
   }
 
   private getHeaders = (baseHeaders: {[key: string]: string}): {[key: string]: string} => {
-    const session = this.session;
-    if (!session) return baseHeaders
+    const result = {...baseHeaders};
 
-    return {
-      ...baseHeaders,
-      'Authorization': 'Bearer ' + session.access_token,
-    };
+    const session = this.session;
+    if (session) {
+      result['Authorization'] = 'Bearer ' + session.access_token;
+    }
+
+    const orgId = this.organization;
+    if (orgId) {
+      result['Organization'] = orgId.toString();
+    }
+
+    return result;
   }
 
   protected getRequest = async (path: string, headers: {[key: string]: string} = {}): Promise<any> => {

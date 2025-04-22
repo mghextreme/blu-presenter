@@ -1,7 +1,6 @@
 import { FetchQueryOptions } from "@tanstack/react-query";
 import { ApiService } from "./api.service";
-import { IProfile } from "@/types"
-import { IOrganization } from "@/types/organization.interface";
+import { IProfile, UserOrganization } from "@/types"
 
 export class UsersService extends ApiService {
 
@@ -22,14 +21,21 @@ export class UsersService extends ApiService {
     }) as IProfile;
   }
   
-  public async getOrganizations(): Promise<IOrganization[]> {
+  public async getUserOrganizations(): Promise<UserOrganization[]> {
     return await this.getOrFetch(this.getOrganizationsQuery());
   }
 
-  public getOrganizationsQuery(): FetchQueryOptions<IOrganization[]> {
+  public getOrganizationsQuery(): FetchQueryOptions<UserOrganization[]> {
     return {
       queryKey: ['organizations'],
-      queryFn: async () => await this.getRequest(`/users/organizations`) as IOrganization[],
+      queryFn: async () => {
+        const orgUsers = await this.getRequest(`/users/organizations`);
+        return orgUsers.map((x: {
+          id: number,
+          role: "owner" | "admin" | "member",
+          name?: string,
+        }) => new UserOrganization(x.id, x.role, x.name));
+      },
     };
   }
 
