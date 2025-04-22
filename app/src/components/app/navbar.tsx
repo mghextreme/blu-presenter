@@ -2,10 +2,10 @@ import ThemeToggler from "@/components/ui/theme-toggler";
 import LanguageToggler from "../ui/language-toggler";
 import ProfileButton from "./profile-button";
 import OrganizationsButton from "./organizations-button";
-import { IOrganization } from "@/types/organization.interface";
+import { UserOrganization } from "@/types";
 
 type AppNavbarProps = {
-  organizations: IOrganization[]
+  organizations: UserOrganization[]
 }
 
 export default function AppNavbar({ organizations }: AppNavbarProps) {

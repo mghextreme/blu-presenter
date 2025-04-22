@@ -5,6 +5,7 @@ import configuration from './config/configuration';
 import { DatabaseConfigService } from './services';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
+import { OrganizationsModule } from './organizations/organizations.module';
 import { SongsModule } from './songs/songs.module';
 import { SupabaseGuard } from './supabase/supabase.guard';
 import { APP_GUARD } from '@nestjs/core';
@@ -25,6 +26,7 @@ import { PassportModule } from '@nestjs/passport';
     SupabaseModule,
     UsersModule,
     SongsModule,
+    OrganizationsModule,
   ],
   exports: [TypeOrmModule],
   controllers: [AppController],

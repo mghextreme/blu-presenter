@@ -9,10 +9,10 @@ import { useEffect } from "react";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import { useOrganization } from "@/hooks/useOrganization";
-import { IOrganization } from "@/types/organization.interface";
+import { UserOrganization } from "@/types";
 
 type OrganizationsButtonProps = {
-  organizations: IOrganization[]
+  organizations: UserOrganization[]
 }
 
 export default function OrganizationsButton({ organizations }: OrganizationsButtonProps) {

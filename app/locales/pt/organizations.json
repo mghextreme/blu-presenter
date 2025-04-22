@@ -1,0 +1,22 @@
+{
+  "defaultName": "Espaço individual",
+  "input": {
+    "name": "Nome"
+  },
+  "actions": {
+    "create": "Criar organização",
+    "edit": "Editar organização",
+    "delete": "Remover organização"
+  },
+  "button": {
+    "add": "Criar",
+    "update": "Atualizar",
+    "cancel": "Cancelar"
+  },
+  "list": {
+    "title": "Organizações"
+  },
+  "edit": {
+    "title": "Editar organização"
+  }
+}

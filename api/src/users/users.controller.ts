@@ -7,11 +7,12 @@ import {
   Put,
   Scope,
 } from '@nestjs/common';
-import { Organization, User } from 'src/entities';
+import { User } from 'src/entities';
 import { UsersService } from './users.service';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 import { UpdateProfileDto } from 'src/types';
+import { OrganizationUserViewModel } from 'src/models';
 
 @Controller('users')
 @Injectable({ scope: Scope.REQUEST })
@@ -35,8 +36,15 @@ export class UsersController {
   }
 
   @Get('organizations')
-  async getOrganizations(): Promise<Partial<Organization>[]> {
+  async getUserOrganizations(): Promise<OrganizationUserViewModel[]> {
     const user = this.request.user['internal'];
-    return await this.usersService.findOrganizations(user.id);
+    const orgUsers = await this.usersService.findUserOrganizations(user.id);
+    return orgUsers.map((item) => {
+      return {
+        id: item.organization.id,
+        name: item.organization.name,
+        role: item.role,
+      } as OrganizationUserViewModel;
+    });
   }
 }

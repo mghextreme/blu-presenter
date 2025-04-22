@@ -16,6 +16,7 @@ export default function AppSidebar() {
         <nav className="mt-5 px-4 py-4 lg:mt-9 lg:px-6">
           <div>
             <h3 className="mb-4 ml-4 text-sm font-medium text-bodydark2">MENU</h3>
+            <hr />
 
             <ul className="mb-6 flex flex-col gap-1.5">
               <li>
@@ -33,9 +34,15 @@ export default function AppSidebar() {
                   {t('menu.songs')}
                 </Link>
               </li>
+              <hr />
               <li>
                 <Link to={'/app/profile'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
                   {t('menu.profile')}
+                </Link>
+              </li>
+              <li>
+                <Link to={'/app/organizations'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                  {t('menu.organizations')}
                 </Link>
               </li>
             </ul>

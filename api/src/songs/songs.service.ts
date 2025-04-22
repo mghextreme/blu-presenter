@@ -1,17 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, ILike, Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { CreateSongDto, UpdateSongDto } from 'src/types';
-import { Song, SongPart } from 'src/entities';
+import { Song } from 'src/entities';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class SongsService {
   constructor(
-    private dataSource: DataSource,
     @InjectRepository(Song) private songsRepository: Repository<Song>,
   ) {}
 
-  async findOne(id: number): Promise<Song | null> {
+  async findOne(orgId: number, id: number): Promise<Song | null> {
     return this.songsRepository.findOne({
       select: {
         id: true,
@@ -19,12 +18,24 @@ export class SongsService {
         artist: true,
         blocks: true,
       },
-      where: { id },
+      where: {
+        id,
+        orgId,
+      },
     });
   }
 
-  async findAll(): Promise<Song[]> {
+  async findAll(orgId: number): Promise<Song[]> {
     return this.songsRepository.find({
+      select: {
+        id: true,
+        title: true,
+        artist: true,
+        blocks: true,
+      },
+      where: {
+        orgId,
+      },
       order: {
         title: 'asc',
         artist: 'asc',
@@ -32,11 +43,11 @@ export class SongsService {
     });
   }
 
-  async search(query: string): Promise<Song[]> {
+  async search(orgId: number, query: string): Promise<Song[]> {
     return await this.songsRepository.find({
       where: [
-        { title: ILike(`%${query}%`) },
-        { artist: ILike(`%${query}%`) },
+        { orgId, title: ILike(`%${query}%`) },
+        { orgId, artist: ILike(`%${query}%`) },
         // TODO: search within song text
         // { blocks: { text: ILike(`%${query}%`) } },
       ],
@@ -52,35 +63,28 @@ export class SongsService {
     });
   }
 
-  async create(createSongDto: CreateSongDto): Promise<Song> {
-    let songId: number;
-
-    await this.dataSource.transaction(async (manager) => {
-      const songsRepository = manager.getRepository(Song);
-
-      const result = await songsRepository.insert({
-        title: createSongDto.title,
-        artist: createSongDto.artist,
-      });
-      songId = result.raw[0].id;
-
-      const songPartRepository = manager.getRepository(SongPart);
-      await songPartRepository.insert(
-        createSongDto.blocks.map((b, ix) => {
-          return {
-            order: ix,
-            text: b.text,
-            songId: songId,
-          } as SongPart;
-        }),
-      );
+  async create(orgId: number, createSongDto: CreateSongDto): Promise<Song> {
+    const result = await this.songsRepository.insert({
+      title: createSongDto.title,
+      artist: createSongDto.artist,
+      blocks: createSongDto.blocks,
+      orgId,
     });
+    const songId = result.raw[0].id;
 
-    return this.findOne(songId);
+    return this.findOne(orgId, songId);
   }
 
-  async update(id: number, updateSongDto: UpdateSongDto): Promise<Song> {
+  async update(
+    orgId: number,
+    id: number,
+    updateSongDto: UpdateSongDto,
+  ): Promise<Song> {
     const song = await this.songsRepository.findOneBy({ id });
+    if (song.orgId !== orgId) {
+      throw new ForbiddenException();
+    }
+
     song.title = updateSongDto.title;
     song.artist = updateSongDto.artist;
     song.blocks = updateSongDto.blocks;
@@ -89,7 +93,12 @@ export class SongsService {
     return result as Song;
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(orgId: number, id: number): Promise<void> {
+    const song = await this.songsRepository.findOneBy({ id });
+    if (song.orgId !== orgId) {
+      throw new ForbiddenException();
+    }
+
     await this.songsRepository.delete(id);
   }
 }
