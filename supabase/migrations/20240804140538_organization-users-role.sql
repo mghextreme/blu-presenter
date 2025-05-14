@@ -10,8 +10,8 @@ declare
   new_user_id integer;
   new_org_id integer;
 begin
-  insert into public.users ("authId")
-  values (new.id)
+  insert into public.users ("authId", "email")
+  values (new.id, new.email)
   returning id into new_user_id;
 
   insert into public.organizations ("ownerId")

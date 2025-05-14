@@ -1,8 +1,12 @@
-import { Injectable, Scope } from '@nestjs/common';
+import { Inject, Injectable, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { CreateOrganizationDto, UpdateOrganizationDto } from 'src/types';
 import { Organization, OrganizationUser } from 'src/entities';
+import { REQUEST } from '@nestjs/core';
+import { Request as ExpRequest } from 'express';
+
+type Role = 'owner' | 'admin' | 'member';
 
 @Injectable({ scope: Scope.REQUEST })
 export class OrganizationsService {
@@ -12,12 +16,10 @@ export class OrganizationsService {
     private organizationsRepository: Repository<Organization>,
     @InjectRepository(OrganizationUser)
     private organizationUsersRepository: Repository<OrganizationUser>,
+    @Inject(REQUEST) private readonly request: ExpRequest,
   ) {}
 
-  async userRole(
-    orgId: number,
-    userId: number,
-  ): Promise<'owner' | 'admin' | 'member' | null> {
+  async userRole(orgId: number, userId: number): Promise<Role | null> {
     const orgUserRecord = this.organizationUsersRepository.findOneBy({
       orgId,
       userId,
@@ -29,29 +31,39 @@ export class OrganizationsService {
   }
 
   async findOne(id: number): Promise<Organization | null> {
-    return this.organizationsRepository.findOne({
+    const query = {
       where: { id },
       relations: {
-        users: {
-          user: true,
-        },
         owner: true,
       },
       select: {
         id: true,
         name: true,
-        users: {
-          user: {
-            id: true,
-            name: true,
-          },
-        },
         owner: {
           id: true,
           name: true,
         },
       },
-    });
+    };
+
+    switch (this.request.user['role']) {
+      case 'owner':
+      case 'admin':
+        query.relations['users'] = {
+          user: true,
+        };
+        query.select['users'] = {
+          role: true,
+          user: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        };
+        break;
+    }
+
+    return await this.organizationsRepository.findOne(query);
   }
 
   async create(

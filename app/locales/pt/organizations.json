@@ -1,12 +1,17 @@
 {
   "defaultName": "Espaço individual",
   "input": {
-    "name": "Nome"
+    "name": "Nome",
+    "email": "E-mail",
+    "role": "Permissões"
   },
   "actions": {
     "create": "Criar organização",
     "edit": "Editar organização",
-    "delete": "Remover organização"
+    "delete": "Remover organização",
+    "invite-member": "Convidar membro",
+    "edit-member": "Edit member",
+    "remove-member": "Remove member"
   },
   "button": {
     "add": "Criar",
@@ -17,6 +22,12 @@
     "title": "Organizações"
   },
   "edit": {
-    "title": "Editar organização"
+    "title": "Editar organização",
+    "members": "Membros"
+  },
+  "role": {
+    "owner": "Proprietário",
+    "admin": "Administrador",
+    "member": "Membro"
   }
 }

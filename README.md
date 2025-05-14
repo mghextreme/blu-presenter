@@ -10,6 +10,11 @@ Check [Supabase documentation](https://supabase.com/docs).
 supabase start
 ```
 
+The application seeding will add one user:
+
+- Email: `admin@example.com`
+- Password: `password`
+
 ### Docker
 
 > This is an alternative to the development command

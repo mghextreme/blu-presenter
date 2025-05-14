@@ -1,12 +1,17 @@
 {
   "defaultName": "Personal space",
   "input": {
-    "name": "Name"
+    "name": "Name",
+    "email": "Email",
+    "role": "Role"
   },
   "actions": {
     "create": "Create organization",
     "edit": "Edit organization",
-    "delete": "Delete organization"
+    "delete": "Delete organization",
+    "invite-member": "Invite member",
+    "edit-member": "Edit member",
+    "remove-member": "Remove member"
   },
   "button": {
     "add": "Create",
@@ -17,6 +22,12 @@
     "title": "Organizations"
   },
   "edit": {
-    "title": "Edit organization"
+    "title": "Edit organization",
+    "members": "Members"
+  },
+  "role": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member"
   }
 }
