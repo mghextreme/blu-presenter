@@ -1,0 +1,12 @@
+{
+  "filter": "Filtrar",
+  "no-results": "Nenhum resultado",
+  "page": "Página",
+  "items-per-page": "Itens por página",
+  "sr": {
+    "go-to-first-page": "Ir para a primeira página",
+    "go-to-previous-page": "Ir para a página anterior",
+    "go-to-next-page": "Ir para a próxima página",
+    "go-to-last-page": "Ir para a última página"
+  }
+}
