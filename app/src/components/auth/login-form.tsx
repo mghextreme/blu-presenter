@@ -48,7 +48,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
     } catch (e) {
       toast({
         title: t('signIn.error'),
-        description: e?.message || '',
+        description: t('errors.' + e?.message || 'default'),
         variant: "destructive",
       });
     } finally {
