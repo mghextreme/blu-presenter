@@ -19,6 +19,7 @@ export async function loader({ usersService }: { usersService: UsersService }) {
 }
 
 const formSchema = z.object({
+  email: z.string().email(),
   nickname: z.string().min(2),
   name: z.string().min(2).optional().or(z.literal('')),
 });
@@ -42,6 +43,7 @@ export default function Profile() {
     defaultValues: {
       nickname: data.nickname ?? '',
       name: data.name ?? '',
+      email: data.email ?? '',
     },
   });
 
@@ -71,6 +73,19 @@ export default function Profile() {
       <h1 className="text-3xl mb-4">{t('update.title')}</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('input.email')}</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}></FormField>
+
           <FormField
             control={form.control}
             name="nickname"

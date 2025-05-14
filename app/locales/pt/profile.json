@@ -1,5 +1,6 @@
 {
   "input": {
+    "email": "E-mail",
     "nickname": "Apelido",
     "name": "Nome completo"
   },

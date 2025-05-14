@@ -38,6 +38,7 @@ export class SupabaseGuard extends AuthGuard('jwt') {
     if (!internalUser) {
       return false;
     }
+    internalUser.email = request.user.email;
     request['user']['internal'] = internalUser;
 
     const allowedRoles = this.reflector.getAllAndOverride<string[]>(
@@ -56,6 +57,7 @@ export class SupabaseGuard extends AuthGuard('jwt') {
       request.headers?.organization,
       internalUser.id,
     );
+    request['user']['role'] = roleInOrganization;
 
     return allowedRoles.includes(roleInOrganization);
   }

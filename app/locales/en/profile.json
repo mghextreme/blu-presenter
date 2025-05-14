@@ -1,5 +1,6 @@
 {
   "input": {
+    "email": "Email",
     "nickname": "Nickname",
     "name": "Full name"
   },
