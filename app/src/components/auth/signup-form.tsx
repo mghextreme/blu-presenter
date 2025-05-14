@@ -63,7 +63,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
     } catch (e) {
       toast({
         title: t('signUp.error'),
-        description: e?.message || '',
+        description: t('errors.' + e?.message || 'default'),
         variant: "destructive",
       });
     } finally {
