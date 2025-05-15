@@ -1,0 +1,9 @@
+{
+  "title": "Oops!",
+  "message": "Something went wrong.",
+  "actions": {
+    "home": "Go to Home",
+    "app": "Go to App"
+  },
+  "details": "Details"
+}
