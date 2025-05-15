@@ -1,0 +1,9 @@
+{
+  "title": "Ops!",
+  "message": "Tivemos um problema.",
+  "actions": {
+    "home": "Voltar à página inicial",
+    "app": "Voltar ao app"
+  },
+  "details": "Detalhes"
+}
