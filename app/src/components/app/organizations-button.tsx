@@ -10,6 +10,7 @@ import { CheckIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import { useOrganization } from "@/hooks/useOrganization";
 import { UserOrganization } from "@/types";
+import { useNavigate } from "react-router-dom";
 
 type OrganizationsButtonProps = {
   organizations: UserOrganization[]
@@ -18,6 +19,7 @@ type OrganizationsButtonProps = {
 export default function OrganizationsButton({ organizations }: OrganizationsButtonProps) {
 
   const { t } = useTranslation("navbar");
+  const navigate = useNavigate();
 
   const { organizationId, setOrganizationId } = useOrganization();
   const [localOrganization, setLocalOrganization] = useState<{id: number, name?: string} | undefined>(undefined);
@@ -68,7 +70,7 @@ export default function OrganizationsButton({ organizations }: OrganizationsButt
             ))}
             <CommandSeparator className="my-1" />
             <CommandItem
-              onSelect={() => alert('create')}>
+              onSelect={() => navigate('/app/organizations/add')}>
                 {t('organizations.create')}
                 <PlusIcon className="ml-auto h-4 w-4" />
               </CommandItem>

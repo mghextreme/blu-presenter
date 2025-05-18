@@ -1,6 +1,7 @@
 import {
   Outlet,
   useLoaderData,
+  useRevalidator,
 } from "react-router-dom";
 
 import { UsersService } from "@/services";
@@ -10,6 +11,9 @@ import ProtectedRoute from "@/components/protected-route";
 import AppSidebar from "@/components/app/sidebar";
 import AppNavbar from "@/components/app/navbar";
 import { Toaster } from "@/components/ui/toaster";
+import { useEffect } from "react";
+import { useOrganization } from "@/hooks/useOrganization";
+import { useServices } from "@/hooks/services.provider";
 
 export async function loader({ usersService }: { usersService: UsersService }) {
   return await usersService.getUserOrganizations();
@@ -18,6 +22,15 @@ export async function loader({ usersService }: { usersService: UsersService }) {
 export default function AppLayout() {
 
   const loadedData = useLoaderData() as UserOrganization[];
+  const { revalidate } = useRevalidator();
+  const { organizationId } = useOrganization();
+  const { organizationsService, songsService } = useServices();
+
+  useEffect(() => {
+    organizationsService.clearCache();
+    songsService.clearCache();
+    revalidate();
+  }, [organizationId])
 
   return (
     <ProtectedRoute>

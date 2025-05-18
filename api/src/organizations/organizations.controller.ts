@@ -21,6 +21,13 @@ export class OrganizationsController {
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {}
 
+  @Get('self')
+  @OrganizationRole('owner', 'admin', 'member')
+  async findSelf(): Promise<Organization> {
+    const usersOrg = this.request.user['organization'];
+    return await this.organizationsService.findOne(usersOrg);
+  }
+
   @Get(':id')
   @OrganizationRole('owner', 'admin', 'member')
   async findOne(@Param('id') id: number): Promise<Organization> {

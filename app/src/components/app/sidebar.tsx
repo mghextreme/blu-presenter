@@ -41,8 +41,8 @@ export default function AppSidebar() {
                 </Link>
               </li>
               <li>
-                <Link to={'/app/organizations'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
-                  {t('menu.organizations')}
+                <Link to={'/app/organization'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                  {t('menu.organization')}
                 </Link>
               </li>
             </ul>
