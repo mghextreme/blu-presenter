@@ -1,4 +1,4 @@
-import { Link, NavigateFunction, useLoaderData, useNavigate } from "react-router-dom";
+import { Link, useLoaderData, useRevalidator } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table"
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
@@ -10,12 +10,14 @@ import { SongsService } from "@/services";
 import { useServices } from "@/hooks/services.provider";
 import { useTranslation } from "react-i18next";
 import { TFunction } from "i18next";
+import { useEffect } from "react";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export async function loader({ songsService }: { songsService: SongsService }) {
   return await songsService.getAll();
 }
 
-const buildColumns = (t: TFunction, navigate: NavigateFunction, songsService: SongsService) => {
+const buildColumns = (t: TFunction, songsService: SongsService) => {
   const columns: ColumnDef<ISong>[] = [
     {
       accessorKey: "title",
@@ -65,12 +67,17 @@ const buildColumns = (t: TFunction, navigate: NavigateFunction, songsService: So
 export default function Songs() {
 
   const { t } = useTranslation("songs");
-  const navigate = useNavigate();
+  const { organizationId } = useOrganization();
 
   const data = useLoaderData() as ISong[];
+  const { revalidate } = useRevalidator();
   const { songsService } = useServices();
 
-  const columns = buildColumns(t, navigate, songsService);
+  const columns = buildColumns(t, songsService);
+
+  useEffect(() => {
+    revalidate();
+  }, [organizationId]);
 
   return (
     <div className="p-8">

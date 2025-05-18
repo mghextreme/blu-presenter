@@ -6,9 +6,6 @@
     "role": "Permissões"
   },
   "actions": {
-    "create": "Criar organização",
-    "edit": "Editar organização",
-    "delete": "Remover organização",
     "invite-member": "Convidar membro",
     "edit-member": "Edit member",
     "remove-member": "Remove member"
@@ -16,14 +13,18 @@
   "button": {
     "add": "Criar",
     "update": "Atualizar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "invite": "Convidar"
   },
-  "list": {
-    "title": "Organizações"
+  "add": {
+    "title": "Adicionar organização"
   },
   "edit": {
     "title": "Editar organização",
     "members": "Membros"
+  },
+  "invite": {
+    "title": "Convidar membro"
   },
   "role": {
     "owner": "Proprietário",

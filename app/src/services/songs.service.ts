@@ -3,6 +3,10 @@ import { IScheduleSong, ISlide, ISlideContent, ISlideTextContent, ISlideTitleCon
 
 export class SongsService extends ApiService {
 
+  public clearCache(): void {
+    this.queryClient.removeQueries({ queryKey: ['songs'] });
+  }
+
   public async getAll(): Promise<ISong[]> {
     return await this.getOrFetch({
       queryKey: ['songs', 'all'],

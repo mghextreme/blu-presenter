@@ -4,13 +4,17 @@ import { IProfile, UserOrganization } from "@/types"
 
 export class UsersService extends ApiService {
 
+  public clearCache(): void {
+    this.queryClient.removeQueries({ queryKey: ['user'] });
+  }
+
   public async getProfile(): Promise<IProfile | null> {
     return await this.getOrFetch(this.getProfileQuery());
   }
 
   public getProfileQuery(): FetchQueryOptions<IProfile> {
     return {
-      queryKey: ['profile'],
+      queryKey: ['user', 'profile'],
       queryFn: async () => await this.getRequest(`/users/profile`) as IProfile,
     };
   }
@@ -20,14 +24,14 @@ export class UsersService extends ApiService {
       'content-type': 'application/json',
     }) as IProfile;
   }
-  
+
   public async getUserOrganizations(): Promise<UserOrganization[]> {
     return await this.getOrFetch(this.getOrganizationsQuery());
   }
 
   public getOrganizationsQuery(): FetchQueryOptions<UserOrganization[]> {
     return {
-      queryKey: ['organizations'],
+      queryKey: ['user', 'organizations'],
       queryFn: async () => {
         const orgUsers = await this.getRequest(`/users/organizations`);
         return orgUsers.map((x: {

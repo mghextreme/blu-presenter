@@ -23,8 +23,8 @@ import Profile, { loader as profileLoader } from "./app/profile";
 import SongsIndex, { loader as indexSongLoader } from "./app/songs/index";
 import EditSong, { loader as editSongLoader } from "./app/songs/edit";
 
-import OrganizationsIndex, { loader as indexOrganizationLoader } from "./app/organizations/index";
-import EditOrganization, { loader as editOrganizationLoader } from "./app/organizations/edit";
+import EditOrganization, { loader as editOrganizationLoader } from "./app/organizations";
+import InviteOrganizationMember, { loader as inviteOrganizationMemberLoader } from "./app/organizations/invite";
 
 export const buildRouter = (services: ServicesProviderState) => {
 
@@ -46,10 +46,12 @@ export const buildRouter = (services: ServicesProviderState) => {
             <Route path="add" element={<EditSong edit={false} />} />
             <Route path=":id/edit" element={<EditSong />} loader={(loader: LoaderFunctionArgs) => editSongLoader({ params: loader.params, songsService: services.songsService })} />
           </Route>
+          <Route path="organization">
+            <Route index={true} element={<EditOrganization />} loader={() => editOrganizationLoader({ organizationsService: services.organizationsService })} />
+            <Route path=":id/invite" element={<InviteOrganizationMember />} loader={(loader: LoaderFunctionArgs) => inviteOrganizationMemberLoader({ params: loader.params, organizationsService: services.organizationsService })} />
+          </Route>
           <Route path="organizations">
-            <Route index={true} element={<OrganizationsIndex />} loader={() => indexOrganizationLoader({ usersService: services.usersService })} />
             <Route path="add" element={<EditOrganization edit={false} />} />
-            <Route path=":id/edit" element={<EditOrganization />} loader={(loader: LoaderFunctionArgs) => editOrganizationLoader({ params: loader.params, organizationsService: services.organizationsService })} />
           </Route>
         </Route>
         <Route path="/app/controller" element={<ControllerLayout />} errorElement={<ErrorLayout />}>

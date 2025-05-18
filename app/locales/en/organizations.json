@@ -6,9 +6,6 @@
     "role": "Role"
   },
   "actions": {
-    "create": "Create organization",
-    "edit": "Edit organization",
-    "delete": "Delete organization",
     "invite-member": "Invite member",
     "edit-member": "Edit member",
     "remove-member": "Remove member"
@@ -16,14 +13,18 @@
   "button": {
     "add": "Create",
     "update": "Update",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "invite": "Invite"
   },
-  "list": {
-    "title": "Organizations"
+  "add": {
+    "title": "Add organization"
   },
   "edit": {
     "title": "Edit organization",
     "members": "Members"
+  },
+  "invite": {
+    "title": "Invite member"
   },
   "role": {
     "owner": "Owner",

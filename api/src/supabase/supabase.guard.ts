@@ -53,6 +53,7 @@ export class SupabaseGuard extends AuthGuard('jwt') {
       return false;
     }
 
+    request['user']['organization'] = request.headers?.organization;
     const roleInOrganization = await this.organizationService.userRole(
       request.headers?.organization,
       internalUser.id,
