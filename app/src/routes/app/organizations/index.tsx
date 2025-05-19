@@ -20,6 +20,7 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import { TFunction } from "i18next";
 import { IOrganizationUser } from "@/types";
 import { useOrganization } from "@/hooks/useOrganization";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export async function loader({ organizationsService }: { organizationsService: OrganizationsService }) {
   return await organizationsService.getCurrent();
@@ -106,6 +107,8 @@ export default function EditOrganization({
   };
   const members = data.users ?? [];
 
+  const isPersonalSpace = data.name == null || data?.name == '';
+
   const navigate = useNavigate();
   const { revalidate } = useRevalidator();
 
@@ -131,7 +134,7 @@ export default function EditOrganization({
       setLoading(true);
       let action;
       if (edit) {
-        action = organizationsService.update(data.id, {
+        action = organizationsService.update({
           ...values,
         });
       } else {
@@ -170,38 +173,51 @@ export default function EditOrganization({
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl mb-4">{t(edit ? 'edit.title' : 'add.title')}</h1>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('input.name')}</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}></FormField>
-          <div className="flex flex-row align-start space-x-2">
-            <Button className="flex-0" type="submit" disabled={isLoading}>
-              {isLoading && (
-                <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
-              )}
-              {t('button.' + (edit ? 'update' : 'add'))}
-              </Button>
-            <Link to={'/app/organization'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
-          </div>
-        </form>
-      </Form>
-      {edit && (
+      {isPersonalSpace ? (
+        <Alert>
+          <AlertTitle>{t('warning.personal-space.title')}</AlertTitle>
+          <AlertDescription>
+            {t('warning.personal-space.message')}
+          </AlertDescription>
+        </Alert>
+      ) : (
         <>
-          <h2 className="text-xl mt-6 mb-4">{t('edit.members')}</h2>
-          <DataTable columns={columns} data={members ?? []} addButton={(
-            <Link to={`/app/organization/invite`}><Button>{t('actions.invite-member')}</Button></Link>
-          )}></DataTable>
+          <h1 className="text-3xl mb-4">{t(edit ? 'edit.title' : 'add.title')}</h1>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('input.name')}</FormLabel>
+                    <FormControl>
+                      <Input {...field} disabled={edit && isPersonalSpace} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}></FormField>
+              <div className="flex flex-row align-start space-x-2">
+                {!isPersonalSpace && (
+                  <Button className="flex-0" type="submit" disabled={isLoading}>
+                    {isLoading && (
+                      <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+                    )}
+                    {t('button.' + (edit ? 'update' : 'add'))}
+                    </Button>
+                )}
+                <Link to={'/app/organization'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+              </div>
+            </form>
+          </Form>
+          {edit && (
+            <>
+              <h2 className="text-xl mt-6 mb-4">{t('edit.members')}</h2>
+              <DataTable columns={columns} data={members ?? []} addButton={(
+                <Link to={`/app/organization/invite`}><Button>{t('actions.invite-member')}</Button></Link>
+              )}></DataTable>
+            </>
+          )}
         </>
       )}
     </div>
