@@ -48,7 +48,7 @@ export const buildRouter = (services: ServicesProviderState) => {
           </Route>
           <Route path="organization">
             <Route index={true} element={<EditOrganization />} loader={() => editOrganizationLoader({ organizationsService: services.organizationsService })} />
-            <Route path=":id/invite" element={<InviteOrganizationMember />} loader={(loader: LoaderFunctionArgs) => inviteOrganizationMemberLoader({ params: loader.params, organizationsService: services.organizationsService })} />
+            <Route path="invite" element={<InviteOrganizationMember />} loader={() => inviteOrganizationMemberLoader({ organizationsService: services.organizationsService })} />
           </Route>
           <Route path="organizations">
             <Route path="add" element={<EditOrganization edit={false} />} />

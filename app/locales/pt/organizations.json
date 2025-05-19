@@ -30,5 +30,11 @@
     "owner": "Proprietário",
     "admin": "Administrador",
     "member": "Membro"
+  },
+  "warning": {
+    "personal-space": {
+      "title": "Está é um espaço individual",
+      "message": "Para convidar outros e compartilhar músicas, você precisa criar uma organização. Você pode criar uma organização com o seletor no topo direito."
+    }
   }
 }

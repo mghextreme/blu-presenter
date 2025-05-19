@@ -9,6 +9,7 @@ import {
 import { User } from './user.entity';
 import { Song } from './song.entity';
 import { OrganizationUser } from './organization-user.entity';
+import { OrganizationInvitation } from './organization-invitation.entity';
 
 @Entity({ name: 'organizations' })
 export class Organization {
@@ -34,4 +35,13 @@ export class Organization {
 
   @OneToMany(() => Song, (song) => song.organization)
   songs: Song[];
+
+  @OneToMany(
+    () => OrganizationInvitation,
+    (orgInvitation) => orgInvitation.inviter,
+    {
+      createForeignKeyConstraints: true,
+    },
+  )
+  invitations: OrganizationInvitation[];
 }

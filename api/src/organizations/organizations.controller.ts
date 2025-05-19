@@ -1,14 +1,20 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Inject,
   Param,
   Post,
   Put,
 } from '@nestjs/common';
-import { Organization } from 'src/entities';
-import { CreateOrganizationDto, UpdateOrganizationDto } from 'src/types';
+import { Organization, OrganizationInvitation } from 'src/entities';
+import {
+  CreateOrganizationDto,
+  InviteMemberDto,
+  OrganizationViewModel,
+  UpdateOrganizationDto,
+} from 'src/types';
 import { OrganizationsService } from './organizations.service';
 import { OrganizationRole } from '../auth/organization-role.decorator';
 import { REQUEST } from '@nestjs/core';
@@ -23,15 +29,10 @@ export class OrganizationsController {
 
   @Get('self')
   @OrganizationRole('owner', 'admin', 'member')
-  async findSelf(): Promise<Organization> {
+  async findSelf(): Promise<OrganizationViewModel> {
     const usersOrg = this.request.user['organization'];
-    return await this.organizationsService.findOne(usersOrg);
-  }
-
-  @Get(':id')
-  @OrganizationRole('owner', 'admin', 'member')
-  async findOne(@Param('id') id: number): Promise<Organization> {
-    return await this.organizationsService.findOne(id);
+    const org = await this.organizationsService.findOne(usersOrg);
+    return new OrganizationViewModel(org, this.request.user['role']);
   }
 
   @Post()
@@ -45,12 +46,41 @@ export class OrganizationsController {
     );
   }
 
-  @Put(':id')
+  @Put('self')
   @OrganizationRole('owner', 'admin')
   async update(
-    @Param('id') id: number,
     @Body() updateOrganizationDto: UpdateOrganizationDto,
   ): Promise<Organization> {
-    return await this.organizationsService.update(id, updateOrganizationDto);
+    const usersOrg = this.request.user['organization'];
+    return await this.organizationsService.update(
+      usersOrg,
+      updateOrganizationDto,
+    );
+  }
+
+  @Post('members')
+  @OrganizationRole('owner', 'admin')
+  async inviteMember(
+    @Body() inviteMemberDto: InviteMemberDto,
+  ): Promise<OrganizationInvitation> {
+    const usersOrg = this.request.user['organization'];
+    return await this.organizationsService.inviteMember(
+      usersOrg,
+      inviteMemberDto,
+    );
+  }
+
+  @Delete('invitations/:id')
+  @OrganizationRole('owner', 'admin')
+  async removeInvitation(@Param('id') id: number): Promise<void> {
+    const usersOrg = this.request.user['organization'];
+    return await this.organizationsService.removeInvitation(usersOrg, id);
+  }
+
+  @Delete('members/:id')
+  @OrganizationRole('owner', 'admin')
+  async removeMember(@Param('id') id: number): Promise<void> {
+    const usersOrg = this.request.user['organization'];
+    return await this.organizationsService.removeMember(usersOrg, id);
   }
 }

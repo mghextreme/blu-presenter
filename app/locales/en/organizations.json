@@ -30,5 +30,11 @@
     "owner": "Owner",
     "admin": "Admin",
     "member": "Member"
+  },
+  "warning": {
+    "personal-space": {
+      "title": "This is a Personal space",
+      "message": "To invite others and share songs, you need to create an organization. You can create an organization from the dropdown in the top right."
+    }
   }
 }

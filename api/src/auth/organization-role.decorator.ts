@@ -1,6 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
+import { OrganizationRoleOptions } from 'src/types';
 
-type OrganizationRole = 'owner' | 'admin' | 'member';
 export const ORGANIZATION_ROLE_KEY = 'organizationRole';
-export const OrganizationRole = (...roles: OrganizationRole[]) =>
+export const OrganizationRole = (...roles: OrganizationRoleOptions[]) =>
   SetMetadata(ORGANIZATION_ROLE_KEY, roles);

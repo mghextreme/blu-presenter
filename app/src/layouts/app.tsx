@@ -30,7 +30,7 @@ export default function AppLayout() {
     organizationsService.clearCache();
     songsService.clearCache();
     revalidate();
-  }, [organizationId])
+  }, [organizationId]);
 
   return (
     <ProtectedRoute>

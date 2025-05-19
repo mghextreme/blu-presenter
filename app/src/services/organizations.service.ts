@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IOrganization } from "@/types/organization.interface";
 import { ApiService } from "./api.service";
+import { OrganizationRoleOptions } from "@/types";
 
 export class OrganizationsService extends ApiService {
 
@@ -18,16 +19,6 @@ export class OrganizationsService extends ApiService {
     });
   }
 
-  public async getById(orgId: number): Promise<IOrganization | null> {
-    return await this.getOrFetch({
-      queryKey: ['organizations', 'id', orgId],
-      queryFn: async () => {
-        const response = await this.getRequest(`/organizations/${orgId}`);
-        return this.parseOrganization(response);
-      },
-    });
-  }
-
   public async add(value: IOrganization): Promise<IOrganization | null> {
     const result = await this.postRequest('/organizations', JSON.stringify(value), {
       'content-type': 'application/json',
@@ -38,14 +29,29 @@ export class OrganizationsService extends ApiService {
     return result;
   }
 
-  public async update(id: number, value: IOrganization): Promise<IOrganization | null> {
-    const result = await this.putRequest(`/organizations/${id}`, JSON.stringify(value), {
+  public async update(value: IOrganization): Promise<IOrganization | null> {
+    const result = await this.putRequest('/organizations/self', JSON.stringify(value), {
       'content-type': 'application/json',
     }) as IOrganization;
 
     this.clearCache();
 
     return result;
+  }
+
+  public async inviteMember(email: string, role: OrganizationRoleOptions): Promise<null> {
+    // TODO
+    return null;
+  }
+
+  public async cancelInvitation(email: string): Promise<null> {
+    // TODO
+    return null;
+  }
+
+  public async removeMember(id: number): Promise<null> {
+    // TODO
+    return null;
   }
 
   private parseOrganization(response: any): IOrganization {

@@ -1,8 +1,16 @@
 import { Inject, Injectable, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { CreateOrganizationDto, UpdateOrganizationDto } from 'src/types';
-import { Organization, OrganizationUser } from 'src/entities';
+import {
+  CreateOrganizationDto,
+  InviteMemberDto,
+  UpdateOrganizationDto,
+} from 'src/types';
+import {
+  Organization,
+  OrganizationInvitation,
+  OrganizationUser,
+} from 'src/entities';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 
@@ -102,5 +110,30 @@ export class OrganizationsService {
 
     const result = await this.organizationsRepository.save(organization);
     return result as Organization;
+  }
+
+  async inviteMember(
+    id: number,
+    inviteMemberDto: InviteMemberDto,
+  ): Promise<OrganizationInvitation> {
+    // TODO
+    return {
+      orgId: id,
+      inviterId: this.request.user['internal'].id,
+      email: inviteMemberDto.email,
+      role: inviteMemberDto.role,
+      organization: null,
+      inviter: null,
+    } as OrganizationInvitation;
+  }
+
+  async removeInvitation(id: number, invitationId: number): Promise<void> {
+    // TODO
+    return;
+  }
+
+  async removeMember(id: number, memberId: number): Promise<void> {
+    // TODO
+    return;
   }
 }

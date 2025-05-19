@@ -1,28 +1,30 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { User } from './user.entity';
 import { Organization } from './organization.entity';
-import { OrganizationRoleOptions } from 'src/types';
 
-@Entity({ name: 'organization_users' })
-export class OrganizationUser {
+@Entity({ name: 'organization_invitations' })
+export class OrganizationInvitation {
   @PrimaryColumn()
   orgId: number;
 
   @PrimaryColumn()
-  userId: number;
+  email: string;
 
-  @ManyToOne(() => Organization, (organization) => organization.users, {
+  @Column()
+  inviterId: number;
+
+  @Column()
+  role: 'owner' | 'admin' | 'member';
+
+  @ManyToOne(() => Organization, (organization) => organization.invitations, {
     createForeignKeyConstraints: true,
   })
   @JoinColumn({ name: 'orgId' })
   organization: Organization;
 
-  @ManyToOne(() => User, (user) => user.organizations, {
+  @ManyToOne(() => User, (user) => user.invitations, {
     createForeignKeyConstraints: true,
   })
-  @JoinColumn({ name: 'userId' })
-  user: User;
-
-  @Column()
-  role: OrganizationRoleOptions;
+  @JoinColumn({ name: 'inviterId' })
+  inviter: User;
 }
