@@ -1,4 +1,11 @@
+import { IsInt, IsNotEmpty, Length, Min } from 'class-validator';
+
 export class UpdateOrganizationDto {
+  @IsInt()
+  @Min(1)
   id: number;
+
+  @IsNotEmpty()
+  @Length(2, 255)
   name: string;
 }

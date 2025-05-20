@@ -7,12 +7,22 @@ import { Supabase } from './supabase';
 import { UsersService } from '../users/users.service';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Organization, OrganizationUser, User } from 'src/entities';
+import {
+  Organization,
+  OrganizationInvitation,
+  OrganizationUser,
+  User,
+} from 'src/entities';
 
 @Module({
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([User, OrganizationUser, Organization]),
+    TypeOrmModule.forFeature([
+      User,
+      Organization,
+      OrganizationUser,
+      OrganizationInvitation,
+    ]),
   ],
   providers: [
     Supabase,

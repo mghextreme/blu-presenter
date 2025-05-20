@@ -3,25 +3,31 @@
   "input": {
     "name": "Name",
     "email": "Email",
-    "role": "Role"
+    "role": "Role",
+    "invitedBy": "Invited by"
   },
   "actions": {
-    "invite-member": "Invite member",
-    "edit-member": "Edit member",
-    "remove-member": "Remove member"
+    "inviteMember": "Invite member",
+    "editMember": "Edit member",
+    "removeMember": "Remove member",
+    "copyLink": "Copy invite URL",
+    "removeInvitation": "Remove invitation"
   },
   "button": {
     "add": "Create",
     "update": "Update",
     "cancel": "Cancel",
-    "invite": "Invite"
+    "invite": "Invite",
+    "delete": "Delte organization"
   },
   "add": {
     "title": "Add organization"
   },
   "edit": {
     "title": "Edit organization",
-    "members": "Members"
+    "members": "Members",
+    "pendingInvitations": "Pending invitations",
+    "manage": "Manage"
   },
   "invite": {
     "title": "Invite member"
@@ -32,7 +38,7 @@
     "member": "Member"
   },
   "warning": {
-    "personal-space": {
+    "personalSpace": {
       "title": "This is a Personal space",
       "message": "To invite others and share songs, you need to create an organization. You can create an organization from the dropdown in the top right."
     }

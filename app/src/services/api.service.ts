@@ -1,5 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
+import { ApiError } from "@/types";
 import { FetchQueryOptions, QueryClient } from "@tanstack/react-query";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -78,7 +79,7 @@ export abstract class ApiService {
       await this.refreshSession();
       return this.internalFetch(path, method, body, baseHeaders, false);
     } else {
-      throw new Error(`API Error: ${result.status}`)
+      throw new ApiError(result.status, `API Error: ${result.status}`)
     }
   }
 

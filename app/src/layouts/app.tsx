@@ -23,7 +23,7 @@ export default function AppLayout() {
 
   const loadedData = useLoaderData() as UserOrganization[];
   const { revalidate } = useRevalidator();
-  const { organizationId } = useOrganization();
+  const { organizationId, setOrganizationId } = useOrganization();
   const { organizationsService, songsService } = useServices();
 
   useEffect(() => {
@@ -31,6 +31,13 @@ export default function AppLayout() {
     songsService.clearCache();
     revalidate();
   }, [organizationId]);
+
+  useEffect(() => {
+    const currentOrg = loadedData.find((org) => org.id === organizationId);
+    if (!currentOrg && loadedData.length > 0) {
+      setOrganizationId(loadedData[0].id);
+    }
+  }, [loadedData, organizationId]);
 
   return (
     <ProtectedRoute>

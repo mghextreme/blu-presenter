@@ -58,6 +58,13 @@ export class OrganizationsController {
     );
   }
 
+  @Delete()
+  @OrganizationRole('owner')
+  async delete(): Promise<void> {
+    const usersOrg = this.request.user['organization'];
+    return await this.organizationsService.delete(usersOrg);
+  }
+
   @Post('members')
   @OrganizationRole('owner', 'admin')
   async inviteMember(

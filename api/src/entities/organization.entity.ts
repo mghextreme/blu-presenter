@@ -38,7 +38,7 @@ export class Organization {
 
   @OneToMany(
     () => OrganizationInvitation,
-    (orgInvitation) => orgInvitation.inviter,
+    (orgInvitation) => orgInvitation.organization,
     {
       createForeignKeyConstraints: true,
     },

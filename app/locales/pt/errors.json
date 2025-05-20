@@ -3,7 +3,8 @@
   "message": "Tivemos um problema.",
   "actions": {
     "home": "Voltar à página inicial",
-    "app": "Voltar ao app"
+    "app": "Voltar ao app",
+    "signOut": "Entrar novamente"
   },
   "details": "Detalhes"
 }

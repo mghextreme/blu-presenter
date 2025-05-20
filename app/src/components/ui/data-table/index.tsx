@@ -71,7 +71,7 @@ export const fuzzySort: SortingFn<any> = (rowA, rowB, columnId) => {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  addButton: ReactNode
+  addButton?: ReactNode
 }
 
 export function DataTable<TData, TValue>({
