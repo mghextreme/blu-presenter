@@ -1,9 +1,16 @@
-import { Inject, Injectable, Scope } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  Scope,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import {
   CreateOrganizationDto,
   InviteMemberDto,
+  OrganizationRoleOptions,
   UpdateOrganizationDto,
 } from 'src/types';
 import {
@@ -14,8 +21,6 @@ import {
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 
-type Role = 'owner' | 'admin' | 'member';
-
 @Injectable({ scope: Scope.REQUEST })
 export class OrganizationsService {
   constructor(
@@ -24,18 +29,23 @@ export class OrganizationsService {
     private organizationsRepository: Repository<Organization>,
     @InjectRepository(OrganizationUser)
     private organizationUsersRepository: Repository<OrganizationUser>,
+    @InjectRepository(OrganizationInvitation)
+    private organizationInvitationsRepository: Repository<OrganizationInvitation>,
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {}
 
-  async userRole(orgId: number, userId: number): Promise<Role | null> {
-    const orgUserRecord = this.organizationUsersRepository.findOneBy({
+  async userRole(
+    orgId: number,
+    userId: number,
+  ): Promise<OrganizationRoleOptions | null> {
+    const orgUserRecord = await this.organizationUsersRepository.findOneBy({
       orgId,
       userId,
     });
 
     if (!orgUserRecord) return null;
 
-    return (await orgUserRecord).role;
+    return orgUserRecord.role;
   }
 
   async findOne(id: number): Promise<Organization | null> {
@@ -60,9 +70,25 @@ export class OrganizationsService {
         query.relations['users'] = {
           user: true,
         };
+        query.relations['invitations'] = {
+          inviter: true,
+        };
+
         query.select['users'] = {
           role: true,
           user: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        };
+        query.select['invitations'] = {
+          id: true,
+          orgId: true,
+          email: true,
+          role: true,
+          secret: true,
+          inviter: {
             id: true,
             name: true,
             email: true,
@@ -112,19 +138,54 @@ export class OrganizationsService {
     return result as Organization;
   }
 
+  async delete(id: number): Promise<void> {
+    if (this.request.user['role'] !== 'owner') {
+      throw new ForbiddenException();
+    }
+
+    // TODO: Transaction
+    // TODO: Delete organization invitations
+    // TODO: Delete organization users
+    // TODO: Delete songs
+    await this.organizationsRepository.delete(id);
+  }
+
   async inviteMember(
     id: number,
     inviteMemberDto: InviteMemberDto,
   ): Promise<OrganizationInvitation> {
-    // TODO
-    return {
+    const emailToInvite = inviteMemberDto.email.toLowerCase();
+    const existingInvitation =
+      await this.organizationInvitationsRepository.findOneBy({
+        orgId: id,
+        email: emailToInvite,
+      });
+
+    if (existingInvitation) {
+      throw new UnprocessableEntityException('User already invited');
+    }
+
+    await this.organizationInvitationsRepository.insert({
       orgId: id,
       inviterId: this.request.user['internal'].id,
       email: inviteMemberDto.email,
       role: inviteMemberDto.role,
-      organization: null,
-      inviter: null,
-    } as OrganizationInvitation;
+      secret: this.createSecret(),
+    });
+
+    return (await this.organizationInvitationsRepository.findOneBy({
+      orgId: id,
+      email: inviteMemberDto.email,
+    })) as OrganizationInvitation;
+  }
+
+  private createSecret(): string {
+    const sec1 = Math.random().toString(36);
+    const sec2 = Math.random().toString(36);
+    const secString = sec1 + sec2;
+    return Buffer.from(secString, 'utf-8')
+      .toString('base64')
+      .replaceAll('=', '');
   }
 
   async removeInvitation(id: number, invitationId: number): Promise<void> {
@@ -133,7 +194,7 @@ export class OrganizationsService {
   }
 
   async removeMember(id: number, memberId: number): Promise<void> {
-    // TODO
+    // TODO: Remove users invited by this user
     return;
   }
 }

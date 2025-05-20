@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isRouteErrorResponse, Link, useRouteError } from "react-router-dom";
+import { isRouteErrorResponse, Link, useNavigate, useRouteError } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import LanguageToggler from "@/components/ui/language-toggler";
 import ThemeToggler from "@/components/ui/theme-toggler";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { ApiError } from "@/types";
 
 function errorLayout(error: any) {
   if (isRouteErrorResponse(error)) {
@@ -30,10 +31,20 @@ function errorLayout(error: any) {
 
 export default function ErrorLayout() {
   const error = useRouteError();
-  console.error(error);
 
+  const { isLoggedIn, signOut } = useAuth();
   const { t } = useTranslation('errors');
-  const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
+
+  let isAuthError = false;
+  if (error instanceof ApiError) {
+    isAuthError = error.status === 401 || error.status === 403;
+  }
+
+  const signOutAndRedirect = async () => {
+    await signOut();
+    navigate('/login');
+  }
 
   return (
     <div className="container relative hidden h-screen overflow-hidden flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0 bg-card">
@@ -55,17 +66,23 @@ export default function ErrorLayout() {
           </div>
           <div>
             {isLoggedIn ? (
-              <Link to="/app"><Button>{t('actions.app')}</Button></Link>
+              isAuthError ? (
+                <Button onClick={signOutAndRedirect}>{t('actions.signOut')}</Button>
+              ) : (
+                <Link to="/app"><Button>{t('actions.app')}</Button></Link>
+              )
             ) : (
               <Link to="/"><Button>{t('actions.home')}</Button></Link>
             )}
           </div>
-          <div>
-            <h4 className="text-md mb-1">{t('details')}</h4>
-            <p className="text-sm text-muted-foreground">
-              {errorLayout(error)}
-            </p>
-          </div>
+          {!isAuthError && (
+            <div>
+              <h4 className="text-md mb-1">{t('details')}</h4>
+              <p className="text-sm text-muted-foreground">
+                {errorLayout(error)}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

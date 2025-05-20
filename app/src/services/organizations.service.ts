@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IOrganization } from "@/types/organization.interface";
 import { ApiService } from "./api.service";
-import { OrganizationRoleOptions } from "@/types";
+import { IOrganizationInvitation, OrganizationRoleOptions } from "@/types";
 
 export class OrganizationsService extends ApiService {
 
@@ -39,25 +39,48 @@ export class OrganizationsService extends ApiService {
     return result;
   }
 
-  public async inviteMember(email: string, role: OrganizationRoleOptions): Promise<null> {
-    // TODO
-    return null;
+  public async delete(): Promise<void> {
+    await this.deleteRequest(`/organizations`, {
+      'content-type': 'application/json',
+    });
+
+    this.clearCache();
   }
 
-  public async cancelInvitation(email: string): Promise<null> {
-    // TODO
-    return null;
+  public async inviteMember(email: string, role: OrganizationRoleOptions): Promise<IOrganizationInvitation> {
+    const result = await this.postRequest('/organizations/members', JSON.stringify({
+      email,
+      role,
+    }), {
+      'content-type': 'application/json',
+    }) as IOrganizationInvitation;
+
+    this.clearCache();
+
+    return result;
   }
 
-  public async removeMember(id: number): Promise<null> {
-    // TODO
-    return null;
+  public async cancelInvitation(id: number): Promise<void> {
+    await this.deleteRequest(`/organizations/invitations/${id}`, {
+      'content-type': 'application/json',
+    });
+
+    this.clearCache();
+  }
+
+  public async removeMember(id: number): Promise<void> {
+    await this.deleteRequest(`/organizations/members/${id}`, {
+      'content-type': 'application/json',
+    });
+
+    this.clearCache();
   }
 
   private parseOrganization(response: any): IOrganization {
     return {
       id: response.id,
       name: response?.name,
+      role: response?.role,
       owner: {
         id: response.owner.id,
         name: response.owner?.name,
@@ -68,6 +91,7 @@ export class OrganizationsService extends ApiService {
         email: user.user?.email,
         role: user.role,
       })),
+      invitations: response?.invitations,
     } as IOrganization;
   }
 

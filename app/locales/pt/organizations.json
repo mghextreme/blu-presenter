@@ -3,25 +3,31 @@
   "input": {
     "name": "Nome",
     "email": "E-mail",
-    "role": "Permissões"
+    "role": "Permissões",
+    "invitedBy": "Convidado por"
   },
   "actions": {
-    "invite-member": "Convidar membro",
-    "edit-member": "Edit member",
-    "remove-member": "Remove member"
+    "inviteMember": "Convidar membro",
+    "editMember": "Edit member",
+    "removeMember": "Remove member",
+    "copyLink": "Copiar URL de convite",
+    "removeInvitation": "Remover convite"
   },
   "button": {
     "add": "Criar",
     "update": "Atualizar",
     "cancel": "Cancelar",
-    "invite": "Convidar"
+    "invite": "Convidar",
+    "delete": "Excluir organização"
   },
   "add": {
     "title": "Adicionar organização"
   },
   "edit": {
     "title": "Editar organização",
-    "members": "Membros"
+    "members": "Membros",
+    "pendingInvitations": "Convites pendentes",
+    "manage": "Gerenciar"
   },
   "invite": {
     "title": "Convidar membro"
@@ -32,7 +38,7 @@
     "member": "Membro"
   },
   "warning": {
-    "personal-space": {
+    "personalSpace": {
       "title": "Está é um espaço individual",
       "message": "Para convidar outros e compartilhar músicas, você precisa criar uma organização. Você pode criar uma organização com o seletor no topo direito."
     }

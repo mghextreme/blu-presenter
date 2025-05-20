@@ -7,7 +7,7 @@ import { useServices } from "@/hooks/services.provider";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link, useLoaderData, useNavigate, useParams } from "react-router-dom";
+import { Link, useLoaderData, useNavigate } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { CheckIcon } from "@radix-ui/react-icons";
@@ -30,7 +30,6 @@ const formSchema = z.object({
 export default function InviteOrganizationMember() {
 
   const { t } = useTranslation("organizations");
-  const { id } = useParams();
 
   const navigate = useNavigate();
 
@@ -43,7 +42,7 @@ export default function InviteOrganizationMember() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
-      role: 'admin',
+      role: 'member',
     },
   });
 
@@ -56,7 +55,7 @@ export default function InviteOrganizationMember() {
     try {
       setLoading(true);
       organizationsService.inviteMember(values.email, values.role).then(() => {
-          navigate("/app/organizations", { replace: true });
+          navigate("/app/organization", { replace: true });
         })
         .catch((err) => {
           console.error(err);
@@ -151,7 +150,7 @@ export default function InviteOrganizationMember() {
               )}
               {t('button.invite')}
               </Button>
-            <Link to={`/app/organizations/${id}/edit`}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+            <Link to={`/app/organization`}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
           </div>
         </form>
       </Form>
