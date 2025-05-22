@@ -73,10 +73,15 @@ export abstract class ApiService {
     });
 
     if (result.ok) {
-      return result.json();
-    } else if (refreshAuth && result.status == 401) {
+      try {
+        return await result.json();
+      }
+      catch (e) {
+        return null;
+      }
+    } else if (refreshAuth && result.status == 401 && headers['Authorization']) {
       await this.refreshSession();
-      return this.internalFetch(path, method, body, baseHeaders, false);
+      return await this.internalFetch(path, method, body, baseHeaders, false);
     } else {
       throw new ApiError(result.status, `API Error: ${result.status}`)
     }

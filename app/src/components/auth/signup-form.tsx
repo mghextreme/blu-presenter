@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form"
 import { SocialLogin } from "./social-login";
 import { useTranslation } from "react-i18next";
 import { useToast } from "../ui/use-toast";
+import { useInvitation } from "@/hooks/invitation.provider";
 
 interface SignUpFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -27,6 +28,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
 
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const { isLoggedIn, signUp } = useAuth();
+  const { email: invitedEmail } = useInvitation();
 
   const formSchema = z.object({
     email: z.string().email(),
@@ -45,7 +47,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
+      email: invitedEmail || '',
       password: '',
       confirmPassword: '',
     },
@@ -53,11 +55,12 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      const emailRedirect = window.location.origin + '/app'
       setIsLoading(true);
       await signUp({
         ...values,
         options: {
-          emailRedirectTo: window.location.origin + '/app',
+          emailRedirectTo: emailRedirect,
         },
       });
     } catch (e) {
@@ -70,7 +73,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
       setIsLoading(false);
     }
   }
-  
+
   if (isLoggedIn) {
     return <Navigate to="/app" />;
   }
@@ -85,9 +88,12 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input type="email" placeholder={t('input.email')} autoComplete="email" autoCorrect="off" autoCapitalize="none" disabled={isLoading} {...field} />
+                  <Input type="email" placeholder={t('input.email')} autoComplete="email" autoCorrect="off" autoCapitalize="none" disabled={isLoading || invitedEmail} {...field} />
                 </FormControl>
                 <FormMessage />
+                {invitedEmail && (
+                  <Link to="/signup"><Button variant="link" className="text-xs px-2 text-muted-foreground">{t('invitation.notYourEmail')}</Button></Link>
+                )}
               </FormItem>
             )}></FormField>
 

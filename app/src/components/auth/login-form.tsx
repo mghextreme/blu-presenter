@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
 import { useToast } from "../ui/use-toast";
+import { useInvitation } from "@/hooks/invitation.provider";
 
 interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -29,6 +30,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
 
   const { t } = useTranslation("auth");
   const { toast } = useToast();
+  const { email: invitedEmail } = useInvitation();
 
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const { isLoggedIn, signIn } = useAuth();
@@ -36,7 +38,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
+      email: invitedEmail || '',
       password: '',
     },
   });
@@ -70,9 +72,12 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input type="email" placeholder={t('input.email')} autoComplete="email" autoCorrect="off" autoCapitalize="none" disabled={isLoading} {...field} />
+                  <Input type="email" placeholder={t('input.email')} autoComplete="email" autoCorrect="off" autoCapitalize="none" disabled={isLoading || invitedEmail} {...field} />
                 </FormControl>
                 <FormMessage />
+                {invitedEmail && (
+                  <Link to="/login"><Button variant="link" className="text-xs px-2 text-muted-foreground">{t('invitation.notYourEmail')}</Button></Link>
+                )}
               </FormItem>
             )}></FormField>
 

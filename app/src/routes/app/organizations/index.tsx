@@ -108,7 +108,7 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
 
 const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, navigate: NavigateFunction) => {
   const copyLink = (id: number, secret: string) => {
-    const link = `${window.location.origin}/invite/${id}/${secret}`;
+    const link = `${window.location.origin}/signup?id=${id}&secret=${secret}`;
     navigator.clipboard.writeText(link)
       .then(
         () => {
