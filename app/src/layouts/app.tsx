@@ -4,7 +4,7 @@ import {
   useRevalidator,
 } from "react-router-dom";
 
-import { UsersService } from "@/services";
+import { OrganizationsService } from "@/services";
 import { UserOrganization } from "@/types";
 
 import ProtectedRoute from "@/components/protected-route";
@@ -12,39 +12,29 @@ import AppSidebar from "@/components/app/sidebar";
 import AppNavbar from "@/components/app/navbar";
 import { Toaster } from "@/components/ui/toaster";
 import { useEffect } from "react";
-import { useOrganization } from "@/hooks/useOrganization";
-import { useServices } from "@/hooks/services.provider";
+import { useAuth } from "@/hooks/useAuth";
 
-export async function loader({ usersService }: { usersService: UsersService }) {
-  return await usersService.getUserOrganizations();
+export async function loader({ organizationsService }: { organizationsService: OrganizationsService }) {
+  return await organizationsService.getFromUser();
 }
 
 export default function AppLayout() {
 
   const loadedData = useLoaderData() as UserOrganization[];
   const { revalidate } = useRevalidator();
-  const { organizationId, setOrganizationId } = useOrganization();
-  const { organizationsService, songsService } = useServices();
+  const { organization, organizations, setOrganizationById } = useAuth();
 
   useEffect(() => {
-    organizationsService.clearCache();
-    songsService.clearCache();
     revalidate();
-  }, [organizationId]);
-
-  useEffect(() => {
-    const currentOrg = loadedData.find((org) => org.id === organizationId);
-    if (!currentOrg && loadedData.length > 0) {
-      setOrganizationId(loadedData[0].id);
-    }
-  }, [loadedData, organizationId]);
+    setOrganizationById(null);
+  }, [loadedData, organization, organizations]);
 
   return (
     <ProtectedRoute>
       <div className="flex h-screen overflow-hidden">
         <AppSidebar></AppSidebar>
         <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-          <AppNavbar organizations={loadedData}></AppNavbar>
+          <AppNavbar></AppNavbar>
           <Outlet />
           <Toaster />
         </div>

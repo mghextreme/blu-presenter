@@ -18,7 +18,9 @@
     "update": "Atualizar",
     "cancel": "Cancelar",
     "invite": "Convidar",
-    "delete": "Excluir organização"
+    "leave": "Sair da organização",
+    "delete": "Excluir organização",
+    "confirm": "Confirmar"
   },
   "add": {
     "title": "Adicionar organização"
@@ -30,7 +32,9 @@
     "manage": "Gerenciar"
   },
   "invite": {
-    "title": "Convidar membro"
+    "title": "Convidar membro",
+    "success": "Sucesso",
+    "linkCopied": "Convite copiado para a área de transferência"
   },
   "role": {
     "owner": "Proprietário",
@@ -41,6 +45,20 @@
     "personalSpace": {
       "title": "Está é um espaço individual",
       "message": "Para convidar outros e compartilhar músicas, você precisa criar uma organização. Você pode criar uma organização com o seletor no topo direito."
+    }
+  },
+  "error": {
+    "update": "Falha ao atualizar organização",
+    "copyToClipboard": "Falha ao copiar para a área de transferência"
+  },
+  "message": {
+    "leaveOrganization": {
+      "title": "Sair da organização",
+      "description": "Tem certeza que deseja sair desta organização? Você perderá acesso a todas as músicas e itens específicos da organização."
+    },
+    "deleteOrganization": {
+      "title": "Excluir organização",
+      "message": "Tem certeza que deseja remover esta organização? Todas as músicas e dados associados a organização serão excluídos.\nEsta ação não pode ser revertida."
     }
   }
 }

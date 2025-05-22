@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  NotFoundException,
   Scope,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -10,6 +11,7 @@ import { DataSource, Repository } from 'typeorm';
 import {
   CreateOrganizationDto,
   InviteMemberDto,
+  isRoleHigherThan,
   OrganizationRoleOptions,
   UpdateOrganizationDto,
 } from 'src/types';
@@ -143,6 +145,8 @@ export class OrganizationsService {
       throw new ForbiddenException();
     }
 
+    // TODO: Prevent removing if is the only organization for the user (personal space)
+
     // TODO: Transaction
     // TODO: Delete organization invitations
     // TODO: Delete organization users
@@ -163,6 +167,16 @@ export class OrganizationsService {
 
     if (existingInvitation) {
       throw new UnprocessableEntityException('User already invited');
+    }
+
+    if (inviteMemberDto.role === 'owner') {
+      throw new UnprocessableEntityException('Invalid role for invitation');
+    }
+
+    if (isRoleHigherThan(inviteMemberDto.role, this.request.user['role'])) {
+      throw new ForbiddenException(
+        `You cannot invite a user with role ${inviteMemberDto.role} because your role is ${this.request.user['role']}`,
+      );
     }
 
     await this.organizationInvitationsRepository.insert({
@@ -188,13 +202,129 @@ export class OrganizationsService {
       .replaceAll('=', '');
   }
 
+  async getInvitationsForEmail(
+    email: string,
+  ): Promise<OrganizationInvitation[]> {
+    return await this.organizationInvitationsRepository.find({
+      where: {
+        email,
+      },
+      relations: {
+        organization: true,
+      },
+    });
+  }
+
+  async acceptInvitation(id: number): Promise<void> {
+    const invitation = await this.organizationInvitationsRepository.findOneBy({
+      id: id,
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    const user = this.request.user['internal'];
+    if (user.email !== invitation.email) {
+      throw new ForbiddenException('You cannot accept this invitation');
+    }
+
+    const existingOrgUser = await this.organizationUsersRepository.findOneBy({
+      orgId: invitation.orgId,
+      userId: user.id,
+    });
+
+    if (existingOrgUser) {
+      await this.dataSource.transaction(async (manager) => {
+        if (isRoleHigherThan(invitation.role, existingOrgUser.role)) {
+          const organizationUsersRepository =
+            manager.getRepository(OrganizationUser);
+          await organizationUsersRepository.update(
+            {
+              orgId: invitation.orgId,
+              userId: user.id,
+            },
+            {
+              role: invitation.role,
+            },
+          );
+        }
+
+        const organizationInvitationsRepository = manager.getRepository(
+          OrganizationInvitation,
+        );
+        await organizationInvitationsRepository.delete(id);
+      });
+      return;
+    }
+
+    await this.dataSource.transaction(async (manager) => {
+      const organizationUsersRepository =
+        manager.getRepository(OrganizationUser);
+      await organizationUsersRepository.insert({
+        orgId: invitation.orgId,
+        userId: user.id,
+        role: invitation.role,
+      });
+
+      const organizationInvitationsRepository = manager.getRepository(
+        OrganizationInvitation,
+      );
+      await organizationInvitationsRepository.delete(id);
+    });
+  }
+
+  async rejectInvitation(id: number): Promise<void> {
+    const invitation = await this.organizationInvitationsRepository.findOneBy({
+      id: id,
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    const user = this.request.user['internal'];
+    if (user.email !== invitation.email) {
+      throw new ForbiddenException('You cannot accept this invitation');
+    }
+    await this.organizationInvitationsRepository.delete(id);
+  }
+
   async removeInvitation(id: number, invitationId: number): Promise<void> {
-    // TODO
-    return;
+    const invitation = await this.organizationInvitationsRepository.findOneBy({
+      id: invitationId,
+      orgId: id,
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    await this.organizationInvitationsRepository.delete(invitationId);
   }
 
   async removeMember(id: number, memberId: number): Promise<void> {
-    // TODO: Remove users invited by this user
-    return;
+    const member = await this.organizationUsersRepository.findOneBy({
+      userId: memberId,
+      orgId: id,
+    });
+
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    if (
+      member.role === 'owner' ||
+      isRoleHigherThan(member.role, this.request.user['role'])
+    ) {
+      throw new UnprocessableEntityException(
+        'You cannot remove this role from the organization',
+      );
+    }
+
+    await this.organizationUsersRepository.delete({
+      userId: memberId,
+      orgId: id,
+    });
   }
 }

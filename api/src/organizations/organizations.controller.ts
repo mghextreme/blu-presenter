@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { Organization, OrganizationInvitation } from 'src/entities';
 import {
@@ -77,6 +78,30 @@ export class OrganizationsController {
     );
   }
 
+  @Post('leave')
+  @OrganizationRole('admin', 'member')
+  async leaveOrganization(): Promise<void> {
+    const usersOrg = this.request.user['organization'];
+    const user = this.request.user['internal'];
+    return await this.organizationsService.removeMember(usersOrg, user.id);
+  }
+
+  @Get('invitations')
+  async getInvitation(): Promise<OrganizationInvitation[]> {
+    const user = this.request.user['internal'];
+    return await this.organizationsService.getInvitationsForEmail(user.email);
+  }
+
+  @Post('invitations/:id/accept')
+  async acceptInvitation(@Param('id') id: number): Promise<void> {
+    return await this.organizationsService.acceptInvitation(id);
+  }
+
+  @Post('invitations/:id/reject')
+  async rejectInvitation(@Param('id') id: number): Promise<void> {
+    return await this.organizationsService.rejectInvitation(id);
+  }
+
   @Delete('invitations/:id')
   @OrganizationRole('owner', 'admin')
   async removeInvitation(@Param('id') id: number): Promise<void> {
@@ -88,6 +113,14 @@ export class OrganizationsController {
   @OrganizationRole('owner', 'admin')
   async removeMember(@Param('id') id: number): Promise<void> {
     const usersOrg = this.request.user['organization'];
+    const userId = this.request.user['internal'].id;
+
+    if (userId === id) {
+      throw new UnprocessableEntityException(
+        'You cannot remove yourself from the organization',
+      );
+    }
+
     return await this.organizationsService.removeMember(usersOrg, id);
   }
 }
