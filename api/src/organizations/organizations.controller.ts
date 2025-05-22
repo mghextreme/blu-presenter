@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { Organization, OrganizationInvitation } from 'src/entities';
@@ -20,6 +21,7 @@ import { OrganizationsService } from './organizations.service';
 import { OrganizationRole } from '../auth/organization-role.decorator';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
+import { Public } from 'src/supabase/public.decorator';
 
 @Controller('organizations')
 export class OrganizationsController {
@@ -86,8 +88,18 @@ export class OrganizationsController {
     return await this.organizationsService.removeMember(usersOrg, user.id);
   }
 
+  @Public()
+  @Get('invitations/:id')
+  async getInvitation(
+    @Param('id') id: number,
+    @Query('secret') secret: string,
+  ): Promise<OrganizationInvitation> {
+    console.log('getInvitation', id, secret);
+    return await this.organizationsService.getInvitation(id, secret);
+  }
+
   @Get('invitations')
-  async getInvitation(): Promise<OrganizationInvitation[]> {
+  async getInvitations(): Promise<OrganizationInvitation[]> {
     const user = this.request.user['internal'];
     return await this.organizationsService.getInvitationsForEmail(user.email);
   }

@@ -1,6 +1,7 @@
 import {
   Link,
   Outlet,
+  useLoaderData,
   useLocation,
 } from "react-router-dom";
 
@@ -11,12 +12,33 @@ import { useEffect, useState } from "react";
 import LanguageToggler from "@/components/ui/language-toggler";
 import { useTranslation } from "react-i18next";
 import { Toaster } from "@/components/ui/toaster";
+import { OrganizationsService } from "@/services";
+import { InvitationProvider } from "@/hooks/invitation.provider";
+import { IOrganization } from "@/types";
+
+export async function loader({ request, organizationsService }: { request: Request, organizationsService: OrganizationsService }) {
+  const params = new URL(request.url).searchParams;
+  const id = params.get('id');
+  const secret = params.get('secret');
+
+  if (!id || !secret) {
+    return null;
+  }
+
+  return await organizationsService.getInvite(Number(id), secret);
+}
 
 export default function AuthLayout() {
 
   const { t } = useTranslation("auth");
 
   const location = useLocation();
+  const inviteData = useLoaderData() as { id: number, secret: string, organization: IOrganization } | null;
+  let params = "";
+
+  if (inviteData) {
+    params = `?id=${inviteData.id}&secret=${inviteData.secret}`;
+  }
 
   const [isLogin, setIsLogin] = useState<boolean>(false);
   useEffect(() => {
@@ -27,7 +49,10 @@ export default function AuthLayout() {
     <div className="container relative hidden h-screen overflow-hidden flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0 bg-card">
       <div className="absolute right-4 top-4 md:right-8 md:top-8 flex justify-end">
         <Link
-          to={isLogin ? '/signup' : '/login'}
+          to={{
+            pathname: isLogin ? '/signup' : '/login',
+            search: params,
+          }}
           className={cn(
             buttonVariants({ variant: "ghost" }),
             ""
@@ -46,7 +71,14 @@ export default function AuthLayout() {
       </div>
       <div className="lg:p-8">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-          <Outlet />
+          {inviteData?.organization?.name && (
+            <>
+              <h3 className="text-center text-md">{t('invitation.organization')}<br/><b>{inviteData.organization.name}</b></h3>
+            </>
+          )}
+          <InvitationProvider email={inviteData?.email} organization={inviteData?.organization?.name}>
+            <Outlet />
+          </InvitationProvider>
           <Toaster />
         </div>
       </div>

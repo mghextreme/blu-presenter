@@ -202,6 +202,21 @@ export class OrganizationsService {
       .replaceAll('=', '');
   }
 
+  async getInvitation(
+    id: number,
+    secret: string,
+  ): Promise<OrganizationInvitation> {
+    return await this.organizationInvitationsRepository.findOne({
+      where: {
+        id,
+        secret,
+      },
+      relations: {
+        organization: true,
+      },
+    });
+  }
+
   async getInvitationsForEmail(
     email: string,
   ): Promise<OrganizationInvitation[]> {

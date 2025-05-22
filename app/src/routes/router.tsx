@@ -6,15 +6,15 @@ import {
   createRoutesFromElements
 } from "react-router-dom";
 
-import AuthLayout from "@/layouts/auth";
+import AuthLayout, { loader as authLoader } from "@/layouts/auth";
 import AppLayout, { loader as appLoader } from "@/layouts/app";
 import ErrorLayout from "@/layouts/error";
 import ControllerLayout from "@/layouts/controller";
 import { useServices, ServicesProviderState } from "@/hooks/services.provider";
 
 import Home from "./home";
-import SignUp from "./signup";
-import Login from "./login";
+import SignUp from "./auth/signup";
+import Login from "./auth/login";
 
 import Welcome, { loader as welcomeLoader } from "./app/welcome";
 import Controller from "./app/controller";
@@ -33,7 +33,7 @@ export const buildRouter = (services: ServicesProviderState) => {
       <>
         <Route path="/" errorElement={<ErrorLayout />}>
           <Route index={true} element={<Home />} />
-          <Route element={<AuthLayout />}>
+          <Route element={<AuthLayout />} loader={(loader: LoaderFunctionArgs) => authLoader({ request: loader.request, organizationsService: services.organizationsService })}>
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<SignUp />} />
           </Route>

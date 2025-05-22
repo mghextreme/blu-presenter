@@ -65,6 +65,10 @@ export class OrganizationsService extends ApiService {
     return result;
   }
 
+  public async getInvite(id: number, secret: string): Promise<IOrganizationInvitation> {
+    return await this.getRequest(`/organizations/invitations/${id}?secret=${secret}`) as IOrganizationInvitation;
+  }
+
   public async getInvitations(): Promise<IOrganizationInvitation[]> {
     return await this.getOrFetch({
       queryKey: ['organizations', 'invitations', 'self'],
