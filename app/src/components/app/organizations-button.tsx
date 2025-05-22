@@ -8,32 +8,33 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { useEffect } from "react";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
-import { useOrganization } from "@/hooks/useOrganization";
-import { UserOrganization } from "@/types";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
-type OrganizationsButtonProps = {
-  organizations: UserOrganization[]
-}
-
-export default function OrganizationsButton({ organizations }: OrganizationsButtonProps) {
+export default function OrganizationsButton() {
 
   const { t } = useTranslation("navbar");
   const navigate = useNavigate();
 
-  const { organizationId, setOrganizationId } = useOrganization();
+  const { organizations, organization, setOrganizationById } = useAuth();
   const [localOrganization, setLocalOrganization] = useState<{id: number, name?: string} | undefined>(undefined);
 
   useEffect(() => {
-    if (organizationId) {
-      const currentOrg = organizations.filter((x) => x.id === organizationId)[0];
-      setLocalOrganization(currentOrg);
+    if (organization) {
+      setLocalOrganization({
+        id: organization.id,
+        name: organization.name,
+      });
     } else {
-      const currentOrg = organizations.filter((x) => !x.name)[0];
-      setOrganizationId(currentOrg.id);
-      setLocalOrganization(currentOrg);
+      if (organizations && organizations.length > 0) {
+        setLocalOrganization({
+          id: organizations[0].id,
+          name: organizations[0].name,
+        });
+        setOrganizationById(organizations[0].id)
+      }
     }
-  }, [organizations, organizationId]);
+  }, [organizations, organization]);
 
   const [openSelector, setOpenSelector] = useState<boolean>(false);
 
@@ -55,7 +56,7 @@ export default function OrganizationsButton({ organizations }: OrganizationsButt
                 key={option.id}
                 value={option.id.toString()}
                 onSelect={() => {
-                  setOrganizationId(option.id);
+                  setOrganizationById(option.id);
                   setOpenSelector(false);
                 }}
               >
@@ -63,7 +64,7 @@ export default function OrganizationsButton({ organizations }: OrganizationsButt
                 <CheckIcon
                   className={cn(
                     "ml-auto h-4 w-4",
-                    organizationId === option.id ? "opacity-100" : "opacity-0"
+                    localOrganization?.id === option.id ? "opacity-100" : "opacity-0"
                   )}
                 />
               </CommandItem>

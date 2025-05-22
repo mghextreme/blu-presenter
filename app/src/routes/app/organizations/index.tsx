@@ -8,7 +8,7 @@ import { useServices } from "@/hooks/services.provider";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link, useLoaderData, useNavigate, useRevalidator } from "react-router-dom";
+import { Link, NavigateFunction, useLoaderData, useNavigate, useRevalidator } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
@@ -20,9 +20,10 @@ import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
 import { TFunction } from "i18next";
 import { IOrganizationInvitation, IOrganizationUser, OrganizationRoleOptions, isRoleHigherThan, isRoleHigherOrEqualThan } from "@/types";
-import { useOrganization } from "@/hooks/useOrganization";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "@/components/ui/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export async function loader({ organizationsService }: { organizationsService: OrganizationsService }) {
   return await organizationsService.getCurrent();
@@ -37,7 +38,7 @@ type EditOrganizationProps = {
   edit?: boolean
 }
 
-const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions, organizationsService: OrganizationsService) => {
+const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, navigate: NavigateFunction) => {
   const columns: ColumnDef<IOrganizationUser>[] = [
     {
       accessorKey: "name",
@@ -66,8 +67,6 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
           t('role.' + role)
         )
       },
-      filterFn: fuzzyFilter,
-      sortingFn: fuzzySort,
     },
     {
       id: "actions",
@@ -89,7 +88,10 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
                     size="sm"
                     variant="destructive"
                     title={t('actions.removeMember')}
-                    onClick={() => organizationsService.removeMember(row.original.id)}>
+                    onClick={() => {
+                      organizationsService.removeMember(row.original.id);
+                      navigate("/app", { replace: true });
+                    }}>
                     <TrashIcon className="size-3" />
                   </Button>
                 )}
@@ -104,7 +106,27 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
   return columns;
 }
 
-const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService) => {
+const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, navigate: NavigateFunction) => {
+  const copyLink = (id: number, secret: string) => {
+    const link = `${window.location.origin}/invite/${id}/${secret}`;
+    navigator.clipboard.writeText(link)
+      .then(
+        () => {
+          toast({
+            title: t('invite.success'),
+            description: t('invite.linkCopied'),
+          });
+        },
+        (e) => {
+          toast({
+            title: t('error.copyToClipboard'),
+            description: e?.message || '',
+            variant: "destructive",
+          });
+        }
+      );
+  }
+
   const columns: ColumnDef<IOrganizationInvitation>[] = [
     {
       accessorKey: "email",
@@ -125,8 +147,6 @@ const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, use
           t('role.' + role)
         )
       },
-      filterFn: fuzzyFilter,
-      sortingFn: fuzzySort,
     },
     {
       accessorKey: "inviter",
@@ -156,7 +176,7 @@ const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, use
             <Button
               size="sm"
               title={t('actions.copyLink')}
-              onClick={() => organizationsService.cancelInvitation(row.original.id)}>
+              onClick={() => copyLink(row.original.id, row.original.secret)}>
               <ClipboardCopyIcon className="size-3" />
             </Button>
             {isRoleHigherOrEqualThan(userRole ?? 'member', 'admin') && (
@@ -165,7 +185,10 @@ const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, use
                 variant="destructive"
                 title={t('actions.removeInvitation')}
                 disabled={userRole !== 'owner' && userEmail !== row.original.inviter.email}
-                onClick={() => organizationsService.cancelInvitation(row.original.id)}>
+                onClick={() => {
+                  organizationsService.cancelInvitation(row.original.id);
+                  navigate("/app", { replace: true });
+                }}>
                 <TrashIcon className="size-3" />
               </Button>
             )}
@@ -195,8 +218,7 @@ export default function EditOrganization({
   const navigate = useNavigate();
   const { revalidate } = useRevalidator();
 
-  const { organizationId, setOrganizationId } = useOrganization();
-  const { user } = useAuth();
+  const { user, organization, setOrganizationById } = useAuth();
   const { organizationsService } = useServices();
 
   if (!data) {
@@ -229,14 +251,28 @@ export default function EditOrganization({
       action
         .then((result: IOrganization | null) => {
           if (!edit && result) {
-            setOrganizationId(result.id);
+            setOrganizationById(result.id);
           }
-          organizationsService.clearCache();
           navigate("/app/organization", { replace: true });
         })
-        .catch((err) => {
-          console.error(err);
+        .catch((e) => {
+          toast({
+            title: t('update.failed'),
+            description: e?.message || '',
+            variant: "destructive",
+          });
         })
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const onLeaveOrganization = async () => {
+    try {
+      setLoading(true);
+      await organizationsService.leave();
+      setOrganizationById(null);
+      navigate("/app", { replace: true });
     } finally {
       setLoading(false);
     }
@@ -245,24 +281,23 @@ export default function EditOrganization({
   const onDeleteOrganization = async () => {
     try {
       setLoading(true);
-      alert('Confirm delete?');
       await organizationsService.delete();
-      organizationsService.clearCache();
+      setOrganizationById(null);
       navigate("/app", { replace: true });
     } finally {
       setLoading(false);
     }
   }
 
-  const columns = buildColumns(t, user?.email, loadedData?.role, organizationsService);
-  const invitationColumns = buildInvitationColumns(t, user?.email, loadedData?.role, organizationsService);
+  const columns = buildColumns(t, user?.email, loadedData.role, organizationsService, navigate);
+  const invitationColumns = buildInvitationColumns(t, user?.email, loadedData?.role, organizationsService, navigate);
 
   useEffect(() => {
     if (edit) {
       organizationsService.clearCache();
       revalidate();
     }
-  }, [organizationId, revalidate]);
+  }, [organization, revalidate]);
 
   useEffect(() => {
     form.setValue('id', data.id);
@@ -290,7 +325,7 @@ export default function EditOrganization({
                   <FormItem>
                     <FormLabel>{t('input.name')}</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled={edit && isPersonalSpace} />
+                      <Input {...field} disabled={(edit && isPersonalSpace) || !isRoleHigherThan(loadedData.role ?? 'member', 'member')} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -304,11 +339,11 @@ export default function EditOrganization({
                     {t('button.' + (edit ? 'update' : 'add'))}
                     </Button>
                 )}
-                <Link to={'/app/organization'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+                <Link to={'/app'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
               </div>
             </form>
           </Form>
-          {edit && (
+          {edit && isRoleHigherThan(loadedData.role ?? 'member', 'member') && (
             <>
               <h2 className="text-xl mt-6 mb-4">{t('edit.members')}</h2>
               <DataTable columns={columns} data={loadedData.users ?? []} addButton={(
@@ -322,16 +357,50 @@ export default function EditOrganization({
               )}
             </>
           )}
-          {edit && loadedData.role == 'owner' && (
-            <>
-              <h2 className="text-xl mt-6 mb-4">{t('edit.manage')}</h2>
-              <Button className="flex-0" variant="destructive" disabled={isLoading} onClick={onDeleteOrganization}>
-                {isLoading && (
-                  <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
-                )}
-                {t('button.delete')}
-                </Button>
-            </>
+          <h2 className="text-xl mt-6 mb-4">{t('edit.manage')}</h2>
+          {false && edit && loadedData.role == 'owner' && (
+            <AlertDialog>
+              <AlertDialogTrigger>
+                <Button className="flex-0" variant="destructive" disabled={isLoading}>
+                  {isLoading && (
+                    <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+                  )}
+                  {t('button.delete')}
+                  </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('message.deleteOrganization.title')}</AlertDialogTitle>
+                  <AlertDialogDescription>{t('message.deleteOrganization.description')}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
+                  <AlertDialogAction variant="destructive" disabled={isLoading} onClick={onDeleteOrganization}>{t('button.confirm')}</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+          {loadedData.role !== 'owner' && (
+            <AlertDialog>
+              <AlertDialogTrigger>
+                <Button className="flex-0" variant="destructive" disabled={isLoading}>
+                  {isLoading && (
+                    <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+                  )}
+                  {t('button.leave')}
+                  </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('message.leaveOrganization.title')}</AlertDialogTitle>
+                  <AlertDialogDescription>{t('message.leaveOrganization.description')}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
+                  <AlertDialogAction variant="destructive" disabled={isLoading} onClick={onLeaveOrganization}>{t('button.confirm')}</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </>
       )}

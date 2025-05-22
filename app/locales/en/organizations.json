@@ -18,7 +18,9 @@
     "update": "Update",
     "cancel": "Cancel",
     "invite": "Invite",
-    "delete": "Delte organization"
+    "leave": "Leave organization",
+    "delete": "Delete organization",
+    "confirm": "Confirm"
   },
   "add": {
     "title": "Add organization"
@@ -30,7 +32,9 @@
     "manage": "Manage"
   },
   "invite": {
-    "title": "Invite member"
+    "title": "Invite member",
+    "success": "Success",
+    "linkCopied": "Invite link copied to clipboard"
   },
   "role": {
     "owner": "Owner",
@@ -41,6 +45,20 @@
     "personalSpace": {
       "title": "This is a Personal space",
       "message": "To invite others and share songs, you need to create an organization. You can create an organization from the dropdown in the top right."
+    }
+  },
+  "error": {
+    "update": "Failed to update organization",
+    "copyToClipboard": "Failed to copy to clipboard"
+  },
+  "message": {
+    "leaveOrganization": {
+      "title": "Leave organization",
+      "message": "Are you sure you want to leave this organization? You will lose access to all songs and organization specific items."
+    },
+    "deleteOrganization": {
+      "title": "Delete organization",
+      "message": "Are you sure you want to remove this organization? All songs and associated data will be removed.\nThis action cannot be undone."
     }
   }
 }

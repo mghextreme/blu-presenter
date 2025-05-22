@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, Scope } from '@nestjs/common';
+import { Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { CreateSongDto, UpdateSongDto } from 'src/types';
@@ -80,9 +80,9 @@ export class SongsService {
     id: number,
     updateSongDto: UpdateSongDto,
   ): Promise<Song> {
-    const song = await this.songsRepository.findOneBy({ id });
-    if (song.orgId !== orgId) {
-      throw new ForbiddenException();
+    const song = await this.songsRepository.findOneBy({ id, orgId });
+    if (!song) {
+      throw new NotFoundException();
     }
 
     song.title = updateSongDto.title;
@@ -94,9 +94,9 @@ export class SongsService {
   }
 
   async delete(orgId: number, id: number): Promise<void> {
-    const song = await this.songsRepository.findOneBy({ id });
-    if (song.orgId !== orgId) {
-      throw new ForbiddenException();
+    const song = await this.songsRepository.findOneBy({ id, orgId });
+    if (!song) {
+      throw new NotFoundException();
     }
 
     await this.songsRepository.delete(id);

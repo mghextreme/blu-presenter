@@ -16,7 +16,7 @@ import Home from "./home";
 import SignUp from "./signup";
 import Login from "./login";
 
-import Welcome from "./app/welcome";
+import Welcome, { loader as welcomeLoader } from "./app/welcome";
 import Controller from "./app/controller";
 import Profile, { loader as profileLoader } from "./app/profile";
 
@@ -38,8 +38,8 @@ export const buildRouter = (services: ServicesProviderState) => {
             <Route path="signup" element={<SignUp />} />
           </Route>
         </Route>
-        <Route path="/app" element={<AppLayout />} errorElement={<ErrorLayout />} loader={() => appLoader({ usersService: services.usersService })}>
-          <Route index={true} element={<Welcome />} />
+        <Route path="/app" element={<AppLayout />} errorElement={<ErrorLayout />} loader={() => appLoader({ organizationsService: services.organizationsService })}>
+          <Route index={true} element={<Welcome />} loader={() => welcomeLoader({ organizationsService: services.organizationsService })} />
           <Route path="profile" element={<Profile />} loader={() => profileLoader({ usersService: services.usersService })} />
           <Route path="songs">
             <Route index={true} element={<SongsIndex />} loader={() => indexSongLoader({ songsService: services.songsService })} />

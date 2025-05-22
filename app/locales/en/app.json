@@ -8,5 +8,34 @@
     "songs": "Songs",
     "profile": "My profile",
     "organization": "Organization"
+  },
+  "invitations": {
+    "title": "Pending invitations"
+  },
+  "input": {
+    "orgName": "Organization",
+    "role": "Role"
+  },
+  "message": {
+    "acceptInvitation": {
+      "title": "Invitation accepted",
+      "description": "To go to the organization, select it in the top right."
+    },
+    "rejectInvitation": {
+      "title": "Invitation rejected"
+    }
+  },
+  "error": {
+    "acceptInvitation": {
+      "title": "Error accepting invitation"
+    },
+    "rejectInvitation": {
+      "title": "Error rejecting invitation"
+    }
+  },
+  "role": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member"
   }
 }

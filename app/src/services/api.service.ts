@@ -1,5 +1,4 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useOrganization } from "@/hooks/useOrganization";
 import { ApiError } from "@/types";
 import { FetchQueryOptions, QueryClient } from "@tanstack/react-query";
 
@@ -15,7 +14,7 @@ export abstract class ApiService {
   }
 
   private get organization() {
-    return useOrganization.getState().organizationId;
+    return useAuth.getState().organization?.id;
   }
 
   private get session() {

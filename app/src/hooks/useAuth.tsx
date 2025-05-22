@@ -2,15 +2,19 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { Session, SignInWithPasswordCredentials, SignUpWithPasswordCredentials, User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { IOrganization } from '@/types'
 
 interface AuthState {
   isLoggedIn: boolean
   user: User | null
   session: Session | null
+  organization: IOrganization | null
+  organizations: IOrganization[]
   signIn: (credentials: SignInWithPasswordCredentials) => Promise<void>
   signUp: (credentials: SignUpWithPasswordCredentials) => Promise<void>
   signOut: () => Promise<void>
   refreshSession: () => Promise<void>
+  setOrganizationById: (orgId: number | null) => void
 }
 
 export const useAuth = create<AuthState>()(
@@ -18,6 +22,8 @@ export const useAuth = create<AuthState>()(
     (set, get) => ({
       isLoggedIn: false,
       user: null,
+      organization: null,
+      organizations: [],
       session: null,
       signIn: async (credentials: SignInWithPasswordCredentials) => {
         const { data, error } = await supabase.auth.signInWithPassword(credentials);
@@ -50,6 +56,7 @@ export const useAuth = create<AuthState>()(
           isLoggedIn: false,
           user: null,
           session: null,
+          organizations: [],
         });
       },
       refreshSession: async () => {
@@ -73,7 +80,27 @@ export const useAuth = create<AuthState>()(
           user: data.user,
           session: data.session,
         });
-      }
+      },
+      setOrganizationById: (orgId: number | null) => {
+        if (orgId === null) {
+          const currentOrg = get().organization;
+          const currentOrgInMap = get().organizations.find((org) => org.id === currentOrg?.id);
+
+          if (!currentOrgInMap) {
+            set({
+              organization: get().organizations[0] || null,
+            });
+          }
+          return;
+        }
+
+        const org = get().organizations.find((org) => org.id === orgId);
+        if (!org) throw new Error(`Organization with id ${orgId} not found`);
+
+        set({
+          organization: org,
+        });
+      },
     }),
     {
       name: "auth",
@@ -82,6 +109,8 @@ export const useAuth = create<AuthState>()(
         isLoggedIn: state.isLoggedIn,
         user: state.user,
         session: state.session,
+        organization: state.organization,
+        organizations: state.organizations,
       }),
     }
   )

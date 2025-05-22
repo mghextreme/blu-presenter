@@ -11,7 +11,7 @@ import { useServices } from "@/hooks/services.provider";
 import { useTranslation } from "react-i18next";
 import { TFunction } from "i18next";
 import { useEffect } from "react";
-import { useOrganization } from "@/hooks/useOrganization";
+import { useAuth } from "@/hooks/useAuth";
 
 export async function loader({ songsService }: { songsService: SongsService }) {
   return await songsService.getAll();
@@ -67,7 +67,7 @@ const buildColumns = (t: TFunction, songsService: SongsService) => {
 export default function Songs() {
 
   const { t } = useTranslation("songs");
-  const { organizationId } = useOrganization();
+  const { organization } = useAuth();
 
   const data = useLoaderData() as ISong[];
   const { revalidate } = useRevalidator();
@@ -77,7 +77,7 @@ export default function Songs() {
 
   useEffect(() => {
     revalidate();
-  }, [organizationId]);
+  }, [organization]);
 
   return (
     <div className="p-8">

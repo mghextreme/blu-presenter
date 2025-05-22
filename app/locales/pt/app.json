@@ -8,5 +8,34 @@
     "songs": "Músicas",
     "profile": "Meu perfil",
     "organization": "Organização"
+  },
+  "invitations": {
+    "title": "Convites pendentes"
+  },
+  "input": {
+    "orgName": "Organização",
+    "role": "Permissões"
+  },
+  "message": {
+    "acceptInvitation": {
+      "title": "Convite aceito",
+      "description": "Para acessar a organização, use o seletor no topo direito."
+    },
+    "rejectInvitation": {
+      "title": "Convite negado"
+    }
+  },
+  "error": {
+    "acceptInvitation": {
+      "title": "Erro aceitando convite"
+    },
+    "rejectInvitation": {
+      "title": "Erro negando convite"
+    }
+  },
+  "role": {
+    "owner": "Proprietário",
+    "admin": "Administrador",
+    "member": "Membro"
   }
 }
