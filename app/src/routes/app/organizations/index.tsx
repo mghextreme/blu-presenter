@@ -22,8 +22,8 @@ import { TFunction } from "i18next";
 import { IOrganizationInvitation, IOrganizationUser, OrganizationRoleOptions, isRoleHigherThan, isRoleHigherOrEqualThan } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
-import { toast } from "@/components/ui/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Toast, useToast } from "@/components/ui/use-toast";
 
 export async function loader({ organizationsService }: { organizationsService: OrganizationsService }) {
   return await organizationsService.getCurrent();
@@ -106,7 +106,7 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
   return columns;
 }
 
-const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, navigate: NavigateFunction) => {
+const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, navigate: NavigateFunction, toast: (toast: Toast) => {id: string}) => {
   const copyLink = (id: number, secret: string) => {
     const link = `${window.location.origin}/signup?id=${id}&secret=${secret}`;
     navigator.clipboard.writeText(link)
@@ -206,6 +206,7 @@ export default function EditOrganization({
 }: EditOrganizationProps) {
 
   const { t } = useTranslation("organizations");
+  const { toast } = useToast();
 
   const loadedData = useLoaderData() as IOrganization;
   const data = edit ? loadedData : {
@@ -290,7 +291,7 @@ export default function EditOrganization({
   }
 
   const columns = buildColumns(t, user?.email, loadedData.role, organizationsService, navigate);
-  const invitationColumns = buildInvitationColumns(t, user?.email, loadedData?.role, organizationsService, navigate);
+  const invitationColumns = buildInvitationColumns(t, user?.email, loadedData?.role, organizationsService, navigate, toast);
 
   useEffect(() => {
     if (edit) {
@@ -358,10 +359,10 @@ export default function EditOrganization({
             </>
           )}
           <h2 className="text-xl mt-6 mb-4">{t('edit.manage')}</h2>
-          {false && edit && loadedData.role == 'owner' && (
+          {edit && loadedData.role == 'owner' && (
             <AlertDialog>
-              <AlertDialogTrigger>
-                <Button className="flex-0" variant="destructive" disabled={isLoading}>
+              <AlertDialogTrigger disabled={true || isLoading}>
+                <Button className="flex-0" variant="destructive" disabled={true || isLoading}>
                   {isLoading && (
                     <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
                   )}

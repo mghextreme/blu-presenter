@@ -13,22 +13,36 @@ import { Link, useLoaderData } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import { useToast } from "@/components/ui/use-toast";
 import { useTranslation } from "react-i18next";
+import { supabase } from "@/lib/supabase";
 
 export async function loader({ usersService }: { usersService: UsersService }) {
   return await usersService.getProfile();
 }
-
-const formSchema = z.object({
-  email: z.string().email(),
-  nickname: z.string().min(2),
-  name: z.string().min(2).optional().or(z.literal('')),
-});
 
 export default function Profile() {
 
   const { t } = useTranslation("profile");
   const data = useLoaderData() as IProfile;
   const { toast } = useToast();
+
+  const formSchema = z.object({
+    email: z.string().email(),
+    nickname: z.string().min(2),
+    name: z.string().min(2).optional().or(z.literal('')),
+  });
+
+  const passwordChangeformSchema = z.object({
+    password: z.string().min(8),
+    confirmPassword: z.string().min(8),
+  }).superRefine(({ confirmPassword, password }, ctx) => {
+    if (confirmPassword !== password) {
+      ctx.addIssue({
+        code: "custom",
+        message: t('input.messages.passwordsDontMatch'),
+        path: ['confirmPassword']
+      });
+    }
+  });
 
   const { usersService } = useServices();
 
@@ -44,6 +58,14 @@ export default function Profile() {
       nickname: data.nickname ?? '',
       name: data.name ?? '',
       email: data.email ?? '',
+    },
+  });
+
+  const passwordChangeForm = useForm<z.infer<typeof passwordChangeformSchema>>({
+    resolver: zodResolver(passwordChangeformSchema),
+    defaultValues: {
+      password: '',
+      confirmPassword: '',
     },
   });
 
@@ -63,6 +85,30 @@ export default function Profile() {
             variant: "destructive",
           });
         })
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const onChangePassword = async (values: z.infer<typeof passwordChangeformSchema>) => {
+    try {
+      setLoading(true);
+
+      const { error } = await supabase.auth.updateUser({
+        password: values.password,
+      })
+
+      if (error) throw error;
+
+      toast({
+        title: t('changePassword.succeeded'),
+      });
+    } catch (e) {
+      toast({
+        title: t('changePassword.failed'),
+        description: e?.message || '',
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -120,6 +166,45 @@ export default function Profile() {
               {t('button.update')}
             </Button>
             <Link to={'/app/profile'} reloadDocument={true}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+          </div>
+        </form>
+      </Form>
+      <h2 className="text-2xl mt-6 mb-4">{t('changePassword.title')}</h2>
+      <Form {...passwordChangeForm}>
+        <form onSubmit={passwordChangeForm.handleSubmit(onChangePassword)} className="max-w-lg space-y-3">
+          <FormField
+            control={passwordChangeForm.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('input.password')}</FormLabel>
+                <FormControl>
+                  <Input type="password" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}></FormField>
+
+          <FormField
+            control={passwordChangeForm.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('input.confirmPassword')}</FormLabel>
+                <FormControl>
+                  <Input type="password" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}></FormField>
+
+          <div className="flex flex-row align-start space-x-2">
+            <Button className="flex-0" type="submit" disabled={isLoading}>
+              {isLoading && (
+                <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+              )}
+              {t('button.update')}
+            </Button>
           </div>
         </form>
       </Form>

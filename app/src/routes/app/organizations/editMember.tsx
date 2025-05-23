@@ -16,8 +16,8 @@ import { OrganizationsService } from "@/services";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import { toast } from "@/components/ui/use-toast";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 
 export async function loader({ params, organizationsService }: { params: Params, organizationsService: OrganizationsService }) {
   return await organizationsService.getMember(Number(params.id));
@@ -30,6 +30,7 @@ const formSchema = z.object({
 export default function EditMember() {
 
   const { t } = useTranslation("organizations");
+  const { toast } = useToast();
 
   const navigate = useNavigate();
 

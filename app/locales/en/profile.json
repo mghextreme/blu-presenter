@@ -2,7 +2,12 @@
   "input": {
     "email": "Email",
     "nickname": "Nickname",
-    "name": "Full name"
+    "name": "Full name",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "messages": {
+      "passwordsDontMatch": "Passwords don't match"
+    }
   },
   "button": {
     "update": "Update",
@@ -12,5 +17,10 @@
     "title": "Update profile",
     "failed": "Error updating profile",
     "succeeded": "Profile updated!"
+  },
+  "changePassword": {
+    "title": "Change password",
+    "failed": "Error changing password",
+    "succeeded": "Password updated!"
   }
 }

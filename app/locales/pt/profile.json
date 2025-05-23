@@ -2,7 +2,12 @@
   "input": {
     "email": "E-mail",
     "nickname": "Apelido",
-    "name": "Nome completo"
+    "name": "Nome completo",
+    "password": "Senha",
+    "confirmPassword": "Repetir senha",
+    "messages": {
+      "passwordsDontMatch": "Senhas não conferem"
+    }
   },
   "button": {
     "update": "Atualizar",
@@ -12,5 +17,10 @@
     "title": "Atualizar perfil",
     "failed": "Erro atualizando perfil",
     "succeeded": "Perfil atualizado!"
+  },
+  "changePassword": {
+    "title": "Alterar senha",
+    "failed": "Erro alterando senha",
+    "succeeded": "Senha alterada!"
   }
 }

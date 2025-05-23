@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { useServices } from "@/hooks/services.provider";
 import { OrganizationsService } from "@/services";
 import { IOrganizationInvitation } from "@/types";
@@ -69,6 +69,7 @@ const buildColumns = (t: TFunction, acceptInvitation: (id: number) => void, reje
 export default function Welcome() {
 
   const { t } = useTranslation('app');
+  const { toast } = useToast();
 
   const data = useLoaderData() as IOrganizationInvitation[] || [];
 
