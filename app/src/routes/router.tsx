@@ -25,6 +25,7 @@ import EditSong, { loader as editSongLoader } from "./app/songs/edit";
 
 import EditOrganization, { loader as editOrganizationLoader } from "./app/organizations";
 import InviteOrganizationMember, { loader as inviteOrganizationMemberLoader } from "./app/organizations/invite";
+import EditMember, { loader as editMemberLoader } from "./app/organizations/editMember";
 
 export const buildRouter = (services: ServicesProviderState) => {
 
@@ -49,6 +50,7 @@ export const buildRouter = (services: ServicesProviderState) => {
           <Route path="organization">
             <Route index={true} element={<EditOrganization />} loader={() => editOrganizationLoader({ organizationsService: services.organizationsService })} />
             <Route path="invite" element={<InviteOrganizationMember />} loader={() => inviteOrganizationMemberLoader({ organizationsService: services.organizationsService })} />
+            <Route path="member/:id" element={<EditMember />} loader={(loader: LoaderFunctionArgs) => editMemberLoader({ params: loader.params, organizationsService: services.organizationsService })} />
           </Route>
           <Route path="organizations">
             <Route path="add" element={<EditOrganization edit={false} />} />

@@ -31,6 +31,9 @@
     "pendingInvitations": "Pending invitations",
     "manage": "Manage"
   },
+  "editMember": {
+    "title": "Edit member"
+  },
   "invite": {
     "title": "Invite member",
     "success": "Success",
@@ -49,7 +52,9 @@
   },
   "error": {
     "update": "Failed to update organization",
-    "copyToClipboard": "Failed to copy to clipboard"
+    "copyToClipboard": "Failed to copy to clipboard",
+    "inviteMember": "Failed to invite member",
+    "editMember": "Failed to update member"
   },
   "message": {
     "leaveOrganization": {

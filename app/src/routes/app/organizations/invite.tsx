@@ -17,6 +17,7 @@ import { OrganizationsService } from "@/services";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { toast } from "@/components/ui/use-toast";
 
 export async function loader({ organizationsService }: { organizationsService: OrganizationsService }) {
   return await organizationsService.getCurrent();
@@ -54,11 +55,16 @@ export default function InviteOrganizationMember() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setLoading(true);
-      organizationsService.inviteMember(values.email, values.role).then(() => {
+      organizationsService.inviteMember(values.email, values.role)
+        .then(() => {
           navigate("/app/organization", { replace: true });
         })
-        .catch((err) => {
-          console.error(err);
+        .catch((e) => {
+          toast({
+            title: t('error.inviteMember'),
+            description: e?.message || '',
+            variant: "destructive",
+          });
         })
     } finally {
       setLoading(false);

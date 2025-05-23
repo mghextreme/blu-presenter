@@ -31,6 +31,9 @@
     "pendingInvitations": "Convites pendentes",
     "manage": "Gerenciar"
   },
+  "editMember": {
+    "title": "Editar membro"
+  },
   "invite": {
     "title": "Convidar membro",
     "success": "Sucesso",
@@ -48,8 +51,10 @@
     }
   },
   "error": {
-    "update": "Falha ao atualizar organização",
-    "copyToClipboard": "Falha ao copiar para a área de transferência"
+    "update": "Erro ao atualizar organização",
+    "copyToClipboard": "Erro ao copiar para a área de transferência",
+    "inviteMember": "Erro ao convidar membro",
+    "editMember": "Erro ao atualizar membro"
   },
   "message": {
     "leaveOrganization": {

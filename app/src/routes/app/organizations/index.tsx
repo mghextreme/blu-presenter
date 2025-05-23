@@ -71,9 +71,10 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
     {
       id: "actions",
       cell: ({ row }) => {
+        const canDelete = isRoleHigherOrEqualThan(userRole ?? 'member', row.original.role) && row.original.email !== userEmail;
         return (
           <div className="flex justify-end space-x-2 -m-1">
-            {isRoleHigherOrEqualThan(userRole ?? 'member', 'admin') && (
+            {isRoleHigherThan(userRole ?? 'member', 'member') && (
               <>
                 <Link to={`/app/organization/member/${row.original.id}`}>
                   <Button
@@ -83,18 +84,17 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
                     <PencilIcon className="size-3" />
                   </Button>
                 </Link>
-                {isRoleHigherOrEqualThan(userRole ?? 'member', row.original.role) && row.original.email != userEmail && (
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    title={t('actions.removeMember')}
-                    onClick={() => {
-                      organizationsService.removeMember(row.original.id);
-                      navigate("/app", { replace: true });
-                    }}>
-                    <TrashIcon className="size-3" />
-                  </Button>
-                )}
+                <Button
+                  disabled={!canDelete}
+                  size="sm"
+                  variant={canDelete ? 'destructive' : 'secondary'}
+                  title={t('actions.removeMember')}
+                  onClick={() => {
+                    organizationsService.removeMember(row.original.id);
+                    navigate("/app", { replace: true });
+                  }}>
+                  <TrashIcon className="size-3" />
+                </Button>
               </>
             )}
           </div>
