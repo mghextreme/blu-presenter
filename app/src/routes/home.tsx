@@ -1,17 +1,42 @@
 import { Button } from "@/components/ui/button";
+import LanguageToggler from "@/components/ui/language-toggler";
+import ThemeToggler from "@/components/ui/theme-toggler";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 export default function Welcome() {
+  const { t } = useTranslation("home");
+
   return (
-    <div className="p-8">
-      <h1 className="text-3xl">Home!</h1>
-      <div className="flex flex-col space-y-2">
-        <Link to="/signup">
-          <Button>Sign up</Button>
-        </Link>
-        <Link to="/login">
-          <Button>Login</Button>
-        </Link>
+    <div className="min-h-screen">
+      <nav className="flex items-center justify-between px-8 py-4 shadow-sm">
+        <div className="text-2xl"><Link to="/">Blu Presenter</Link></div>
+        <div className="space-x-2">
+          <LanguageToggler></LanguageToggler>
+          <ThemeToggler></ThemeToggler>
+          <Link to="/login">
+            <Button variant="outline">{t('button.login')}</Button>
+          </Link>
+          <Link to="/signup">
+            <Button>{t('button.signUp')}</Button>
+          </Link>
+        </div>
+      </nav>
+      <div className="flex flex-col items-center justify-center mt-24 px-4">
+        <h1 className="text-5xl font-bold mb-4 text-center">
+          {t('hero.title')}
+        </h1>
+        <p className="text-lg text-blue-700 mb-8 max-w-xl text-center">
+          {t('hero.description')}
+        </p>
+        <div className="space-x-4">
+          <Link to="/login">
+            <Button variant="outline" size="lg">{t('button.login')}</Button>
+          </Link>
+          <Link to="/signup">
+            <Button size="lg">{t('button.signUp')}</Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -1,0 +1,10 @@
+{
+  "button": {
+    "login": "Login",
+    "signUp": "Sign Up"
+  },
+  "hero": {
+    "title": "Welcome to BluPresenter",
+    "description": "Easy present lyrics. Anywhere. Anytime."
+  }
+}

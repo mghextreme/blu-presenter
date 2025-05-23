@@ -66,7 +66,7 @@ export default function AuthLayout() {
       <div className="relative hidden h-full flex-col p-10 text-foreground lg:flex dark:border-r">
         <div className="absolute inset-0 bg-background" />
         <div className="relative z-20 flex items-center text-lg font-medium">
-          Blu Presenter
+          <Link to="/" className="text-lg font-medium">Blu Presenter</Link>
         </div>
       </div>
       <div className="lg:p-8">

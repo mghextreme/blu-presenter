@@ -1,0 +1,10 @@
+{
+  "button": {
+    "login": "Entrar",
+    "signUp": "Cadastrar"
+  },
+  "hero": {
+    "title": "Bem-vindo ao BluPresenter",
+    "description": "Apresente letra de músicas com facilidade. Em qualquer lugar. A qualquer hora."
+  }
+}
