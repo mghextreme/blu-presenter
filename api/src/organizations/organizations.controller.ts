@@ -10,9 +10,14 @@ import {
   Query,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { Organization, OrganizationInvitation } from 'src/entities';
+import {
+  Organization,
+  OrganizationInvitation,
+  OrganizationUser,
+} from 'src/entities';
 import {
   CreateOrganizationDto,
+  EditMemberDto,
   InviteMemberDto,
   OrganizationViewModel,
   UpdateOrganizationDto,
@@ -68,6 +73,13 @@ export class OrganizationsController {
     return await this.organizationsService.delete(usersOrg);
   }
 
+  @Get('members/:id')
+  @OrganizationRole('owner', 'admin', 'member')
+  async getMember(@Param('id') id: number): Promise<OrganizationUser> {
+    const usersOrg = this.request.user['organization'];
+    return await this.organizationsService.getMember(usersOrg, id);
+  }
+
   @Post('members')
   @OrganizationRole('owner', 'admin')
   async inviteMember(
@@ -78,6 +90,24 @@ export class OrganizationsController {
       usersOrg,
       inviteMemberDto,
     );
+  }
+
+  @Put('members/:id')
+  @OrganizationRole('owner', 'admin')
+  async editMember(
+    @Param('id') id: number,
+    @Body() editMemberDto: EditMemberDto,
+  ): Promise<void> {
+    const usersOrg = this.request.user['organization'];
+    const userId = this.request.user['internal'].id;
+
+    if (userId === id) {
+      throw new UnprocessableEntityException(
+        'You cannot edit your own role in an organization',
+      );
+    }
+
+    await this.organizationsService.editMember(usersOrg, id, editMemberDto);
   }
 
   @Post('leave')

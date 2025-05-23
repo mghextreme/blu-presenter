@@ -10,6 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import {
   CreateOrganizationDto,
+  EditMemberDto,
   InviteMemberDto,
   isRoleHigherThan,
   OrganizationRoleOptions,
@@ -99,7 +100,11 @@ export class OrganizationsService {
         break;
     }
 
-    return await this.organizationsRepository.findOne(query);
+    const orgs = await this.organizationsRepository.find(query);
+    if (orgs.length === 0) {
+      throw new NotFoundException('Organization not found');
+    }
+    return orgs[0];
   }
 
   async create(
@@ -152,6 +157,61 @@ export class OrganizationsService {
     // TODO: Delete organization users
     // TODO: Delete songs
     await this.organizationsRepository.delete(id);
+  }
+
+  async getMember(usersOrg: any, id: number): Promise<OrganizationUser> {
+    const member = await this.organizationUsersRepository.findOne({
+      where: {
+        userId: id,
+        orgId: usersOrg.id,
+      },
+      relations: {
+        user: true,
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    return member;
+  }
+
+  async editMember(
+    id: number,
+    memberId: number,
+    editMemberDto: EditMemberDto,
+  ): Promise<void> {
+    const member = await this.organizationUsersRepository.findOneBy({
+      orgId: id,
+      userId: memberId,
+    });
+
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    if (member.role === 'owner') {
+      throw new UnprocessableEntityException(
+        'You cannot change the role of the owner',
+      );
+    }
+
+    if (isRoleHigherThan(editMemberDto.role, this.request.user['role'])) {
+      throw new ForbiddenException(
+        `You cannot change this members role because your role is ${this.request.user['role']}`,
+      );
+    }
+
+    await this.organizationUsersRepository.update(
+      {
+        orgId: id,
+        userId: memberId,
+      },
+      {
+        role: editMemberDto.role,
+      },
+    );
   }
 
   async inviteMember(

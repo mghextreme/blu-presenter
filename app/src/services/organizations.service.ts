@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IOrganization } from "@/types/organization.interface";
 import { ApiService } from "./api.service";
-import { IOrganizationInvitation, OrganizationRoleOptions, UserOrganization } from "@/types";
+import { IOrganizationInvitation, IOrganizationUser, OrganizationRoleOptions, UserOrganization } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
 import { FetchQueryOptions } from "@tanstack/react-query";
 
@@ -52,6 +52,21 @@ export class OrganizationsService extends ApiService {
     this.clearCache();
   }
 
+  public async getMember(id: number): Promise<IOrganizationUser> {
+    return await this.getOrFetch({
+      queryKey: ['organizations', 'members', id],
+      queryFn: async () => {
+        const response = await this.getRequest(`/organizations/members/${id}`);
+        return {
+          id: response.user.id,
+          name: response.user?.name,
+          email: response.user?.email,
+          role: response.role,
+        } as IOrganizationUser;
+      },
+    });
+  }
+
   public async inviteMember(email: string, role: OrganizationRoleOptions): Promise<IOrganizationInvitation> {
     const result = await this.postRequest('/organizations/members', JSON.stringify({
       email,
@@ -63,6 +78,16 @@ export class OrganizationsService extends ApiService {
     this.clearCache();
 
     return result;
+  }
+
+  public async editMember(id: number, role: OrganizationRoleOptions) {
+    await this.putRequest(`/organizations/members/${id}`, JSON.stringify({
+      role,
+    }), {
+      'content-type': 'application/json',
+    });
+
+    this.clearCache();
   }
 
   public async getInvite(id: number, secret: string): Promise<IOrganizationInvitation> {
