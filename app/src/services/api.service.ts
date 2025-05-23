@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useAuth } from "@/hooks/useAuth";
 import { ApiError } from "@/types";
 import { FetchQueryOptions, QueryClient } from "@tanstack/react-query";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export abstract class ApiService {
 
   protected queryClient: QueryClient;

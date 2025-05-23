@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
 import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
@@ -87,7 +88,7 @@ export default function Welcome() {
         description: t('message.acceptInvitation.description'),
       });
     }
-    catch (e) {
+    catch (e: any) {
       toast({
         title: t('error.acceptInvitation.title'),
         description: e?.message ?? '',
@@ -105,7 +106,7 @@ export default function Welcome() {
         title: t('message.rejectInvitation.title'),
       });
     }
-    catch (e) {
+    catch (e: any) {
       toast({
         title: t('error.rejectInvitation.title'),
         description: e?.message ?? '',

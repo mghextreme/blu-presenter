@@ -1,0 +1,8 @@
+name = "blu-presenter-app"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "404-page"

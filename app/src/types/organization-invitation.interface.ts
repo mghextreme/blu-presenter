@@ -1,4 +1,5 @@
 import { IOrganizationUser, OrganizationRoleOptions } from "./organization-user.interface"
+import { IOrganization } from "./organization.interface"
 
 export interface IOrganizationInvitation {
   id: number
@@ -6,5 +7,6 @@ export interface IOrganizationInvitation {
   email: string
   role: OrganizationRoleOptions
   secret: string
-  inviter: IOrganizationUser
+  inviter?: IOrganizationUser
+  organization?: IOrganization
 }

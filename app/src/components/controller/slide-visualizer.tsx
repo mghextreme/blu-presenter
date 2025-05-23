@@ -21,7 +21,7 @@ export default function SlideVisualizer({
   
   const {childWindow} = useWindow();
 
-  const wrapperDiv = useRef();
+  const wrapperDiv = useRef<HTMLDivElement>();
   const [fontSize, setFontSize] = useState<string>('8vh');
   const updateFontSize = () => {
     const w = wrapperDiv?.current?.clientWidth ?? 1280;
@@ -102,7 +102,7 @@ export default function SlideVisualizer({
 
   return (
     <div
-      ref={wrapperDiv}
+      ref={wrapperDiv as React.Ref<HTMLDivElement>}
       className={'w-full h-full leading-[1.15em] p-[.5em] flex flex-col items-stretch text-white text-center ' + themeClass}
       style={{fontSize: fontSize}}>
       {toShow.map((c, ix) => (

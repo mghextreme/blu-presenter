@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
@@ -103,7 +104,7 @@ export default function Profile() {
       toast({
         title: t('changePassword.succeeded'),
       });
-    } catch (e) {
+    } catch (e: any) {
       toast({
         title: t('changePassword.failed'),
         description: e?.message || '',

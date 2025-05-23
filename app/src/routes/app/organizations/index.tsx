@@ -184,7 +184,7 @@ const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, use
                 size="sm"
                 variant="destructive"
                 title={t('actions.removeInvitation')}
-                disabled={userRole !== 'owner' && userEmail !== row.original.inviter.email}
+                disabled={userRole !== 'owner' && userEmail !== row.original?.inviter?.email}
                 onClick={() => {
                   organizationsService.cancelInvitation(row.original.id);
                   navigate("/app", { replace: true });

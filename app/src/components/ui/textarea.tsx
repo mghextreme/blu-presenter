@@ -13,17 +13,17 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     const resizeClass = resize == 'manual' ? 'resize-y' : 'resize-none';
     const localRef = React.useRef(ref);
 
-    const updateHeight = (target) => {
+    const updateHeight = (target: HTMLTextAreaElement) => {
       if (resize == 'auto' && localRef) {
         target.style.height = 'auto';
         target.style.height = `${target.scrollHeight}px`;
       }
     }
     React.useEffect(() => {
-      updateHeight(localRef.current);
+      updateHeight(localRef.current as unknown as HTMLTextAreaElement);
     });
 
-    const updateValue = (event) => {
+    const updateValue = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
       if (onChange) {
         onChange(event);
       }
@@ -38,7 +38,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           " overflow-hidden flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
           className
         )}
-        ref={localRef}
+        ref={localRef as React.LegacyRef<HTMLTextAreaElement>}
         value={value}
         onChange={updateValue}
         {...props}

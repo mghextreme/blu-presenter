@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ChangeEvent, ReactNode, useState } from "react";
 import { Table } from "@tanstack/react-table";
 import { Input } from "../input";
 import { useTranslation } from "react-i18next";
@@ -16,8 +16,9 @@ export function DataTableHeader<TData>({
 
   const { t } = useTranslation("data-table");
 
-  const inputChanged = (event) => {
-    const value = event.target.value;
+  const inputChanged = (event: ChangeEvent) => {
+    const target = event.target as HTMLInputElement;
+    const value = target?.value;
     setQuery(value);
     table.setGlobalFilter(value);
   }

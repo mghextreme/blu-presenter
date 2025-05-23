@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import { Toaster } from "@/components/ui/toaster";
 import { OrganizationsService } from "@/services";
 import { InvitationProvider } from "@/hooks/invitation.provider";
-import { IOrganization } from "@/types";
+import { IOrganizationInvitation } from "@/types";
 
 export async function loader({ request, organizationsService }: { request: Request, organizationsService: OrganizationsService }) {
   const params = new URL(request.url).searchParams;
@@ -33,7 +33,7 @@ export default function AuthLayout() {
   const { t } = useTranslation("auth");
 
   const location = useLocation();
-  const inviteData = useLoaderData() as { id: number, secret: string, organization: IOrganization } | null;
+  const inviteData = useLoaderData() as IOrganizationInvitation | null;
   let params = "";
 
   if (inviteData) {

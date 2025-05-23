@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import * as React from "react";
@@ -63,7 +64,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
           emailRedirectTo: emailRedirect,
         },
       });
-    } catch (e) {
+    } catch (e: any) {
       toast({
         title: t('signUp.error'),
         description: t('errors.' + e?.message || 'default'),
@@ -88,7 +89,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input type="email" placeholder={t('input.email')} autoComplete="email" autoCorrect="off" autoCapitalize="none" disabled={isLoading || invitedEmail} {...field} />
+                  <Input type="email" placeholder={t('input.email')} autoComplete="email" autoCorrect="off" autoCapitalize="none" disabled={isLoading || !!invitedEmail} {...field} />
                 </FormControl>
                 <FormMessage />
                 {invitedEmail && (

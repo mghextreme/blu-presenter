@@ -3,7 +3,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardHeaderActions, CardHeaderText, CardTitle } from "../ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible";
 import { useController } from "@/hooks/controller.provider";
-import { IScheduleItem } from "@/types";
+import { IScheduleItem, IScheduleSong } from "@/types";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 import ChevronUpDownIcon from "@heroicons/react/24/solid/ChevronUpDownIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
@@ -38,6 +38,7 @@ export default function ScheduleItem({
   }
 
   const [isExpanded, setExpanded] = useState<boolean>(false);
+  const song = item as IScheduleSong;
 
   return (
     <Card>
@@ -48,7 +49,9 @@ export default function ScheduleItem({
         <CardHeader className={selected ? 'bg-selected' : ''}>
           <CardHeaderText>
             <CardTitle>{item?.title}</CardTitle>
-            <CardDescription>{item?.artist}</CardDescription>
+            {song && (
+              <CardDescription>{song?.artist}</CardDescription>
+            )}
           </CardHeaderText>
           <CardHeaderActions>
             <CollapsibleTrigger asChild>

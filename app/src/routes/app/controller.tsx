@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { IBrowserWindow, IPositionableElement, IScreenDetails } from "@/types/browser";
 
 const searchFormSchema = z.object({
   query: z.string().min(3),
@@ -63,16 +64,16 @@ export default function Controller() {
 
   const { songsService } = useServices();
 
-  const contentWrapper = useRef();
-  const slideRefs = useRef([]);
+  const contentWrapper = useRef<HTMLDivElement>();
+  const slideRefs = useRef<HTMLDivElement[]>([]);
 
   useEffect(() => {
     slideRefs.current = slideRefs.current.slice(0, (scheduleItem?.slides?.length ?? 0));
  }, [scheduleItem]);
 
  useEffect(() => {
-  const wrapper: Element = contentWrapper.current;
-  const slide: Element = slideRefs.current[selection.slide ?? 0];
+   const wrapper: IPositionableElement | undefined = contentWrapper.current as IPositionableElement;
+   const slide: IPositionableElement | undefined = slideRefs.current[selection.slide ?? 0] as IPositionableElement;
 
   if (!wrapper || !slide) return;
 
@@ -121,10 +122,11 @@ export default function Controller() {
   }
 
   useEffect(() => {
-    const screenDetailsPromise = window.getScreenDetails();
+    const browserWindow = window as unknown as IBrowserWindow;
+    const screenDetailsPromise = browserWindow.getScreenDetails();
     if (screenDetailsPromise) {
-      screenDetailsPromise.then((details) => {
-        const screenRatioOptions = details.screens.map((s, ix) => {
+      screenDetailsPromise.then((details: {screens: IScreenDetails[]}) => {
+        const screenRatioOptions = details.screens.map((s, ix: number) => {
           const screenZoom = s.devicePixelRatio;
           const w = Math.round(s.width * screenZoom);
           const h = Math.round(s.height * screenZoom);
@@ -333,9 +335,9 @@ export default function Controller() {
               <ArrowRightIcon className="size-4"></ArrowRightIcon>
             </Button>
           </div>
-          <div id="content" className="p-3 pt-0 flex-1 overflow-y-auto" ref={contentWrapper}>
+          <div id="content" className="p-3 pt-0 flex-1 overflow-y-auto" ref={contentWrapper as React.LegacyRef<HTMLDivElement>}>
           {scheduleItem?.slides.map((s, ix) => (
-            <div key={`${mode}-${ix}`} ref={el => slideRefs.current[ix] = el}>
+            <div key={`${mode}-${ix}`} ref={(el: HTMLDivElement) => slideRefs.current[ix] = el}>
               <SlideSelector
                 slide={s}
                 index={ix}

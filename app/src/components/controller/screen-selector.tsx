@@ -1,14 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ReactNode, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { useWindow } from "@/hooks/window.provider";
 import { useTranslation } from "react-i18next";
+import { IBrowserWindow, IScreenDetails } from "@/types/browser";
 
 export default function ScreenSelector({ children }: { children: ReactNode }) {
 
   const { t } = useTranslation("controller");
 
   const [selected, setSelected] = useState(false);
-  const [displayOptions, setDisplayOptions] = useState([]);
+  const [displayOptions, setDisplayOptions] = useState<IScreenDetails[]>([]);
   const {childWindow} = useWindow();
 
   const setFullScreen = (ix: number) => {
@@ -18,22 +20,26 @@ export default function ScreenSelector({ children }: { children: ReactNode }) {
     if (!doc) return;
 
     const selectedDisplay = displayOptions[ix];
-    const elem = doc.documentElement;
     const options = {
       navigationUI: "hide",
       screen: selectedDisplay,
     };
 
+    const elem = doc.documentElement as any;
     const requestMethod = elem.requestFullScreen || elem.webkitRequestFullScreen || elem.mozRequestFullScreen || elem.msRequestFullScreen;
-    requestMethod.call(elem, options);
+    if (requestMethod) {
+      requestMethod.call(elem, options);
+    }
     setSelected(true);
   }
 
   useEffect(() => {
-    if (childWindow?.screen.isExtended == true) {
-      const screenDetailsPromise = childWindow.getScreenDetails();
+    const browserWindow = childWindow?.screen as Screen & {isExtended: boolean}
+    if (browserWindow?.isExtended == true) {
+      const browserWindow = childWindow as unknown as IBrowserWindow;
+      const screenDetailsPromise = browserWindow.getScreenDetails();
       if (screenDetailsPromise) {
-        screenDetailsPromise.then((details) => {
+        screenDetailsPromise.then((details: {screens: IScreenDetails[]}) => {
           setDisplayOptions(details.screens);
         })
       }

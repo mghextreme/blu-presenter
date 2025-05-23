@@ -15,9 +15,9 @@ export type ServicesProviderState = {
 }
 
 const initialState: ServicesProviderState = {
-  songsService: {},
-  usersService: {},
-  organizationsService: {},
+  songsService: {} as SongsService,
+  usersService: {} as UsersService,
+  organizationsService: {} as OrganizationsService,
 }
 
 const ServicesContext = createContext<ServicesProviderState>(initialState);
