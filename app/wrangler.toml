@@ -1,8 +1,9 @@
 name = "blu-presenter-app"
-main = "src/index.js"
-compatibility_date = "2025-01-01"
+#main = "src/main.tsx"
+compatibility_date = "2025-04-03"
+account_id = "6feee42c276dcbdc3d50a0e7e237d599"
 
-[assets]
-directory = "./dist"
-binding = "ASSETS"
-not_found_handling = "404-page"
+# [assets]
+# directory = "./dist"
+# binding = "ASSETS"
+# not_found_handling = "404-page"

@@ -1,25 +1,25 @@
-import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import {useState} from "react";
+import {zodResolver} from "@hookform/resolvers/zod"
+import {useForm} from "react-hook-form";
+import {z} from "zod";
 
-import { useServices } from "@/hooks/services.provider";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Link, useLoaderData, useNavigate } from "react-router-dom";
+import {useServices} from "@/hooks/services.provider";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Link, useLoaderData, useNavigate} from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
-import { CheckIcon } from "@radix-ui/react-icons";
-import { useTranslation } from "react-i18next";
-import { IOrganization } from "@/types";
-import { OrganizationsService } from "@/services";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
-import { useToast } from "@/components/ui/use-toast";
+import {CheckIcon} from "@radix-ui/react-icons";
+import {useTranslation} from "react-i18next";
+import {IOrganization} from "@/types";
+import {OrganizationsService} from "@/services";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {Command, CommandGroup, CommandItem, CommandList} from "@/components/ui/command";
+import {cn} from "@/lib/utils";
+import {useToast} from "@/components/ui/use-toast";
 
-export async function loader({ organizationsService }: { organizationsService: OrganizationsService }) {
+export async function loader({organizationsService}: { organizationsService: OrganizationsService }) {
   return await organizationsService.getCurrent();
 }
 
@@ -30,17 +30,18 @@ const formSchema = z.object({
 
 export default function InviteOrganizationMember() {
 
-  const { t } = useTranslation("organizations");
-  const { toast } = useToast();
+  const {t} = useTranslation("organizations");
+  const {toast} = useToast();
 
   const navigate = useNavigate();
 
-  const { organizationsService } = useServices();
+  const {organizationsService} = useServices();
   const data = useLoaderData() as IOrganization;
 
   const [isLoading, setLoading] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
+    //@ts-expect-error // TODO investigar
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
@@ -49,8 +50,8 @@ export default function InviteOrganizationMember() {
   });
 
   const roles = [
-    { label: t('role.admin'), value: 'admin' },
-    { label: t('role.member'), value: 'member' },
+    {label: t('role.admin'), value: 'admin'},
+    {label: t('role.member'), value: 'member'},
   ] as { label: string; value: 'admin' | 'member' }[];
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -58,7 +59,7 @@ export default function InviteOrganizationMember() {
       setLoading(true);
       organizationsService.inviteMember(values.email, values.role)
         .then(() => {
-          navigate("/app/organization", { replace: true });
+          navigate("/app/organization", {replace: true});
         })
         .catch((e) => {
           toast({
@@ -79,23 +80,27 @@ export default function InviteOrganizationMember() {
       <h1 className="text-3xl mb-2">{t('invite.title')}</h1>
       <h2 className="text mb-4 opacity-50">{data.name || t('defaultName')}</h2>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
+        <form
+          //@ts-expect-error // Erro nos parâmetros do handleSubmit/tipo inválido
+          onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
           <FormField
+            //@ts-expect-error // Erro na referência de control/tipo inválido
             control={form.control}
             name="email"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem>
                 <FormLabel>{t('input.email')}</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}></FormField>
           <FormField
+            //@ts-expect-error // Erro na referência de control/tipo inválido
             control={form.control}
             name="role"
-            render={({ field }) => (
+            render={({field}) => (
               <FormItem>
                 <FormLabel>{t('input.role')}</FormLabel>
                 <div>
@@ -112,10 +117,10 @@ export default function InviteOrganizationMember() {
                         >
                           {field.value
                             ? roles.find(
-                                (role) => role.value === field.value
-                              )?.label
+                              (role) => role.value === field.value
+                            )?.label
                             : t('input.selectRole')}
-                          <ChevronDownIcon className="size-3 shrink-0 opacity-50 ms-2" />
+                          <ChevronDownIcon className="size-3 shrink-0 opacity-50 ms-2"/>
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -147,7 +152,7 @@ export default function InviteOrganizationMember() {
                     </PopoverContent>
                   </Popover>
                 </div>
-                <FormMessage />
+                <FormMessage/>
               </FormItem>
             )}></FormField>
           <div className="flex flex-row align-start space-x-2">
@@ -156,8 +161,9 @@ export default function InviteOrganizationMember() {
                 <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
               )}
               {t('button.invite')}
-              </Button>
-            <Link to={`/app/organization`}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+            </Button>
+            <Link to={`/app/organization`}><Button className="flex-0" type="button"
+                                                   variant="secondary">{t('button.cancel')}</Button></Link>
           </div>
         </form>
       </Form>

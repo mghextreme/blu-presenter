@@ -1,6 +1,11 @@
+/* @import 'tailwindcss';
+
 @tailwind base;
 @tailwind components;
-@tailwind utilities;
+@tailwind utilities; */
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
 
 
 @layer base {
@@ -58,6 +63,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }

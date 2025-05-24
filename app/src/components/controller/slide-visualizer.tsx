@@ -21,7 +21,7 @@ export default function SlideVisualizer({
   
   const {childWindow} = useWindow();
 
-  const wrapperDiv = useRef<HTMLDivElement>();
+  const wrapperDiv = useRef<HTMLDivElement>(null);
   const [fontSize, setFontSize] = useState<string>('8vh');
   const updateFontSize = () => {
     const w = wrapperDiv?.current?.clientWidth ?? 1280;

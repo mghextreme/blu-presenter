@@ -37,7 +37,7 @@ export const useTheme = create<ThemeState>()(
     }),
     {
       name: "theme",
-      getStorage: () => localStorage,
+      // getStorage: () => localStorage,
       partialize: (state: ThemeState) => ({
         theme: state.theme,
       }),
@@ -46,6 +46,8 @@ export const useTheme = create<ThemeState>()(
 
         updateDocument(state.theme);
       }),
+      //@ts-expect-error // Mesma situação do useAuth.tsx
+      storage: localStorage,
     }
   )
 );
