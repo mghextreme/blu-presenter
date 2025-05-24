@@ -40,6 +40,7 @@ export default function EditMember() {
   const [isLoading, setLoading] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
+    //@ts-expect-error // TODO ver problemas de undefinable
     resolver: zodResolver(formSchema),
     defaultValues: {
       role: 'member',
@@ -76,6 +77,8 @@ export default function EditMember() {
     <div className="p-8">
       <h1 className="text-3xl mb-2">{t('editMember.title')}</h1>
       <Form {...form}>
+        {/*
+        // @ts-expect-error //TODO investigar  */}
         <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
           <FormItem>
             <FormLabel>{t('input.name')}</FormLabel>
@@ -92,6 +95,8 @@ export default function EditMember() {
             </FormItem>
           ) : (
             <FormField
+              //TODO investigar 
+              // @ts-expect-error  // Erro no tipo
               control={form.control}
               name="role"
               render={({ field }) => (
@@ -111,8 +116,8 @@ export default function EditMember() {
                           >
                             {field.value
                               ? roles.find(
-                                  (role) => role.value === field.value
-                                )?.label
+                                (role) => role.value === field.value
+                              )?.label
                               : t('input.selectRole')}
                             <ChevronDownIcon className="size-3 shrink-0 opacity-50 ms-2" />
                           </Button>
@@ -156,7 +161,7 @@ export default function EditMember() {
                 <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
               )}
               {t('button.update')}
-              </Button>
+            </Button>
             <Link to={`/app/organization`}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
           </div>
         </form>

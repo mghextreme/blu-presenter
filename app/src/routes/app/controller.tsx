@@ -1,34 +1,34 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react";
+import {useEffect, useRef, useState} from "react";
 
-import { useTranslation } from "react-i18next";
+import {useTranslation} from "react-i18next";
 
 import SlideVisualizer from "@/components/controller/slide-visualizer";
 import SlideSelector from "@/components/controller/slide-selector";
 import ScheduleItem from "@/components/controller/schedule-item";
 import SongSearchResult from "@/components/controller/song-search-result";
-import { useController } from "@/hooks/controller.provider";
-import { useServices } from "@/hooks/services.provider";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import {useController} from "@/hooks/controller.provider";
+import {useServices} from "@/hooks/services.provider";
+import {Button} from "@/components/ui/button";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem} from "@/components/ui/command";
+import {Form, FormControl, FormField, FormItem, FormMessage} from "@/components/ui/form";
+import {Input} from "@/components/ui/input";
 
 import ArrowLeftIcon from "@heroicons/react/24/outline/ArrowLeftIcon";
 import ArrowRightIcon from "@heroicons/react/24/outline/ArrowRightIcon";
 import StopSolidIcon from "@heroicons/react/24/solid/StopIcon";
 import FingerPrintSolidIcon from "@heroicons/react/24/solid/FingerPrintIcon";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
-import { IScheduleSong, IWindow } from "@/types";
-import { v4 } from "uuid";
-import { cn } from "@/lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { IBrowserWindow, IPositionableElement, IScreenDetails } from "@/types/browser";
+import {CaretSortIcon, CheckIcon} from "@radix-ui/react-icons";
+import {IScheduleSong, IWindow} from "@/types";
+import {v4} from "uuid";
+import {cn} from "@/lib/utils";
+import {zodResolver} from "@hookform/resolvers/zod"
+import {useForm} from "react-hook-form";
+import {z} from "zod";
+import {IBrowserWindow, IPositionableElement, IScreenDetails} from "@/types/browser";
 
 const searchFormSchema = z.object({
   query: z.string().min(3),
@@ -47,7 +47,7 @@ const themeOptions = [
 
 export default function Controller() {
 
-  const { t } = useTranslation('controller');
+  const {t} = useTranslation('controller');
 
   const {
     mode,
@@ -62,27 +62,27 @@ export default function Controller() {
     clearOverrideSlide,
   } = useController();
 
-  const { songsService } = useServices();
+  const {songsService} = useServices();
 
-  const contentWrapper = useRef<HTMLDivElement>();
+  const contentWrapper = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<HTMLDivElement[]>([]);
 
   useEffect(() => {
     slideRefs.current = slideRefs.current.slice(0, (scheduleItem?.slides?.length ?? 0));
- }, [scheduleItem]);
+  }, [scheduleItem]);
 
- useEffect(() => {
-   const wrapper: IPositionableElement | undefined = contentWrapper.current as IPositionableElement;
-   const slide: IPositionableElement | undefined = slideRefs.current[selection.slide ?? 0] as IPositionableElement;
+  useEffect(() => {
+    const wrapper: IPositionableElement | undefined = contentWrapper.current as IPositionableElement;
+    const slide: IPositionableElement | undefined = slideRefs.current[selection.slide ?? 0] as IPositionableElement;
 
-  if (!wrapper || !slide) return;
+    if (!wrapper || !slide) return;
 
-  const slideTo = slide.offsetTop - wrapper.offsetTop - 50;
-  wrapper?.scrollTo({
-    top: slideTo,
-    behavior: "smooth"
-  });
-}, [selection]);
+    const slideTo = slide.offsetTop - wrapper.offsetTop - 50;
+    wrapper?.scrollTo({
+      top: slideTo,
+      behavior: "smooth"
+    });
+  }, [selection]);
 
   const [preview, setPreview] = useState<IWindow | undefined>(undefined);
   const openPreview = () => {
@@ -107,7 +107,7 @@ export default function Controller() {
   const [previewTheme, setPreviewTheme] = useState<string>("black");
   const [openPreviewRatioSelector, setOpenPreviewRatioSelector] = useState<boolean>(false);
   const [previewRatio, setPreviewRatio] = useState<string>("16/9");
-  const [ratioOptions, setRatioOptions] = useState<{value: string, label: string}[]>(defaultRatioOptions);
+  const [ratioOptions, setRatioOptions] = useState<{ value: string, label: string }[]>(defaultRatioOptions);
 
   const updatePreviewTheme = (theme: string) => {
     if (theme === preview?.theme) return;
@@ -125,7 +125,7 @@ export default function Controller() {
     const browserWindow = window as unknown as IBrowserWindow;
     const screenDetailsPromise = browserWindow.getScreenDetails();
     if (screenDetailsPromise) {
-      screenDetailsPromise.then((details: {screens: IScreenDetails[]}) => {
+      screenDetailsPromise.then((details: { screens: IScreenDetails[] }) => {
         const screenRatioOptions = details.screens.map((s, ix: number) => {
           const screenZoom = s.devicePixelRatio;
           const w = Math.round(s.width * screenZoom);
@@ -184,18 +184,19 @@ export default function Controller() {
   return (
     <>
       <div id="controller" className="p-3 flex flex-1 gap-3 overflow-hidden">
-        <div id="plan" className="w-1/3 bg-background rounded flex flex-col justify-start items-stretch overflow-hidden">
+        <div id="plan"
+             className="w-1/3 bg-background rounded flex flex-col justify-start items-stretch overflow-hidden">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="p-3 flex flex-row w-full justify-stretch space-x-3">
               <FormField
                 control={form.control}
                 name="query"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem className="flex-1">
                     <FormControl>
                       <Input placeholder={t('importer.search.inputPlaceholder')} {...field} />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage/>
                   </FormItem>
                 )}></FormField>
               <Button className="flex-0" type="submit" disabled={searching}>
@@ -209,15 +210,19 @@ export default function Controller() {
                 )}</Button>
             </form>
           </Form>
-          <div className="p-3 pt-0 flex-1 overflow-y-auto flex flex-col justify-start items-stretch overflow-y-auto gap-3">
+          <div
+            className="p-3 pt-0 flex-1 overflow-y-auto flex flex-col justify-start items-stretch overflow-y-auto gap-3">
             {searchResults.length > 0 && searchResults.map((item, ix) => (
               <SongSearchResult key={`${item.id}-${ix}`} item={item}></SongSearchResult>
             ))}
           </div>
         </div>
-        <div id="schedule" className="w-1/3 p-3 bg-background rounded flex flex-col justify-start items-stretch overflow-y-auto gap-3">
+        <div id="schedule"
+             className="w-1/3 p-3 bg-background rounded flex flex-col justify-start items-stretch overflow-y-auto gap-3">
           {schedule.map((item, ix) => (
-            <ScheduleItem key={`${item.id}-${ix}`} item={item} selected={ix === selection.scheduleItem && scheduleItem?.id === item.id} index={ix}></ScheduleItem>
+            <ScheduleItem key={`${item.id}-${ix}`} item={item}
+                          selected={ix === selection.scheduleItem && scheduleItem?.id === item.id}
+                          index={ix}></ScheduleItem>
           ))}
         </div>
         <div id="live" className="w-1/3 bg-background rounded flex flex-col items-stretch overflow-hidden">
@@ -237,13 +242,14 @@ export default function Controller() {
                           className="flex-1 justify-between overflow-hidden"
                           title={t('preview.theme.title')}
                         >
-                          <span className="truncate">{themeOptions.find((option) => option.value == previewTheme)?.label}</span>
-                          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <span
+                            className="truncate">{themeOptions.find((option) => option.value == previewTheme)?.label}</span>
+                          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-full p-0">
                         <Command>
-                          <CommandInput placeholder={t('preview.theme.searchPlaceholder')} className="h-9" />
+                          <CommandInput placeholder={t('preview.theme.searchPlaceholder')} className="h-9"/>
                           <CommandEmpty>{t('preview.theme.searchNoneFound')}</CommandEmpty>
                           <CommandGroup>
                             {themeOptions.map((option) => (
@@ -276,13 +282,14 @@ export default function Controller() {
                           className="flex-1 justify-between overflow-hidden"
                           title={t('preview.resolution.title')}
                         >
-                          <span className="truncate">{ratioOptions.find((option) => option.value == previewRatio)?.label}</span>
-                          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          <span
+                            className="truncate">{ratioOptions.find((option) => option.value == previewRatio)?.label}</span>
+                          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-full p-0">
                         <Command>
-                          <CommandInput placeholder={t('preview.resolution.searchPlaceholder')} className="h-9" />
+                          <CommandInput placeholder={t('preview.resolution.searchPlaceholder')} className="h-9"/>
                           <CommandEmpty>{t('preview.resolution.searchNoneFound')}</CommandEmpty>
                           <CommandGroup>
                             {ratioOptions.map((option) => (
@@ -325,25 +332,28 @@ export default function Controller() {
             <Button onClick={previous} title={t('controls.previous')}>
               <ArrowLeftIcon className="size-4"></ArrowLeftIcon>
             </Button>
-            <Button onClick={toggleBlank} title={t('controls.blank')} variant={overrideSlide?.id == 'blank' ? 'muted' : 'default'}>
+            <Button onClick={toggleBlank} title={t('controls.blank')}
+                    variant={overrideSlide?.id == 'blank' ? 'muted' : 'default'}>
               <StopSolidIcon className="size-4"></StopSolidIcon>
             </Button>
-            <Button onClick={toggleLogo} title={t('controls.logo')} variant={overrideSlide?.id == 'logo' ? 'muted' : 'default'}>
+            <Button onClick={toggleLogo} title={t('controls.logo')}
+                    variant={overrideSlide?.id == 'logo' ? 'muted' : 'default'}>
               <FingerPrintSolidIcon className="size-4"></FingerPrintSolidIcon>
             </Button>
             <Button onClick={next} title={t('controls.next')}>
               <ArrowRightIcon className="size-4"></ArrowRightIcon>
             </Button>
           </div>
-          <div id="content" className="p-3 pt-0 flex-1 overflow-y-auto" ref={contentWrapper as React.LegacyRef<HTMLDivElement>}>
-          {scheduleItem?.slides.map((s, ix) => (
-            <div key={`${mode}-${ix}`} ref={(el: HTMLDivElement) => slideRefs.current[ix] = el}>
-              <SlideSelector
-                slide={s}
-                index={ix}
-                selected={selection.slide == ix}></SlideSelector>
-            </div>
-          ))}
+          <div id="content" className="p-3 pt-0 flex-1 overflow-y-auto" ref={contentWrapper}>
+            {scheduleItem?.slides.map((s, ix) => (
+              //@ts-expect-error // TODO analisar o uso desse ref aqui
+              <div key={`${mode}-${ix}`} ref={(el: HTMLDivElement) => slideRefs.current[ix] = el}>
+                <SlideSelector
+                  slide={s}
+                  index={ix}
+                  selected={selection.slide == ix}></SlideSelector>
+              </div>
+            ))}
           </div>
         </div>
       </div>

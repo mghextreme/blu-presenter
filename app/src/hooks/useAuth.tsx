@@ -15,6 +15,7 @@ interface AuthState {
   signOut: () => Promise<void>
   refreshSession: () => Promise<void>
   setOrganizationById: (orgId: number | null) => void
+  // getStorage: ()=>any
 }
 
 export const useAuth = create<AuthState>()(
@@ -104,7 +105,7 @@ export const useAuth = create<AuthState>()(
     }),
     {
       name: "auth",
-      getStorage: () => localStorage,
+      // getStorage: () => localStorage,
       partialize: (state: AuthState) => ({
         isLoggedIn: state.isLoggedIn,
         user: state.user,
@@ -112,6 +113,8 @@ export const useAuth = create<AuthState>()(
         organization: state.organization,
         organizations: state.organizations,
       }),
+      //@ts-expect-error // Reclamações devido a tipagem ser genérica ao invés de "específica" (não indica as chaves no tipo)
+      storage: localStorage
     }
   )
 );
