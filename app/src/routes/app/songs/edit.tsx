@@ -139,7 +139,7 @@ export default function EditSong({
                       <FormItem className="w-full">
                         <div className="flex justify-stretch align-start space-x-2">
                           <FormControl>
-                            <Textarea resize="auto" {...field} />
+                            <Textarea {...field} />
                           </FormControl>
                           <Button
                             type="button"

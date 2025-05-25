@@ -25,12 +25,26 @@ export const useAuth = create<AuthState>()(
       session: null,
       setOrganizationById: (orgId?: number) => {
         if (!orgId) {
+          const allOrgs = get().organizations;
           const currentOrg = get().orgId;
-          const currentOrgInMap = get().organizations.find((org) => org.id === currentOrg);
+          const currentOrgInMap = allOrgs.find((org) => org.id === currentOrg);
 
-          set({
-            organization: currentOrgInMap ? currentOrgInMap : get().organizations[0] || null,
-          });
+          let data: Partial<AuthState> | undefined = undefined;
+          if (currentOrgInMap) {
+            data = {
+              organization: currentOrgInMap,
+              orgId: orgId,
+            }
+          } else if (allOrgs.length > 0) {
+            data = {
+              organization: allOrgs[0],
+              orgId: allOrgs[0].id,
+            }
+          }
+
+          if (data) {
+            set(data);
+          }
           return;
         }
 

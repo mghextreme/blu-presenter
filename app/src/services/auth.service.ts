@@ -27,6 +27,7 @@ export class AuthService extends ApiService {
       session,
     });
 
+    this.queryClient.clear();
     await this.getAndSetOrganizations(inviteOrgId);
   }
 
@@ -43,6 +44,7 @@ export class AuthService extends ApiService {
       session,
     });
 
+    this.queryClient.clear();
     await this.getAndSetOrganizations(inviteOrgId);
   }
 
@@ -53,13 +55,7 @@ export class AuthService extends ApiService {
   }
 
   public async signOut(): Promise<void> {
-    useAuth.setState({
-      isLoggedIn: false,
-      user: null,
-      session: null,
-      organization: null,
-      organizations: [],
-    });
+    this.queryClient.clear();
   }
 
   public async refreshOrganizations(): Promise<void> {
