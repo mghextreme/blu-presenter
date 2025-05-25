@@ -1,33 +1,20 @@
 import {
   Outlet,
-  useLoaderData,
-  useRevalidator,
 } from "react-router-dom";
-
-import { OrganizationsService } from "@/services";
-import { UserOrganization } from "@/types";
 
 import ProtectedRoute from "@/components/protected-route";
 import AppSidebar from "@/components/app/sidebar";
 import AppNavbar from "@/components/app/navbar";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
+import { useServices } from "@/hooks/services.provider";
 import { useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-
-export async function loader({ organizationsService }: { organizationsService: OrganizationsService }) {
-  return await organizationsService.getFromUser();
-}
 
 export default function AppLayout() {
-
-  const loadedData = useLoaderData() as UserOrganization[];
-  const { revalidate } = useRevalidator();
-  const { organization, organizations, setOrganizationById } = useAuth();
+  const { authService } = useServices();
 
   useEffect(() => {
-    revalidate();
-    setOrganizationById(null);
-  }, [loadedData, organization, organizations]);
+    authService.refreshOrganizations();
+  }, []);
 
   return (
     <ProtectedRoute>

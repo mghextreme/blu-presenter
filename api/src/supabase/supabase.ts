@@ -27,8 +27,8 @@ export class Supabase {
 
     const accessToken = ExtractJwt.fromAuthHeaderAsBearerToken()(this.request);
     this.clientInstance = createClient(
-      this.configService.get('SUPABASE_URL'),
-      this.configService.get('SUPABASE_KEY'),
+      this.configService.get('supabase.url'),
+      this.configService.get('supabase.key'),
       {
         auth: {
           autoRefreshToken: true,

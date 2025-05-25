@@ -11,7 +11,8 @@
   "organizations": {
     "create": "Create organization",
     "defaultName": "Personal space",
-    "searchPlaceholder": "Search..."
+    "searchPlaceholder": "Search...",
+    "searchNoneFound": "No organizations found"
   },
   "profile": {
     "profilePage": "My profile",

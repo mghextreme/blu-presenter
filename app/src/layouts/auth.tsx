@@ -11,22 +11,9 @@ import ThemeToggler from "@/components/ui/theme-toggler";
 import { useEffect, useState } from "react";
 import LanguageToggler from "@/components/ui/language-toggler";
 import { useTranslation } from "react-i18next";
-import { Toaster } from "@/components/ui/toaster";
-import { OrganizationsService } from "@/services";
+import { Toaster } from "@/components/ui/sonner";
 import { InvitationProvider } from "@/hooks/invitation.provider";
 import { IOrganizationInvitation } from "@/types";
-
-export async function loader({ request, organizationsService }: { request: Request, organizationsService: OrganizationsService }) {
-  const params = new URL(request.url).searchParams;
-  const id = params.get('id');
-  const secret = params.get('secret');
-
-  if (!id || !secret) {
-    return null;
-  }
-
-  return await organizationsService.getInvite(Number(id), secret);
-}
 
 export default function AuthLayout() {
 
@@ -76,7 +63,7 @@ export default function AuthLayout() {
               <h3 className="text-center text-md">{t('invitation.organization')}<br/><b>{inviteData.organization.name}</b></h3>
             </>
           )}
-          <InvitationProvider email={inviteData?.email} organization={inviteData?.organization?.name}>
+          <InvitationProvider id={inviteData?.id} secret={inviteData?.secret} email={inviteData?.email} organization={inviteData?.organization?.name}>
             <Outlet />
           </InvitationProvider>
           <Toaster />

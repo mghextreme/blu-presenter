@@ -20,6 +20,7 @@ import {
   Organization,
   OrganizationInvitation,
   OrganizationUser,
+  User,
 } from 'src/entities';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
@@ -299,7 +300,7 @@ export class OrganizationsService {
       throw new NotFoundException('Invitation not found');
     }
 
-    const user = this.request.user['internal'];
+    const user = this.request.user['internal'] as User;
     if (user.email !== invitation.email) {
       throw new ForbiddenException('You cannot accept this invitation');
     }

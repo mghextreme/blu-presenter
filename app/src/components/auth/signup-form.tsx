@@ -17,19 +17,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { SocialLogin } from "./social-login";
 import { useTranslation } from "react-i18next";
-import { useToast } from "../ui/use-toast";
 import { useInvitation } from "@/hooks/invitation.provider";
+import { useServices } from "@/hooks/services.provider";
+import { toast } from "sonner";
+import { ApiError } from "@/types";
 
 interface SignUpFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 export function SignUpForm({ className, ...props }: SignUpFormProps) {
 
   const { t } = useTranslation("auth");
-  const { toast } = useToast();
 
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const { isLoggedIn, signUp } = useAuth();
-  const { email: invitedEmail } = useInvitation();
+  const { isLoggedIn } = useAuth();
+  const { authService } = useServices();
+  const { email: invitedEmail, id, secret } = useInvitation();
 
   const formSchema = z.object({
     email: z.string().email(),
@@ -56,20 +58,32 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const emailRedirect = window.location.origin + '/app'
       setIsLoading(true);
-      await signUp({
+
+      let inviteValues = {};
+      if (id && secret) {
+        inviteValues = {
+          invite: {
+            id,
+            secret,
+          }
+        };
+      }
+
+      await authService.signUp({
         ...values,
-        options: {
-          emailRedirectTo: emailRedirect,
-        },
+        ...inviteValues,
       });
-    } catch (e: any) {
-      toast({
-        title: t('signUp.error'),
-        description: t('errors.' + e?.message || 'default'),
-        variant: "destructive",
-      });
+    } catch (e: unknown) {
+      const error = e as ApiError;
+      if (error) {
+        const errorContent = await error.raw?.json();
+        if (errorContent) {
+          toast.error(t('signUp.error'), {
+            description: t('errors.' + errorContent?.message || 'default'),
+          });
+        }
+      }
     } finally {
       setIsLoading(false);
     }

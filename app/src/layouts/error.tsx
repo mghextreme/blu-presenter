@@ -42,7 +42,7 @@ export default function ErrorLayout() {
   }
 
   const signOutAndRedirect = async () => {
-    await signOut();
+    signOut();
     navigate('/login');
   }
 

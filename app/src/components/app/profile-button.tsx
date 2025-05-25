@@ -21,6 +21,11 @@ export default function ProfileButton() {
     navigate("/app/profile", { replace: true });
   }
 
+  const onSignOut = async () => {
+    signOut();
+    navigate("/login", { replace: true });
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
@@ -32,7 +37,7 @@ export default function ProfileButton() {
       <DropdownMenuContent>
         <DropdownMenuItem onClick={goToProfile}>{t('profile.profilePage')}</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={signOut}>{t('profile.signOut')}</DropdownMenuItem>
+        <DropdownMenuItem onClick={onSignOut}>{t('profile.signOut')}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -23,11 +23,7 @@ import { IOrganizationInvitation, IOrganizationUser, OrganizationRoleOptions, is
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Toast, useToast } from "@/components/ui/use-toast";
-
-export async function loader({ organizationsService }: { organizationsService: OrganizationsService }) {
-  return await organizationsService.getCurrent();
-}
+import { toast } from "sonner";
 
 const formSchema = z.object({
   id: z.number(),
@@ -106,22 +102,19 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
   return columns;
 }
 
-const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, navigate: NavigateFunction, toast: (toast: Toast) => {id: string}) => {
+const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, navigate: NavigateFunction) => {
   const copyLink = (id: number, secret: string) => {
     const link = `${window.location.origin}/signup?id=${id}&secret=${secret}`;
     navigator.clipboard.writeText(link)
       .then(
         () => {
-          toast({
-            title: t('invite.success'),
+          toast.success(t('invite.success'), {
             description: t('invite.linkCopied'),
           });
         },
         (e) => {
-          toast({
-            title: t('error.copyToClipboard'),
+          toast.error(t('error.copyToClipboard'), {
             description: e?.message || '',
-            variant: "destructive",
           });
         }
       );
@@ -206,7 +199,6 @@ export default function EditOrganization({
 }: EditOrganizationProps) {
 
   const { t } = useTranslation("organizations");
-  const { toast } = useToast();
 
   const loadedData = useLoaderData() as IOrganization;
   const data = edit ? loadedData : {
@@ -257,10 +249,8 @@ export default function EditOrganization({
           navigate("/app/organization", { replace: true });
         })
         .catch((e) => {
-          toast({
-            title: t('update.failed'),
+          toast.error(t('update.failed'), {
             description: e?.message || '',
-            variant: "destructive",
           });
         })
     } finally {
@@ -272,7 +262,7 @@ export default function EditOrganization({
     try {
       setLoading(true);
       await organizationsService.leave();
-      setOrganizationById(null);
+      setOrganizationById();
       navigate("/app", { replace: true });
     } finally {
       setLoading(false);
@@ -283,15 +273,15 @@ export default function EditOrganization({
     try {
       setLoading(true);
       await organizationsService.delete();
-      setOrganizationById(null);
+      setOrganizationById();
       navigate("/app", { replace: true });
     } finally {
       setLoading(false);
     }
   }
 
-  const columns = buildColumns(t, user?.email, loadedData.role, organizationsService, navigate);
-  const invitationColumns = buildInvitationColumns(t, user?.email, loadedData?.role, organizationsService, navigate, toast);
+  const columns = buildColumns(t, user?.email, loadedData?.role, organizationsService, navigate);
+  const invitationColumns = buildInvitationColumns(t, user?.email, loadedData?.role, organizationsService, navigate);
 
   useEffect(() => {
     if (edit) {
@@ -326,13 +316,13 @@ export default function EditOrganization({
                   <FormItem>
                     <FormLabel>{t('input.name')}</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled={(edit && isPersonalSpace) || !isRoleHigherThan(loadedData.role ?? 'member', 'member')} />
+                      <Input {...field} disabled={isPersonalSpace || (edit && !isRoleHigherThan(loadedData?.role ?? 'member', 'member'))} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}></FormField>
               <div className="flex flex-row align-start space-x-2">
-                {!isPersonalSpace && isRoleHigherThan(loadedData.role ?? 'member', 'member') && (
+                {(!isPersonalSpace && isRoleHigherThan(loadedData?.role ?? 'member', 'member') || !edit) && (
                   <Button className="flex-0" type="submit" disabled={isLoading}>
                     {isLoading && (
                       <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
@@ -344,7 +334,7 @@ export default function EditOrganization({
               </div>
             </form>
           </Form>
-          {edit && isRoleHigherThan(loadedData.role ?? 'member', 'member') && (
+          {edit && isRoleHigherThan(loadedData?.role ?? 'member', 'member') && (
             <>
               <h2 className="text-xl mt-6 mb-4">{t('edit.members')}</h2>
               <DataTable columns={columns} data={loadedData.users ?? []} addButton={(
@@ -359,7 +349,7 @@ export default function EditOrganization({
             </>
           )}
           <h2 className="text-xl mt-6 mb-4">{t('edit.manage')}</h2>
-          {edit && loadedData.role == 'owner' && (
+          {edit && loadedData?.role === 'owner' && (
             <AlertDialog>
               <AlertDialogTrigger disabled={true || isLoading}>
                 <Button className="flex-0" variant="destructive" disabled={true || isLoading}>
@@ -381,7 +371,7 @@ export default function EditOrganization({
               </AlertDialogContent>
             </AlertDialog>
           )}
-          {loadedData.role !== 'owner' && (
+          {loadedData && loadedData.role !== 'owner' && (
             <AlertDialog>
               <AlertDialogTrigger>
                 <Button className="flex-0" variant="destructive" disabled={isLoading}>

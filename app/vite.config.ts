@@ -1,5 +1,5 @@
 import path from "path"
-import { defineConfig } from 'vite'
+import { defineConfig, preview } from 'vite'
 import react from '@vitejs/plugin-react'
 import i18nextLoader from 'vite-plugin-i18next-loader'
 
@@ -13,7 +13,7 @@ export default defineConfig({
       paths: ['./locales'],
       namespaceResolution: 'basename',
     }),
-    cloudflare(),
+    ...(process.env.NODE_ENV === 'production' ? [cloudflare()] : []),
   ],
   envDir: '../',
   resolve: {

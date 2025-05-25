@@ -3,8 +3,9 @@
     "email": "E-mail",
     "nickname": "Apelido",
     "name": "Nome completo",
-    "password": "Senha",
-    "confirmPassword": "Repetir senha",
+    "currentPassword": "Senha atual",
+    "newPassword": "Nova senha",
+    "confirmNewPassword": "Repetir nova senha",
     "messages": {
       "passwordsDontMatch": "Senhas não conferem"
     }

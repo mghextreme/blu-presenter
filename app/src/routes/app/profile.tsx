@@ -5,26 +5,19 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { IProfile } from "@/types";
-import { UsersService } from "@/services";
 import { useServices } from "@/hooks/services.provider";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useLoaderData } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import { useToast } from "@/components/ui/use-toast";
 import { useTranslation } from "react-i18next";
-import { supabase } from "@/lib/supabase";
-
-export async function loader({ usersService }: { usersService: UsersService }) {
-  return await usersService.getProfile();
-}
+import { toast } from "sonner";
 
 export default function Profile() {
 
   const { t } = useTranslation("profile");
   const data = useLoaderData() as IProfile;
-  const { toast } = useToast();
 
   const formSchema = z.object({
     email: z.string().email(),
@@ -33,6 +26,7 @@ export default function Profile() {
   });
 
   const passwordChangeformSchema = z.object({
+    currentPassword: z.string().min(8),
     password: z.string().min(8),
     confirmPassword: z.string().min(8),
   }).superRefine(({ confirmPassword, password }, ctx) => {
@@ -45,7 +39,7 @@ export default function Profile() {
     }
   });
 
-  const { usersService } = useServices();
+  const { usersService, authService } = useServices();
 
   if (!data) {
     throw new Error("Can't find user profile");
@@ -65,6 +59,7 @@ export default function Profile() {
   const passwordChangeForm = useForm<z.infer<typeof passwordChangeformSchema>>({
     resolver: zodResolver(passwordChangeformSchema),
     defaultValues: {
+      currentPassword: '',
       password: '',
       confirmPassword: '',
     },
@@ -75,15 +70,11 @@ export default function Profile() {
       setLoading(true);
       usersService.update(values)
         .then(() => {
-          toast({
-            title: t('update.succeeded'),
-          });
+          toast.success(t('update.succeeded'));
         })
         .catch((e) => {
-          toast({
-            title: t('update.failed'),
+          toast.error(t('update.failed'), {
             description: e?.message || '',
-            variant: "destructive",
           });
         })
     } finally {
@@ -95,20 +86,15 @@ export default function Profile() {
     try {
       setLoading(true);
 
-      const { error } = await supabase.auth.updateUser({
-        password: values.password,
+      await authService.changePassword({
+        currentPassword: values.currentPassword,
+        newPassword: values.password,
       })
 
-      if (error) throw error;
-
-      toast({
-        title: t('changePassword.succeeded'),
-      });
+      toast.success(t('changePassword.succeeded'));
     } catch (e: any) {
-      toast({
-        title: t('changePassword.failed'),
+      toast.error(t('changePassword.failed'), {
         description: e?.message || '',
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -175,10 +161,23 @@ export default function Profile() {
         <form onSubmit={passwordChangeForm.handleSubmit(onChangePassword)} className="max-w-lg space-y-3">
           <FormField
             control={passwordChangeForm.control}
+            name="currentPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('input.currentPassword')}</FormLabel>
+                <FormControl>
+                  <Input type="password" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}></FormField>
+
+          <FormField
+            control={passwordChangeForm.control}
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('input.password')}</FormLabel>
+                <FormLabel>{t('input.newPassword')}</FormLabel>
                 <FormControl>
                   <Input type="password" {...field} />
                 </FormControl>
@@ -191,7 +190,7 @@ export default function Profile() {
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('input.confirmPassword')}</FormLabel>
+                <FormLabel>{t('input.confirmNewPassword')}</FormLabel>
                 <FormControl>
                   <Input type="password" {...field} />
                 </FormControl>
