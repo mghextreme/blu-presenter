@@ -26,6 +26,7 @@ jobs:
         working-directory: ./api
         node-version: 24
         cache: 'pnpm'
+        cache-dependency-path: ./api/pnpm-lock.yaml
 
     - name: Install dependencies
       working-directory: ./api
@@ -53,6 +54,7 @@ jobs:
         working-directory: ./app
         node-version: 24
         cache: 'pnpm'
+        cache-dependency-path: ./app/pnpm-lock.yaml
 
     - name: Install dependencies
       working-directory: ./app
