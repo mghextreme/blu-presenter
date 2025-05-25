@@ -14,7 +14,7 @@ export default function ProfileButton() {
 
   const { user, signOut } = useAuth();
 
-  const { usersService } = useServices();
+  const { usersService, authService } = useServices();
   const { data } = useQuery(usersService.getProfileQuery());
 
   const goToProfile = () => {
@@ -22,6 +22,7 @@ export default function ProfileButton() {
   }
 
   const onSignOut = async () => {
+    await authService.signOut();
     signOut();
     navigate("/login", { replace: true });
   }
