@@ -1,0 +1,58 @@
+name: Build API and APP
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    types: [opened, edited, reopened]
+    branches: [ "master" ]
+
+jobs:
+
+  build-api:
+    name: Build API
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'pnpm'
+
+    - name: Install pnpm
+      run: npm install -g pnpm
+
+    - name: Install dependencies
+      working-directory: ./api
+      run: pnpm install
+
+    - name: Build API
+      working-directory: ./api
+      run: pnpm build
+
+  build-app:
+    name: Build App
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'pnpm'
+
+    - name: Install pnpm
+      run: npm install -g pnpm
+
+    - name: Install dependencies
+      working-directory: ./app
+      run: pnpm install
+
+    - name: Build App
+      working-directory: ./app
+      run: pnpm build
