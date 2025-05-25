@@ -23,6 +23,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
+        working-directory: ./api
         node-version: 24
         cache: 'pnpm'
 
@@ -49,6 +50,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
+        working-directory: ./app
         node-version: 24
         cache: 'pnpm'
 
