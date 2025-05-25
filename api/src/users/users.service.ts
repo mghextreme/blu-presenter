@@ -1,33 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { OrganizationUser, User } from 'src/entities';
 import { UpdateProfileDto } from 'src/types';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { ConfigService } from '@nestjs/config';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { Supabase } from 'src/supabase/supabase';
 
 @Injectable()
 export class UsersService {
-  private _supabaseClient: SupabaseClient;
-  private get supabase() {
-    if (!this._supabaseClient) {
-      this._supabaseClient = createClient(
-        this.configService.get('SUPABASE_URL'),
-        this.configService.get('SUPABASE_KEY'),
-      );
-    }
-
-    return this._supabaseClient;
-  }
+  private supabaseClient: SupabaseClient;
 
   constructor(
     private dataSource: DataSource,
-    private configService: ConfigService,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     @InjectRepository(OrganizationUser)
     private organizationUsersRepository: Repository<OrganizationUser>,
-  ) {}
+    @Inject(Supabase)
+    supabase: Supabase,
+  ) {
+    this.supabaseClient = supabase.getClient();
+  }
 
   async findOne(id: number): Promise<User | null> {
     return this.usersRepository.findOneByOrFail({
@@ -49,7 +42,7 @@ export class UsersService {
       song.nickname = profileDto.nickname;
       song.name = profileDto.name;
 
-      this.supabase.auth.updateUser({
+      this.supabaseClient.auth.updateUser({
         data: {
           nickname: profileDto.nickname,
           name: profileDto.name,

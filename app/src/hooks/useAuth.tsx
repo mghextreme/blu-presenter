@@ -1,21 +1,17 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import { Session, SignInWithPasswordCredentials, SignUpWithPasswordCredentials, User } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
+import { createJSONStorage, persist } from 'zustand/middleware'
+import { Session, User } from '@supabase/supabase-js'
 import { IOrganization } from '@/types'
 
 interface AuthState {
   isLoggedIn: boolean
   user: User | null
+  orgId?: number
   session: Session | null
   organization: IOrganization | null
   organizations: IOrganization[]
-  signIn: (credentials: SignInWithPasswordCredentials) => Promise<void>
-  signUp: (credentials: SignUpWithPasswordCredentials) => Promise<void>
-  signOut: () => Promise<void>
-  refreshSession: () => Promise<void>
-  setOrganizationById: (orgId: number | null) => void
-  // getStorage: ()=>any
+  setOrganizationById: (orgId?: number) => void
+  signOut: () => void
 }
 
 export const useAuth = create<AuthState>()(
@@ -23,75 +19,18 @@ export const useAuth = create<AuthState>()(
     (set, get) => ({
       isLoggedIn: false,
       user: null,
+      orgId: undefined,
       organization: null,
       organizations: [],
       session: null,
-      signIn: async (credentials: SignInWithPasswordCredentials) => {
-        const { data, error } = await supabase.auth.signInWithPassword(credentials);
+      setOrganizationById: (orgId?: number) => {
+        if (!orgId) {
+          const currentOrg = get().orgId;
+          const currentOrgInMap = get().organizations.find((org) => org.id === currentOrg);
 
-        if (error) throw error;
-
-        set({
-          isLoggedIn: true,
-          user: data.user,
-          session: data.session,
-        });
-      },
-      signUp: async (credentials: SignUpWithPasswordCredentials) => {
-        const { data, error } = await supabase.auth.signUp(credentials);
-
-        if (error) throw error;
-
-        set({
-          isLoggedIn: true,
-          user: data.user,
-          session: data.session,
-        });
-      },
-      signOut: async () => {
-        const { error } = await supabase.auth.signOut();
-
-        if (error) throw error;
-
-        set({
-          isLoggedIn: false,
-          user: null,
-          session: null,
-          organizations: [],
-        });
-      },
-      refreshSession: async () => {
-        const session = get().session;
-        if (!session) throw Error("No session to refresh.");
-
-        console.debug('Refreshing user session');
-        const { data, error } = await supabase.auth.refreshSession({ refresh_token: session.refresh_token });
-
-        if (error) {
           set({
-            isLoggedIn: false,
-            user: undefined,
-            session: undefined,
+            organization: currentOrgInMap ? currentOrgInMap : get().organizations[0] || null,
           });
-          throw error;
-        }
-
-        set({
-          isLoggedIn: true,
-          user: data.user,
-          session: data.session,
-        });
-      },
-      setOrganizationById: (orgId: number | null) => {
-        if (orgId === null) {
-          const currentOrg = get().organization;
-          const currentOrgInMap = get().organizations.find((org) => org.id === currentOrg?.id);
-
-          if (!currentOrgInMap) {
-            set({
-              organization: get().organizations[0] || null,
-            });
-          }
           return;
         }
 
@@ -100,21 +39,30 @@ export const useAuth = create<AuthState>()(
 
         set({
           organization: org,
+          orgId: org.id,
         });
       },
+      signOut: () => {
+        set({
+          isLoggedIn: false,
+          user: null,
+          organization: null,
+          organizations: [],
+          session: null,
+        })
+      }
     }),
     {
       name: "auth",
-      // getStorage: () => localStorage,
       partialize: (state: AuthState) => ({
         isLoggedIn: state.isLoggedIn,
         user: state.user,
         session: state.session,
+        orgId: state.orgId,
         organization: state.organization,
         organizations: state.organizations,
       }),
-      //@ts-expect-error // Reclamações devido a tipagem ser genérica ao invés de "específica" (não indica as chaves no tipo)
-      storage: localStorage
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );

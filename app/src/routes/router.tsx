@@ -6,8 +6,9 @@ import {
   createRoutesFromElements
 } from "react-router-dom";
 
-import AuthLayout, { loader as authLoader } from "@/layouts/auth";
-import AppLayout, { loader as appLoader } from "@/layouts/app";
+import AuthLayout from "@/layouts/auth";
+import { loader as authLoader } from "@/layouts/auth.loader"
+import AppLayout from "@/layouts/app";
 import ErrorLayout from "@/layouts/error";
 import ControllerLayout from "@/layouts/controller";
 import { useServices, ServicesProviderState } from "@/hooks/services.provider";
@@ -16,14 +17,17 @@ import Home from "./home";
 import SignUp from "./auth/signup";
 import Login from "./auth/login";
 
-import Welcome, { loader as welcomeLoader } from "./app/welcome";
+import Welcome from "./app/welcome";
+import { loader as welcomeLoader } from "./app/welcome.loader";
 import Controller from "./app/controller";
-import Profile, { loader as profileLoader } from "./app/profile";
+import Profile from "./app/profile";
+import { loader as profileLoader } from "./app/profile.loader";
 
 import SongsIndex, { loader as indexSongLoader } from "./app/songs/index";
 import EditSong, { loader as editSongLoader } from "./app/songs/edit";
 
-import EditOrganization, { loader as editOrganizationLoader } from "./app/organizations";
+import EditOrganization from "./app/organizations/index";
+import { loader as editOrganizationLoader } from "./app/organizations/index.loader"
 import InviteOrganizationMember, { loader as inviteOrganizationMemberLoader } from "./app/organizations/invite";
 import EditMember, { loader as editMemberLoader } from "./app/organizations/editMember";
 
@@ -39,7 +43,7 @@ export const buildRouter = (services: ServicesProviderState) => {
             <Route path="signup" element={<SignUp />} />
           </Route>
         </Route>
-        <Route path="/app" element={<AppLayout />} errorElement={<ErrorLayout />} loader={() => appLoader({ organizationsService: services.organizationsService })}>
+        <Route path="/app" element={<AppLayout />} errorElement={<ErrorLayout />}>
           <Route index={true} element={<Welcome />} loader={() => welcomeLoader({ organizationsService: services.organizationsService })} />
           <Route path="profile" element={<Profile />} loader={() => profileLoader({ usersService: services.usersService })} />
           <Route path="songs">

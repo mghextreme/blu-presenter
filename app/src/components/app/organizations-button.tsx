@@ -31,10 +31,9 @@ export default function OrganizationsButton() {
           id: organizations[0].id,
           name: organizations[0].name,
         });
-        setOrganizationById(organizations[0].id)
       }
     }
-  }, [organizations, organization]);
+  }, [organization]);
 
   const [openSelector, setOpenSelector] = useState<boolean>(false);
 
@@ -56,8 +55,8 @@ export default function OrganizationsButton() {
                 key={option.id}
                 value={option.id.toString()}
                 onSelect={() => {
-                  setOrganizationById(option.id);
                   setOpenSelector(false);
+                  setOrganizationById(option.id);
                 }}
               >
                 {option.name || t('organizations.defaultName')}
@@ -71,7 +70,7 @@ export default function OrganizationsButton() {
             ))}
             <CommandSeparator className="my-1" />
             <CommandItem
-              onSelect={() => navigate('/app/organizations/add')}>
+              onSelect={() => { setOpenSelector(false); navigate('/app/organizations/add'); }}>
                 {t('organizations.create')}
                 <PlusIcon className="ml-auto h-4 w-4" />
               </CommandItem>

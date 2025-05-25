@@ -124,7 +124,6 @@ export class OrganizationsController {
     @Param('id') id: number,
     @Query('secret') secret: string,
   ): Promise<OrganizationInvitation> {
-    console.log('getInvitation', id, secret);
     return await this.organizationsService.getInvitation(id, secret);
   }
 

@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 export async function loader({ params, organizationsService }: { params: Params, organizationsService: OrganizationsService }) {
   return await organizationsService.getMember(Number(params.id));
@@ -30,7 +30,6 @@ const formSchema = z.object({
 export default function EditMember() {
 
   const { t } = useTranslation("organizations");
-  const { toast } = useToast();
 
   const navigate = useNavigate();
 
@@ -60,10 +59,8 @@ export default function EditMember() {
           navigate("/app/organization", { replace: true });
         })
         .catch((e) => {
-          toast({
-            title: t('error.editMember'),
+          toast.error(t('error.editMember'), {
             description: e?.message || '',
-            variant: "destructive",
           });
         })
     } finally {

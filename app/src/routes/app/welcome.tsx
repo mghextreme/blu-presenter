@@ -2,9 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
-import { useToast } from "@/components/ui/use-toast";
 import { useServices } from "@/hooks/services.provider";
-import { OrganizationsService } from "@/services";
 import { IOrganizationInvitation } from "@/types";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
@@ -12,10 +10,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { useLoaderData, useRevalidator } from "react-router-dom";
-
-export async function loader({ organizationsService }: { organizationsService: OrganizationsService }) {
-  return await organizationsService.getInvitations();
-}
+import { toast } from "sonner";
 
 const buildColumns = (t: TFunction, acceptInvitation: (id: number) => void, rejectInvitation: (id: number) => void) => {
   const columns: ColumnDef<IOrganizationInvitation>[] = [
@@ -70,7 +65,6 @@ const buildColumns = (t: TFunction, acceptInvitation: (id: number) => void, reje
 export default function Welcome() {
 
   const { t } = useTranslation('app');
-  const { toast } = useToast();
 
   const data = useLoaderData() as IOrganizationInvitation[] || [];
 
@@ -83,16 +77,13 @@ export default function Welcome() {
       await organizationsService.acceptInvitation(invitationId);
       revalidate();
 
-      toast({
-        title: t('message.acceptInvitation.title'),
+      toast.success(t('message.acceptInvitation.title'), {
         description: t('message.acceptInvitation.description'),
       });
     }
     catch (e: any) {
-      toast({
-        title: t('error.acceptInvitation.title'),
+      toast.error(t('error.acceptInvitation.title'), {
         description: e?.message ?? '',
-        variant: 'destructive',
       });
     }
   }
@@ -102,13 +93,10 @@ export default function Welcome() {
       await organizationsService.rejectInvitation(invitationId);
       revalidate();
 
-      toast({
-        title: t('message.rejectInvitation.title'),
-      });
+      toast.success(t('message.rejectInvitation.title'));
     }
     catch (e: any) {
-      toast({
-        title: t('error.rejectInvitation.title'),
+      toast.error(t('error.rejectInvitation.title'), {
         description: e?.message ?? '',
       });
     }

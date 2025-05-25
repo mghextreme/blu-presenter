@@ -17,8 +17,10 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslation } from "react-i18next";
-import { useToast } from "../ui/use-toast";
 import { useInvitation } from "@/hooks/invitation.provider";
+import { useServices } from "@/hooks/services.provider";
+import { toast } from "sonner";
+import { ApiError } from "@/types";
 
 interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -30,11 +32,11 @@ const formSchema = z.object({
 export function LoginForm({ className, ...props }: LoginFormProps) {
 
   const { t } = useTranslation("auth");
-  const { toast } = useToast();
-  const { email: invitedEmail } = useInvitation();
+  const { email: invitedEmail, id, secret } = useInvitation();
 
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const { isLoggedIn, signIn } = useAuth();
+  const { isLoggedIn } = useAuth();
+  const { authService } = useServices();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,13 +49,31 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsLoading(true);
-      await signIn(values);
-    } catch (e: any) {
-      toast({
-        title: t('signIn.error'),
-        description: t('errors.' + e?.message || 'default'),
-        variant: "destructive",
+
+      let inviteValues = {};
+      if (id && secret) {
+        inviteValues = {
+          invite: {
+            id,
+            secret,
+          }
+        };
+      }
+
+      await authService.signIn({
+        ...values,
+        ...inviteValues,
       });
+    } catch (e: unknown) {
+      const error = e as ApiError;
+      if (error) {
+        const errorContent = await error.raw?.json();
+        if (errorContent) {
+          toast.error(t('signIn.error'), {
+            description: t('errors.' + errorContent?.message || 'default'),
+          });
+        }
+      }
     } finally {
       setIsLoading(false);
     }

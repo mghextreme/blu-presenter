@@ -11,4 +11,11 @@ export default () => ({
   auth: {
     jwtSecret: process.env.SUPABASE_JWT_SECRET,
   },
+  app: {
+    baseUrl: process.env.APP_BASE_URL,
+  },
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    key: process.env.SUPABASE_KEY,
+  },
 });

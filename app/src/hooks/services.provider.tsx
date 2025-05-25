@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo } from "react";
-import { OrganizationsService, SongsService, UsersService } from "@/services";
+import { AuthService, OrganizationsService, SongsService, UsersService } from "@/services";
 import * as config from "@/lib/config";
 import { QueryClient } from "@tanstack/react-query";
 
@@ -9,12 +9,14 @@ type ServicesProviderProps = {
 }
 
 export type ServicesProviderState = {
+  authService: AuthService,
   songsService: SongsService,
   usersService: UsersService,
   organizationsService: OrganizationsService,
 }
 
 const initialState: ServicesProviderState = {
+  authService: {} as AuthService,
   songsService: {} as SongsService,
   usersService: {} as UsersService,
   organizationsService: {} as OrganizationsService,
@@ -27,8 +29,10 @@ export const ServicesProvider = ({ queryClient, children }: ServicesProviderProp
   const songsService = useMemo(() => new SongsService(queryClient, config.api), [queryClient, config]);
   const usersService = useMemo(() => new UsersService(queryClient, config.api), [queryClient, config]);
   const organizationsService = useMemo(() => new OrganizationsService(queryClient, config.api), [queryClient, config]);
+  const authService = useMemo(() => new AuthService(queryClient, config.api, organizationsService), [queryClient, config, organizationsService]);
 
   const value = {
+    authService,
     songsService,
     usersService,
     organizationsService,

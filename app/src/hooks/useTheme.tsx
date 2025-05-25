@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { createJSONStorage, persist } from 'zustand/middleware'
 
 type Theme = "dark" | "light" | "system";
 
@@ -37,7 +37,6 @@ export const useTheme = create<ThemeState>()(
     }),
     {
       name: "theme",
-      // getStorage: () => localStorage,
       partialize: (state: ThemeState) => ({
         theme: state.theme,
       }),
@@ -46,8 +45,7 @@ export const useTheme = create<ThemeState>()(
 
         updateDocument(state.theme);
       }),
-      //@ts-expect-error // Mesma situação do useAuth.tsx
-      storage: localStorage,
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );

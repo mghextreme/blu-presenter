@@ -2,7 +2,6 @@
 import { IOrganization } from "@/types/organization.interface";
 import { ApiService } from "./api.service";
 import { IOrganizationInvitation, IOrganizationUser, OrganizationRoleOptions, UserOrganization } from "@/types";
-import { useAuth } from "@/hooks/useAuth";
 import { FetchQueryOptions } from "@tanstack/react-query";
 
 export class OrganizationsService extends ApiService {
@@ -28,8 +27,6 @@ export class OrganizationsService extends ApiService {
     }) as IOrganization;
 
     this.clearCache();
-
-    useAuth.getState().organization?.id;
 
     return result;
   }
@@ -157,11 +154,6 @@ export class OrganizationsService extends ApiService {
           role: "owner" | "admin" | "member",
           name?: string,
         }) => new UserOrganization(x.id, x.role, x.name));
-
-        useAuth.setState({
-          organizations: mappedOrgs,
-        });
-        useAuth.getState().setOrganizationById(null);
 
         return mappedOrgs;
       },

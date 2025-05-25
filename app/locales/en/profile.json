@@ -3,8 +3,9 @@
     "email": "Email",
     "nickname": "Nickname",
     "name": "Full name",
-    "password": "Password",
-    "confirmPassword": "Confirm password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmNewPassword": "Confirm new password",
     "messages": {
       "passwordsDontMatch": "Passwords don't match"
     }

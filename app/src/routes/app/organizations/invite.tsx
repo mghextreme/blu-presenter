@@ -17,7 +17,7 @@ import {OrganizationsService} from "@/services";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {Command, CommandGroup, CommandItem, CommandList} from "@/components/ui/command";
 import {cn} from "@/lib/utils";
-import {useToast} from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 export async function loader({organizationsService}: { organizationsService: OrganizationsService }) {
   return await organizationsService.getCurrent();
@@ -31,7 +31,6 @@ const formSchema = z.object({
 export default function InviteOrganizationMember() {
 
   const {t} = useTranslation("organizations");
-  const {toast} = useToast();
 
   const navigate = useNavigate();
 
@@ -62,10 +61,8 @@ export default function InviteOrganizationMember() {
           navigate("/app/organization", {replace: true});
         })
         .catch((e) => {
-          toast({
-            title: t('error.inviteMember'),
+          toast.error(t('error.inviteMember'), {
             description: e?.message || '',
-            variant: "destructive",
           });
         })
     } finally {
