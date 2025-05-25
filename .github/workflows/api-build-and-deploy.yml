@@ -1,0 +1,16 @@
+name: API Build and Deploy
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the Docker image
+      run: docker build ./api --file Dockerfile --tag blu-presenter:$(date +%s)
