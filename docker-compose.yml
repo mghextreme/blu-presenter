@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_TYPE=${DATABASE_TYPE}
+      - DATABASE_HOST=host.docker.internal
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USERNAME=${DATABASE_USERNAME}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - blu-network
+
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+        - VITE_API_HOST=api
+        - VITE_API_PORT=3000
+    container_name: app
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - blu-network
+
+networks:
+  blu-network:
+    driver: bridge
