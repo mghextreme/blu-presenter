@@ -27,7 +27,7 @@ jobs:
 
     - name: Build the Docker image
       run: |
-        docker build ./api --file Dockerfile --tag ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY }}:latest
+        docker build -f ./api/Dockerfile ./api -t ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY }}:latest
 
     - name: Push Docker image to ECR
       run: |
