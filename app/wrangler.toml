@@ -1,3 +1,12 @@
 name = "blu-presenter-app"
 compatibility_date = "2025-04-03"
 account_id = "6feee42c276dcbdc3d50a0e7e237d599"
+
+[build]
+command = "pnpm build"
+cwd = "."
+watch_dir = "src"
+
+[assets]
+directory = "./dist/"
+not_found_handling = "single-page-application"
