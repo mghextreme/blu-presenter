@@ -52,6 +52,7 @@ export default function EditSong({
   const data = edit ? loadedData : {
     id: 0,
     title: '',
+    artist: undefined,
     blocks: [{
       id: 0,
       text: '',
