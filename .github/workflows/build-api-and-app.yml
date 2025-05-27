@@ -3,14 +3,21 @@ name: Build API and APP
 on:
   push:
     branches: [ "master" ]
+    paths:
+      - 'api/**'
+      - 'app/**'
   pull_request:
     branches: [ "master" ]
+    paths:
+      - 'api/**'
+      - 'app/**'
 
 jobs:
 
   build-api:
     name: Build API
     runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.files.*.path, 'api/')
 
     steps:
     - uses: actions/checkout@v4
@@ -23,7 +30,6 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        working-directory: ./api
         node-version: 24
         cache: 'pnpm'
         cache-dependency-path: ./api/pnpm-lock.yaml
@@ -39,6 +45,7 @@ jobs:
   build-app:
     name: Build App
     runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.files.*.path, 'app/')
 
     steps:
     - uses: actions/checkout@v4
@@ -51,7 +58,6 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        working-directory: ./app
         node-version: 24
         cache: 'pnpm'
         cache-dependency-path: ./app/pnpm-lock.yaml

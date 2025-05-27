@@ -15,7 +15,6 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
-import { SocialLogin } from "./social-login";
 import { useTranslation } from "react-i18next";
 import { useInvitation } from "@/hooks/invitation.provider";
 import { useServices } from "@/hooks/services.provider";
@@ -136,7 +135,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
                 </FormItem>
               )}></FormField>
 
-          <Button disabled={isLoading}>
+          <Button type="submit" disabled={isLoading}>
             {isLoading && (
               <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
             )}
@@ -144,7 +143,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
           </Button>
         </form>
       </Form>
-      <div className="relative">
+      {/* <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
         </div>
@@ -154,7 +153,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
           </span>
         </div>
       </div>
-      <SocialLogin isLoading={isLoading} />
+      <SocialLogin isLoading={isLoading} /> */}
     </div>
     
   )

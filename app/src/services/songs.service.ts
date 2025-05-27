@@ -32,19 +32,24 @@ export class SongsService extends ApiService {
   }
 
   public async add(value: ISong): Promise<ISong | null> {
-    return await this.postRequest('/songs', JSON.stringify(value), {
+    const response = await this.postRequest('/songs', JSON.stringify(value), {
       'content-type': 'application/json',
     }) as ISong;
+    this.clearCache();
+    return response;
   }
 
   public async update(id: number, value: ISong): Promise<ISong | null> {
-    return await this.putRequest(`/songs/${id}`, JSON.stringify(value), {
+    const response = await this.putRequest(`/songs/${id}`, JSON.stringify(value), {
       'content-type': 'application/json',
     }) as ISong;
+    this.clearCache();
+    return response;
   }
 
   public async delete(songId: number): Promise<void> {
-    return await this.deleteRequest(`/songs/${songId}`);
+    await this.deleteRequest(`/songs/${songId}`);
+    this.clearCache();
   }
 
   public toScheduleSong(song: ISong): IScheduleSong {

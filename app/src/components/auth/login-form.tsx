@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SocialLogin } from "./social-login";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
@@ -114,7 +113,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
               </FormItem>
             )}></FormField>
 
-          <Button disabled={isLoading}>
+          <Button type="submit" disabled={isLoading}>
             {isLoading && (
               <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
             )}
@@ -122,7 +121,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
           </Button>
         </form>
       </Form>
-      <div className="relative">
+      {/* <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
         </div>
@@ -132,7 +131,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
           </span>
         </div>
       </div>
-      <SocialLogin isLoading={isLoading} />
+      <SocialLogin isLoading={isLoading} /> */}
     </div>
   )
 }

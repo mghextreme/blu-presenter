@@ -2,7 +2,7 @@ import { Link, useLoaderData, useRevalidator } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table"
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import { ISong } from "@/types";
+import { IOrganization, ISong, isRoleHigherOrEqualThan } from "@/types";
 import { Button } from "@/components/ui/button";
 import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
@@ -12,12 +12,14 @@ import { useTranslation } from "react-i18next";
 import { TFunction } from "i18next";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 export async function loader({ songsService }: { songsService: SongsService }) {
   return await songsService.getAll();
 }
 
-const buildColumns = (t: TFunction, songsService: SongsService) => {
+const buildColumns = (t: TFunction, organization: IOrganization | null, onDeleteSong: (songId: number) => void) => {
   const columns: ColumnDef<ISong>[] = [
     {
       accessorKey: "title",
@@ -38,6 +40,7 @@ const buildColumns = (t: TFunction, songsService: SongsService) => {
     {
       id: "actions",
       cell: ({ row }) => {
+        const canDelete = isRoleHigherOrEqualThan(organization?.role ?? 'member', 'admin');
         return (
           <div className="flex justify-end space-x-2 -m-1">
             <Link to={`/app/songs/${row.original.id}/edit`}>
@@ -48,13 +51,23 @@ const buildColumns = (t: TFunction, songsService: SongsService) => {
                 <PencilIcon className="size-3" />
               </Button>
             </Link>
-            <Button
-              size="sm"
-              variant="destructive"
-              title={t('actions.delete')}
-              onClick={() => songsService.delete(row.original.id)}>
-              <TrashIcon className="size-3" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger disabled={!canDelete}>
+                <Button size="sm" className="flex-0" variant="destructive" disabled={!canDelete} title={t('actions.delete')}>
+                  <TrashIcon className="size-3" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('message.deleteSong.title')}</AlertDialogTitle>
+                  <AlertDialogDescription>{t('message.deleteSong.description', {title: row.original.title, artist: row.original.artist})}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
+                  <AlertDialogAction variant="destructive" onClick={() => onDeleteSong(row.original.id)}>{t('button.confirm')}</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         )
       }
@@ -73,9 +86,22 @@ export default function Songs() {
   const { revalidate } = useRevalidator();
   const { songsService } = useServices();
 
-  const columns = buildColumns(t, songsService);
+  const onDeleteSong = async (songId: number) => {
+    try {
+      await songsService.delete(songId);
+      songsService.clearCache();
+      revalidate();
+    } catch (e: any) {
+      toast.error(
+        t('error.deleteSong'),
+      );
+    }
+  }
+
+  const columns = buildColumns(t, organization, onDeleteSong);
 
   useEffect(() => {
+    songsService.clearCache();
     revalidate();
   }, [organization]);
 

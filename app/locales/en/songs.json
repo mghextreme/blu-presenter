@@ -12,7 +12,8 @@
   "button": {
     "add": "Add",
     "update": "Update",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "list": {
     "title": "Songs"
@@ -21,6 +22,16 @@
     "title": "Edit song",
     "addPart": "Add part",
     "duplicatePart": "Duplicate part",
-    "deletePart": "Delete part"
+    "deletePart": "Delete part",
+    "reorder": "Reorder"
+  },
+  "message": {
+    "deleteSong": {
+      "title": "Delete song",
+      "description": "Are you sure you want to delete the song \"{{title}}\" by \"{{artist}}\"? This action cannot be undone."
+    }
+  },
+  "error": {
+    "deleteSong": "Error deleting song"
   }
 }

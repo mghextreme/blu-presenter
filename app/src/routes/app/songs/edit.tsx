@@ -14,7 +14,9 @@ import { Textarea } from "@/components/ui/textarea";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import Square2StackIcon from "@heroicons/react/24/solid/Square2StackIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
+import ArrowsUpDownIcon from "@heroicons/react/20/solid/ArrowsUpDownIcon";
 import { useTranslation } from "react-i18next";
+import { Sortable, SortableContent, SortableItem, SortableItemHandle } from "@/components/ui/sortable";
 
 export async function loader({ params, songsService }: { params: Params, songsService: SongsService }) {
   return await songsService.getById(Number(params.id));
@@ -43,13 +45,20 @@ export default function EditSong({
   const { t } = useTranslation("songs");
 
   const loadedData = useLoaderData() as ISong;
+  loadedData.blocks = loadedData?.blocks?.map((block, index) => { return {
+    id: index,
+    ...block,
+  }});
   const data = edit ? loadedData : {
     id: 0,
     title: '',
     blocks: [{
+      id: 0,
       text: '',
     }]
   };
+
+  const [nextId, setNextId] = useState<number>(data.blocks?.length ?? 0);
 
   const navigate = useNavigate();
 
@@ -71,10 +80,29 @@ export default function EditSong({
     },
   });
 
-  const { fields: blocks, append, remove, insert } = useFieldArray({
+  const { fields: blocks, append, remove, insert, move } = useFieldArray({
     name: "blocks",
     control: form.control,
+    keyName: "key",
   });
+
+  const handleDrag = ({ active, over }) => {
+    const activeIndex = active.data.current.sortable.index;
+    const overIndex = over.data.current.sortable.index;
+    if (activeIndex !== overIndex) {
+      move(activeIndex, overIndex);
+    }
+  };
+
+  const handleAppend = () => {
+    append({ id: nextId, text: '' });
+    setNextId(nextId + 1);
+  }
+
+  const handleDuplicate = (ix: number) => {
+    insert(ix + 1, { id: nextId, text: blocks[ix].text });
+    setNextId(nextId + 1);
+  }
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -130,52 +158,69 @@ export default function EditSong({
 
             <div className="flex flex-col items-stretch space-y-2">
               <FormLabel>{t('input.parts')}</FormLabel>
-              {blocks.map((field, ix: number) => (
-                  <FormField
-                    control={form.control}
-                    key={field.id}
-                    name={`blocks.${ix}.text`}
-                    render={({ field }) => (
-                      <FormItem className="w-full">
-                        <div className="flex justify-stretch align-start space-x-2">
-                          <FormControl>
-                            <Textarea {...field} />
-                          </FormControl>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="sm"
-                            title={t('edit.duplicatePart')}
-                            onClick={() => insert(ix + 1, { text: field.value })}
-                          >
-                            <Square2StackIcon className="size-3" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            title={t('edit.deletePart')}
-                            disabled={blocks.length <= 1}
-                            onClick={() => remove(ix)}
-                          >
-                            <TrashIcon className="size-3" />
-                          </Button>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-              ))}
+              <Sortable
+                value={blocks}
+                onDragEnd={handleDrag}
+                getItemValue={(item) => item.id ?? 0}
+              >
+                <div>
+                  <SortableContent asChild>
+                    <ul className="flex flex-col items-stretch space-y-2">
+                      {blocks.map((field, ix: number) => (
+                        <SortableItem 
+                          key={`blocks[${ix}]`}
+                          value={field.id ?? 0}
+                          asChild
+                        >
+                          <li key={field.id}>
+                            <div className="flex justify-stretch align-start space-x-2">
+                              <Textarea {...form.register(`blocks.${ix}.text`)} />
+                              <SortableItemHandle asChild>
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  title={t('edit.reorder')}
+                                >
+                                  <ArrowsUpDownIcon className="h-4 w-4" />
+                                </Button>
+                              </SortableItemHandle>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                title={t('edit.duplicatePart')}
+                                onClick={() => handleDuplicate(ix)}
+                              >
+                                <Square2StackIcon className="size-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                title={t('edit.deletePart')}
+                                disabled={blocks.length <= 1}
+                                onClick={() => remove(ix)}
+                              >
+                                <TrashIcon className="size-3" />
+                              </Button>
+                            </div>
+                          </li>
+                      </SortableItem>
+                    ))}
+                  </ul>
+                </SortableContent>
+              </div>
+            </Sortable>
             <Button
               type="button"
               variant="secondary"
               size="sm"
-              onClick={() => append({ text: "" })}
+              onClick={handleAppend}
             >
               {t('edit.addPart')}
             </Button>
           </div>
-
           <div className="flex flex-row align-start space-x-2">
             <Button className="flex-0" type="submit" disabled={isLoading}>
               {isLoading && (

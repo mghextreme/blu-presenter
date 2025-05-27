@@ -33,7 +33,7 @@ export const useAuth = create<AuthState>()(
           if (currentOrgInMap) {
             data = {
               organization: currentOrgInMap,
-              orgId: orgId,
+              orgId: currentOrg,
             }
           } else if (allOrgs.length > 0) {
             data = {

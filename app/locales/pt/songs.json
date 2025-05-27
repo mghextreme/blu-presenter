@@ -21,6 +21,16 @@
     "title": "Editar música",
     "addPart": "Adicionar parte",
     "duplicatePart": "Duplicar parte",
-    "deletePart": "Remover parte"
+    "deletePart": "Remover parte",
+    "reorder": "Reordenar"
+  },
+  "message": {
+    "deleteSong": {
+      "title": "Remover música",
+      "description": "Tem certeza de que deseja remover a música \"{{title}}\" do artista \"{{artist}}\"? Esta ação não pode ser desfeita."
+    }
+  },
+  "error": {
+    "deleteSong": "Erro ao remover música"
   }
 }
