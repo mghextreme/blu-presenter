@@ -17,6 +17,9 @@
   "list": {
     "title": "Músicas"
   },
+  "add": {
+    "title": "Adicionar música"
+  },
   "edit": {
     "title": "Editar música",
     "addPart": "Adicionar parte",

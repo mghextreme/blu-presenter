@@ -45,10 +45,12 @@ export default function EditSong({
   const { t } = useTranslation("songs");
 
   const loadedData = useLoaderData() as ISong;
-  loadedData.blocks = loadedData?.blocks?.map((block, index) => { return {
-    id: index,
-    ...block,
-  }});
+  if (loadedData) {
+    loadedData.blocks = loadedData?.blocks?.map((block, index) => { return {
+      id: index,
+      ...block,
+    }});
+  }
   const data = edit ? loadedData : {
     id: 0,
     title: '',
@@ -128,7 +130,7 @@ export default function EditSong({
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl mb-4">{t('edit.title')}</h1>
+      <h1 className="text-3xl mb-4">{edit ? t('edit.title') : t('add.title')}</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
           <FormField
