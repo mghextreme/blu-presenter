@@ -27,7 +27,7 @@ export default function ControllerNavbar() {
       <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-2 xl:px-6">
         <div className="flex flex-row items-center">
           <Link to="/app">
-            <span className="text-2xl">Blu Presenter</span>
+            <span className="text-2xl">BluPresenter</span>
           </Link>
         </div>
         <div className="flex-0 flex flex-row items-center space-x-2">

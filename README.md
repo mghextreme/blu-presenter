@@ -1,4 +1,4 @@
-# Blu Presenter
+# BluPresenter
 
 ## Supabase
 

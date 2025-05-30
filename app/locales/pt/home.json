@@ -5,6 +5,25 @@
   },
   "hero": {
     "title": "Bem-vindo ao BluPresenter",
-    "description": "Apresente letra de músicas com facilidade. Em qualquer lugar. A qualquer hora."
+    "description": "Apresente letras de músicas com facilidade. Em qualquer lugar. A qualquer hora."
+  },
+  "features": {
+    "title": "Por que BluPresenter?",
+    "free": {
+      "title": "Grátis!",
+      "description": "Sem tabela de preços, sem planos, sem solicitar cartão de crédito"
+    },
+    "openSource": {
+      "title": "Open source",
+      "description": "Estamos construindo o projeto de forma Open Source desde o início, disponível no GitHub (em breve)"
+    },
+    "noInstallation": {
+      "title": "Não precisa instalar",
+      "description": "Roda completamente no navegador, sem instalar nenhum software, app, ou plugin"
+    },
+    "anywhere": {
+      "title": "Use de qualquer lugar",
+      "description": "Você só precisa de uma conexão com a internet eeee... tá dentro :)"
+    }
   }
 }

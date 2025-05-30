@@ -6,5 +6,24 @@
   "hero": {
     "title": "Welcome to BluPresenter",
     "description": "Easy present lyrics. Anywhere. Anytime."
+  },
+  "features": {
+    "title": "Why use BluPresenter?",
+    "free": {
+      "title": "It's free!",
+      "description": "No pricing, no tiering, no credit card information"
+    },
+    "openSource": {
+      "title": "Open source",
+      "description": "We are building it from scratch as an Open Source platform available in GitHub (soon)"
+    },
+    "noInstallation": {
+      "title": "No installation required",
+      "description": "Runs completely on the browser, no need to install any software, app, nor plugin"
+    },
+    "anywhere": {
+      "title": "Use it anywhere",
+      "description": "You only need an internet connection aaaand... you're in :)"
+    }
   }
 }
