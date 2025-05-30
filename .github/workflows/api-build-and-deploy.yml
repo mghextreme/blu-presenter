@@ -32,3 +32,7 @@ jobs:
     - name: Push Docker image to ECR
       run: |
         docker push ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY }}:latest
+
+    - name: Deploy new image to Lightsail
+      run: |
+        update-container-service --service-name "blu-presenter-api"

@@ -31,3 +31,14 @@ export interface IAuthResponse {
   session: Session;
   inviteOrgId?: number;
 }
+
+export interface IOAuthRedirect {
+  url: string;
+  codeVerifier: string;
+}
+
+export interface IExchangeCodeData {
+  code: string;
+  codeVerifier: string;
+  invite?: IAuthInvitationData;
+}

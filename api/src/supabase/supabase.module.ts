@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { SupabaseStrategy } from './supabase.strategy';
@@ -14,6 +14,7 @@ import {
   User,
 } from 'src/entities';
 
+@Global()
 @Module({
   imports: [
     ConfigModule,

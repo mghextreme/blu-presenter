@@ -16,6 +16,7 @@ import { useServices, ServicesProviderState } from "@/hooks/services.provider";
 import Home from "./home";
 import SignUp from "./auth/signup";
 import Login from "./auth/login";
+import OAuthCallback from "./auth/oauth-callback";
 
 import Welcome from "./app/welcome";
 import { loader as welcomeLoader } from "./app/welcome.loader";
@@ -41,6 +42,7 @@ export const buildRouter = (services: ServicesProviderState) => {
           <Route element={<AuthLayout />} loader={(loader: LoaderFunctionArgs) => authLoader({ request: loader.request, organizationsService: services.organizationsService })}>
             <Route path="login" element={<Login />} />
             <Route path="signup" element={<SignUp />} />
+            <Route path="oauth/callback" element={<OAuthCallback />} />
           </Route>
         </Route>
         <Route path="/app" element={<AppLayout />} errorElement={<ErrorLayout />}>

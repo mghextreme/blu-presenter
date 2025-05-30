@@ -4,6 +4,7 @@ import {
   Organization,
   OrganizationUser,
   OrganizationInvitation,
+  User,
 } from '../entities';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
@@ -21,6 +22,7 @@ import { ConfigModule } from '@nestjs/config';
       Organization,
       OrganizationUser,
       OrganizationInvitation,
+      User,
     ]),
   ],
   controllers: [AuthController],

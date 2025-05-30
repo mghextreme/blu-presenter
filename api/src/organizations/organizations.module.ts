@@ -4,6 +4,7 @@ import {
   Organization,
   OrganizationUser,
   OrganizationInvitation,
+  User,
 } from '../entities';
 import { OrganizationsController } from './organizations.controller';
 import { OrganizationsService } from './organizations.service';
@@ -14,6 +15,7 @@ import { OrganizationsService } from './organizations.service';
       Organization,
       OrganizationUser,
       OrganizationInvitation,
+      User,
     ]),
   ],
   controllers: [OrganizationsController],

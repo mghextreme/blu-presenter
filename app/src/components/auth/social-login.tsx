@@ -1,59 +1,82 @@
 import { Button } from "../ui/button";
 
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import GoogleIcon from "../logos/google";
-import MicrosoftIcon from "../logos/microsoft";
-import AppleIcon from "../logos/apple";
-import FacebookIcon from "../logos/facebook";
-import GithubIcon from "../logos/github";
+import { useServices } from "@/hooks/services.provider";
+import { ApiError } from "@/types";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { useInvitation } from "@/hooks/invitation.provider";
+import { IAuthInvitationData } from "@/types/auth";
+// import MicrosoftIcon from "../logos/microsoft";
+// import AppleIcon from "../logos/apple";
+// import FacebookIcon from "../logos/facebook";
+// import GithubIcon from "../logos/github";
 
 type SocialLoginProps = {
   isLoading: boolean
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export function SocialLogin({ isLoading }: SocialLoginProps) {
+export function SocialLogin({ isLoading, setIsLoading }: SocialLoginProps) {
+
+  const { t } = useTranslation("auth");
+  const { authService } = useServices();
+  const { id: inviteId, secret: inviteSecret } = useInvitation();
+
+  const oauthOpen = async (provider: string) => {
+    try {
+      setIsLoading(true);
+
+      let invite: IAuthInvitationData | undefined = undefined;
+      if (inviteId && inviteSecret) {
+        invite = {
+          id: inviteId,
+          secret: inviteSecret,
+        } as IAuthInvitationData;
+        localStorage.setItem('invite', JSON.stringify(invite));
+      }
+
+      const redirectData = await authService.signInWithProvider(provider, invite);
+      localStorage.setItem('auth-token-code-verifier', redirectData.codeVerifier);
+      window.open(redirectData.url, '_self');
+    }
+    catch (e: unknown) {
+      const error = e as ApiError;
+      if (error) {
+        const errorContent = await error.raw?.json();
+        if (errorContent) {
+          toast.error(t('signIn.error'), {
+            description: t('errors.' + errorContent?.message || 'default'),
+          });
+        }
+      }
+
+      setIsLoading(false);
+    }
+  }
+
   return (
     <div className="grid grid-col-1 space-y-2">
-      <Button variant="outline" type="button" disabled={isLoading}>
-        {isLoading ? (
-          <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
-        ) : (
-          <GoogleIcon className="size-4 me-2"></GoogleIcon>
-        )}
+      <Button variant="outline" type="button" disabled={isLoading} onClick={() => oauthOpen('google')}>
+        <GoogleIcon className="size-4 me-2"></GoogleIcon>
         {" "}Google
       </Button>
-      <Button variant="outline" type="button" disabled={isLoading}>
-        {isLoading ? (
-          <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
-        ) : (
-          <MicrosoftIcon className="size-4 me-2"></MicrosoftIcon>
-        )}
+      {/* <Button variant="outline" type="button" disabled={isLoading}>
+        <MicrosoftIcon className="size-4 me-2"></MicrosoftIcon>
         {" "}Microsoft
       </Button>
       <Button variant="outline" type="button" disabled={isLoading}>
-        {isLoading ? (
-          <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
-        ) : (
-          <AppleIcon className="size-4 me-2"></AppleIcon>
-        )}
+        <AppleIcon className="size-4 me-2"></AppleIcon>
         {" "}Apple
       </Button>
       <Button variant="outline" type="button" disabled={isLoading}>
-        {isLoading ? (
-          <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
-        ) : (
-          <FacebookIcon className="size-4 me-2"></FacebookIcon>
-        )}
+        <FacebookIcon className="size-4 me-2"></FacebookIcon>
         {" "}Facebook
       </Button>
       <Button variant="outline" type="button" disabled={isLoading}>
-        {isLoading ? (
-          <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
-        ) : (
-          <GithubIcon className="size-4 me-2"></GithubIcon>
-        )}
+        <GithubIcon className="size-4 me-2"></GithubIcon>
         {" "}GitHub
-      </Button>
+      </Button> */}
     </div>
   )
 }

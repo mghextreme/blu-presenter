@@ -20,6 +20,7 @@ import { useInvitation } from "@/hooks/invitation.provider";
 import { useServices } from "@/hooks/services.provider";
 import { toast } from "sonner";
 import { ApiError } from "@/types";
+import { SocialLogin } from "./social-login";
 
 interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -121,7 +122,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
           </Button>
         </form>
       </Form>
-      {/* <div className="relative">
+      <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
         </div>
@@ -131,7 +132,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
           </span>
         </div>
       </div>
-      <SocialLogin isLoading={isLoading} /> */}
+      <SocialLogin isLoading={isLoading} setIsLoading={setIsLoading} />
     </div>
   )
 }
