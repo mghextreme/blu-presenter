@@ -50,11 +50,11 @@ export default function AuthLayout() {
         <LanguageToggler variant="ghost"></LanguageToggler>
         <ThemeToggler variant="ghost"></ThemeToggler>
       </div>
-      <Link to="/" className="absolute z-20 text-lg font-medium left-6 top-6 md:left-10 md:top-10 lg:hidden">Blu Presenter</Link>
+      <Link to="/" className="absolute z-20 text-lg font-medium left-6 top-6 md:left-10 md:top-10 lg:hidden">BluPresenter</Link>
       <div className="relative hidden h-full flex-col p-10 text-foreground lg:flex dark:border-r">
         <div className="absolute inset-0 bg-background" />
         <div className="relative z-20 flex items-center">
-          <Link to="/" className="text-lg font-medium">Blu Presenter</Link>
+          <Link to="/" className="text-lg font-medium">BluPresenter</Link>
         </div>
       </div>
       <div className="lg:p-8 w-full">

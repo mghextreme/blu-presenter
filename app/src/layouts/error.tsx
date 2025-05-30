@@ -55,7 +55,7 @@ export default function ErrorLayout() {
       <div className="relative hidden h-full flex-col p-10 text-foreground lg:flex dark:border-r">
         <div className="absolute inset-0 bg-background" />
         <div className="relative z-20 flex items-center">
-          <Link to={isLoggedIn ? '/app' : '/'} className="text-lg font-medium">Blu Presenter</Link>
+          <Link to={isLoggedIn ? '/app' : '/'} className="text-lg font-medium">BluPresenter</Link>
         </div>
       </div>
       <div className="lg:p-8">
