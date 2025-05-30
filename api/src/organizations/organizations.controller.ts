@@ -135,7 +135,7 @@ export class OrganizationsController {
 
   @Post('invitations/:id/accept')
   async acceptInvitation(@Param('id') id: number): Promise<void> {
-    return await this.organizationsService.acceptInvitation(id);
+    await this.organizationsService.acceptInvitation(id);
   }
 
   @Post('invitations/:id/reject')

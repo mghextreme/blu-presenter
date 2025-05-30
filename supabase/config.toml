@@ -75,7 +75,12 @@ enabled = true
 # in emails.
 site_url = "https://blupresenter.com"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["http://localhost:5173", "https://*.blupresenter.com"]
+additional_redirect_urls = [
+  "http://localhost:3000/auth/**",
+  "http://localhost:5173/oauth/**",
+  "https://*.blupresenter.com/auth/**",
+  "https://*.blupresenter.com/oauth/**",
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 21600
 # If disabled, the refresh token will never expire.
@@ -138,6 +143,12 @@ auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
 # `twitter`, `slack`, `spotify`, `workos`, `zoom`.
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+redirect_uri = "env(SUPABASE_AUTH_REDIRECT_URI)"
+
 [auth.external.apple]
 enabled = false
 client_id = ""

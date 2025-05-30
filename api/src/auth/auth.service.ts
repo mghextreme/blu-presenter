@@ -13,7 +13,9 @@ import { OrganizationsService } from 'src/organizations/organizations.service';
 import { Supabase } from 'src/supabase/supabase';
 import {
   AccessTokenDto,
+  AuthDto,
   ChangePasswordDto,
+  OAuthRedirectDto,
   SignInDto,
   SignUpDto,
   TokenRefreshDto,
@@ -23,17 +25,17 @@ import { UsersService } from 'src/users/users.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuthService {
-  private supabaseClient: SupabaseClient;
+  public supabaseClient: SupabaseClient;
 
   constructor(
     @Inject(Supabase)
-    supabase: Supabase,
+    private readonly supabase: Supabase,
     @Inject(ConfigService)
     private readonly configService: ConfigService,
     @Inject(UsersService)
     private readonly usersService: UsersService,
     @Inject(OrganizationsService)
-    private readonly organizationsService: OrganizationsService,
+    readonly organizationsService: OrganizationsService,
     @Inject(REQUEST)
     private readonly request: ExpRequest,
   ) {
@@ -79,6 +81,52 @@ export class AuthService {
       user: data.user,
       session: data.session,
       inviteOrgId: inviteOrgId,
+    } as AccessTokenDto;
+  }
+
+  async signInWithProvider(provider: string, authDto?: AuthDto): Promise<OAuthRedirectDto> {
+    let redirectTo = this.configService.get('app.baseUrl') + '/oauth/callback';
+
+    switch (provider) {
+      case 'google':
+        const { data, error } = await this.supabaseClient.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo,
+            queryParams: {
+              access_type: 'online',
+              prompt: 'consent',
+            },
+          },
+        });
+
+        if (error) {
+          throw new BadRequestException(error.message);
+        }
+
+        if (data.url) {
+          return {
+            url: data.url,
+            codeVerifier: this.supabase.cookieValues['auth-token-code-verifier'],
+          };
+        }
+    }
+
+    throw new BadRequestException(`Provider ${provider} not supported for sign in`)
+  }
+
+  async exchangeCodeForSession(code: string, codeVerifier: string): Promise<AccessTokenDto> {
+    const bits = codeVerifier.split('=');
+    this.supabase.cookieValues[bits[0]] = bits[1];
+    const { data, error } = await this.supabaseClient.auth.exchangeCodeForSession(code);
+
+    if (error) {
+      throw new BadRequestException(error.message);
+    }
+
+    return {
+      user: data.user,
+      session: data.session,
     } as AccessTokenDto;
   }
 

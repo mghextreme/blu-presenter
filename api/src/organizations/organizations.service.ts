@@ -24,17 +24,20 @@ import {
 } from 'src/entities';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
+import { AuthInvitationDataDto } from 'src/types/auth-invitation-data.dto';
 
 @Injectable({ scope: Scope.REQUEST })
 export class OrganizationsService {
   constructor(
-    private dataSource: DataSource,
+    private readonly dataSource: DataSource,
     @InjectRepository(Organization)
-    private organizationsRepository: Repository<Organization>,
+    private readonly organizationsRepository: Repository<Organization>,
     @InjectRepository(OrganizationUser)
-    private organizationUsersRepository: Repository<OrganizationUser>,
+    private readonly organizationUsersRepository: Repository<OrganizationUser>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
     @InjectRepository(OrganizationInvitation)
-    private organizationInvitationsRepository: Repository<OrganizationInvitation>,
+    private readonly organizationInvitationsRepository: Repository<OrganizationInvitation>,
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {}
 
@@ -291,7 +294,7 @@ export class OrganizationsService {
     });
   }
 
-  async acceptInvitation(id: number): Promise<void> {
+  async acceptInvitation(id: number): Promise<OrganizationInvitation> {
     const invitation = await this.organizationInvitationsRepository.findOneBy({
       id: id,
     });
@@ -305,6 +308,35 @@ export class OrganizationsService {
       throw new ForbiddenException('You cannot accept this invitation');
     }
 
+    await this.internalAssociateInvite(invitation, user);
+
+    return invitation;
+  }
+
+  async associateInvite(userAuthId: string, invite: AuthInvitationDataDto): Promise<OrganizationInvitation> {
+    const invitation = await this.organizationInvitationsRepository.findOneBy({
+      id: invite.id,
+      secret: invite.secret,
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    const user = await this.usersRepository.findOneBy({
+      authId: userAuthId,
+    })
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.internalAssociateInvite(invitation, user);
+
+    return invitation;
+  }
+
+  private async internalAssociateInvite(invitation: OrganizationInvitation, user: User) {
     const existingOrgUser = await this.organizationUsersRepository.findOneBy({
       orgId: invitation.orgId,
       userId: user.id,
@@ -329,7 +361,7 @@ export class OrganizationsService {
         const organizationInvitationsRepository = manager.getRepository(
           OrganizationInvitation,
         );
-        await organizationInvitationsRepository.delete(id);
+        await organizationInvitationsRepository.delete(invitation.id);
       });
       return;
     }
@@ -346,7 +378,7 @@ export class OrganizationsService {
       const organizationInvitationsRepository = manager.getRepository(
         OrganizationInvitation,
       );
-      await organizationInvitationsRepository.delete(id);
+      await organizationInvitationsRepository.delete(invitation.id);
     });
   }
 

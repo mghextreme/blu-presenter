@@ -1,47 +1,77 @@
 import { Inject, Injectable, Logger, Scope } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { REQUEST } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { parseCookies, setCookie, destroyCookie } from 'nookies';
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-import { ExtractJwt } from 'passport-jwt';
+const createCustomStorageAdapter = (req: Request, res: Response, collection: {[key: string]: string}) => {
+  return {
+    getItem: (key: string) => {
+      const cookies = parseCookies({ req });
+      let item = cookies[key];
+      if (!item) {
+        item = collection[key] || null;
+      }
+      return item;
+    },
+    setItem: (key: string, value) => {
+      collection[key] = value;
+      if (key.endsWith('auth-token-code-verifier')) {
+        collection['auth-token-code-verifier'] = `${key}=${value}`;
+      }
+      setCookie({ res }, key, value, {
+        path: '/',
+        maxAge: 60 * 10, // 10 minutes
+        secure: true, // Ensure cookies are sent over HTTPS
+        httpOnly: true, // Ensure cookies are not accessible via JavaScript
+      });
+    },
+    removeItem: (key: string) => {
+      destroyCookie({ res }, key, {
+        path: '/',
+      });
+    },
+  };
+};
 
 @Injectable({ scope: Scope.REQUEST })
 export class Supabase {
   private readonly logger = new Logger(Supabase.name);
   private clientInstance: SupabaseClient;
+  public cookieValues: {[key: string]: string} = {};
 
   constructor(
     @Inject(REQUEST) private readonly request: Request,
     private readonly configService: ConfigService,
   ) {}
 
-  getClient() {
-    this.logger.log('Getting supabase client...');
+  getClient(response?: Response) {
     if (this.clientInstance) {
       return this.clientInstance;
     }
 
-    this.logger.debug('Initialising new supabase client for new Scope.REQUEST');
+    const req = this.request;
+    const customStorageAdapter = createCustomStorageAdapter(req, response, this.cookieValues);
+    const cookies = parseCookies({ req });
 
-    const accessToken = ExtractJwt.fromAuthHeaderAsBearerToken()(this.request);
     this.clientInstance = createClient(
-      this.configService.get('supabase.url'),
-      this.configService.get('supabase.key'),
+      this.configService.get('supabase.url')!,
+      this.configService.get('supabase.key')!,
       {
         auth: {
-          autoRefreshToken: true,
-          detectSessionInUrl: false,
+          detectSessionInUrl: true,
+          flowType: 'pkce',
+          storage: customStorageAdapter,
         },
         global: {
-          headers: accessToken
-            ? {
-                Authorization: `Bearer ${accessToken}`,
-              }
-            : null,
+          headers: req?.headers ? {
+            'x-supabase-auth': cookies['sb-access-token'],
+            'Cookie': req.headers.cookie || '',
+          } : {},
         },
-      },
+      }
     );
 
     return this.clientInstance;

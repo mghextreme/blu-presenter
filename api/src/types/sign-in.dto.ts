@@ -1,7 +1,7 @@
 import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
-import { AuthInvitationDataDto } from './auth-invitation-data.dto';
+import { AuthDto } from './auth.dto';
 
-export class SignInDto {
+export class SignInDto extends AuthDto {
   @IsNotEmpty()
   @IsEmail()
   email: string;
@@ -9,6 +9,4 @@ export class SignInDto {
   @IsNotEmpty()
   @MinLength(8)
   password: string;
-
-  invite?: AuthInvitationDataDto;
 }
