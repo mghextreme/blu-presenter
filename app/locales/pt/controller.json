@@ -1,5 +1,10 @@
 {
-  "importer": {
+  "plan": {
+    "tabs": {
+      "schedule": "Programação",
+      "songs": "Músicas",
+      "text": "Texto"
+    },
     "search": {
       "inputPlaceholder": "Pesquisar músicas...",
       "button": "Pesquisar",
