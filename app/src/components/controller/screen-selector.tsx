@@ -34,14 +34,15 @@ export default function ScreenSelector({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    const browserWindow = childWindow?.screen as Screen & {isExtended: boolean}
-    if (browserWindow?.isExtended == true) {
-      const browserWindow = childWindow as unknown as IBrowserWindow;
-      const screenDetailsPromise = browserWindow.getScreenDetails();
+    const browserWindow = childWindow as unknown as IBrowserWindow;
+    const browserScreen = browserWindow?.screen || browserWindow?.currentScreen;
+
+    if (browserScreen?.isExtended == true || browserWindow?.screens?.length > 1) {
+      const screenDetailsPromise = browserWindow?.getScreenDetails();
       if (screenDetailsPromise) {
         screenDetailsPromise.then((details: {screens: IScreenDetails[]}) => {
           setDisplayOptions(details.screens);
-        })
+        });
       }
     } else {
       setSelected(true);

@@ -6,6 +6,9 @@ export interface IScreenDetails {
 }
 
 export interface IBrowserWindow {
+  currentScreen: Screen & { isExtended?: boolean }
+  screen: Screen & { isExtended?: boolean }
+  screens: (Screen & { isExtended?: boolean })[]
   getScreenDetails: () => Promise<{screens: IScreenDetails[]}>
 }
 

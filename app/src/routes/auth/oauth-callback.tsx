@@ -48,7 +48,7 @@ export default function OAuthCallback() {
     // Timeout prevents users from briefly seeing the React Router error layout
     setTimeout(async () => {
       await navigate('/app', { replace: true });
-    }, 1000);
+    }, 100);
   }
 
   useEffect(() => {

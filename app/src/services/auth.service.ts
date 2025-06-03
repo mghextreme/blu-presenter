@@ -91,14 +91,16 @@ export class AuthService extends ApiService {
     await this.getAndSetOrganizations();
   }
 
-  private async getAndSetOrganizations(inviteOrgId?: number) {
+  public async getAndSetOrganizations(inviteOrgId?: number) {
     const orgs = await this.organizationsService.getFromUser();
 
     useAuth.setState({
       organizations: orgs,
     });
 
-    useAuth.getState().setOrganizationById(inviteOrgId);
+    setTimeout(() => {
+      useAuth.getState().setOrganizationById(inviteOrgId);
+    }, 100);
   }
 
 }

@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { zodResolver } from "@hookform/resolvers/zod"
 import SongSearchResult from "./song-search-result";
 import { IScheduleSong } from "@/types";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 
 const searchFormSchema = z.object({
   query: z.string().min(3),
@@ -43,52 +42,37 @@ export default function PlanPanel() {
   return (
     <div
       id="plan"
-      className="w-1/3 bg-background rounded flex flex-col justify-start items-stretch overflow-hidden">
-      <Tabs defaultValue="songs" className="w-full p-3">
-        <TabsList className="w-full mb-1">
-          <TabsTrigger value="schedule" disabled={true}>{t('plan.tabs.schedule')}</TabsTrigger>
-          <TabsTrigger value="songs">{t('plan.tabs.songs')}</TabsTrigger>
-          <TabsTrigger value="text" disabled={true}>{t('plan.tabs.text')}</TabsTrigger>
-        </TabsList>
-        <TabsContent value="schedule">
-          developing...
-        </TabsContent>
-        <TabsContent value="songs">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-row w-full justify-stretch space-x-3">
-              <FormField
-                control={form.control}
-                name="query"
-                render={({field}) => (
-                  <FormItem className="flex-1">
-                    <FormControl>
-                      <Input placeholder={t('plan.search.inputPlaceholder')} {...field} />
-                    </FormControl>
-                    <FormMessage/>
-                  </FormItem>
-                )}></FormField>
-              <Button className="flex-0" type="submit" disabled={searching}>
-                {searching ? (
-                  <>
-                    {t('plan.search.buttonLoading')}
-                    <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
-                  </>
-                ) : (
-                  <span>{t('plan.search.button')}</span>
-                )}</Button>
-            </form>
-          </Form>
-          <div
-            className="mt-3 flex-1 overflow-y-auto flex flex-col justify-start items-stretch overflow-y-auto gap-3">
-            {searchResults.length > 0 && searchResults.map((item, ix) => (
-              <SongSearchResult key={`${item.id}-${ix}`} item={item}></SongSearchResult>
-            ))}
-          </div>
-        </TabsContent>
-        <TabsContent value="text">
-          developing...
-        </TabsContent>
-      </Tabs>
+      className="w-1/3 bg-background rounded flex flex-col justify-start items-stretch overflow-hidden p-3">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-row w-full justify-stretch space-x-3">
+          <FormField
+            control={form.control}
+            name="query"
+            render={({field}) => (
+              <FormItem className="flex-1">
+                <FormControl>
+                  <Input placeholder={t('plan.search.inputPlaceholder')} {...field} />
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )}></FormField>
+          <Button className="flex-0" type="submit" disabled={searching}>
+            {searching ? (
+              <>
+                {t('plan.search.buttonLoading')}
+                <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+              </>
+            ) : (
+              <span>{t('plan.search.button')}</span>
+            )}</Button>
+        </form>
+      </Form>
+      <div
+        className="mt-3 flex-1 overflow-y-auto flex flex-col justify-start items-stretch overflow-y-auto gap-3">
+        {searchResults.length > 0 && searchResults.map((item, ix) => (
+          <SongSearchResult key={`${item.id}-${ix}`} item={item}></SongSearchResult>
+        ))}
+      </div>
     </div>
   );
 }

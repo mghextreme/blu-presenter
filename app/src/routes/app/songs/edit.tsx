@@ -103,7 +103,8 @@ export default function EditSong({
   }
 
   const handleDuplicate = (ix: number) => {
-    insert(ix + 1, { id: nextId, text: blocks[ix].text });
+    const currentBlocks = form.getValues('blocks');
+    insert(ix + 1, { id: nextId, text: currentBlocks[ix].text });
     setNextId(nextId + 1);
   }
 
