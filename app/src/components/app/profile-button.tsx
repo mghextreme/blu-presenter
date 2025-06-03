@@ -29,7 +29,7 @@ export default function ProfileButton() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>
         <Button variant="outline" className="justify-between max-w-48">
           <span className="truncate">{data?.nickname || user?.email}</span>
           <ChevronDownIcon className="size-3 shrink-0 opacity-50 ms-2" />

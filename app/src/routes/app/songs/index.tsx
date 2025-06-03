@@ -52,7 +52,7 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
               </Button>
             </Link>
             <AlertDialog>
-              <AlertDialogTrigger disabled={!canDelete}>
+              <AlertDialogTrigger asChild>
                 <Button size="sm" className="flex-0" variant="destructive" disabled={!canDelete} title={t('actions.delete')}>
                   <TrashIcon className="size-3" />
                 </Button>

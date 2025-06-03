@@ -45,7 +45,10 @@ export default function OAuthCallback() {
     localStorage.removeItem('auth-token-code-verifier');
     localStorage.removeItem('invite');
 
-    await navigate('/app', { replace: true });
+    // Timeout prevents users from briefly seeing the React Router error layout
+    setTimeout(async () => {
+      await navigate('/app', { replace: true });
+    }, 100);
   }
 
   useEffect(() => {

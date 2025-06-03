@@ -18,14 +18,11 @@ import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 export async function loader({ params, organizationsService }: { params: Params, organizationsService: OrganizationsService }) {
   return await organizationsService.getMember(Number(params.id));
 }
-
-const formSchema = z.object({
-  role: z.enum(["admin", "member"]).default("member"),
-});
 
 export default function EditMember() {
 
@@ -34,15 +31,20 @@ export default function EditMember() {
   const navigate = useNavigate();
 
   const { organizationsService } = useServices();
+  const { user } = useAuth();
   const data = useLoaderData() as IOrganizationUser;
 
   const [isLoading, setLoading] = useState<boolean>(false);
+
+  const formSchema = z.object({
+    role: z.enum(["admin", "member"]).default("member"),
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     //@ts-expect-error // TODO ver problemas de undefinable
     resolver: zodResolver(formSchema),
     defaultValues: {
-      role: 'member',
+      role: (["admin", "member"].includes(data.role) ? data.role : 'member') as 'admin' | 'member',
     },
   });
 
@@ -69,6 +71,7 @@ export default function EditMember() {
   }
 
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);
+  const canEdit = data.role !== 'owner' && data.email != user?.email; // TODO: Use internal users ID to compare instead of email
 
   return (
     <div className="p-8">
@@ -85,15 +88,15 @@ export default function EditMember() {
             <FormLabel>{t('input.email')}</FormLabel>
             <Input value={data.email} disabled />
           </FormItem>
-          {data.role === 'owner' ? (
+          {!canEdit ? (
             <FormItem>
               <FormLabel>{t('input.role')}</FormLabel>
-              <Input value={t('role.owner')} disabled />
+              <Input value={t('role.' + data.role)} disabled />
             </FormItem>
           ) : (
             <FormField
-              //TODO investigar 
-              // @ts-expect-error  // Erro no tipo
+              //TODO investigate
+              // @ts-expect-error
               control={form.control}
               name="role"
               render={({ field }) => (
@@ -153,7 +156,7 @@ export default function EditMember() {
               )}></FormField>
           )}
           <div className="flex flex-row align-start space-x-2">
-            <Button className="flex-0" type="submit" disabled={isLoading}>
+            <Button className="flex-0" type="submit" disabled={isLoading || !canEdit}>
               {isLoading && (
                 <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
               )}

@@ -11,7 +11,6 @@ import {
   TokenRefreshDto,
 } from 'src/types';
 import { AuthService } from './auth.service';
-import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {

@@ -212,7 +212,7 @@ export default function EditOrganization({
   const { revalidate } = useRevalidator();
 
   const { user, organization, setOrganizationById } = useAuth();
-  const { organizationsService } = useServices();
+  const { organizationsService, authService } = useServices();
 
   if (!data) {
     throw new Error("Can't find organization");
@@ -244,7 +244,7 @@ export default function EditOrganization({
       action
         .then((result: IOrganization | null) => {
           if (!edit && result) {
-            setOrganizationById(result.id);
+            authService.getAndSetOrganizations(result.id);
           }
           navigate("/app/organization", { replace: true });
         })
@@ -351,7 +351,7 @@ export default function EditOrganization({
           <h2 className="text-xl mt-6 mb-4">{t('edit.manage')}</h2>
           {edit && loadedData?.role === 'owner' && (
             <AlertDialog>
-              <AlertDialogTrigger disabled={true || isLoading}>
+              <AlertDialogTrigger asChild>
                 <Button className="flex-0" variant="destructive" disabled={true || isLoading}>
                   {isLoading && (
                     <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
@@ -373,7 +373,7 @@ export default function EditOrganization({
           )}
           {loadedData && loadedData.role !== 'owner' && (
             <AlertDialog>
-              <AlertDialogTrigger>
+              <AlertDialogTrigger asChild>
                 <Button className="flex-0" variant="destructive" disabled={isLoading}>
                   {isLoading && (
                     <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>

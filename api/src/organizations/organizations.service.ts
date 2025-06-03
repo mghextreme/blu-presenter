@@ -163,11 +163,11 @@ export class OrganizationsService {
     await this.organizationsRepository.delete(id);
   }
 
-  async getMember(usersOrg: any, id: number): Promise<OrganizationUser> {
+  async getMember(orgId: number, id: number): Promise<OrganizationUser> {
     const member = await this.organizationUsersRepository.findOne({
       where: {
         userId: id,
-        orgId: usersOrg.id,
+        orgId: orgId,
       },
       relations: {
         user: true,

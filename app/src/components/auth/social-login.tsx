@@ -38,7 +38,11 @@ export function SocialLogin({ isLoading, setIsLoading }: SocialLoginProps) {
 
       const redirectData = await authService.signInWithProvider(provider, invite);
       localStorage.setItem('auth-token-code-verifier', redirectData.codeVerifier);
-      window.open(redirectData.url, '_self');
+
+      // Timeout ensures localStorage is saved
+      setTimeout(async () => {
+        window.open(redirectData.url, '_self');
+      }, 500);
     }
     catch (e: unknown) {
       const error = e as ApiError;
