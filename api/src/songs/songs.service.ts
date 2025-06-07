@@ -105,4 +105,19 @@ export class SongsService {
 
     await this.songsRepository.delete(id);
   }
+  
+  async copyToOrganization(songId: number, organizationId: number): Promise<void> {
+    const song = await this.songsRepository.findOneBy({ id: songId });
+    if (!song) {
+      throw new NotFoundException(`Song with ID ${songId} not found`);
+    }
+
+    const newSong = this.songsRepository.create({
+      ...song,
+      id: undefined,
+      orgId: organizationId,
+    });
+
+    await this.songsRepository.save(newSong);
+  }
 }

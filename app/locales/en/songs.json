@@ -7,7 +7,8 @@
   "actions": {
     "create": "Add song",
     "edit": "Edit song",
-    "delete": "Delete song"
+    "delete": "Delete song",
+    "copyToOrganization": "Copy to different organization"
   },
   "button": {
     "add": "Add",
@@ -32,10 +33,20 @@
     "deleteSong": {
       "title": "Delete song",
       "description": "Are you sure you want to delete the song \"{{title}}\" by \"{{artist}}\"? This action cannot be undone."
+    },
+    "copyToOrganization": {
+      "title": "Copy song to a different organization",
+      "songDescription": "\"{{title}}\" by \"{{artist}}\"",
+      "description": "Select the organization to copy the song to:",
+      "selectOrg": "Select organization",
+      "searchOrgs": "Search organizations",
+      "noOrgFound": "No organization found",
+      "defaultName": "Personal space"
     }
   },
   "error": {
-    "deleteSong": "Error deleting song"
+    "deleteSong": "Error deleting song",
+    "copyToOrganization": "Error copying song"
   },
   "language": {
     "english": "English",

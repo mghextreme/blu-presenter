@@ -9,7 +9,7 @@ import {
   Put,
 } from '@nestjs/common';
 import { Song } from 'src/entities';
-import { CreateSongDto, UpdateSongDto } from 'src/types';
+import { CopySongToOrganizationDto, CreateSongDto, UpdateSongDto } from 'src/types';
 import { SongsService } from './songs.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
 
@@ -48,6 +48,14 @@ export class SongsController {
     @Body() createSongDto: CreateSongDto,
   ): Promise<Song> {
     return await this.songsService.create(orgId, createSongDto);
+  }
+
+  @Post('/copyToOrganization')
+  @OrganizationRole('owner', 'admin', 'member')
+  async copyToOrganization(
+    @Body() copySongDto: CopySongToOrganizationDto,
+  ): Promise<void> {
+    await this.songsService.copyToOrganization(copySongDto.songId, copySongDto.organizationId);
   }
 
   @Put(':id')
