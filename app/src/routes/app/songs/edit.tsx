@@ -1,7 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
+import { useForm } from "react-hook-form";
 
 import { ISong } from "@/types";
 import { SongsService } from "@/services";
@@ -10,29 +9,74 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, Params, useLoaderData, useNavigate } from "react-router-dom";
-import { Textarea } from "@/components/ui/textarea";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import Square2StackIcon from "@heroicons/react/24/solid/Square2StackIcon";
-import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import ArrowsUpDownIcon from "@heroicons/react/20/solid/ArrowsUpDownIcon";
 import { useTranslation } from "react-i18next";
-import { Sortable, SortableContent, SortableItem, SortableItemHandle } from "@/components/ui/sortable";
+import { FlagBr, FlagDe, FlagEs, FlagFr, FlagGb, FlagIt } from "@/components/logos/flags";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
+import i18next, { TFunction } from "i18next";
+import EditSongParts from "@/components/app/songs/edit-parts";
+import { SongSchema } from "@/types/schemas/song.schema";
+import { z } from "zod";
+
+interface ILanguage {
+  value: "en" | "pt" | "es" | "fr" | "de" | "it";
+  label: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+}
+
+const languages = [
+  {
+    value: "en",
+    label: "english",
+    icon: FlagGb,
+  },
+  {
+    value: "pt",
+    label: "portuguese",
+    icon: FlagBr,
+  },
+  {
+    value: "es",
+    label: "spanish",
+    icon: FlagEs,
+  },
+  {
+    value: "fr",
+    label: "french",
+    icon: FlagFr,
+  },
+  {
+    value: "de",
+    label: "german",
+    icon: FlagDe,
+  },
+  {
+    value: "it",
+    label: "italian",
+    icon: FlagIt,
+  },
+] as ILanguage[];
 
 export async function loader({ params, songsService }: { params: Params, songsService: SongsService }) {
   return await songsService.getById(Number(params.id));
 }
 
-const formSchema = z.object({
-  id: z.number(),
-  title: z.string().min(2),
-  artist: z.string().min(2).optional().or(z.literal('')),
-  blocks: z.array(
-    z.object({
-      id: z.number().optional(),
-      text: z.string().optional(),
-    }),
-  ),
-});
+function LanguageAndIcon({ t, language }: { t: TFunction, language: ILanguage["value"] }) {
+  const lang = languages.find((lang) => lang.value === language);
+  if (!lang) return null;
+
+  const Icon = lang.icon;
+  return (
+    <>
+      <Icon className="h-4 w-4 me-2" />
+      {t('language.' + lang.label)}
+    </>
+  );
+}
 
 type EditSongProps = {
   edit?: boolean
@@ -43,25 +87,28 @@ export default function EditSong({
 }: EditSongProps) {
 
   const { t } = useTranslation("songs");
+  const curLang = (i18next.resolvedLanguage || 'en') as 'en' | 'pt' | 'es' | 'fr' | 'de' | 'it';
 
   const loadedData = useLoaderData() as ISong;
   if (loadedData) {
-    loadedData.blocks = loadedData?.blocks?.map((block, index) => { return {
-      id: index,
-      ...block,
-    }});
+    loadedData.blocks = loadedData?.blocks?.map((block, index) => {
+      return {
+        ...block,
+        id: index,
+      };
+    });
   }
   const data = edit ? loadedData : {
     id: 0,
     title: '',
+    language: undefined,
     artist: undefined,
     blocks: [{
       id: 0,
       text: '',
+      chords: '',
     }]
   };
-
-  const [nextId, setNextId] = useState<number>(data.blocks?.length ?? 0);
 
   const navigate = useNavigate();
 
@@ -73,42 +120,18 @@ export default function EditSong({
 
   const [isLoading, setLoading] = useState<boolean>(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof SongSchema>>({
+    resolver: zodResolver(SongSchema),
     defaultValues: {
       id: data.id,
+      language: data.language ?? curLang,
       title: data.title,
       artist: data.artist ?? '',
       blocks: data.blocks ?? [],
     },
   });
 
-  const { fields: blocks, append, remove, insert, move } = useFieldArray({
-    name: "blocks",
-    control: form.control,
-    keyName: "key",
-  });
-
-  const handleDrag = ({ active, over }) => {
-    const activeIndex = active.data.current.sortable.index;
-    const overIndex = over.data.current.sortable.index;
-    if (activeIndex !== overIndex) {
-      move(activeIndex, overIndex);
-    }
-  };
-
-  const handleAppend = () => {
-    append({ id: nextId, text: '' });
-    setNextId(nextId + 1);
-  }
-
-  const handleDuplicate = (ix: number) => {
-    const currentBlocks = form.getValues('blocks');
-    insert(ix + 1, { id: nextId, text: currentBlocks[ix].text });
-    setNextId(nextId + 1);
-  }
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof SongSchema>) => {
     try {
       setLoading(true);
       let action;
@@ -160,78 +183,76 @@ export default function EditSong({
               </FormItem>
             )}></FormField>
 
-            <div className="flex flex-col items-stretch space-y-2">
-              <FormLabel>{t('input.parts')}</FormLabel>
-              <Sortable
-                value={blocks}
-                onDragEnd={handleDrag}
-                getItemValue={(item) => item.id ?? 0}
-              >
-                <div>
-                  <SortableContent asChild>
-                    <ul className="flex flex-col items-stretch space-y-2">
-                      {blocks.map((field, ix: number) => (
-                        <SortableItem 
-                          key={`blocks[${ix}]`}
-                          value={field.id ?? 0}
-                          asChild
-                        >
-                          <li key={field.id}>
-                            <div className="flex justify-stretch align-start space-x-2">
-                              <Textarea {...form.register(`blocks.${ix}.text`)} />
-                              <SortableItemHandle asChild>
-                                <Button
-                                  type="button"
-                                  variant="secondary"
-                                  size="sm"
-                                  title={t('edit.reorder')}
-                                >
-                                  <ArrowsUpDownIcon className="h-4 w-4" />
-                                </Button>
-                              </SortableItemHandle>
-                              <Button
-                                type="button"
-                                variant="secondary"
-                                size="sm"
-                                title={t('edit.duplicatePart')}
-                                onClick={() => handleDuplicate(ix)}
-                              >
-                                <Square2StackIcon className="size-3" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="sm"
-                                title={t('edit.deletePart')}
-                                disabled={blocks.length <= 1}
-                                onClick={() => remove(ix)}
-                              >
-                                <TrashIcon className="size-3" />
-                              </Button>
-                            </div>
-                          </li>
-                      </SortableItem>
-                    ))}
-                  </ul>
-                </SortableContent>
-              </div>
-            </Sortable>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={handleAppend}
-            >
-              {t('edit.addPart')}
-            </Button>
-          </div>
+          <FormField
+            control={form.control}
+            name="language"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>{t('input.language')}</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          "justify-between",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        <LanguageAndIcon t={t} language={field.value!} />
+                        <ChevronDownIcon className="opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0">
+                    <Command>
+                      <CommandInput
+                        placeholder={t('language.search')}
+                        className="h-9"
+                      />
+                      <CommandList>
+                        <CommandEmpty>{t('language.notFound')}</CommandEmpty>
+                        <CommandGroup>
+                          {languages.map((language) => (
+                            <CommandItem
+                              value={language.label}
+                              key={language.value}
+                              onSelect={() => {
+                                form.setValue("language", language.value)
+                              }}
+                            >
+                              <LanguageAndIcon t={t} language={language.value} />
+                              <CheckIcon
+                                className={cn(
+                                  "ml-auto",
+                                  language.value === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormLabel>{t('input.parts')}</FormLabel>
+          <EditSongParts form={form} />
+
           <div className="flex flex-row align-start space-x-2">
             <Button className="flex-0" type="submit" disabled={isLoading}>
               {isLoading && (
                 <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
               )}
               {t('button.' + (edit ? 'update' : 'add'))}
-              </Button>
+            </Button>
             <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
           </div>
         </form>

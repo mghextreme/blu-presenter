@@ -6,7 +6,7 @@ begin
   limit 1
   into existingOrgId;
 
-  insert into public.songs (title, "orgId", artist, blocks)
+  insert into public.songs (title, "orgId", artist, blocks, "language")
   values (
     'Oceans (Where Feet May Fail)',
     existingOrgId,
@@ -54,6 +54,7 @@ begin
       {
         "text": "And I will call upon Your Name\nAnd keep my eyes above the waves\nWhen oceans rise\nMy soul will rest in Your embrace\nFor I am Yours and You are mine"
       }
-    ]'
+    ]',
+    'en'
   );
 end $$;

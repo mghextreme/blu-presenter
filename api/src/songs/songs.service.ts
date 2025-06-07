@@ -16,6 +16,7 @@ export class SongsService {
         id: true,
         title: true,
         artist: true,
+        language: true,
         blocks: true,
       },
       where: {
@@ -31,6 +32,7 @@ export class SongsService {
         id: true,
         title: true,
         artist: true,
+        language: true,
         blocks: true,
       },
       where: {
@@ -67,6 +69,7 @@ export class SongsService {
     const result = await this.songsRepository.insert({
       title: createSongDto.title,
       artist: createSongDto.artist,
+      language: createSongDto.language,
       blocks: createSongDto.blocks,
       orgId,
     });
@@ -87,6 +90,7 @@ export class SongsService {
 
     song.title = updateSongDto.title;
     song.artist = updateSongDto.artist;
+    song.language = updateSongDto.language;
     song.blocks = updateSongDto.blocks;
 
     const result = await this.songsRepository.save(song);

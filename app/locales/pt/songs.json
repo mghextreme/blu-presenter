@@ -35,5 +35,13 @@
   },
   "error": {
     "deleteSong": "Erro ao remover música"
+  },
+  "language": {
+    "english": "Inglês",
+    "portuguese": "Português",
+    "spanish": "Espanhol",
+    "french": "Francês",
+    "german": "Alemão",
+    "italian": "Italiano"
   }
 }

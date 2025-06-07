@@ -8,5 +8,8 @@ export class CreateSongDto {
 
   artist?: string;
 
+  @Length(2, 2)
+  language?: string;
+
   blocks: SongPartDto[];
 }
