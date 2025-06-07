@@ -37,4 +37,4 @@ jobs:
 
     - name: Deploy new image to Lightsail
       run: |
-        aws lightsail update-container-service --service-name "blu-presenter-api"
+        aws lightsail create-container-service-deployment --service-name "blu-presenter-api"
