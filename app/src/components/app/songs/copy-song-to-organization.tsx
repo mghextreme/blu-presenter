@@ -15,7 +15,7 @@ import { toast } from "sonner";
 interface CopySongToOrganizationProps {
   songId: number;
   title: string;
-  artist: string;
+  artist?: string;
 }
 
 export function CopySongToOrganization({
@@ -26,7 +26,9 @@ export function CopySongToOrganization({
   const { organizations, organization } = useAuth();
   const { songsService } = useServices();
 
-  const possibleOrgs = organizations.filter(org => org.id !== organization?.id).map((org) => {
+  const possibleOrgs = organizations.filter(
+    org => org.id !== organization?.id && ["owner", "admin"].includes(organization?.role ?? "member")
+  ).map((org) => {
     if (!org.name) {
       org.name = t('message.copyToOrganization.defaultName');
     }

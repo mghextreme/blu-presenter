@@ -2,7 +2,8 @@
   "input": {
     "title": "Title",
     "artist": "Artist",
-    "parts": "Parts"
+    "parts": "Parts",
+    "language": "Language"
   },
   "actions": {
     "create": "Add song",

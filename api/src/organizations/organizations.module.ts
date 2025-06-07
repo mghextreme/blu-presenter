@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   Organization,
@@ -9,6 +9,7 @@ import {
 import { OrganizationsController } from './organizations.controller';
 import { OrganizationsService } from './organizations.service';
 
+@Global()
 @Module({
   imports: [
     TypeOrmModule.forFeature([

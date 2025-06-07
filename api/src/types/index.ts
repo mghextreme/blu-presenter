@@ -20,3 +20,4 @@ export * from './token-refresh.dto';
 export * from './exchange-code.dto';
 export * from './access-token.dto';
 export * from './oauth-redirect.dto';
+export * from './auth-invitation-data.dto';
