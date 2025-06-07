@@ -23,6 +23,14 @@ export class Song {
   artist: string;
 
   @Column({
+    nullable: true,
+    default: null,
+    type: 'char',
+    length: 2,
+  })
+  language: string;
+
+  @Column({
     type: 'json',
     array: true,
     select: false,

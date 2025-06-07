@@ -6,7 +6,7 @@ begin
   limit 1
   into existingOrgId;
 
-  insert into public.songs (title, "orgId", artist, blocks)
+  insert into public.songs (title, "orgId", artist, blocks, "language")
   values (
     'How Great Is Our God',
     existingOrgId,
@@ -48,6 +48,7 @@ begin
       {
         "text": "How great is our God, sing with me\nHow great is our God, and all will see\nHow great, how great is our God"
       }
-    ]'
+    ]',
+    'en'
   );
 end $$;

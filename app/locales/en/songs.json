@@ -36,5 +36,13 @@
   },
   "error": {
     "deleteSong": "Error deleting song"
+  },
+  "language": {
+    "english": "English",
+    "portuguese": "Portuguese",
+    "spanish": "Spanish",
+    "french": "French",
+    "german": "German",
+    "italian": "Italian"
   }
 }
