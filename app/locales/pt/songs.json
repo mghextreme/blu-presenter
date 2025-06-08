@@ -2,17 +2,20 @@
   "input": {
     "title": "Título",
     "artist": "Artista",
-    "parts": "Partes"
+    "parts": "Partes",
+    "language": "Idioma"
   },
   "actions": {
     "create": "Adicionar música",
     "edit": "Editar música",
-    "delete": "Remover música"
+    "delete": "Remover música",
+    "copyToOrganization": "Copiar para outra organização"
   },
   "button": {
     "add": "Adicionar",
     "update": "Atualizar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "confirm": "Confirmar"
   },
   "list": {
     "title": "Músicas"
@@ -31,10 +34,20 @@
     "deleteSong": {
       "title": "Remover música",
       "description": "Tem certeza de que deseja remover a música \"{{title}}\" do artista \"{{artist}}\"? Esta ação não pode ser desfeita."
+    },
+    "copyToOrganization": {
+      "title": "Copiar música para outra organização",
+      "songDescription": "\"{{title}}\" do artista \"{{artist}}\"",
+      "description": "Selecione a organização para copiar a música:",
+      "selectOrg": "Selecione uma organização",
+      "searchOrgs": "Pesquisar organizações...",
+      "noOrgFound": "Nenhuma organização encontrada",
+      "defaultName": "Espaço pessoal"
     }
   },
   "error": {
-    "deleteSong": "Erro ao remover música"
+    "deleteSong": "Erro ao remover música",
+    "copyToOrganization": "Erro ao copiar música"
   },
   "language": {
     "english": "Inglês",

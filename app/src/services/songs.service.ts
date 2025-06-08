@@ -39,6 +39,15 @@ export class SongsService extends ApiService {
     return response;
   }
 
+  public async copyToOrganization(id: number, toOrganizationId: number): Promise<void> {
+    await this.postRequest('/songs/copyToOrganization', JSON.stringify({
+      id,
+      organizationId: toOrganizationId,
+    }), {
+      'content-type': 'application/json',
+    });
+  }
+
   public async update(id: number, value: ISong): Promise<ISong | null> {
     const response = await this.putRequest(`/songs/${id}`, JSON.stringify(value), {
       'content-type': 'application/json',

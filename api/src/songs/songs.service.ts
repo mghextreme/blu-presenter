@@ -1,13 +1,18 @@
-import { Injectable, NotFoundException, Scope } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { CreateSongDto, UpdateSongDto } from 'src/types';
 import { Song } from 'src/entities';
+import { OrganizationsService } from 'src/organizations/organizations.service';
+import { REQUEST } from '@nestjs/core';
+import { Request as ExpRequest } from 'express';
 
 @Injectable({ scope: Scope.REQUEST })
 export class SongsService {
   constructor(
     @InjectRepository(Song) private songsRepository: Repository<Song>,
+    @Inject(OrganizationsService) private organizationsService: OrganizationsService,
+    @Inject(REQUEST) private readonly request: ExpRequest,
   ) {}
 
   async findOne(orgId: number, id: number): Promise<Song | null> {
@@ -104,5 +109,30 @@ export class SongsService {
     }
 
     await this.songsRepository.delete(id);
+  }
+
+  async copyToOrganization(songId: number, organizationId: number): Promise<void> {
+    const orgId = this.request.user['organization'];
+    const song = await this.findOne(orgId, songId)
+    if (!song) {
+      throw new NotFoundException('Song not found');
+    }
+
+    const userId = this.request.user['internal']?.id;
+    const userRole = await this.organizationsService.userRole(organizationId, userId);
+
+    if (!userRole || !['owner', 'admin'].includes(userRole)) {
+      throw new NotFoundException('User does not have permission to copy songs to this organization');
+    }
+
+    this.create(
+      organizationId,
+      {
+        title: song.title,
+        artist: song.artist,
+        language: song.language,
+        blocks: song.blocks,
+      }
+    );
   }
 }

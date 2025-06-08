@@ -3,6 +3,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import { IOrganization, ISong, isRoleHigherOrEqualThan } from "@/types";
+import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
 import { Button } from "@/components/ui/button";
 import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
@@ -51,6 +52,7 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
                 <PencilIcon className="size-3" />
               </Button>
             </Link>
+            <CopySongToOrganization songId={row.original.id} title={row.original.title} artist={row.original.artist}></CopySongToOrganization>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button size="sm" className="flex-0" variant="destructive" disabled={!canDelete} title={t('actions.delete')}>

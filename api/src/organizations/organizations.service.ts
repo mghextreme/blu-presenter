@@ -9,6 +9,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import {
+  AuthInvitationDataDto,
   CreateOrganizationDto,
   EditMemberDto,
   InviteMemberDto,
@@ -24,7 +25,6 @@ import {
 } from 'src/entities';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
-import { AuthInvitationDataDto } from 'src/types/auth-invitation-data.dto';
 
 @Injectable({ scope: Scope.REQUEST })
 export class OrganizationsService {

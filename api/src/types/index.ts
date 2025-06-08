@@ -1,6 +1,7 @@
 export * from './create-song.dto';
 export * from './song-part.dto';
 export * from './update-song.dto';
+export * from './copy-song-to-organization.dto';
 
 export * from './organization-role.type';
 export * from './create-organization.dto';
@@ -19,3 +20,4 @@ export * from './token-refresh.dto';
 export * from './exchange-code.dto';
 export * from './access-token.dto';
 export * from './oauth-redirect.dto';
+export * from './auth-invitation-data.dto';
