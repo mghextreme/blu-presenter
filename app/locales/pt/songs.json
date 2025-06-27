@@ -3,7 +3,8 @@
     "title": "Título",
     "artist": "Artista",
     "parts": "Partes",
-    "language": "Idioma"
+    "language": "Idioma",
+    "editChords": "Editar cifras"
   },
   "actions": {
     "create": "Adicionar música",

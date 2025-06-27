@@ -77,7 +77,10 @@ module.exports = {
       },
       textShadow: {
         'solid': '.05em .05em 0 rgb(0, 0, 0)',
-      }
+      },
+      fontFamily: {
+        mono: ['Source Code Pro', 'ui-monospace', 'monospace'],
+      },
     },
   },
   plugins: [

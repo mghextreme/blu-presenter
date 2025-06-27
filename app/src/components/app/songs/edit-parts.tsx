@@ -10,12 +10,16 @@ import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
+export type SongEditMode = 'lyrics' | 'chords';
+
 interface EditSongPartsProps {
-  form: UseFormReturn<z.infer<typeof SongSchema>>
+  form: UseFormReturn<z.infer<typeof SongSchema>>,
+  mode: SongEditMode
 }
 
 export default function EditSongParts({
-  form
+  form,
+  mode = 'lyrics',
 }: EditSongPartsProps) {
 
   const { t } = useTranslation("songs");
@@ -38,17 +42,13 @@ export default function EditSongParts({
 
   const handleAppend = () => {
     append({ id: nextId, text: '' });
-    console.log('preAppend', nextId);
     setNextId(nextId + 1);
-    console.log('postAppend', nextId);
   }
 
   const handleDuplicate = (ix: number) => {
     const currentBlocks = form.getValues('blocks');
     insert(ix + 1, { id: nextId, text: currentBlocks[ix].text, chords: currentBlocks[ix].chords });
-    console.log('preDupe', nextId);
     setNextId(nextId + 1);
-    console.log('postDupe', nextId);
   }
 
   return (
@@ -69,7 +69,14 @@ export default function EditSongParts({
                 >
                   <li key={field.id}>
                     <div className="flex justify-stretch align-start space-x-2">
-                      <Textarea {...form.register(`blocks.${ix}.text`)} />
+                      { mode === 'chords' ? (
+                        <div className="flex-1 grid grid-cols-1 grid-rows-1 border-input shadow-xs dark:bg-input/30">
+                          <Textarea variant="invisible" className="col-start-1 row-start-1 pt-5 pb-0 font-mono leading-[3.2em] pointer-events-none text-muted-foreground" value={blocks[ix].text} />
+                          <Textarea variant="transparent" className="col-start-1 row-start-1 pt-0 pb-5 font-mono leading-[3.2em] min-h-full" {...form.register(`blocks.${ix}.chords`)} />
+                        </div>
+                      ) : (
+                        <Textarea className="flex-1" {...form.register(`blocks.${ix}.text`)} />
+                      )}
                       <SortableItemHandle asChild>
                         <Button
                           type="button"
