@@ -18,9 +18,10 @@ import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import i18next, { TFunction } from "i18next";
-import EditSongParts from "@/components/app/songs/edit-parts";
+import EditSongParts, { SongEditMode } from "@/components/app/songs/edit-parts";
 import { SongSchema } from "@/types/schemas/song.schema";
 import { z } from "zod";
+import { Toggle } from "@/components/ui/toggle";
 
 interface ILanguage {
   value: "en" | "pt" | "es" | "fr" | "de" | "it";
@@ -130,6 +131,15 @@ export default function EditSong({
       blocks: data.blocks ?? [],
     },
   });
+
+  const [editMode, setEditMode] = useState<SongEditMode>('lyrics');
+  const changeEditMode = () => {
+    if (editMode === 'lyrics') {
+      setEditMode('chords');
+    } else {
+      setEditMode('lyrics');
+    }
+  }
 
   const onSubmit = async (values: z.infer<typeof SongSchema>) => {
     try {
@@ -244,7 +254,8 @@ export default function EditSong({
           />
 
           <FormLabel>{t('input.parts')}</FormLabel>
-          <EditSongParts form={form} />
+          <Toggle variant="outline" pressed={editMode == 'chords'} onPressedChange={changeEditMode}>{t('input.editChords')}</Toggle>
+          <EditSongParts form={form} mode={editMode} />
 
           <div className="flex flex-row align-start space-x-2">
             <Button className="flex-0" type="submit" disabled={isLoading}>

@@ -3,7 +3,8 @@
     "title": "Title",
     "artist": "Artist",
     "parts": "Parts",
-    "language": "Language"
+    "language": "Language",
+    "editChords": "Edit chords"
   },
   "actions": {
     "create": "Add song",
