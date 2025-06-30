@@ -1,0 +1,18 @@
+{
+  "title": "Explorar",
+  "input": {
+    "query": "Termo de busca",
+    "languages": "Idiomas",
+    "organizations": "Organizações",
+    "searchPublicArchive": "Usar arquivo públic?",
+    "languagesPlaceholder": "Selecionar idiomas",
+    "languagesSearch": "Buscar idiomas",
+    "languagesEmpty": "Nenhum idioma encontrado",
+    "organizationsPlaceholder": "Selecionar organizações",
+    "organizationsSearch": "Buscar organizações",
+    "organizationsEmpty": "Nenhuma organização encontrada"
+  },
+  "button": {
+    "search": "Buscar"
+  }
+}

@@ -13,40 +13,45 @@ export default function AppSidebar() {
         </Link>
       </div>
       <div className="no-scrollbar flex flex-col overflow-y-auto">
-        <nav className="mt-5 px-4 py-4 lg:mt-9 lg:px-6">
-          <div>
-            <h3 className="mb-4 ml-4 text-sm font-medium text-bodydark2">MENU</h3>
+        <nav className="mt-5 px-4 py-6">
+          <ul className="flex flex-col gap-1.5">
+            <h3 className="mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.menu')}</h3>
             <hr />
-
-            <ul className="mb-6 flex flex-col gap-1.5">
-              <li>
-                <Link to={'/app'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
-                  {t('menu.home')}
-                </Link>
-              </li>
-              <li>
-                <Link to={'/app/controller'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
-                  {t('menu.controller')}
-                </Link>
-              </li>
-              <li>
-                <Link to={'/app/songs'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
-                  {t('menu.songs')}
-                </Link>
-              </li>
-              <hr />
-              <li>
-                <Link to={'/app/profile'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
-                  {t('menu.profile')}
-                </Link>
-              </li>
-              <li>
-                <Link to={'/app/organization'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
-                  {t('menu.organization')}
-                </Link>
-              </li>
-            </ul>
-          </div>
+            <li>
+              <Link to={'/app'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                {t('menu.home')}
+              </Link>
+            </li>
+            <li>
+              <Link to={'/app/controller'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                {t('menu.controller')}
+              </Link>
+            </li>
+            <li>
+              <Link to={'/app/discover'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                {t('menu.discover')}
+              </Link>
+            </li>
+            <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.organization')}</h3>
+            <hr />
+            <li>
+              <Link to={'/app/organization'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                {t('menu.organization')}
+              </Link>
+            </li>
+            <li>
+              <Link to={'/app/songs'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                {t('menu.songs')}
+              </Link>
+            </li>
+            <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.account')}</h3>
+            <hr />
+            <li>
+              <Link to={'/app/profile'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                {t('menu.profile')}
+              </Link>
+            </li>
+          </ul>
         </nav>
       </div>
     </aside>

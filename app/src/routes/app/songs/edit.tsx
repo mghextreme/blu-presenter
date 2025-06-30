@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 
-import { ISong } from "@/types";
+import { ILanguage, ISong, SupportedLanguage, supportedLanguagesMap } from "@/types";
 import { SongsService } from "@/services";
 import { useServices } from "@/hooks/services.provider";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Link, Params, useLoaderData, useNavigate } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import { useTranslation } from "react-i18next";
-import { FlagBr, FlagDe, FlagEs, FlagFr, FlagGb, FlagIt } from "@/components/logos/flags";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
@@ -23,51 +22,12 @@ import { SongSchema } from "@/types/schemas/song.schema";
 import { z } from "zod";
 import { Toggle } from "@/components/ui/toggle";
 
-interface ILanguage {
-  value: "en" | "pt" | "es" | "fr" | "de" | "it";
-  label: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-}
-
-const languages = [
-  {
-    value: "en",
-    label: "english",
-    icon: FlagGb,
-  },
-  {
-    value: "pt",
-    label: "portuguese",
-    icon: FlagBr,
-  },
-  {
-    value: "es",
-    label: "spanish",
-    icon: FlagEs,
-  },
-  {
-    value: "fr",
-    label: "french",
-    icon: FlagFr,
-  },
-  {
-    value: "de",
-    label: "german",
-    icon: FlagDe,
-  },
-  {
-    value: "it",
-    label: "italian",
-    icon: FlagIt,
-  },
-] as ILanguage[];
-
 export async function loader({ params, songsService }: { params: Params, songsService: SongsService }) {
   return await songsService.getById(Number(params.id));
 }
 
 function LanguageAndIcon({ t, language }: { t: TFunction, language: ILanguage["value"] }) {
-  const lang = languages.find((lang) => lang.value === language);
+  const lang = supportedLanguagesMap.find((lang) => lang.value === language);
   if (!lang) return null;
 
   const Icon = lang.icon;
@@ -88,7 +48,7 @@ export default function EditSong({
 }: EditSongProps) {
 
   const { t } = useTranslation("songs");
-  const curLang = (i18next.resolvedLanguage || 'en') as 'en' | 'pt' | 'es' | 'fr' | 'de' | 'it';
+  const curLang = (i18next.resolvedLanguage || 'en') as SupportedLanguage;
 
   const loadedData = useLoaderData() as ISong;
   if (loadedData) {
@@ -224,7 +184,7 @@ export default function EditSong({
                       <CommandList>
                         <CommandEmpty>{t('language.notFound')}</CommandEmpty>
                         <CommandGroup>
-                          {languages.map((language) => (
+                          {supportedLanguagesMap.map((language) => (
                             <CommandItem
                               value={language.label}
                               key={language.value}

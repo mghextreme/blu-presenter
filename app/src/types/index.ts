@@ -16,5 +16,6 @@ export * from './slide-title-content.interface';
 export * from './slide.interface';
 export * from './song-part.interface';
 export * from './song.interface';
+export * from './supported-language';
 export * from './user-organization';
 export * from './window.interface';

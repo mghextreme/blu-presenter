@@ -3,11 +3,17 @@
     "message": "Bem-vindo!"
   },
   "menu": {
+    "title": {
+      "menu": "Menu",
+      "organization": "Organização",
+      "account": "Minha Conta"
+    },
     "home": "Principal",
     "controller": "Painel de Controle",
+    "discover": "Descobrir",
+    "organization": "Editar",
     "songs": "Músicas",
-    "profile": "Meu perfil",
-    "organization": "Organização"
+    "profile": "Perfil"
   },
   "invitations": {
     "title": "Convites pendentes"

@@ -1,0 +1,18 @@
+{
+  "title": "Discover",
+  "input": {
+    "query": "Search query",
+    "languages": "Languages",
+    "organizations": "Organizations",
+    "searchPublicArchive": "Use public archive?",
+    "languagesPlaceholder": "Select languages",
+    "languagesSearch": "Search languages",
+    "languagesEmpty": "No languages found",
+    "organizationsPlaceholder": "Select organizations",
+    "organizationsSearch": "Search organizations",
+    "organizationsEmpty": "No organizations found"
+  },
+  "button": {
+    "search": "Search"
+  }
+}

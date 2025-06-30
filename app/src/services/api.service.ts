@@ -24,11 +24,19 @@ export abstract class ApiService {
 
   private refreshSession = async () => {
     try {
-      const { session } = await this.postRequest('/auth/refresh', JSON.stringify({
+      const { user, session } = await this.postRequest('/auth/refresh', JSON.stringify({
         refreshToken: this.session?.refresh_token,
-      }), {}, false) as IAuthResponse;
+      }), {
+        'content-type': 'application/json',
+      }, false) as IAuthResponse;
+
+      if (!user || !session) {
+        throw new ApiError(401, 'Unauthorized');
+      }
 
       useAuth.setState({
+        isLoggedIn: true,
+        user: user,
         session: session,
       });
     }

@@ -21,6 +21,7 @@ import OAuthCallback from "./auth/oauth-callback";
 import Welcome from "./app/welcome";
 import { loader as welcomeLoader } from "./app/welcome.loader";
 import Controller from "./app/controller";
+import Discover from "./app/discover";
 import Profile from "./app/profile";
 import { loader as profileLoader } from "./app/profile.loader";
 
@@ -53,6 +54,7 @@ export const buildRouter = (services: ServicesProviderState) => {
             <Route path="add" element={<EditSong edit={false} />} />
             <Route path=":id/edit" element={<EditSong />} loader={(loader: LoaderFunctionArgs) => editSongLoader({ params: loader.params, songsService: services.songsService })} />
           </Route>
+          <Route path="discover" element={<Discover />} />
           <Route path="organization">
             <Route index={true} element={<EditOrganization />} loader={() => editOrganizationLoader({ organizationsService: services.organizationsService })} />
             <Route path="invite" element={<InviteOrganizationMember />} loader={() => inviteOrganizationMemberLoader({ organizationsService: services.organizationsService })} />

@@ -3,11 +3,17 @@
     "message": "Welcome!"
   },
   "menu": {
+    "title": {
+      "menu": "Menu",
+      "organization": "Organization",
+      "account": "My Account"
+    },
     "home": "Home",
     "controller": "Controller",
+    "discover": "Discover",
+    "organization": "Edit",
     "songs": "Songs",
-    "profile": "My profile",
-    "organization": "Organization"
+    "profile": "Profile"
   },
   "invitations": {
     "title": "Pending invitations"
