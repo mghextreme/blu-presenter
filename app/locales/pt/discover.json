@@ -23,5 +23,9 @@
   },
   "errors": {
     "search": "Busca falhou"
+  },
+  "chords": {
+    "available": "Acordes disponíveis",
+    "notAvailable": "Acordes indisponíveis"
   }
 }

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
+import MusicalNoteIcon from "@heroicons/react/24/solid/MusicalNoteIcon";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import i18next from "i18next";
@@ -196,6 +197,7 @@ export default function Discover() {
       <ul className="mt-4 space-y-2">
         {searchResults.map((item) => {
           const canEdit = ['owner', 'admin'].includes(item.organization?.role ?? 'member');
+          const hasChords = item.blocks?.some(block => block.chords && block.chords.length > 0);
           return (
             <Card key={item.id}>
               <CardHeader>
@@ -205,10 +207,13 @@ export default function Discover() {
                 </CardHeaderText>
                 <CardHeaderActions>
                   {item.organization ? (
-                    <Badge className="me-5 item-center my-auto" variant={orgColorMap[item.organization.id]}>{item.organization.name}</Badge>
+                    <Badge className="me-3 my-auto" variant={orgColorMap[item.organization.id]}>{item.organization.name}</Badge>
                   ) : (
-                    <Badge className="me-5 item-center my-auto" variant={"outline"}>{t('organization.publicArchive')}</Badge>
+                    <Badge className="me-3 my-auto" variant={"outline"}>{t('organization.publicArchive')}</Badge>
                   )}
+                  <Badge className="me-3 p-1 my-auto" variant={hasChords ? "color-4" : "outline"} title={hasChords ? t('chords.available') : t('chords.notAvailable')}>
+                    <MusicalNoteIcon className="size-2" />
+                  </Badge>
                   <Button
                     type="button"
                     size="sm"

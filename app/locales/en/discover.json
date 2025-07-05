@@ -23,5 +23,9 @@
   },
   "errors": {
     "search": "Search failed"
+  },
+  "chords": {
+    "available": "Chords available",
+    "notAvailable": "No chords available"
   }
 }
