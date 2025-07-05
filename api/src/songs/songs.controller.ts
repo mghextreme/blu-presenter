@@ -27,12 +27,10 @@ export class SongsController {
   }
 
   @Get(':id')
-  @OrganizationRole('owner', 'admin', 'member')
   async findOne(
-    @Headers('Organization') orgId: number,
     @Param('id') id: number,
-  ): Promise<Song> {
-    return await this.songsService.findOne(orgId, id);
+  ): Promise<SongWithRoleViewModel | null> {
+    return await this.songsService.findOneInAnyOrg(id);
   }
 
   @Get('search/:query')

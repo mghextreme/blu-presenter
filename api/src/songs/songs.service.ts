@@ -34,6 +34,40 @@ export class SongsService {
     });
   }
 
+  async findOneInAnyOrg(id: number): Promise<SongWithRoleViewModel | null> {
+    const user = this.request.user['internal'];
+    const userOrgs = await this.usersService.findUserOrganizations(user.id);
+    const userOrgIds = userOrgs.map((org) => org.organization.id);
+
+    const song = await this.songsRepository.findOne({
+      select: {
+        id: true,
+        orgId: true,
+        title: true,
+        artist: true,
+        language: true,
+        blocks: true,
+      },
+      where: {
+        id,
+        orgId: Or(In(userOrgIds), IsNull()),
+      },
+    });
+
+    if (!song) {
+      return null;
+    }
+
+    const orgUser = userOrgs.find((org) => org.organization.id == song.orgId);
+    return {
+      ...song,
+      organization: orgUser ? {
+        ...orgUser.organization,
+        role: orgUser.role as 'owner' | 'admin' | 'member',
+        } : null,
+    } as SongWithRoleViewModel;
+  }
+
   async findAll(orgId: number): Promise<Song[]> {
     return this.songsRepository.find({
       select: {
