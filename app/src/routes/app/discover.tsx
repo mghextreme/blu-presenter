@@ -9,21 +9,33 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
+import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import i18next from "i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { Switch } from "@/components/ui/switch";
 import { MultiSelect } from "@/components/ui/multi-select";
-import { SupportedLanguage, supportedLanguagesMap } from "@/types";
+import { ISongWithRole, SupportedLanguage, supportedLanguagesMap } from "@/types";
 import { cn } from "@/lib/utils";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
+import { Card, CardDescription, CardHeader, CardHeaderActions, CardHeaderText, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
+import { Link } from "react-router-dom";
+import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
 
 export default function Discover() {
 
   const { t } = useTranslation("discover");
   const curLang = (i18next.resolvedLanguage || 'en') as SupportedLanguage;
   const { organizations } = useAuth();
+
+  const orgColorMap: {[orgId: number]: string} = {};
+  for (let i = 0; i < organizations.length; i++) {
+    const orgColorIndex = (i % 6) + 1;
+    orgColorMap[organizations[i].id] = 'color-' + orgColorIndex.toString();
+  }
 
   const formSchema = z.object({
     query: z.string().min(2),
@@ -46,6 +58,7 @@ export default function Discover() {
     },
   });
 
+  const [searchResults, setSearchResults] = useState<ISongWithRole[]>([]);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setLoading(true);
@@ -53,12 +66,11 @@ export default function Discover() {
         ...values,
         organizations: values.organizations?.map(x => parseInt(x)) || []
       })
-        .then((result) => {
-          console.log('Search results:', result);
-          toast.success(t('update.succeeded'));
+        .then((results) => {
+          setSearchResults(results);
         })
         .catch((e) => {
-          toast.error(t('update.failed'), {
+          toast.error(t('errors.search'), {
             description: e?.message || '',
           });
         })
@@ -176,11 +188,57 @@ export default function Discover() {
               {isLoading && (
                 <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
               )}
-              {t('button.search')}
+              {t('actions.search')}
             </Button>
           </div>
         </form>
       </Form>
+      <ul className="mt-4 space-y-2">
+        {searchResults.map((item) => {
+          const canEdit = ['owner', 'admin'].includes(item.organization?.role ?? 'member');
+          return (
+            <Card key={item.id}>
+              <CardHeader>
+                <CardHeaderText>
+                  <CardTitle>{item?.title}</CardTitle>
+                  <CardDescription>{item?.artist}</CardDescription>
+                </CardHeaderText>
+                <CardHeaderActions>
+                  {item.organization ? (
+                    <Badge className="me-5 item-center my-auto" variant={orgColorMap[item.organization.id]}>{item.organization.name}</Badge>
+                  ) : (
+                    <Badge className="me-5 item-center my-auto" variant={"outline"}>{t('organization.publicArchive')}</Badge>
+                  )}
+                  <Button
+                    type="button"
+                    size="sm"
+                    title={t('actions.view')}
+                    asChild>
+                    <Link to={`/app/songs/${item.id}/view`}>
+                      <EyeIcon className="size-3" />
+                    </Link>
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    title={t('actions.edit')}
+                    asChild={canEdit}
+                    disabled={!canEdit}>
+                    {canEdit ? (
+                      <Link to={`/app/songs/${item.id}/edit`}>
+                        <PencilIcon className="size-3" />
+                      </Link>
+                    ) : (
+                      <PencilIcon className="size-3" />
+                    )}
+                  </Button>
+                  <CopySongToOrganization songId={item.id} title={item.title} artist={item.artist} variant="default"></CopySongToOrganization>
+                </CardHeaderActions>
+              </CardHeader>
+            </Card>
+          );
+        })}
+      </ul>
     </div>
   );
 }

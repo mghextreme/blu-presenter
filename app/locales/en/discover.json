@@ -12,10 +12,16 @@
     "organizationsSearch": "Search organizations",
     "organizationsEmpty": "No organizations found"
   },
-  "button": {
-    "search": "Search"
+  "actions": {
+    "search": "Search",
+    "view": "View",
+    "edit": "Edit"
   },
   "organizations": {
-    "defaultName": "Personal space"
+    "defaultName": "Personal space",
+    "publicArchive": "Public archive"
+  },
+  "errors": {
+    "search": "Search failed"
   }
 }

@@ -12,10 +12,16 @@
     "organizationsSearch": "Buscar organizações",
     "organizationsEmpty": "Nenhuma organização encontrada"
   },
-  "button": {
-    "search": "Buscar"
+  "actions": {
+    "search": "Buscar",
+    "view": "Ver",
+    "edit": "Editar"
   },
   "organizations": {
-    "defaultName": "Espaço individual"
+    "defaultName": "Espaço individual",
+    "publicArchive": "Acervo público"
+  },
+  "errors": {
+    "search": "Busca falhou"
   }
 }

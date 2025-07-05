@@ -1,9 +1,9 @@
 import { ISong } from "./song.interface";
 
 export interface ISongWithRole extends ISong {
-  role: 'owner' | 'admin' | 'member' | null;
-  organization: {
+  organization?: {
     id: number;
     name: string;
+    role: 'owner' | 'admin' | 'member';
   };
 }
