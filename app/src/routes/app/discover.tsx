@@ -26,16 +26,25 @@ import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import { Link } from "react-router-dom";
 import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
 
+type possibleOrgColor = 'color-1' | 'color-2' | 'color-3' | 'color-4' | 'color-5' | 'color-6';
+const orgColors: possibleOrgColor[] = [
+  'color-1',
+  'color-2',
+  'color-3',
+  'color-4',
+  'color-5',
+  'color-6',
+];
+
 export default function Discover() {
 
   const { t } = useTranslation("discover");
   const curLang = (i18next.resolvedLanguage || 'en') as SupportedLanguage;
   const { organizations } = useAuth();
 
-  const orgColorMap: {[orgId: number]: string} = {};
+  const orgColorMap: {[orgId: number]: possibleOrgColor} = {};
   for (let i = 0; i < organizations.length; i++) {
-    const orgColorIndex = (i % 6) + 1;
-    orgColorMap[organizations[i].id] = 'color-' + orgColorIndex.toString();
+    orgColorMap[organizations[i].id] = orgColors[i % 6];
   }
 
   const formSchema = z.object({
