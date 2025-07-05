@@ -1,8 +1,9 @@
 import { ISongPart } from "./song-part.interface";
+import { SupportedLanguage } from "./supported-language";
 
 export interface ISong {
   id: number
-  language?: 'en' | 'pt' | 'es' | 'fr' | 'de' | 'it';
+  language?: SupportedLanguage;
   title: string
   artist?: string
   blocks?: ISongPart[]

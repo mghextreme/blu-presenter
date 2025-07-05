@@ -1,5 +1,5 @@
 import { ApiService } from "./api.service";
-import { IScheduleSong, ISlide, ISlideContent, ISlideTextContent, ISlideTitleContent, ISong } from "@/types"
+import { IScheduleSong, ISlide, ISlideContent, ISlideTextContent, ISlideTitleContent, ISong, ISongWithRole } from "@/types"
 
 export class SongsService extends ApiService {
 
@@ -29,6 +29,19 @@ export class SongsService extends ApiService {
         return await this.getRequest(`/songs/search/${encodedQuery}`) as ISong[];
       }
     });
+  }
+
+  public async advancedSearch(
+    payload: {
+      query: string;
+      organizations?: number[];
+      languages?: string[] | undefined;
+      searchPublicArchive?: boolean;
+    }
+  ): Promise<ISongWithRole[]> {
+    return await this.postRequest('/songs/advancedSearch', JSON.stringify(payload), {
+      'content-type': 'application/json',
+    }) as ISongWithRole[];
   }
 
   public async add(value: ISong): Promise<ISong | null> {

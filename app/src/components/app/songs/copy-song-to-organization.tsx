@@ -16,10 +16,11 @@ interface CopySongToOrganizationProps {
   songId: number;
   title: string;
   artist?: string;
+  variant?: "default" | "secondary";
 }
 
 export function CopySongToOrganization({
-  songId, title, artist
+  songId, title, artist, variant = "secondary"
 }: CopySongToOrganizationProps) {
 
   const { t } = useTranslation("songs");
@@ -63,7 +64,7 @@ export function CopySongToOrganization({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button size="sm" className="flex-0" variant="secondary" title={t('actions.copyToOrganization')}>
+        <Button size="sm" className="flex-0" variant={variant} title={t('actions.copyToOrganization')}>
           <DocumentDuplicateIcon className="size-3" />
         </Button>
       </AlertDialogTrigger>

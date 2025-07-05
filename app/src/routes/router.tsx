@@ -21,11 +21,13 @@ import OAuthCallback from "./auth/oauth-callback";
 import Welcome from "./app/welcome";
 import { loader as welcomeLoader } from "./app/welcome.loader";
 import Controller from "./app/controller";
+import Discover from "./app/discover";
 import Profile from "./app/profile";
 import { loader as profileLoader } from "./app/profile.loader";
 
 import SongsIndex, { loader as indexSongLoader } from "./app/songs/index";
 import EditSong, { loader as editSongLoader } from "./app/songs/edit";
+import ViewSong, { loader as viewSongLoader } from "./app/songs/view";
 
 import EditOrganization from "./app/organizations/index";
 import { loader as editOrganizationLoader } from "./app/organizations/index.loader"
@@ -51,8 +53,10 @@ export const buildRouter = (services: ServicesProviderState) => {
           <Route path="songs">
             <Route index={true} element={<SongsIndex />} loader={() => indexSongLoader({ songsService: services.songsService })} />
             <Route path="add" element={<EditSong edit={false} />} />
+            <Route path=":id/view" element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => viewSongLoader({ params: loader.params, songsService: services.songsService })} />
             <Route path=":id/edit" element={<EditSong />} loader={(loader: LoaderFunctionArgs) => editSongLoader({ params: loader.params, songsService: services.songsService })} />
           </Route>
+          <Route path="discover" element={<Discover />} />
           <Route path="organization">
             <Route index={true} element={<EditOrganization />} loader={() => editOrganizationLoader({ organizationsService: services.organizationsService })} />
             <Route path="invite" element={<InviteOrganizationMember />} loader={() => inviteOrganizationMemberLoader({ organizationsService: services.organizationsService })} />

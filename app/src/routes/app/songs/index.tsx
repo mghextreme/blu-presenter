@@ -2,6 +2,7 @@ import { Link, useLoaderData, useRevalidator } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table"
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
+import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
 import { IOrganization, ISong, isRoleHigherOrEqualThan } from "@/types";
 import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
 import { Button } from "@/components/ui/button";
@@ -42,16 +43,30 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
       id: "actions",
       cell: ({ row }) => {
         const canDelete = isRoleHigherOrEqualThan(organization?.role ?? 'member', 'admin');
+        const canEdit = isRoleHigherOrEqualThan(organization?.role ?? 'member', 'member');
         return (
           <div className="flex justify-end space-x-2 -m-1">
-            <Link to={`/app/songs/${row.original.id}/edit`}>
+            {canEdit ? (
               <Button
                 type="button"
                 size="sm"
-                title={t('actions.edit')}>
-                <PencilIcon className="size-3" />
+                title={t('actions.edit')}
+                asChild>
+                <Link to={`/app/songs/${row.original.id}/edit`}>
+                  <PencilIcon className="size-3" />
+                </Link>
               </Button>
-            </Link>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                title={t('actions.view')}
+                asChild>
+                <Link to={`/app/songs/${row.original.id}/view`}>
+                  <EyeIcon className="size-3" />
+                </Link>
+              </Button>
+            )}
             <CopySongToOrganization songId={row.original.id} title={row.original.title} artist={row.original.artist}></CopySongToOrganization>
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -109,7 +124,8 @@ export default function Songs() {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl mb-4">{t('list.title')}</h1>
+      <h1 className="text-3xl mb-2">{t('list.title')}</h1>
+      <h2 className="text-lg mb-4 opacity-50">{organization?.name || t('organizations.defaultName')}</h2>
       <DataTable columns={columns} data={data ?? []} addButton={(
         <Link to="/app/songs/add"><Button>{t('actions.create')}</Button></Link>
       )}></DataTable>

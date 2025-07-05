@@ -1,0 +1,31 @@
+{
+  "title": "Explorar",
+  "input": {
+    "query": "Termo de busca",
+    "languages": "Idiomas",
+    "organizations": "Organizações",
+    "searchPublicArchive": "Usar acervo público?",
+    "languagesPlaceholder": "Selecionar idiomas",
+    "languagesSearch": "Buscar idiomas",
+    "languagesEmpty": "Nenhum idioma encontrado",
+    "organizationsPlaceholder": "Selecionar organizações",
+    "organizationsSearch": "Buscar organizações",
+    "organizationsEmpty": "Nenhuma organização encontrada"
+  },
+  "actions": {
+    "search": "Buscar",
+    "view": "Ver",
+    "edit": "Editar"
+  },
+  "organizations": {
+    "defaultName": "Espaço individual",
+    "publicArchive": "Acervo público"
+  },
+  "errors": {
+    "search": "Busca falhou"
+  },
+  "chords": {
+    "available": "Acordes disponíveis",
+    "notAvailable": "Acordes indisponíveis"
+  }
+}

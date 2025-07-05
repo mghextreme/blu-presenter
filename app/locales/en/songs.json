@@ -4,7 +4,8 @@
     "artist": "Artist",
     "parts": "Parts",
     "language": "Language",
-    "editChords": "Edit chords"
+    "editChords": "Edit chords",
+    "organization": "Organization"
   },
   "actions": {
     "create": "Add song",
@@ -16,7 +17,8 @@
     "add": "Add",
     "update": "Update",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "back": "Back"
   },
   "list": {
     "title": "Songs"
@@ -57,5 +59,9 @@
     "french": "French",
     "german": "German",
     "italian": "Italian"
+  },
+  "organizations": {
+    "defaultName": "Personal space",
+    "publicArchive": "Public archive"
   }
 }

@@ -61,7 +61,7 @@ export default function SongSearchResult({
           </CardHeaderActions>
         </CardHeader>
         <CollapsibleContent>
-          <CardContent className="bg-background pt-3">
+          <CardContent className="bg-background py-3">
             {item?.slides.map((s, ix) => (
               <SlideSelector key={ix} slide={s} index={ix} disabled={true}></SlideSelector>
             ))}

@@ -4,7 +4,8 @@
     "artist": "Artista",
     "parts": "Partes",
     "language": "Idioma",
-    "editChords": "Editar cifras"
+    "editChords": "Editar cifras",
+    "organization": "Organização"
   },
   "actions": {
     "create": "Adicionar música",
@@ -16,7 +17,8 @@
     "add": "Adicionar",
     "update": "Atualizar",
     "cancel": "Cancelar",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "back": "Voltar"
   },
   "list": {
     "title": "Músicas"
@@ -57,5 +59,9 @@
     "french": "Francês",
     "german": "Alemão",
     "italian": "Italiano"
+  },
+  "organizations": {
+    "defaultName": "Espaço individual",
+    "publicArchive": "Acervo público"
   }
 }

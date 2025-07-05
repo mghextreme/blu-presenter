@@ -25,8 +25,7 @@ export default function OAuthCallback() {
   if (rawInvite) {
     try {
       invite = JSON.parse(rawInvite) as IAuthInvitationData;
-    }
-    catch (e) {
+    } catch (e) {
       console.log(e);
     }
   }

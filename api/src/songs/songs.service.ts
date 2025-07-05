@@ -1,17 +1,20 @@
-import { Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
-import { CreateSongDto, UpdateSongDto } from 'src/types';
-import { Song } from 'src/entities';
+import { FindOperator, ILike, In, IsNull, Or, Repository } from 'typeorm';
+import { AdvancedSearchDto, CreateSongDto, UpdateSongDto } from 'src/types';
+import { OrganizationUser, Song } from 'src/entities';
 import { OrganizationsService } from 'src/organizations/organizations.service';
+import { UsersService } from 'src/users/users.service';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
+import { SongWithRoleViewModel } from 'src/models/song-with-role.view-model';
 
 @Injectable({ scope: Scope.REQUEST })
 export class SongsService {
   constructor(
-    @InjectRepository(Song) private songsRepository: Repository<Song>,
-    @Inject(OrganizationsService) private organizationsService: OrganizationsService,
+    @InjectRepository(Song) private readonly songsRepository: Repository<Song>,
+    @Inject(OrganizationsService) private readonly organizationsService: OrganizationsService,
+    @Inject(UsersService) private readonly usersService: UsersService,
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {}
 
@@ -29,6 +32,40 @@ export class SongsService {
         orgId,
       },
     });
+  }
+
+  async findOneInAnyOrg(id: number): Promise<SongWithRoleViewModel | null> {
+    const user = this.request.user['internal'];
+    const userOrgs = await this.usersService.findUserOrganizations(user.id);
+    const userOrgIds = userOrgs.map((org) => org.organization.id);
+
+    const song = await this.songsRepository.findOne({
+      select: {
+        id: true,
+        orgId: true,
+        title: true,
+        artist: true,
+        language: true,
+        blocks: true,
+      },
+      where: {
+        id,
+        orgId: Or(In(userOrgIds), IsNull()),
+      },
+    });
+
+    if (!song) {
+      return null;
+    }
+
+    const orgUser = userOrgs.find((org) => org.organization.id == song.orgId);
+    return {
+      ...song,
+      organization: orgUser ? {
+        ...orgUser.organization,
+        role: orgUser.role as 'owner' | 'admin' | 'member',
+        } : null,
+    } as SongWithRoleViewModel;
   }
 
   async findAll(orgId: number): Promise<Song[]> {
@@ -67,6 +104,77 @@ export class SongsService {
       order: {
         title: 'asc',
       },
+    });
+  }
+
+  async advancedSearch(advancedSearchDto: AdvancedSearchDto): Promise<SongWithRoleViewModel[]> {
+    const user = this.request.user['internal'];
+    const userOrgs = await this.usersService.findUserOrganizations(user.id);
+    const userOrgIds = userOrgs.map((org) => org.organization.id);
+
+    let orgIdCondition: { orgId: FindOperator<number>};
+    if (advancedSearchDto.organizations && advancedSearchDto.organizations.length > 0) {
+      if (!advancedSearchDto.organizations.every((id: number) => userOrgIds.includes(id))) {
+        throw new ForbiddenException('You selected an organization which you don\'t have permissions to access.');
+      }
+
+      orgIdCondition = { orgId: In(advancedSearchDto.organizations) };
+    } else {
+      orgIdCondition = { orgId: In(userOrgIds) };
+    }
+
+    if (advancedSearchDto.searchPublicArchive) {
+      orgIdCondition.orgId = Or(orgIdCondition.orgId, IsNull());
+    }
+
+    const languageCondition = advancedSearchDto.languages && advancedSearchDto.languages.length > 0
+      ? {language: In(advancedSearchDto.languages)}
+      : {};
+
+    const whereQuery = [
+      {
+        ...orgIdCondition,
+        ...languageCondition,
+        title: ILike(`%${advancedSearchDto.query}%`),
+      },
+      {
+        ...orgIdCondition,
+        ...languageCondition,
+        artist: ILike(`%${advancedSearchDto.query}%`),
+      },
+    ];
+
+    const songs = await this.songsRepository.find({
+      where: whereQuery,
+      select: {
+        id: true,
+        orgId: true,
+        title: true,
+        artist: true,
+        blocks: true,
+      },
+      order: {
+        orgId: {
+          nulls: 'last',
+        },
+      },
+      take: 100,
+    });
+
+    const userOrgsMap: {[key: number]: Partial<OrganizationUser>} = {};
+    for (const org of userOrgs) {
+      userOrgsMap[org.organization.id] = org;
+    }
+
+    return songs.map((song) => {
+      const orgUser = userOrgsMap[song.orgId];
+      return {
+        ...song,
+        organization: orgUser ? {
+          ...orgUser.organization,
+          role: orgUser.role as 'owner' | 'admin' | 'member',
+         } : null,
+      } as SongWithRoleViewModel;
     });
   }
 
