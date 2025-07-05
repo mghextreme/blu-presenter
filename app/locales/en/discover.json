@@ -14,5 +14,8 @@
   },
   "button": {
     "search": "Search"
+  },
+  "organizations": {
+    "defaultName": "Personal space"
   }
 }

@@ -1,5 +1,6 @@
-import { IsNotEmpty, Length } from 'class-validator';
+import { IsIn, IsNotEmpty, Length } from 'class-validator';
 import { SongPartDto } from './song-part.dto';
+import { SupportedLanguages } from './supported-languages';
 
 export class CreateSongDto {
   @IsNotEmpty()
@@ -8,7 +9,7 @@ export class CreateSongDto {
 
   artist?: string;
 
-  @Length(2, 2)
+  @IsIn(SupportedLanguages)
   language?: string;
 
   blocks: SongPartDto[];

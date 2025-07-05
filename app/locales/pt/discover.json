@@ -4,7 +4,7 @@
     "query": "Termo de busca",
     "languages": "Idiomas",
     "organizations": "Organizações",
-    "searchPublicArchive": "Usar arquivo públic?",
+    "searchPublicArchive": "Usar acervo público?",
     "languagesPlaceholder": "Selecionar idiomas",
     "languagesSearch": "Buscar idiomas",
     "languagesEmpty": "Nenhum idioma encontrado",
@@ -14,5 +14,8 @@
   },
   "button": {
     "search": "Buscar"
+  },
+  "organizations": {
+    "defaultName": "Espaço individual"
   }
 }

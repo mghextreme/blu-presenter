@@ -49,8 +49,12 @@ export default function Discover() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setLoading(true);
-      songsService.search('')
-        .then(() => {
+      songsService.advancedSearch({
+        ...values,
+        organizations: values.organizations?.map(x => parseInt(x)) || []
+      })
+        .then((result) => {
+          console.log('Search results:', result);
           toast.success(t('update.succeeded'));
         })
         .catch((e) => {
@@ -67,12 +71,12 @@ export default function Discover() {
     <div className="p-8">
       <h1 className="text-3xl mb-4">{t('title')}</h1>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-row space-x-2 items-stretch">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-wrap flex-row space-x-2 space-y-2 items-stretch">
           <FormField
             control={form.control}
             name="query"
             render={({ field }) => (
-              <FormItem className="flex-1">
+              <FormItem className="flex-1 min-w-48">
                 <FormLabel>{t('input.query')}</FormLabel>
                 <FormControl>
                   <Input {...field} />

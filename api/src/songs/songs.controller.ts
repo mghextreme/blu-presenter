@@ -9,13 +9,16 @@ import {
   Put,
 } from '@nestjs/common';
 import { Song } from 'src/entities';
-import { CopySongToOrganizationDto, CreateSongDto, UpdateSongDto } from 'src/types';
+import { AdvancedSearchDto, CopySongToOrganizationDto, CreateSongDto, UpdateSongDto } from 'src/types';
 import { SongsService } from './songs.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
+import { SongWithRoleViewModel } from 'src/models/song-with-role.view-model';
 
 @Controller('songs')
 export class SongsController {
-  constructor(private songsService: SongsService) {}
+  constructor(
+    private readonly songsService: SongsService,
+  ) {}
 
   @Get()
   @OrganizationRole('owner', 'admin', 'member')
@@ -39,6 +42,13 @@ export class SongsController {
     @Param('query') query: string,
   ): Promise<Song[]> {
     return await this.songsService.search(orgId, query);
+  }
+
+  @Post('advancedSearch')
+  async advancedSearch(
+    @Body() advancedSearchDto: AdvancedSearchDto,
+  ): Promise<SongWithRoleViewModel[]> {
+    return await this.songsService.advancedSearch(advancedSearchDto);
   }
 
   @Post()
