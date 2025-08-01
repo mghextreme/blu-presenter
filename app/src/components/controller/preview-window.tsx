@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { IWindow } from "@/types";
 import { v4 } from "uuid";
 import { IBrowserWindow, IScreenDetails } from "@/types/browser";
+import { useController } from "@/hooks/controller.provider";
 
 const themeOptions = [
   {
@@ -33,10 +34,14 @@ const defaultRatioOptions = [
 ];
 
 interface PreviewWindowProps {
-  closeWindow: () => void
+  closeWindow?: () => void
+  attachControllerMode?: boolean
 }
 
-export default function PreviewWindow({ closeWindow }: PreviewWindowProps) {
+export default function PreviewWindow({
+  closeWindow,
+  attachControllerMode = false,
+}: PreviewWindowProps) {
 
   const { t } = useTranslation('controller');
 
@@ -45,6 +50,10 @@ export default function PreviewWindow({ closeWindow }: PreviewWindowProps) {
   const [openPreviewRatioSelector, setOpenPreviewRatioSelector] = useState<boolean>(false);
   const [previewRatio, setPreviewRatio] = useState<string>("16/9");
   const [ratioOptions, setRatioOptions] = useState<{ value: string, label: string }[]>(defaultRatioOptions);
+
+  const {
+    setMode,
+  } = useController();
 
   const [preview, setPreview] = useState<IWindow>({
     id: v4(),
@@ -55,8 +64,13 @@ export default function PreviewWindow({ closeWindow }: PreviewWindowProps) {
   const updatePreviewTheme = (theme: string) => {
     if (theme === preview?.theme) return;
 
+    const mode = theme == 'black' ? 'slide' : 'part';
     setPreviewTheme(theme);
-    setPreview({id: v4(), theme: theme, mode: theme == 'black' ? 'slide' : 'part'} as IWindow);
+    setPreview({id: v4(), theme, mode} as IWindow);
+
+    if (attachControllerMode) {
+      setMode(mode);
+    }
   }
   const updatePreviewRatio = (ratio: string) => {
     if (ratio === previewRatio) return;
@@ -88,11 +102,13 @@ export default function PreviewWindow({ closeWindow }: PreviewWindowProps) {
         ]);
       })
     }
+
+    setMode(preview.mode);
   }, []);
 
   return (
     <>
-      <div className="absolute left-3 top-3 right-3 bottom-0 opacity-0 hover:opacity-100 transition-opacity">
+      <div className="absolute left-0 top-0 right-0 bottom-0 opacity-0 hover:opacity-100 transition-opacity">
         <div className="p-3 flex justify-stretch max-w-full space-x-2">
           <Popover open={openPreviewThemeSelector} onOpenChange={setOpenPreviewThemeSelector}>
             <PopoverTrigger asChild>
@@ -174,12 +190,14 @@ export default function PreviewWindow({ closeWindow }: PreviewWindowProps) {
               </Command>
             </PopoverContent>
           </Popover>
-          <Button
-            onClick={closeWindow}
-            title={t('preview.closeTitle')}
-            variant="outline">
-            {t('preview.close')}
-          </Button>
+          {closeWindow && (
+            <Button
+              onClick={closeWindow}
+              title={t('preview.closeTitle')}
+              variant="outline">
+              {t('preview.close')}
+            </Button>
+          )}
         </div>
       </div>
       <div className={"flex-1 rounded overflow-hidden "} style={{aspectRatio: previewRatio}}>

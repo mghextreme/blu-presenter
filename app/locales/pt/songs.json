@@ -11,7 +11,10 @@
     "create": "Adicionar música",
     "edit": "Editar música",
     "delete": "Remover música",
-    "copyToOrganization": "Copiar para outra organização"
+    "copyToOrganization": "Copiar para outra organização",
+    "view": "Visualizar música",
+    "preview": "Pré-visualizar música",
+    "close": "Fechar"
   },
   "button": {
     "add": "Adicionar",

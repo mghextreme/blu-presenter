@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Link, Params, useLoaderData } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Textarea } from "@/components/ui/textarea";
+import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
+import ControllerProvider from "@/hooks/controller.provider";
+import SongPreview from "@/components/app/songs/song-preview";
+import Preview from "@/components/icons/preview";
 
 export async function loader({ params, songsService }: { params: Params, songsService: SongsService }) {
   return await songsService.getById(Number(params.id));
@@ -24,10 +28,38 @@ export default function ViewSong() {
     orgName = data.organization.name || t("organizations.defaultName");
   }
 
+  const canEdit = data.organization?.role === 'owner' || data.organization?.role === 'admin';
+
   return (
     <>
-      <div className="flex item-center px-8 py-4 bg-slate-200 dark:bg-slate-900 gap-x-2">
+      <div className="flex items-center px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
+        <div className="buttons flex-1 flex justify-end gap-x-2">
+          <Button
+            type="button"
+            size="sm"
+            title={t('actions.edit')}
+            asChild={canEdit}
+            disabled={!canEdit}>
+            {canEdit ? (
+              <Link to={`/app/songs/${data.id}/edit`}>
+                <PencilIcon className="size-3" />
+              </Link>
+            ) : (
+              <PencilIcon className="size-3" />
+            )}
+          </Button>
+          <ControllerProvider>
+            <SongPreview song={data}>
+              <Button
+                type="button"
+                size="sm"
+                title={t('actions.preview')}>
+                <Preview className="size-5" />
+              </Button>
+            </SongPreview>
+          </ControllerProvider>
+        </div>
       </div>
       <div className="p-8">
         <h1 className="text-3xl mb-2">{data.title}</h1>
