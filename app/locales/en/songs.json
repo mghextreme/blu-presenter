@@ -11,7 +11,10 @@
     "create": "Add song",
     "edit": "Edit song",
     "delete": "Delete song",
-    "copyToOrganization": "Copy to different organization"
+    "copyToOrganization": "Copy to different organization",
+    "view": "View song",
+    "preview": "Preview song",
+    "close": "Close"
   },
   "button": {
     "add": "Add",

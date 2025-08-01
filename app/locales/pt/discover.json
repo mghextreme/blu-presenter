@@ -14,7 +14,7 @@
   },
   "actions": {
     "search": "Buscar",
-    "view": "Ver",
+    "view": "Visualizar",
     "edit": "Editar"
   },
   "organizations": {

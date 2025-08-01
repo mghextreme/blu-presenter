@@ -41,7 +41,7 @@ export default function EditSongParts({
   };
 
   const handleAppend = () => {
-    append({ id: nextId, text: '' });
+    append({ id: nextId, text: '', chords: '' });
     setNextId(nextId + 1);
   }
 

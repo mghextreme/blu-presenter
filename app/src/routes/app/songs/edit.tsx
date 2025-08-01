@@ -16,12 +16,16 @@ import { cn } from "@/lib/utils";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
+import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
 import i18next, { TFunction } from "i18next";
 import EditSongParts, { SongEditMode } from "@/components/app/songs/edit-parts";
 import { SongSchema } from "@/types/schemas/song.schema";
 import { z } from "zod";
 import { Toggle } from "@/components/ui/toggle";
 import { useAuth } from "@/hooks/useAuth";
+import Preview from "@/components/icons/preview";
+import SongPreview from "@/components/app/songs/song-preview";
+import ControllerProvider from "@/hooks/controller.provider";
 
 export async function loader({ params, songsService }: { params: Params, songsService: SongsService }) {
   return await songsService.getById(Number(params.id));
@@ -132,8 +136,29 @@ export default function EditSong({
 
   return (
     <>
-      <div className="flex item-center px-8 py-4 bg-slate-200 dark:bg-slate-900 gap-x-2">
+      <div className="flex items-center px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
+        <div className="buttons flex-1 flex justify-end gap-x-2">
+          <Button
+            type="button"
+            size="sm"
+            title={t('actions.view')}
+            asChild={true}>
+            <Link to={`/app/songs/${data.id}/view`}>
+              <EyeIcon className="size-3" />
+            </Link>
+          </Button>
+          <ControllerProvider>
+            <SongPreview song={data}>
+              <Button
+                type="button"
+                size="sm"
+                title={t('actions.preview')}>
+                <Preview className="size-5" />
+              </Button>
+            </SongPreview>
+          </ControllerProvider>
+        </div>
       </div>
       <div className="p-8">
         <h1 className="text-3xl mb-4">{edit ? t('edit.title') : t('add.title')}</h1>
