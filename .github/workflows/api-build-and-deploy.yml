@@ -35,6 +35,7 @@ jobs:
       run: |
         docker push ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY }}:latest
 
-    - name: Deploy new image to Lightsail
+    - name: Redeploy Lightsail with latest image
       run: |
-        aws lightsail create-container-service-deployment --service-name "blu-presenter-api"
+        CONTAINERS=$(aws lightsail get-container-service-deployments --service-name "blu-presenter-api" --query 'deployments[0].containers' --output json)
+        aws lightsail create-container-service-deployment --service-name "blu-presenter-api" --containers "$CONTAINERS"
