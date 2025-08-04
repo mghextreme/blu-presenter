@@ -2,7 +2,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 
-import { ILanguage, ISongWithRole, SupportedLanguage, supportedLanguagesMap } from "@/types";
+import { ILanguage, ISongWithRole, isRoleHigherOrEqualThan, SupportedLanguage, supportedLanguagesMap } from "@/types";
 import { SongsService } from "@/services";
 import { useServices } from "@/hooks/services.provider";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -77,6 +77,10 @@ export default function EditSong({
     }],
     organization: organization,
   };
+
+  if (!isRoleHigherOrEqualThan(data.organization?.role, 'guest')) {
+    throw new Error(t('error.noPermission'));
+  }
 
   const navigate = useNavigate();
 

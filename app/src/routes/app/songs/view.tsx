@@ -1,4 +1,4 @@
-import { ISongWithRole } from "@/types";
+import { ISongWithRole, isRoleHigherOrEqualThan } from "@/types";
 import { SongsService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { Link, Params, useLoaderData } from "react-router-dom";
@@ -22,13 +22,17 @@ export default function ViewSong() {
   if (!data) {
     throw new Error("Can't find song");
   }
+  
+  if (!isRoleHigherOrEqualThan(data.organization?.role, 'guest')) {
+    throw new Error(t('error.noPermission'));
+  }
 
   let orgName: string | undefined = t("organizations.publicArchive");
   if (data.organization) {
     orgName = data.organization.name || t("organizations.defaultName");
   }
 
-  const canEdit = data.organization?.role === 'owner' || data.organization?.role === 'admin';
+  const canEdit = isRoleHigherOrEqualThan(data.organization?.role, 'member');
 
   return (
     <>

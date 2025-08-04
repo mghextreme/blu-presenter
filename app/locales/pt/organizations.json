@@ -42,7 +42,14 @@
   "role": {
     "owner": "Proprietário",
     "admin": "Administrador",
-    "member": "Membro"
+    "member": "Membro",
+    "guest": "Convidado",
+    "description": {
+      "owner": "Acesso completo aos recursos e configurações da organização.",
+      "admin": "Accesso completo às músicas da organização. Também pode gerenciar membros da organização e configurações.",
+      "member": "Pode adicionar e editar músicas, mas não excluir. Não pode gerenciar membros ou configurações da organização.",
+      "guest": "Pode apenas visualizar e copiar as músicas."
+    }
   },
   "warning": {
     "personalSpace": {
@@ -54,7 +61,8 @@
     "update": "Erro ao atualizar organização",
     "copyToClipboard": "Erro ao copiar para a área de transferência",
     "inviteMember": "Erro ao convidar membro",
-    "editMember": "Erro ao atualizar membro"
+    "editMember": "Erro ao atualizar membro",
+    "noPermissions": "Sem permissões suficientes"
   },
   "message": {
     "leaveOrganization": {

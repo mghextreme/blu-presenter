@@ -42,7 +42,14 @@
   "role": {
     "owner": "Owner",
     "admin": "Admin",
-    "member": "Member"
+    "member": "Member",
+    "guest": "Guest",
+    "description": {
+      "owner": "Full access to all organization features and settings.",
+      "admin": "Full access to organization songs. Can also manage members and organization settings.",
+      "member": "Can add and edit songs, but not delete. Can't manage members or organization settings.",
+      "guest": "Can only view and copy songs."
+    }
   },
   "warning": {
     "personalSpace": {
@@ -54,7 +61,8 @@
     "update": "Failed to update organization",
     "copyToClipboard": "Failed to copy to clipboard",
     "inviteMember": "Failed to invite member",
-    "editMember": "Failed to update member"
+    "editMember": "Failed to update member",
+    "noPermissions": "Not enough permissions"
   },
   "message": {
     "leaveOrganization": {

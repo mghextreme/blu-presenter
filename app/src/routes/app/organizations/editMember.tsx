@@ -11,7 +11,7 @@ import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useTranslation } from "react-i18next";
-import { IOrganizationUser } from "@/types";
+import { IOrganizationUser, isRoleHigherOrEqualThan } from "@/types";
 import { OrganizationsService } from "@/services";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
@@ -34,24 +34,29 @@ export default function EditMember() {
   const { user } = useAuth();
   const data = useLoaderData() as IOrganizationUser;
 
+  if (!isRoleHigherOrEqualThan(data.role, 'admin')) {
+    throw new Error(t('error.noPermission'));
+  }
+
   const [isLoading, setLoading] = useState<boolean>(false);
 
   const formSchema = z.object({
-    role: z.enum(["admin", "member"]).default("member"),
+    role: z.enum(["admin", "member", "guest"]).default("guest"),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     //@ts-expect-error // TODO ver problemas de undefinable
     resolver: zodResolver(formSchema),
     defaultValues: {
-      role: (["admin", "member"].includes(data.role) ? data.role : 'member') as 'admin' | 'member',
+      role: (["admin", "member", "guest"].includes(data.role) ? data.role : 'guest') as 'admin' | 'member' | 'guest',
     },
   });
 
   const roles = [
     { label: t('role.admin'), value: 'admin' },
     { label: t('role.member'), value: 'member' },
-  ] as { label: string; value: 'admin' | 'member' }[];
+    { label: t('role.guest'), value: 'guest' },
+  ] as { label: string; value: 'admin' | 'member' | 'guest' }[];
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {

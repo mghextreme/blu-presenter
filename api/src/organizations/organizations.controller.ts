@@ -36,7 +36,7 @@ export class OrganizationsController {
   ) {}
 
   @Get('self')
-  @OrganizationRole('owner', 'admin', 'member')
+  @OrganizationRole('owner', 'admin', 'member', 'guest')
   async findSelf(): Promise<OrganizationViewModel> {
     const usersOrg = this.request.user['organization'];
     const org = await this.organizationsService.findOne(usersOrg);
@@ -111,7 +111,7 @@ export class OrganizationsController {
   }
 
   @Post('leave')
-  @OrganizationRole('admin', 'member')
+  @OrganizationRole('admin', 'member', 'guest')
   async leaveOrganization(): Promise<void> {
     const usersOrg = this.request.user['organization'];
     const user = this.request.user['internal'];

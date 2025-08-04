@@ -1,7 +1,7 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOperator, ILike, In, IsNull, Or, Repository } from 'typeorm';
-import { AdvancedSearchDto, CreateSongDto, UpdateSongDto } from 'src/types';
+import { AdvancedSearchDto, CreateSongDto, OrganizationRoleOptions, UpdateSongDto } from 'src/types';
 import { OrganizationUser, Song } from 'src/entities';
 import { OrganizationsService } from 'src/organizations/organizations.service';
 import { UsersService } from 'src/users/users.service';
@@ -63,7 +63,7 @@ export class SongsService {
       ...song,
       organization: orgUser ? {
         ...orgUser.organization,
-        role: orgUser.role as 'owner' | 'admin' | 'member',
+        role: orgUser.role as OrganizationRoleOptions,
         } : null,
     } as SongWithRoleViewModel;
   }
@@ -172,7 +172,7 @@ export class SongsService {
         ...song,
         organization: orgUser ? {
           ...orgUser.organization,
-          role: orgUser.role as 'owner' | 'admin' | 'member',
+          role: orgUser.role as OrganizationRoleOptions,
          } : null,
       } as SongWithRoleViewModel;
     });
@@ -229,7 +229,7 @@ export class SongsService {
     const userId = this.request.user['internal']?.id;
     const userRole = await this.organizationsService.userRole(organizationId, userId);
 
-    if (!userRole || !['owner', 'admin'].includes(userRole)) {
+    if (!userRole || !['owner', 'admin', 'member'].includes(userRole)) {
       throw new NotFoundException('User does not have permission to copy songs to this organization');
     }
 

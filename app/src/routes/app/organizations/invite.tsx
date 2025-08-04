@@ -4,7 +4,7 @@ import {useForm} from "react-hook-form";
 import {z} from "zod";
 
 import {useServices} from "@/hooks/services.provider";
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Link, useLoaderData, useNavigate} from "react-router-dom";
@@ -12,7 +12,7 @@ import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import {CheckIcon} from "@radix-ui/react-icons";
 import {useTranslation} from "react-i18next";
-import {IOrganization} from "@/types";
+import {IOrganization, isRoleHigherOrEqualThan} from "@/types";
 import {OrganizationsService} from "@/services";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {Command, CommandGroup, CommandItem, CommandList} from "@/components/ui/command";
@@ -25,7 +25,7 @@ export async function loader({organizationsService}: { organizationsService: Org
 
 const formSchema = z.object({
   email: z.string().email(),
-  role: z.enum(["admin", "member"]).default("member"),
+  role: z.enum(["admin", "member", "guest"]).default("guest"),
 });
 
 export default function InviteOrganizationMember() {
@@ -36,6 +36,10 @@ export default function InviteOrganizationMember() {
 
   const {organizationsService} = useServices();
   const data = useLoaderData() as IOrganization;
+  
+  if (!isRoleHigherOrEqualThan(data.role, 'admin')) {
+    throw new Error(t('error.noPermission'));
+  }
 
   const [isLoading, setLoading] = useState<boolean>(false);
 
@@ -44,14 +48,15 @@ export default function InviteOrganizationMember() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
-      role: 'member',
+      role: 'guest',
     },
   });
 
   const roles = [
     {label: t('role.admin'), value: 'admin'},
     {label: t('role.member'), value: 'member'},
-  ] as { label: string; value: 'admin' | 'member' }[];
+    {label: t('role.guest'), value: 'guest'},
+  ] as { label: string; value: 'admin' | 'member' | 'guest' }[];
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -149,6 +154,9 @@ export default function InviteOrganizationMember() {
                     </PopoverContent>
                   </Popover>
                 </div>
+                <FormDescription className="text-xs opacity-70">
+                  {t('role.description.' + field.value)}
+                </FormDescription>
                 <FormMessage/>
               </FormItem>
             )}></FormField>

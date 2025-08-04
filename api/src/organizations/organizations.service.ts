@@ -13,6 +13,7 @@ import {
   CreateOrganizationDto,
   EditMemberDto,
   InviteMemberDto,
+  isRoleHigherOrEqualThan,
   isRoleHigherThan,
   OrganizationRoleOptions,
   UpdateOrganizationDto,
@@ -201,7 +202,7 @@ export class OrganizationsService {
       );
     }
 
-    if (isRoleHigherThan(editMemberDto.role, this.request.user['role'])) {
+    if (isRoleHigherOrEqualThan(editMemberDto.role, this.request.user['role'])) {
       throw new ForbiddenException(
         `You cannot change this members role because your role is ${this.request.user['role']}`,
       );
@@ -422,11 +423,10 @@ export class OrganizationsService {
     }
 
     if (
-      member.role === 'owner' ||
-      isRoleHigherThan(member.role, this.request.user['role'])
+      isRoleHigherOrEqualThan(member.role, this.request.user['role'])
     ) {
       throw new UnprocessableEntityException(
-        'You cannot remove this role from the organization',
+        'You cannot remove this member from the organization',
       );
     }
 

@@ -11,6 +11,7 @@ import DocumentDuplicateIcon from "@heroicons/react/24/solid/DocumentDuplicateIc
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import { useServices } from "@/hooks/services.provider";
 import { toast } from "sonner";
+import { isRoleHigherOrEqualThan } from "@/types";
 
 interface CopySongToOrganizationProps {
   songId: number;
@@ -28,7 +29,7 @@ export function CopySongToOrganization({
   const { songsService } = useServices();
 
   const possibleOrgs = organizations.filter(
-    org => org.id !== organization?.id && ["owner", "admin"].includes(organization?.role ?? "member")
+    org => org.id !== organization?.id && isRoleHigherOrEqualThan(organization?.role, "member")
   ).map((org) => {
     if (!org.name) {
       org.name = t('message.copyToOrganization.defaultName');
