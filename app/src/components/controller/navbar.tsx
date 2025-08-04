@@ -10,6 +10,7 @@ import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 import XMarkIcon from "@heroicons/react/24/solid/XMarkIcon";
 import LanguageToggler from "../ui/language-toggler";
 import { useTranslation } from "react-i18next";
+import Clock from "./clock";
 
 export default function ControllerNavbar() {
 
@@ -31,6 +32,9 @@ export default function ControllerNavbar() {
           </Link>
         </div>
         <div className="flex-0 flex flex-row items-center space-x-2">
+          <Button variant="outline" disabled>
+            <Clock />
+          </Button>
           <LanguageToggler></LanguageToggler>
           <ThemeToggler></ThemeToggler>
           <ModeToggler></ModeToggler>

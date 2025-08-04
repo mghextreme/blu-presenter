@@ -3,6 +3,7 @@ import { useController } from "@/hooks/controller.provider";
 import { useEffect, useRef, useState } from "react";
 import { useWindow } from "@/hooks/window.provider";
 import { IPositionableElement } from "@/types/browser";
+import Clock from "./clock";
 
 export default function ScrollingSongVisualizer() {
 
@@ -82,7 +83,7 @@ export default function ScrollingSongVisualizer() {
 
   return (
     <div
-      className="w-full h-full bg-black overflow-hidden"
+      className="relative w-full h-full bg-black overflow-hidden"
       ref={containerDiv as React.Ref<HTMLDivElement>}
       style={{fontSize: fontSize}}>
       <div
@@ -108,6 +109,9 @@ export default function ScrollingSongVisualizer() {
             </div>
           </div>
         ))}
+      </div>
+      <div className="absolute bottom-0 right-0 py-[.2em] px-[.5em] bg-black text-white z-50">
+        <Clock />
       </div>
     </div>
   );

@@ -112,7 +112,7 @@ export default function PreviewWindow({
 
   return (
     <>
-      <div className="absolute left-0 top-0 right-0 bottom-0 opacity-0 hover:opacity-100 transition-opacity">
+      <div className="absolute left-0 top-0 right-0 bottom-0 opacity-0 hover:opacity-100 transition-opacity z-20">
         <div className="p-3 flex justify-stretch max-w-full space-x-2">
           <Popover open={openPreviewThemeSelector} onOpenChange={setOpenPreviewThemeSelector}>
             <PopoverTrigger asChild>
