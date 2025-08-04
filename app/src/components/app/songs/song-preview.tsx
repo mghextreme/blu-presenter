@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ISong } from "@/types";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import PreviewWindow from "@/components/controller/preview-window";
 import Controls from "@/components/controller/controls";
@@ -45,9 +45,9 @@ export default function SongPreview({
         {children}
       </DialogTrigger>
       <DialogContent className="xl:max-w-xl 2xl:max-w-2xl">
-        <DialogHeader>
-          <h1 className="text-xl mb-2">{t('actions.preview')} - {song.title}</h1>
-        </DialogHeader>
+        <DialogTitle className="text-xl mb-2">
+          {t('actions.preview')} - {song.title}
+        </DialogTitle>
         <div className="-mt-3 -mx-3">
           <div className="relative m-3 mb-0">
             <PreviewWindow attachControllerMode={true}></PreviewWindow>

@@ -81,6 +81,7 @@ export default function ControllerProvider({
   const [scheduleItem, setScheduleItem] = useState<IScheduleItem | undefined>(initialState.scheduleItem);
 
   const addToSchedule = (item: IScheduleItem) => {
+    item.index = schedule.length;
     const newValue = [
       ...schedule,
       item

@@ -10,6 +10,7 @@ import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 import XMarkIcon from "@heroicons/react/24/solid/XMarkIcon";
 import LanguageToggler from "../ui/language-toggler";
 import { useTranslation } from "react-i18next";
+import Clock from "./clock";
 
 export default function ControllerNavbar() {
 
@@ -31,6 +32,9 @@ export default function ControllerNavbar() {
           </Link>
         </div>
         <div className="flex-0 flex flex-row items-center space-x-2">
+          <Button variant="outline" disabled>
+            <Clock />
+          </Button>
           <LanguageToggler></LanguageToggler>
           <ThemeToggler></ThemeToggler>
           <ModeToggler></ModeToggler>
@@ -44,6 +48,7 @@ export default function ControllerNavbar() {
             <DropdownMenuContent>
               <DropdownMenuItem className="cursor-pointer" onClick={() => addWindow({id: v4(), theme: 'black', mode: 'slide'} as IWindow)}>{t('controls.windows.projector')}</DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer" onClick={() => {addWindow({id: v4(), theme: 'chromaKey', mode: 'part'} as IWindow); setMode('part')}}>{t('controls.windows.chromaKey')}</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => {addWindow({id: v4(), theme: 'chords', mode: 'slide'} as IWindow)}}>{t('controls.windows.chords')}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           {windows.length > 0 && <Button title={t('controls.windows.closeAll')} onClick={() => closeAllWindows()}>

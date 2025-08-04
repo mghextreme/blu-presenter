@@ -32,7 +32,8 @@
       "open": "Open window",
       "closeAll": "Close all windows",
       "projector": "Projector (black)",
-      "chromaKey": "Chroma Key (green)"
+      "chromaKey": "Chroma Key (green)",
+      "chords": "Chords (for band)"
     }
   },
   "screenSelector": {
@@ -56,5 +57,12 @@
       "searchPlaceholder": "Search screen or ratio...",
       "searchNoneFound": "No screen or ratio found"
     }
-  }
+  },
+  "theme": {
+    "black": "Black (slides)",
+    "chromaKey": "Chroma Key (subtitles)",
+    "chords": "Chords (for band)",
+    "none": "None selected"
+  },
+  "nextUp": "Next up..."
 }
