@@ -1,17 +1,19 @@
-export type OrganizationRoleOptions = 'owner' | 'admin' | 'member';
+export type OrganizationRoleOptions = 'owner' | 'admin' | 'member' | 'guest';
+
+const roles = ['owner', 'admin', 'member', 'guest'];
 
 export const isRoleHigherThan = (
-  role: OrganizationRoleOptions,
+  role: OrganizationRoleOptions | undefined,
   compareTo: OrganizationRoleOptions,
 ): boolean => {
-  const roles = ['owner', 'admin', 'member'];
+  if (!role) return false;
   return roles.indexOf(role) < roles.indexOf(compareTo);
 };
 
 export const isRoleHigherOrEqualThan = (
-  role: OrganizationRoleOptions,
+  role: OrganizationRoleOptions | undefined,
   compareTo: OrganizationRoleOptions,
 ): boolean => {
-  const roles = ['owner', 'admin', 'member'];
+  if (!role) return false;
   return roles.indexOf(role) <= roles.indexOf(compareTo);
 };

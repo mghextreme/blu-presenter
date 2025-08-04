@@ -1,4 +1,5 @@
 import { SongPart } from "src/entities";
+import { OrganizationRoleOptions } from "src/types";
 
 export interface SongWithRoleViewModel {
   id: number;
@@ -9,6 +10,6 @@ export interface SongWithRoleViewModel {
   organization: {
     id: number;
     name: string;
-    role: 'owner' | 'admin' | 'member';
+    role: OrganizationRoleOptions;
   } | null;
 }

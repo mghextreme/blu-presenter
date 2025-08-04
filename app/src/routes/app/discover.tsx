@@ -17,7 +17,7 @@ import i18next from "i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { Switch } from "@/components/ui/switch";
 import { MultiSelect } from "@/components/ui/multi-select";
-import { ISongWithRole, SupportedLanguage, supportedLanguagesMap } from "@/types";
+import { ISongWithRole, isRoleHigherOrEqualThan, SupportedLanguage, supportedLanguagesMap } from "@/types";
 import { cn } from "@/lib/utils";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import { Card, CardDescription, CardHeader, CardHeaderActions, CardHeaderText, CardTitle } from "@/components/ui/card";
@@ -205,7 +205,7 @@ export default function Discover() {
       </Form>
       <ul className="mt-4 space-y-2">
         {searchResults.map((item) => {
-          const canEdit = ['owner', 'admin'].includes(item.organization?.role ?? 'member');
+          const canEdit = isRoleHigherOrEqualThan(item.organization?.role, 'member');
           const hasChords = item.blocks?.some(block => block.chords && block.chords.length > 0);
           return (
             <Card key={item.id}>

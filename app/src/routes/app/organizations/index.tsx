@@ -19,7 +19,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
 import { TFunction } from "i18next";
-import { IOrganizationInvitation, IOrganizationUser, OrganizationRoleOptions, isRoleHigherThan, isRoleHigherOrEqualThan } from "@/types";
+import { IOrganizationInvitation, IOrganizationUser, OrganizationRoleOptions, isRoleHigherOrEqualThan } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -67,10 +67,10 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
     {
       id: "actions",
       cell: ({ row }) => {
-        const canDelete = isRoleHigherOrEqualThan(userRole ?? 'member', row.original.role) && row.original.email !== userEmail;
+        const canDelete = isRoleHigherOrEqualThan(userRole, row.original.role) && row.original.email !== userEmail;
         return (
           <div className="flex justify-end space-x-2 -m-1">
-            {isRoleHigherThan(userRole ?? 'member', 'member') && (
+            {isRoleHigherOrEqualThan(userRole, 'admin') && (
               <>
                 <Link to={`/app/organization/member/${row.original.id}`}>
                   <Button
@@ -172,7 +172,7 @@ const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, use
               onClick={() => copyLink(row.original.id, row.original.secret)}>
               <ClipboardCopyIcon className="size-3" />
             </Button>
-            {isRoleHigherOrEqualThan(userRole ?? 'member', 'admin') && (
+            {isRoleHigherOrEqualThan(userRole, 'admin') && (
               <Button
                 size="sm"
                 variant="destructive"
@@ -316,13 +316,13 @@ export default function EditOrganization({
                   <FormItem>
                     <FormLabel>{t('input.name')}</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled={isPersonalSpace || (edit && !isRoleHigherThan(loadedData?.role ?? 'member', 'member'))} />
+                      <Input {...field} disabled={isPersonalSpace || (edit && !isRoleHigherOrEqualThan(loadedData?.role, 'admin'))} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}></FormField>
               <div className="flex flex-row align-start space-x-2">
-                {(!isPersonalSpace && isRoleHigherThan(loadedData?.role ?? 'member', 'member') || !edit) && (
+                {(!isPersonalSpace && isRoleHigherOrEqualThan(loadedData?.role, 'admin') || !edit) && (
                   <Button className="flex-0" type="submit" disabled={isLoading}>
                     {isLoading && (
                       <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
@@ -334,11 +334,13 @@ export default function EditOrganization({
               </div>
             </form>
           </Form>
-          {edit && isRoleHigherThan(loadedData?.role ?? 'member', 'member') && (
+          {edit && isRoleHigherOrEqualThan(loadedData?.role, 'admin') && (
             <>
               <h2 className="text-xl mt-6 mb-4">{t('edit.members')}</h2>
               <DataTable columns={columns} data={loadedData.users ?? []} addButton={(
-                <Link to={`/app/organization/invite`}><Button>{t('actions.inviteMember')}</Button></Link>
+                isRoleHigherOrEqualThan(loadedData?.role, 'admin') ? (
+                  <Link to={`/app/organization/invite`}><Button>{t('actions.inviteMember')}</Button></Link>
+                ) : null
               )}></DataTable>
               {(loadedData?.invitations?.length ?? 0) > 0 && (
                 <>

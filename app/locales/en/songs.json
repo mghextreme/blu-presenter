@@ -53,7 +53,8 @@
   },
   "error": {
     "deleteSong": "Error deleting song",
-    "copyToOrganization": "Error copying song"
+    "copyToOrganization": "Error copying song",
+    "noPermission": "You don't have permission to access this song"
   },
   "language": {
     "english": "English",

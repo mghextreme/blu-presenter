@@ -42,8 +42,8 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
     {
       id: "actions",
       cell: ({ row }) => {
-        const canDelete = isRoleHigherOrEqualThan(organization?.role ?? 'member', 'admin');
-        const canEdit = isRoleHigherOrEqualThan(organization?.role ?? 'member', 'member');
+        const canDelete = isRoleHigherOrEqualThan(organization?.role, 'admin');
+        const canEdit = isRoleHigherOrEqualThan(organization?.role, 'member');
         return (
           <div className="flex justify-end space-x-2 -m-1">
             {canEdit ? (

@@ -151,7 +151,7 @@ export class OrganizationsService extends ApiService {
         const orgUsers = await this.getRequest(`/users/organizations`);
         const mappedOrgs = orgUsers.map((x: {
           id: number,
-          role: "owner" | "admin" | "member",
+          role: OrganizationRoleOptions,
           name?: string,
         }) => new UserOrganization(x.id, x.role, x.name));
 

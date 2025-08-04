@@ -21,7 +21,7 @@ export class SongsController {
   ) {}
 
   @Get()
-  @OrganizationRole('owner', 'admin', 'member')
+  @OrganizationRole('owner', 'admin', 'member', 'guest')
   async findAll(@Headers('Organization') orgId: number): Promise<Song[]> {
     return await this.songsService.findAll(orgId);
   }
@@ -34,7 +34,7 @@ export class SongsController {
   }
 
   @Get('search/:query')
-  @OrganizationRole('owner', 'admin', 'member')
+  @OrganizationRole('owner', 'admin', 'member', 'guest')
   async search(
     @Headers('Organization') orgId: number,
     @Param('query') query: string,
@@ -50,7 +50,7 @@ export class SongsController {
   }
 
   @Post()
-  @OrganizationRole('owner', 'admin')
+  @OrganizationRole('owner', 'admin', 'member')
   async create(
     @Headers('Organization') orgId: number,
     @Body() createSongDto: CreateSongDto,
@@ -59,7 +59,7 @@ export class SongsController {
   }
 
   @Post('/copyToOrganization')
-  @OrganizationRole('owner', 'admin', 'member')
+  @OrganizationRole('owner', 'admin', 'member', 'guest')
   async copyToOrganization(
     @Body() copySongDto: CopySongToOrganizationDto,
   ): Promise<void> {
@@ -67,7 +67,7 @@ export class SongsController {
   }
 
   @Put(':id')
-  @OrganizationRole('owner', 'admin')
+  @OrganizationRole('owner', 'admin', 'member')
   async update(
     @Headers('Organization') orgId: number,
     @Param('id') id: number,

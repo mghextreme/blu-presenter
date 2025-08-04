@@ -53,7 +53,8 @@
   },
   "error": {
     "deleteSong": "Erro ao remover música",
-    "copyToOrganization": "Erro ao copiar música"
+    "copyToOrganization": "Erro ao copiar música",
+    "noPermission": "Você não tem permissão para acessar esta música"
   },
   "language": {
     "english": "Inglês",
