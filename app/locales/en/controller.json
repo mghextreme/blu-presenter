@@ -63,5 +63,6 @@
     "chromaKey": "Chroma Key (subtitles)",
     "chords": "Chords (for band)",
     "none": "None selected"
-  }
+  },
+  "nextUp": "Next up..."
 }

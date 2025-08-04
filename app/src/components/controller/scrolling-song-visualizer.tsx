@@ -1,14 +1,18 @@
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { IScheduleSong } from "@/types";
 import { useController } from "@/hooks/controller.provider";
-import { useEffect, useRef, useState } from "react";
 import { useWindow } from "@/hooks/window.provider";
 import { IPositionableElement } from "@/types/browser";
 import Clock from "./clock";
 
 export default function ScrollingSongVisualizer() {
 
+  const { t } = useTranslation('controller');
+
   const {
     mode,
+    schedule,
     scheduleItem,
     selection,
   } = useController();
@@ -46,7 +50,7 @@ export default function ScrollingSongVisualizer() {
   useEffect(() => {
     const scheduledSong = scheduleItem as IScheduleSong;
     setScheduleSong(scheduledSong);
-    blocksDivs.current = blocksDivs.current.slice(0, (scheduledSong?.blocks?.length ?? 0));
+    blocksDivs.current = blocksDivs.current.slice(0, (scheduledSong?.blocks?.length ?? 0) + 1);
   }, [scheduleItem]);
   
   const [yPxOffset, setYPxOffset] = useState<number>(0);
@@ -60,8 +64,8 @@ export default function ScrollingSongVisualizer() {
       slideNumber = selection.slide - 1;
       if (slideNumber < 0) {
         slideNumber = 0;
-      } else if (slideNumber > (scheduleSong?.blocks?.length ?? 0)) {
-        slideNumber = scheduleSong?.blocks?.length ?? 0;
+      } else if (slideNumber > (scheduleSong?.blocks?.length ?? -1) + 1) {
+        slideNumber = (scheduleSong?.blocks?.length ?? -1) + 1;
       }
     }
     setSelectedSlide(slideNumber);
@@ -109,6 +113,20 @@ export default function ScrollingSongVisualizer() {
             </div>
           </div>
         ))}
+        {(schedule && scheduleItem && scheduleItem.index != undefined && scheduleItem.index < schedule.length - 1) && (
+          <div
+            //@ts-expect-error // TODO look into ref usage here
+            ref={(el: HTMLDivElement) => blocksDivs.current[-1] = el}
+            className={'flex mb-[.6em]' + ((scheduleSong?.blocks?.length ?? 0) === selectedSlide ? '' : ' opacity-75 transform-[scale(0.95)]')}>
+            <div className="w-[3em] flex flex-col justify-start items-center pr-[.5em] border-r-1 mr-[.5em]"></div>
+            <div className="px-[.5em] leading-[1.3em]">
+              {t('nextUp')}<br />
+              <span className="font-bold">
+                {schedule[scheduleItem.index + 1]?.title}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
       <div className="absolute bottom-0 right-0 py-[.2em] px-[.5em] bg-black text-white z-50">
         <Clock />
