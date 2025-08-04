@@ -14,11 +14,15 @@ import { useController } from "@/hooks/controller.provider";
 const themeOptions = [
   {
     value: "black",
-    label: "Black (slide)",
+    label: "theme.black",
   },
   {
     value: "chromaKey",
-    label: "Chroma Key (subtitles)",
+    label: "theme.chromaKey",
+  },
+  {
+    value: "chords",
+    label: "theme.chords",
   },
 ];
 
@@ -58,13 +62,13 @@ export default function PreviewWindow({
   const [preview, setPreview] = useState<IWindow>({
     id: v4(),
     theme: previewTheme,
-    mode: previewTheme == 'black' ? 'slide' : 'part',
+    mode: previewTheme == 'chromaKey' ? 'part': 'slide',
   } as IWindow);
 
   const updatePreviewTheme = (theme: string) => {
     if (theme === preview?.theme) return;
 
-    const mode = theme == 'black' ? 'slide' : 'part';
+    const mode = theme == 'chromaKey' ? 'part': 'slide';
     setPreviewTheme(theme);
     setPreview({id: v4(), theme, mode} as IWindow);
 
@@ -119,7 +123,7 @@ export default function PreviewWindow({
                 title={t('preview.theme.title')}
               >
                 <span
-                  className="truncate">{themeOptions.find((option) => option.value == previewTheme)?.label}</span>
+                  className="truncate">{t(themeOptions.find((option) => option.value == previewTheme)?.label ?? 'theme.none')}</span>
                 <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
               </Button>
             </PopoverTrigger>
@@ -137,7 +141,7 @@ export default function PreviewWindow({
                         setOpenPreviewThemeSelector(false);
                       }}
                     >
-                      {option.label}
+                      {t(option.label)}
                       <CheckIcon
                         className={cn(
                           "ml-auto h-4 w-4",
@@ -200,7 +204,7 @@ export default function PreviewWindow({
           )}
         </div>
       </div>
-      <div className={"flex-1 rounded overflow-hidden "} style={{aspectRatio: previewRatio}}>
+      <div className={"flex-1 rounded overflow-hidden"} style={{aspectRatio: previewRatio}}>
         <SlideVisualizer theme={preview.theme} mode={preview.mode}></SlideVisualizer>
       </div>
     </>

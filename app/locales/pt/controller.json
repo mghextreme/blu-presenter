@@ -32,7 +32,8 @@
       "open": "Abrir janela",
       "closeAll": "Fechar todas janelas",
       "projector": "Projetor (fundo preto)",
-      "chromaKey": "Chroma Key (fundo verde)"
+      "chromaKey": "Chroma Key (fundo verde)",
+      "chords": "Acordes (para banda)"
     }
   },
   "screenSelector": {
@@ -56,5 +57,11 @@
       "searchPlaceholder": "Pesquisar tela ou proporção...",
       "searchNoneFound": "Nenhuma tela ou proporção encontrada"
     }
+  },
+  "theme": {
+    "black": "Preto (slides)",
+    "chromaKey": "Chroma Key (legendas)",
+    "chords": "Acordes (para banda)",
+    "none": "Nenhum selecionado"
   }
 }
