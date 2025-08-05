@@ -113,24 +113,23 @@ export default function EditSong({
   }
 
   const onSubmit = async (values: z.infer<typeof SongSchema>) => {
-    try {
-      setLoading(true);
-      let action;
-      if (edit) {
-        action = songsService.update(data.id, values);
-      } else {
-        action = songsService.add(values);
-      }
-      action
-        .then(() => {
-          navigate("/app/songs", { replace: true });
-        })
-        .catch((err) => {
-          console.error(err);
-        })
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    let action;
+    if (edit) {
+      action = songsService.update(data.id, values);
+    } else {
+      action = songsService.add(values);
     }
+    action
+      .then(() => {
+        navigate("/app/songs", { replace: true });
+      })
+      .catch((err) => {
+        console.error(err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   let orgName: string | undefined = t("organizations.publicArchive");

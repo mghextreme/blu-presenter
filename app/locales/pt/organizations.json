@@ -20,7 +20,8 @@
     "invite": "Convidar",
     "leave": "Sair da organização",
     "delete": "Excluir organização",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "transfer": "Transferir organização"
   },
   "add": {
     "title": "Adicionar organização"
@@ -36,8 +37,18 @@
   },
   "invite": {
     "title": "Convidar membro",
-    "success": "Sucesso",
+    "success": "Convite criado com sucesso",
     "linkCopied": "Convite copiado para a área de transferência"
+  },
+  "transfer": {
+    "title": "Transferir organization",
+    "success": "Organização transferida com sucesso"
+  },
+  "members": {
+    "selectMember": "Selecionar membro...",
+    "searchPlaceholder": "Buscar membros...",
+    "searchNoneFound": "Nenhum membro encontrado",
+    "noOtherMembers": "Você é o único membro desta organização."
   },
   "role": {
     "owner": "Proprietário",

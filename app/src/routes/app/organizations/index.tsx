@@ -229,33 +229,32 @@ export default function EditOrganization({
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setLoading(true);
-      let action;
-      if (edit) {
-        action = organizationsService.update({
-          ...values,
-        });
-      } else {
-        action = organizationsService.add({
-          ...values,
-        });
-      }
-      action
-        .then((result: IOrganization | null) => {
-          if (!edit && result) {
-            authService.getAndSetOrganizations(result.id);
-          }
-          navigate("/app/organization", { replace: true });
-        })
-        .catch((e) => {
-          toast.error(t('update.failed'), {
-            description: e?.message || '',
-          });
-        })
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    let action;
+    if (edit) {
+      action = organizationsService.update({
+        ...values,
+      });
+    } else {
+      action = organizationsService.add({
+        ...values,
+      });
     }
+    action
+      .then((result: IOrganization | null) => {
+        if (!edit && result) {
+          authService.getAndSetOrganizations(result.id);
+        }
+        navigate("/app/organization", { replace: true });
+      })
+      .catch((e) => {
+        toast.error(t('update.failed'), {
+          description: e?.message || '',
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   const onLeaveOrganization = async () => {
@@ -351,27 +350,33 @@ export default function EditOrganization({
             </>
           )}
           <h2 className="text-xl mt-6 mb-4">{t('edit.manage')}</h2>
+          <div className="flex flex-row align-start space-x-2">
           {edit && loadedData?.role === 'owner' && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button className="flex-0" variant="destructive" disabled={true || isLoading}>
-                  {isLoading && (
-                    <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
-                  )}
-                  {t('button.delete')}
-                  </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t('message.deleteOrganization.title')}</AlertDialogTitle>
-                  <AlertDialogDescription>{t('message.deleteOrganization.description')}</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" disabled={isLoading} onClick={onDeleteOrganization}>{t('button.confirm')}</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <>
+              <Link to={'/app/organization/transfer'}>
+                <Button className="flex-0" type="button">{t('button.transfer')}</Button>
+              </Link>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button className="flex-0" variant="destructive" disabled={true || isLoading}>
+                    {isLoading && (
+                      <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+                    )}
+                    {t('button.delete')}
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t('message.deleteOrganization.title')}</AlertDialogTitle>
+                    <AlertDialogDescription>{t('message.deleteOrganization.description')}</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction variant="destructive" disabled={isLoading} onClick={onDeleteOrganization}>{t('button.confirm')}</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </>
           )}
           {loadedData && loadedData.role !== 'owner' && (
             <AlertDialog>
@@ -395,6 +400,7 @@ export default function EditOrganization({
               </AlertDialogContent>
             </AlertDialog>
           )}
+          </div>
         </>
       )}
     </div>

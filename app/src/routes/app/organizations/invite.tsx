@@ -59,20 +59,19 @@ export default function InviteOrganizationMember() {
   ] as { label: string; value: 'admin' | 'member' | 'guest' }[];
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setLoading(true);
-      organizationsService.inviteMember(values.email, values.role)
-        .then(() => {
-          navigate("/app/organization", {replace: true});
-        })
-        .catch((e) => {
-          toast.error(t('error.inviteMember'), {
-            description: e?.message || '',
-          });
-        })
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    organizationsService.inviteMember(values.email, values.role)
+      .then(() => {
+        navigate("/app/organization", {replace: true});
+      })
+      .catch((e) => {
+        toast.error(t('error.inviteMember'), {
+          description: e?.message || '',
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);

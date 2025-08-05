@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  NotImplementedException,
   Scope,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -150,6 +151,52 @@ export class OrganizationsService {
     return result as Organization;
   }
 
+  async transferOwnership(toUserId: number): Promise<void> {
+    if (this.request.user['role'] !== 'owner') {
+      throw new ForbiddenException();
+    }
+
+    const organization = this.request.user['organization'];
+    const ownerUser = this.request.user['internal'];
+
+    await this.dataSource.transaction(async (manager) => {
+      const organizationsRepository =
+        manager.getRepository(Organization);
+      const organizationUsersRepository =
+        manager.getRepository(OrganizationUser);
+
+      const promoteNewOwner = await organizationUsersRepository.update(
+        {
+          orgId: organization,
+          userId: toUserId,
+        },
+        {
+          role: 'owner',
+        },
+      );
+      
+      if (promoteNewOwner.affected < 1) {
+        throw new NotFoundException('User not found in organization');
+      }
+
+      await organizationUsersRepository.update(
+        {
+          orgId: organization,
+          userId: ownerUser.id,
+        },
+        {
+          role: 'admin',
+        },
+      );
+
+      await organizationsRepository.update({
+        id: organization,
+      }, {
+        ownerId: toUserId,
+      });
+    });
+  }
+
   async delete(id: number): Promise<void> {
     if (this.request.user['role'] !== 'owner') {
       throw new ForbiddenException();
@@ -161,7 +208,12 @@ export class OrganizationsService {
     // TODO: Delete organization invitations
     // TODO: Delete organization users
     // TODO: Delete songs
-    await this.organizationsRepository.delete(id);
+
+    throw new NotImplementedException(
+      'Deleting organizations is not implemented yet',
+    );
+
+    // await this.organizationsRepository.delete(id);
   }
 
   async getMember(orgId: number, id: number): Promise<OrganizationUser> {
