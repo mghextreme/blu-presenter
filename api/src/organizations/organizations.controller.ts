@@ -20,6 +20,7 @@ import {
   EditMemberDto,
   InviteMemberDto,
   OrganizationViewModel,
+  TransferOrganizationDto,
   UpdateOrganizationDto,
 } from 'src/types';
 import { OrganizationsService } from './organizations.service';
@@ -108,6 +109,16 @@ export class OrganizationsController {
     }
 
     await this.organizationsService.editMember(usersOrg, id, editMemberDto);
+  }
+
+  @Post('transferOwnership')
+  @OrganizationRole('owner')
+  async transferOwnership(
+    @Body() transferOrganizationDto: TransferOrganizationDto,
+  ): Promise<void> {
+    await this.organizationsService.transferOwnership(
+      transferOrganizationDto.userId,
+    );
   }
 
   @Post('leave')

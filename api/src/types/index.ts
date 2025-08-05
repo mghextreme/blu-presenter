@@ -7,6 +7,7 @@ export * from './advanced-search.dto';
 export * from './organization-role.type';
 export * from './create-organization.dto';
 export * from './update-organization.dto';
+export * from './transfer-organization.dto';
 export * from './invite-member.dto';
 export * from './edit-member.dto';
 export * from './organization.view-model';

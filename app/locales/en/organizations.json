@@ -4,7 +4,8 @@
     "name": "Name",
     "email": "Email",
     "role": "Role",
-    "invitedBy": "Invited by"
+    "invitedBy": "Invited by",
+    "transferMember": "Transfer to..."
   },
   "actions": {
     "inviteMember": "Invite member",
@@ -20,7 +21,8 @@
     "invite": "Invite",
     "leave": "Leave organization",
     "delete": "Delete organization",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "transfer": "Transfer organization"
   },
   "add": {
     "title": "Add organization"
@@ -36,8 +38,18 @@
   },
   "invite": {
     "title": "Invite member",
-    "success": "Success",
+    "success": "Invite successfully created",
     "linkCopied": "Invite link copied to clipboard"
+  },
+  "transfer": {
+    "title": "Transfer organization",
+    "success": "Organization successfully transferred"
+  },
+  "members": {
+    "selectMember": "Select member...",
+    "searchPlaceholder": "Search members...",
+    "searchNoneFound": "No members found",
+    "noOtherMembers": "You are the only member of this organization."
   },
   "role": {
     "owner": "Owner",

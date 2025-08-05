@@ -41,6 +41,14 @@ export class OrganizationsService extends ApiService {
     return result;
   }
 
+  public async transferOwnership(toUserId: number): Promise<void> {
+    await this.postRequest('/organizations/transferOwnership', JSON.stringify({
+      userId: toUserId,
+    }), {
+      'content-type': 'application/json',
+    }) as IOrganization;
+  }
+
   public async delete(): Promise<void> {
     await this.deleteRequest(`/organizations`, {
       'content-type': 'application/json',
