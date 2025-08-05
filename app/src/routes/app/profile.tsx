@@ -66,39 +66,40 @@ export default function Profile() {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setLoading(true);
-      usersService.update(values)
-        .then(() => {
-          toast.success(t('update.succeeded'));
-        })
-        .catch((e) => {
-          toast.error(t('update.failed'), {
-            description: e?.message || '',
-          });
-        })
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    usersService.update(values)
+      .then(() => {
+        toast.success(t('update.succeeded'));
+      })
+      .catch((e) => {
+        toast.error(t('update.failed'), {
+          description: e?.message || '',
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   const onChangePassword = async (values: z.infer<typeof passwordChangeformSchema>) => {
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      await authService.changePassword({
-        currentPassword: values.currentPassword,
-        newPassword: values.password,
+    authService.changePassword({
+      currentPassword: values.currentPassword,
+      newPassword: values.password,
+    })
+      .then(() => {
+        toast.success(t('changePassword.succeeded'));
+        passwordChangeForm.reset();
       })
-
-      toast.success(t('changePassword.succeeded'));
-    } catch (e: any) {
-      toast.error(t('changePassword.failed'), {
-        description: e?.message || '',
+      .catch((e) => {
+        toast.error(t('changePassword.failed'), {
+          description: e?.message || '',
+        });
+      })
+      .finally(() => {
+        setLoading(false);
       });
-    } finally {
-      setLoading(false);
-    }
   }
 
   return (

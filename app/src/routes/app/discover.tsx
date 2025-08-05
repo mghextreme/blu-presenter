@@ -70,23 +70,22 @@ export default function Discover() {
 
   const [searchResults, setSearchResults] = useState<ISongWithRole[]>([]);
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setLoading(true);
-      songsService.advancedSearch({
-        ...values,
-        organizations: values.organizations?.map(x => parseInt(x)) || []
+    setLoading(true);
+    songsService.advancedSearch({
+      ...values,
+      organizations: values.organizations?.map(x => parseInt(x)) || []
+    })
+      .then((results) => {
+        setSearchResults(results);
       })
-        .then((results) => {
-          setSearchResults(results);
-        })
-        .catch((e) => {
-          toast.error(t('errors.search'), {
-            description: e?.message || '',
-          });
-        })
-    } finally {
-      setLoading(false);
-    }
+      .catch((e) => {
+        toast.error(t('errors.search'), {
+          description: e?.message || '',
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   return (

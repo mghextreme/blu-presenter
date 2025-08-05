@@ -59,20 +59,19 @@ export default function EditMember() {
   ] as { label: string; value: 'admin' | 'member' | 'guest' }[];
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setLoading(true);
-      organizationsService.editMember(data.id, values.role)
-        .then(() => {
-          navigate("/app/organization", { replace: true });
-        })
-        .catch((e) => {
-          toast.error(t('error.editMember'), {
-            description: e?.message || '',
-          });
-        })
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    organizationsService.editMember(data.id, values.role)
+      .then(() => {
+        navigate("/app/organization", { replace: true });
+      })
+      .catch((e) => {
+        toast.error(t('error.editMember'), {
+          description: e?.message || '',
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);
@@ -80,7 +79,7 @@ export default function EditMember() {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl mb-2">{t('editMember.title')}</h1>
+      <h1 className="text-3xl mb-4">{t('editMember.title')}</h1>
       <Form {...form}>
         {/*
         // @ts-expect-error //TODO investigar  */}

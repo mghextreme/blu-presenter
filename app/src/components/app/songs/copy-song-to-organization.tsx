@@ -49,17 +49,16 @@ export function CopySongToOrganization({
       return;
     }
 
-    try {
-      setLoading(true);
-      songsService.copyToOrganization(songId, selectedOrg)
-        .catch((e) => {
-          toast.error(t('error.copyToOrganization'), {
-            description: e?.message || '',
-          });
+    setLoading(true);
+    songsService.copyToOrganization(songId, selectedOrg)
+      .catch((e) => {
+        toast.error(t('error.copyToOrganization'), {
+          description: e?.message || '',
         });
-    } finally {
-      setLoading(false);
-    }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   return (
