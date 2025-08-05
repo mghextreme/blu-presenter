@@ -210,7 +210,7 @@ export class OrganizationsService {
     // TODO: Delete songs
 
     throw new NotImplementedException(
-      'Deleting organizations is not implemented yet',
+      'Deleting organizations is not implemented yet. Coming soon!',
     );
 
     // await this.organizationsRepository.delete(id);
