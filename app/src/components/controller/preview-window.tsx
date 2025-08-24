@@ -42,7 +42,7 @@ interface PreviewWindowProps {
   attachControllerMode?: boolean
 }
 
-export default function PreviewWindow({
+export function PreviewWindow({
   closeWindow,
   attachControllerMode = false,
 }: PreviewWindowProps) {

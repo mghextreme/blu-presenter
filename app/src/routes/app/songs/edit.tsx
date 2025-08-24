@@ -23,8 +23,8 @@ import { SongSchema } from "@/types/schemas/song.schema";
 import { z } from "zod";
 import { Toggle } from "@/components/ui/toggle";
 import { useAuth } from "@/hooks/useAuth";
+import { SongPreview } from "@/components/app/songs/song-preview";
 import Preview from "@/components/icons/preview";
-import SongPreview from "@/components/app/songs/song-preview";
 import ControllerProvider from "@/hooks/controller.provider";
 
 export async function loader({ params, songsService }: { params: Params, songsService: SongsService }) {
@@ -142,7 +142,7 @@ export default function EditSong({
       <div className="flex items-center px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
         <div className="buttons flex-1 flex justify-end gap-x-2">
-          <Button
+          {edit && <Button
             type="button"
             size="sm"
             title={t('actions.view')}
@@ -150,9 +150,9 @@ export default function EditSong({
             <Link to={`/app/songs/${data.id}/view`}>
               <EyeIcon className="size-3" />
             </Link>
-          </Button>
+          </Button>}
           <ControllerProvider>
-            <SongPreview song={data}>
+            <SongPreview getSong={() => form.getValues()}>
               <Button
                 type="button"
                 size="sm"

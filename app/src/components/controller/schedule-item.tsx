@@ -7,7 +7,7 @@ import { IScheduleItem, IScheduleSong } from "@/types";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 import ChevronUpDownIcon from "@heroicons/react/24/solid/ChevronUpDownIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import SlideSelector from "./slide-selector";
+import { SlideSelector } from "./slide-selector";
 import { useTranslation } from "react-i18next";
 
 type ScheduleItemParams = {

@@ -11,7 +11,7 @@ type SlideSelectorParams = {
   index: number
 }
 
-export default function SlideSelector({
+export function SlideSelector({
   slide,
   selected = false,
   disabled = false,

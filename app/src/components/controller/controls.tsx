@@ -11,7 +11,7 @@ interface ControlsProps {
   showLogo?: boolean;
 }
 
-export default function Controls({
+export function Controls({
   showBlank = true,
   showLogo = false,
 }: ControlsProps) {

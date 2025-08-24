@@ -1,9 +1,13 @@
 {
   "plan": {
     "search": {
-      "inputPlaceholder": "Pesquisar músicas...",
-      "button": "Pesquisar",
-      "buttonLoading": "Pesquisando..."
+      "basic": "Básico",
+      "advanced": "Avançado"
+    },
+    "tabs": {
+      "searchSongs": "Buscar músicas",
+      "text": "Texto",
+      "comment": "Comentário"
     }
   },
   "songs": {

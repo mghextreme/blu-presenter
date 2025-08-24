@@ -5,6 +5,7 @@ import {
 import ProtectedRoute from "@/components/protected-route";
 import ControllerNavbar from "@/components/controller/navbar";
 import ControllerProvider from "@/hooks/controller.provider";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function ControllerLayout() {
   return (
@@ -13,6 +14,7 @@ export default function ControllerLayout() {
         <ControllerProvider>
           <ControllerNavbar></ControllerNavbar>
           <Outlet />
+          <Toaster />
         </ControllerProvider>
       </div>
     </ProtectedRoute>

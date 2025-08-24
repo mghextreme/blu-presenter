@@ -3,11 +3,11 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useController } from "@/hooks/controller.provider";
 import { IPositionableElement } from "@/types/browser";
-import SlideSelector from "./slide-selector";
-import PreviewWindow from "./preview-window";
-import Controls from "./controls";
+import { SlideSelector } from "./slide-selector";
+import { PreviewWindow } from "./preview-window";
+import { Controls } from "./controls";
 
-export default function LivePanel() {
+export function LivePanel() {
 
   const { t } = useTranslation('controller');
 

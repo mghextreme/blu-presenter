@@ -1,20 +1,20 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ISong } from "@/types";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import PreviewWindow from "@/components/controller/preview-window";
-import Controls from "@/components/controller/controls";
+import { PreviewWindow } from "@/components/controller/preview-window";
+import { Controls } from "@/components/controller/controls";
 import { useController } from "@/hooks/controller.provider";
 import { useServices } from "@/hooks/services.provider";
 
 interface SongPreviewProps {
-  song: ISong;
+  getSong: () => ISong;
   children?: ReactNode;
 }
 
-export default function SongPreview({
-  song,
+export function SongPreview({
+  getSong,
   children,
 }: SongPreviewProps) {
   const { t } = useTranslation("songs");
@@ -28,25 +28,34 @@ export default function SongPreview({
     songsService,
   } = useServices();
 
-  const setupIfOpen = (open: boolean) => {
+  const [song, setSong] = useState<ISong>();
+
+  const setupSlides = (open: boolean) => {
     if (open) {
-      let slides = songsService.toScheduleSong(song);
-      slides.slides = slides.slides.slice(1, -1);
-      setScheduleItem(slides);
-      setSelection({
-        slide: 0,
-      });
+      setSong(getSong());
     }
-  }
+  };
+
+  useEffect(() => {
+    if (!song) return;
+
+    let slides = songsService.toScheduleSong(song);
+    slides.slides = slides.slides.slice(1, -1);
+    console.log("setupSlides", song, slides);
+    setScheduleItem(slides);
+    setSelection({
+      slide: 0,
+    });
+  }, [song]);
 
   return (
-    <Dialog onOpenChange={setupIfOpen}>
+    <Dialog onOpenChange={setupSlides}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
       <DialogContent className="xl:max-w-xl 2xl:max-w-2xl">
         <DialogTitle className="text-xl mb-2">
-          {t('actions.preview')} - {song.title}
+          {t('actions.preview')} - {song?.title}
         </DialogTitle>
         <div className="-mt-3 -mx-3">
           <div className="relative m-3 mb-0">
