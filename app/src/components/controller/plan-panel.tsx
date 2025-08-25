@@ -1,9 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { PlanSearch } from "./plan-search";
+import { PlanText } from "./plan-text";
 import MusicalNoteIcon from "@heroicons/react/24/solid/MusicalNoteIcon";
 import Bars3BottomLeftIcon from "@heroicons/react/24/solid/Bars3BottomLeftIcon";
 import ChatBubbleLeftEllipsisIcon from "@heroicons/react/24/solid/ChatBubbleLeftEllipsisIcon";
+import { PlanComment } from "./plan-comment";
 
 export function PlanPanel() {
 
@@ -24,10 +26,10 @@ export function PlanPanel() {
           <PlanSearch />
         </TabsContent>
         <TabsContent value="text">
-          
+          <PlanText />
         </TabsContent>
         <TabsContent value="comment">
-          
+          <PlanComment />
         </TabsContent>
       </Tabs>
     </div>

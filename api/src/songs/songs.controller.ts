@@ -33,15 +33,6 @@ export class SongsController {
     return await this.songsService.findOneInAnyOrg(id);
   }
 
-  @Get('search/:query')
-  @OrganizationRole('owner', 'admin', 'member', 'guest')
-  async search(
-    @Headers('Organization') orgId: number,
-    @Param('query') query: string,
-  ): Promise<Song[]> {
-    return await this.songsService.search(orgId, query);
-  }
-
   @Post('advancedSearch')
   async advancedSearch(
     @Body() advancedSearchDto: AdvancedSearchDto,

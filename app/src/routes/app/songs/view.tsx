@@ -54,7 +54,7 @@ export default function ViewSong() {
             )}
           </Button>
           <ControllerProvider>
-            <SongPreview song={data}>
+            <SongPreview getSong={() => data}>
               <Button
                 type="button"
                 size="sm"

@@ -21,16 +21,6 @@ export class SongsService extends ApiService {
     });
   }
 
-  public async search(query: string): Promise<ISong[]> {
-    return await this.getOrFetch({
-      queryKey: ['songs', 'search', query],
-      queryFn: async () => {
-        const encodedQuery = encodeURIComponent(query);
-        return await this.getRequest(`/songs/search/${encodedQuery}`) as ISong[];
-      }
-    });
-  }
-
   public async advancedSearch(
     payload: {
       query: string;
@@ -106,6 +96,7 @@ export class SongsService extends ApiService {
     }) ?? [];
 
     return {
+      type: 'song',
       ...song,
       slides: [
         {},

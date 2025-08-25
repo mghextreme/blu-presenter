@@ -4,6 +4,24 @@
       "basic": "Básico",
       "advanced": "Avançado"
     },
+    "text": {
+      "input": {
+        "title": "Título",
+        "subtitle": "Subtítulo"
+      },
+      "actions": {
+        "add": "Adicionar",
+        "open": "Abrir"
+      }
+    },
+    "comment": {
+      "input": {
+        "title": "Comentário"
+      },
+      "actions": {
+        "add": "Adicionar"
+      }
+    },
     "tabs": {
       "searchSongs": "Buscar músicas",
       "text": "Texto",
@@ -14,7 +32,7 @@
     "expand": "Expandir",
     "addToSchedule": "Adicionar à programação",
     "removeFromSchedule": "Remover da pragramação",
-    "open": "Abrir música"
+    "open": "Abrir"
   },
   "mode": {
     "mode": "Método",

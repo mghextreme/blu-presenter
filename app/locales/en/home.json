@@ -1,7 +1,8 @@
 {
   "button": {
     "login": "Login",
-    "signUp": "Sign Up"
+    "signUp": "Sign Up",
+    "openDashboard": "Open Dashboard"
   },
   "hero": {
     "title": "Welcome to BluPresenter",

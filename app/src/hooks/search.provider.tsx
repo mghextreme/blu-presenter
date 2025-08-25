@@ -21,7 +21,14 @@ export type SearchProviderState = {
   results: ISongWithRole[];
 }
 
-const SearchContext = createContext<SearchProviderState>({});
+const initialState: SearchProviderState = {
+  search: () => Promise.resolve(),
+  advancedSearch: () => Promise.resolve(),
+  isSearching: false,
+  results: [],
+}
+
+const SearchContext = createContext<SearchProviderState>(initialState);
 
 export const SearchProvider = ({ songsService, children }: SearchProviderProps) => {
   const [results, setResults] = useState<ISongWithRole[]>([]);
