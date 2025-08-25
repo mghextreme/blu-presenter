@@ -1,7 +1,7 @@
 import ScheduleItem from "./schedule-item";
 import { useController } from "@/hooks/controller.provider";
 
-export default function SchedulePanel() {
+export function SchedulePanel() {
 
   const {
     schedule,

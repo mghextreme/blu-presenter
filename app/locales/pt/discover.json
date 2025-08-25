@@ -10,10 +10,12 @@
     "languagesEmpty": "Nenhum idioma encontrado",
     "organizationsPlaceholder": "Selecionar organizações",
     "organizationsSearch": "Buscar organizações",
-    "organizationsEmpty": "Nenhuma organização encontrada"
+    "organizationsEmpty": "Nenhuma organização encontrada",
+    "basicSearchPlaceholder": "Buscar músicas..."
   },
   "actions": {
     "search": "Buscar",
+    "searching": "Buscando...",
     "view": "Visualizar",
     "edit": "Editar"
   },

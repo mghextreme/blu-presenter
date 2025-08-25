@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Textarea } from "@/components/ui/textarea";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import ControllerProvider from "@/hooks/controller.provider";
-import SongPreview from "@/components/app/songs/song-preview";
+import { SongPreview } from "@/components/app/songs/song-preview";
 import Preview from "@/components/icons/preview";
 
 export async function loader({ params, songsService }: { params: Params, songsService: SongsService }) {
@@ -54,7 +54,7 @@ export default function ViewSong() {
             )}
           </Button>
           <ControllerProvider>
-            <SongPreview song={data}>
+            <SongPreview getSong={() => data}>
               <Button
                 type="button"
                 size="sm"

@@ -87,26 +87,6 @@ export class SongsService {
     });
   }
 
-  async search(orgId: number, query: string): Promise<Song[]> {
-    return await this.songsRepository.find({
-      where: [
-        { orgId, title: ILike(`%${query}%`) },
-        { orgId, artist: ILike(`%${query}%`) },
-        // TODO: search within song text
-        // { blocks: { text: ILike(`%${query}%`) } },
-      ],
-      select: {
-        id: true,
-        title: true,
-        artist: true,
-        blocks: true,
-      },
-      order: {
-        title: 'asc',
-      },
-    });
-  }
-
   async advancedSearch(advancedSearchDto: AdvancedSearchDto): Promise<SongWithRoleViewModel[]> {
     const user = this.request.user['internal'];
     const userOrgs = await this.usersService.findUserOrganizations(user.id);

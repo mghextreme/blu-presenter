@@ -10,10 +10,12 @@
     "languagesEmpty": "No languages found",
     "organizationsPlaceholder": "Select organizations",
     "organizationsSearch": "Search organizations",
-    "organizationsEmpty": "No organizations found"
+    "organizationsEmpty": "No organizations found",
+    "basicSearchPlaceholder": "Search songs..."
   },
   "actions": {
     "search": "Search",
+    "searching": "Searching...",
     "view": "View",
     "edit": "Edit"
   },

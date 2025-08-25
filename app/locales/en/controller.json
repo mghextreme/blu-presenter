@@ -1,9 +1,31 @@
 {
   "plan": {
     "search": {
-      "inputPlaceholder": "Search songs...",
-      "button": "Search",
-      "buttonLoading": "Searching..."
+      "basic": "Basic",
+      "advanced": "Advanced"
+    },
+    "text": {
+      "input": {
+        "title": "Title",
+        "subtitle": "Subtitle"
+      },
+      "actions": {
+        "add": "Add",
+        "open": "Open"
+      }
+    },
+    "comment": {
+      "input": {
+        "title": "Comment"
+      },
+      "actions": {
+        "add": "Add"
+      }
+    },
+    "tabs": {
+      "searchSongs": "Search songs",
+      "text": "Text",
+      "comment": "Comment"
     }
   },
   "songs": {

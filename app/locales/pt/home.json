@@ -1,7 +1,8 @@
 {
   "button": {
     "login": "Entrar",
-    "signUp": "Cadastrar"
+    "signUp": "Cadastrar",
+    "openDashboard": "Abrir Painel"
   },
   "hero": {
     "title": "Bem-vindo ao BluPresenter",

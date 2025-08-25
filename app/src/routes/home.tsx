@@ -2,11 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import LanguageToggler from "@/components/ui/language-toggler";
 import ThemeToggler from "@/components/ui/theme-toggler";
+import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 export default function Welcome() {
   const { t } = useTranslation("home");
+
+  const { isLoggedIn } = useAuth();
 
   return (
     <div className="min-h-screen">
@@ -15,12 +18,20 @@ export default function Welcome() {
         <div className="space-x-2 mt-4 md:mt-0">
           <LanguageToggler></LanguageToggler>
           <ThemeToggler></ThemeToggler>
-          <Link to="/login">
-            <Button variant="outline">{t('button.login')}</Button>
-          </Link>
-          <Link to="/signup">
-            <Button>{t('button.signUp')}</Button>
-          </Link>
+          {isLoggedIn ? (
+            <Link to="/app">
+              <Button>{t('button.openDashboard')}</Button>
+            </Link>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="outline">{t('button.login')}</Button>
+              </Link>
+              <Link to="/signup">
+                <Button>{t('button.signUp')}</Button>
+              </Link>
+            </>
+          )}
         </div>
       </nav>
       <div className="flex flex-col items-center justify-center py-48 px-4 bg-gray-200 dark:bg-gray-900">
@@ -31,12 +42,20 @@ export default function Welcome() {
           {t('hero.description')}
         </p>
         <div className="space-x-4">
-          <Link to="/login">
-            <Button variant="outline" size="lg">{t('button.login')}</Button>
-          </Link>
-          <Link to="/signup">
-            <Button size="lg">{t('button.signUp')}</Button>
-          </Link>
+          {isLoggedIn ? (
+            <Link to="/app">
+              <Button size="lg">{t('button.openDashboard')}</Button>
+            </Link>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="outline" size="lg">{t('button.login')}</Button>
+              </Link>
+              <Link to="/signup">
+                <Button size="lg">{t('button.signUp')}</Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
       <div className="flex flex-col items-center py-16 text-center">
