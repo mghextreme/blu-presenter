@@ -3,11 +3,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { ISongWithRole } from "@/types";
 import { useServices } from "@/hooks/services.provider";
 import { useController } from "@/hooks/controller.provider";
-import { Button } from "../ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
-import { BasicSearchForm } from "../app/search/basic-search-form";
-import { SearchResultsList } from "../app/search/search-results-list";
-import { AdvancedSearchForm } from "../app/search/advanced-search-form";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BasicSearchForm } from "@/components/app/search/basic-search-form";
+import { SearchResultsList } from "@/components/app/search/search-results-list";
+import { AdvancedSearchForm } from "@/components/app/search/advanced-search-form";
 import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 

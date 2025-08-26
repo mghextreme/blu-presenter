@@ -6,7 +6,7 @@ import {
 import { Column } from "@tanstack/react-table"
 
 import { cn } from "@/lib/utils"
-import { Button } from "../button"
+import { Button } from "@/components/ui/button"
 
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {

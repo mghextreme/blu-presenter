@@ -1,14 +1,14 @@
 import ThemeToggler from "@/components/ui/theme-toggler";
 import ModeToggler from "@/components/ui/mode-toggler";
 import { Link } from "react-router-dom";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { useController } from "@/hooks/controller.provider";
 import { v4 } from "uuid";
 import { IWindow } from "@/types";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 import XMarkIcon from "@heroicons/react/24/solid/XMarkIcon";
-import LanguageToggler from "../ui/language-toggler";
+import LanguageToggler from "@/components/ui/language-toggler";
 import { useTranslation } from "react-i18next";
 import Clock from "./clock";
 

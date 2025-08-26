@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 

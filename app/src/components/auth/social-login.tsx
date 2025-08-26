@@ -1,16 +1,16 @@
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 
-import GoogleIcon from "../logos/google";
+import GoogleIcon from "@/components/logos/google";
 import { useServices } from "@/hooks/services.provider";
 import { ApiError } from "@/types";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useInvitation } from "@/hooks/invitation.provider";
 import { IAuthInvitationData } from "@/types/auth";
-// import MicrosoftIcon from "../logos/microsoft";
-// import AppleIcon from "../logos/apple";
-// import FacebookIcon from "../logos/facebook";
-// import GithubIcon from "../logos/github";
+// import MicrosoftIcon from "@/components/logos/microsoft";
+// import AppleIcon from "@/components/logos/apple";
+// import FacebookIcon from "@/components/logos/facebook";
+// import GithubIcon from "@/components/logos/github";
 
 type SocialLoginProps = {
   isLoading: boolean

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlanSearch } from "./plan-search";
 import { PlanText } from "./plan-text";
 import MusicalNoteIcon from "@heroicons/react/24/solid/MusicalNoteIcon";

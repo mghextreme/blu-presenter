@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ReactNode, useEffect, useState } from "react";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { useWindow } from "@/hooks/window.provider";
 import { useTranslation } from "react-i18next";
 import { IBrowserWindow, IScreenDetails } from "@/types/browser";

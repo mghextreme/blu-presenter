@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import { ControllerMode, WindowTheme } from "@/types";
+import { useController } from "@/hooks/controller.provider";
 import { SingleSlideVisualizer } from "./single-slide-visualizer";
 import { ScrollingSongVisualizer } from "./scrolling-song-visualizer";
-import { useController } from "@/hooks/controller.provider";
 
 type SlideVisualizerProps = {
   mode: ControllerMode
