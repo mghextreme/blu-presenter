@@ -29,5 +29,13 @@
   "chords": {
     "available": "Acordes disponíveis",
     "notAvailable": "Acordes indisponíveis"
+  },
+  "language": {
+    "english": "Inglês",
+    "portuguese": "Português",
+    "spanish": "Espanhol",
+    "french": "Francês",
+    "german": "Alemão",
+    "italian": "Italiano"
   }
 }

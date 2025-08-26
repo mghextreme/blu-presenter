@@ -40,8 +40,7 @@ export function SongPreview({
     if (!song) return;
 
     let slides = songsService.toScheduleSong(song);
-    slides.slides = slides.slides.slice(1, -1);
-    console.log("setupSlides", song, slides);
+    slides.slides = slides.slides.slice(0, -1);
     setScheduleItem(slides);
     setSelection({
       slide: 0,
