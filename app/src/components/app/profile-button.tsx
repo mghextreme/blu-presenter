@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuItem } from "../ui/dropdown-menu";
-import { Button } from "../ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { useNavigate } from "react-router-dom";
 import { useServices } from "@/hooks/services.provider";

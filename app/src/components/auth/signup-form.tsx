@@ -14,7 +14,7 @@ import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "../ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useTranslation } from "react-i18next";
 import { useInvitation } from "@/hooks/invitation.provider";
 import { useServices } from "@/hooks/services.provider";

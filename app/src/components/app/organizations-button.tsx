@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandSeparator } from "@/components/ui/command";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandSeparator } from "../ui/command";
 import { useEffect } from "react";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";

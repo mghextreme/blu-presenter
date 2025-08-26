@@ -1,5 +1,5 @@
 import ThemeToggler from "@/components/ui/theme-toggler";
-import LanguageToggler from "../ui/language-toggler";
+import LanguageToggler from "@/components/ui/language-toggler";
 import ProfileButton from "./profile-button";
 import OrganizationsButton from "./organizations-button";
 import { useTranslation } from "react-i18next";

@@ -1,6 +1,6 @@
 import { ChangeEvent, ReactNode, useState } from "react";
 import { Table } from "@tanstack/react-table";
-import { Input } from "../input";
+import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 
 interface DataTableHeaderProps<TData> {

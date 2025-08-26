@@ -29,5 +29,13 @@
   "chords": {
     "available": "Chords available",
     "notAvailable": "No chords available"
+  },
+  "language": {
+    "english": "English",
+    "portuguese": "Portuguese",
+    "spanish": "Spanish",
+    "french": "French",
+    "german": "German",
+    "italian": "Italian"
   }
 }

@@ -1,6 +1,6 @@
 import { useController } from "@/hooks/controller.provider";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import ArrowLeftIcon from "@heroicons/react/24/outline/ArrowLeftIcon";
 import ArrowRightIcon from "@heroicons/react/24/outline/ArrowRightIcon";
 import StopSolidIcon from "@heroicons/react/24/solid/StopIcon";

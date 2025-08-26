@@ -1,6 +1,6 @@
 import { ControllerMode, ISlideContent, ISlideImageContent, ISlideTextContent, ISlideTitleContent, WindowTheme } from "@/types";
 import { useController } from "@/hooks/controller.provider";
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useWindow } from "@/hooks/window.provider";
 
 type SingleSlideVisualizerProps = {
@@ -8,10 +8,13 @@ type SingleSlideVisualizerProps = {
   theme?: WindowTheme
 }
 
-export default function SingleSlideVisualizer({
-  mode,
-  theme = 'black',
-}: SingleSlideVisualizerProps) {
+export const SingleSlideVisualizer = forwardRef((
+  {
+    mode,
+    theme = 'black',
+  }: SingleSlideVisualizerProps,
+  ref,
+) => {
 
   if (theme === 'chords') {
     return <></>; // Chords theme is not supported in single slide visualizer
@@ -50,7 +53,7 @@ export default function SingleSlideVisualizer({
   }, [childWindow]);
 
   const [toShow, setToShow] = useState<ISlideContent[]>([]);
-  useEffect(() => {
+  const updateContent = () => {
     let content: ISlideContent[] = [];
     if (overrideSlide !== undefined) {
       setToShow(overrideSlide.content ?? []);
@@ -64,7 +67,8 @@ export default function SingleSlideVisualizer({
     } else {
       setToShow(content);
     }
-  }, [mode, selectedSlide, overrideSlide, selection]);
+  }
+  useEffect(updateContent, [mode, selectedSlide, overrideSlide, selection]);
 
   const [themeClass, setThemeClass] = useState<string>('');
   useEffect(() => {
@@ -104,6 +108,15 @@ export default function SingleSlideVisualizer({
     )
   }
 
+  const update = () => {
+    updateFontSize();
+    updateContent();
+  }
+
+  useImperativeHandle(ref, () => ({
+    update,
+  }));
+
   return (
     <div
       ref={wrapperDiv as React.Ref<HTMLDivElement>}
@@ -118,4 +131,4 @@ export default function SingleSlideVisualizer({
       ))}
     </div>
   );
-}
+});

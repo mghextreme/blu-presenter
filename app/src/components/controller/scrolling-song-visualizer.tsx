@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IScheduleSong } from "@/types";
 import { useController } from "@/hooks/controller.provider";
@@ -6,7 +6,7 @@ import { useWindow } from "@/hooks/window.provider";
 import { IPositionableElement } from "@/types/browser";
 import Clock from "./clock";
 
-export default function ScrollingSongVisualizer() {
+export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
 
   const { t } = useTranslation('controller');
 
@@ -35,6 +35,16 @@ export default function ScrollingSongVisualizer() {
     setFontSize((minRel / 3).toFixed(2) + 'px');
   }
 
+  const [scheduleSong, setScheduleSong] = useState<IScheduleSong | undefined>(undefined);
+  const updateSong = () => {
+    const scheduleItemAsSong = scheduleItem as IScheduleSong;
+    setScheduleSong(scheduleItemAsSong);
+    console.log('updateSong: blocks length', scheduleItemAsSong?.blocks?.length ?? 0);
+    blocksDivs.current = blocksDivs.current.slice(0, (scheduleItemAsSong?.blocks?.length ?? 0) + 1);
+    updatePosition();
+  }
+  useEffect(updateSong, [scheduleItem]);
+
   useEffect(() => {
     updateFontSize();
 
@@ -46,26 +56,22 @@ export default function ScrollingSongVisualizer() {
     }
   }, [childWindow]);
 
-  const [scheduleSong, setScheduleSong] = useState<IScheduleSong | undefined>(undefined);
-  useEffect(() => {
-    const scheduledSong = scheduleItem as IScheduleSong;
-    setScheduleSong(scheduledSong);
-    blocksDivs.current = blocksDivs.current.slice(0, (scheduledSong?.blocks?.length ?? 0) + 1);
-  }, [scheduleItem]);
-  
   const [yPxOffset, setYPxOffset] = useState<number>(0);
   const [yPartsOffset, setYPartsOffset] = useState<number>(0);
   const [selectedSlide, setSelectedSlide] = useState<number>(0);
-  useEffect(() => {
+  const updatePosition = () => {
     const wrapper: IPositionableElement | undefined = wrapperDiv.current as IPositionableElement;
+
+    const blocksLength = scheduleSong?.blocks?.length ?? -1;
+    if (blocksLength < 0) return;
 
     let slideNumber = 0;
     if (selection.slide) {
       slideNumber = selection.slide - 1;
       if (slideNumber < 0) {
         slideNumber = 0;
-      } else if (slideNumber > (scheduleSong?.blocks?.length ?? -1) + 1) {
-        slideNumber = (scheduleSong?.blocks?.length ?? -1) + 1;
+      } else if (slideNumber > blocksLength + 1) {
+        slideNumber = blocksLength + 1;
       }
     }
     setSelectedSlide(slideNumber);
@@ -83,7 +89,20 @@ export default function ScrollingSongVisualizer() {
       }
     }
     setYPartsOffset(selectedPart);
-  }, [selection]);
+  }
+  useEffect(updatePosition, [selection, scheduleSong]);
+
+  const update = () => {
+    updateFontSize();
+    updateSong();
+    setTimeout(updatePosition, 100);
+  }
+
+  useImperativeHandle(ref, () => {
+    return {
+      update,
+    };
+  });
 
   return (
     <div
@@ -133,4 +152,4 @@ export default function ScrollingSongVisualizer() {
       </div>
     </div>
   );
-}
+});
