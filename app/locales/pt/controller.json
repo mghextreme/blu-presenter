@@ -28,11 +28,17 @@
       "comment": "Comentário"
     }
   },
-  "songs": {
-    "expand": "Expandir",
-    "addToSchedule": "Adicionar à programação",
-    "removeFromSchedule": "Remover da pragramação",
-    "open": "Abrir"
+  "schedule": {
+    "actions": {
+      "restoreLastSession": "Restaurar última sessão",
+      "clear": "Limpar programação"
+    },
+    "items": {
+      "expand": "Expandir",
+      "addToSchedule": "Adicionar à programação",
+      "removeFromSchedule": "Remover da pragramação",
+      "open": "Abrir"
+    }
   },
   "mode": {
     "mode": "Método",

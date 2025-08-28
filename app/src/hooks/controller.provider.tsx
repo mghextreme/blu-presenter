@@ -16,8 +16,9 @@ type ControllerProviderState = {
   setMode: (mode: ControllerMode) => void,
 
   schedule: IScheduleItem[],
-  addToSchedule: (item: IScheduleItem) => void,
+  addToSchedule: (item: IScheduleItem | IScheduleItem[]) => void,
   removeFromSchedule: (ix: number) => void,
+  removeAllFromSchedule: () => void,
 
   scheduleItem?: IScheduleItem,
   setScheduleItem: (item: number | IScheduleItem) => void,
@@ -47,6 +48,7 @@ const initialState: ControllerProviderState = {
   schedule: [],
   addToSchedule: () => null,
   removeFromSchedule: () => null,
+  removeAllFromSchedule: () => null,
 
   scheduleItem: undefined,
   setScheduleItem: () => null,
@@ -77,16 +79,35 @@ export default function ControllerProvider({
 }: ControllerProviderProps) {
   const [mode, setMode] = useState<ControllerMode>(initialState.mode);
 
+  if (!initialState.schedule || initialState.schedule.length < 1) {
+    try {
+      const sessionSchedule = sessionStorage.getItem('controllerSchedule');
+      if (sessionSchedule) {
+        initialState.schedule = (JSON.parse(sessionSchedule) as IScheduleItem[]) || null;
+      }
+    }
+    catch (e) {
+      // Ignore error
+    }
+  }
   const [schedule, setSchedule] = useState<IScheduleItem[]>(initialState.schedule);
   const [scheduleItem, setScheduleItem] = useState<IScheduleItem | undefined>(initialState.scheduleItem);
 
-  const addToSchedule = (item: IScheduleItem) => {
-    item.index = schedule.length;
+  const internalSetSchedule = (newSchedule: IScheduleItem[]) => {
+    sessionStorage.setItem('controllerSchedule', JSON.stringify(newSchedule));
+    localStorage.setItem('controllerSchedule', JSON.stringify(newSchedule));
+    setSchedule(newSchedule);
+  };
+
+  const addToSchedule = (item: IScheduleItem | IScheduleItem[]) => {
+    const items = Array.isArray(item) ? item : [item];
+
+    const startingIx = schedule.length;
     const newValue = [
       ...schedule,
-      item
+      ...items.map((item, ix) => ({ ...item, index: startingIx + ix }))
     ];
-    setSchedule(() => newValue);
+    internalSetSchedule(newValue);
   };
   const removeFromSchedule = (ix: number) => {
     if (scheduleItemIx !== undefined) {
@@ -99,9 +120,12 @@ export default function ControllerProvider({
 
     const newValue = [
       ...schedule.slice(0, ix),
-      ...schedule.slice(ix + 1),
+      ...schedule.slice(ix + 1).map((item, halfIx) => ({ ...item, index: ix + halfIx })),
     ]
-    setSchedule(newValue);
+    internalSetSchedule(newValue);
+  };
+  const removeAllFromSchedule = () => {
+    internalSetSchedule([]);
   };
   const externalSetScheduleItem = (item: number | IScheduleItem) => {
     if (typeof item === 'number') {
@@ -304,6 +328,7 @@ export default function ControllerProvider({
     schedule,
     addToSchedule,
     removeFromSchedule,
+    removeAllFromSchedule,
 
     scheduleItem: scheduleItem,
     setScheduleItem: externalSetScheduleItem,

@@ -28,11 +28,17 @@
       "comment": "Comment"
     }
   },
-  "songs": {
-    "expand": "Expand",
-    "addToSchedule": "Add to schedule",
-    "removeFromSchedule": "Remove from schedule",
-    "open": "Open song"
+  "schedule": {
+    "actions": {
+      "restoreLastSession": "Restore last session",
+      "clear": "Clear schedule"
+    },
+    "items": {
+      "expand": "Expand",
+      "addToSchedule": "Add to schedule",
+      "removeFromSchedule": "Remove from schedule",
+      "open": "Open song"
+    }
   },
   "mode": {
     "mode": "Mode",
