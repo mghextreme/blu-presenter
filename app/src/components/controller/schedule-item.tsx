@@ -17,7 +17,7 @@ type ScheduleItemParams = {
   index: number
 }
 
-export default function ScheduleItem({
+export function ScheduleItem({
   item,
   selected = false,
   index,
@@ -43,7 +43,12 @@ export default function ScheduleItem({
   const text = item as IScheduleText;
 
   return (
-    <Card variant={item.type === 'comment' ? 'secondary' : 'default'}>
+    <Card variant={item.type === 'comment' ? 'secondary' : 'default'} className={cn(
+      'mt-3',
+      item.type === 'song' && 'min-h-19',
+      item.type === 'text' && 'min-h-16',
+      item.type === 'comment' && 'min-h-12',
+    )}>
       <Collapsible
         open={isExpanded}
         onOpenChange={setExpanded}
@@ -66,15 +71,15 @@ export default function ScheduleItem({
           <CardHeaderActions>
             {item.type === 'song' && (
               <CollapsibleTrigger asChild>
-                <Button size="sm" title={t('songs.expand')}>
+                <Button size="sm" title={t('schedule.items.expand')}>
                   <ChevronUpDownIcon className="size-4"></ChevronUpDownIcon>
                 </Button>
               </CollapsibleTrigger>
             )}
-            <Button size="sm" title={t('songs.removeFromSchedule')} onClick={removeItem} variant={item.type === 'comment' ? 'secondary' : 'default'}>
+            <Button size="sm" title={t('schedule.items.removeFromSchedule')} onClick={removeItem} variant={item.type === 'comment' ? 'secondary' : 'default'}>
               <TrashIcon className="size-3"></TrashIcon>
             </Button>
-            <Button size="sm" title={t('songs.open')} onClick={loadItem} variant={item.type === 'comment' ? 'secondary' : 'default'}>
+            <Button size="sm" title={t('schedule.items.open')} onClick={loadItem} variant={item.type === 'comment' ? 'secondary' : 'default'}>
               <PlayIcon className="size-3"></PlayIcon>
             </Button>
           </CardHeaderActions>
