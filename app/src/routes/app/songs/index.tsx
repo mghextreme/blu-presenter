@@ -8,7 +8,6 @@ import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-orga
 import { Button } from "@/components/ui/button";
 import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
-import { SongsService } from "@/services";
 import { useServices } from "@/hooks/services.provider";
 import { useTranslation } from "react-i18next";
 import { TFunction } from "i18next";
@@ -16,10 +15,6 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-
-export async function loader({ songsService }: { songsService: SongsService }) {
-  return await songsService.getAll();
-}
 
 const buildColumns = (t: TFunction, organization: IOrganization | null, onDeleteSong: (songId: number) => void) => {
   const columns: ColumnDef<ISong>[] = [
