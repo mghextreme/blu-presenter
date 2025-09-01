@@ -75,7 +75,7 @@ export default function PrintSong() {
       }
 
       if (!added) {
-        simplifiedSequence.push(ix + 1);
+        simplifiedSequence.push(simplifiedBlocks.length + 1);
         simplifiedBlocks.push(sourceBlock);
       }
     }
