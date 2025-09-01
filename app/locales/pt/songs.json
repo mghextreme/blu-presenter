@@ -5,6 +5,7 @@
     "parts": "Partes",
     "language": "Idioma",
     "editChords": "Editar cifras",
+    "viewChords": "Ver cifras",
     "organization": "Organização"
   },
   "actions": {
@@ -14,7 +15,13 @@
     "copyToOrganization": "Copiar para outra organização",
     "view": "Visualizar música",
     "preview": "Pré-visualizar música",
-    "close": "Fechar"
+    "print": "Imprimir",
+    "close": "Fechar",
+    "increaseFont": "Aumentar fonte",
+    "resetFont": "Redefinir fonte",
+    "decreaseFont": "Diminuir fonte",
+    "numbers": "Mostrar números",
+    "compact": "Compactar partes iguais"
   },
   "button": {
     "add": "Adicionar",
@@ -67,5 +74,8 @@
   "organizations": {
     "defaultName": "Espaço individual",
     "publicArchive": "Acervo público"
+  },
+  "print": {
+    "sequence": "Sequência"
   }
 }

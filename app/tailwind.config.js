@@ -81,6 +81,10 @@ module.exports = {
       fontFamily: {
         mono: ['Source Code Pro', 'ui-monospace', 'monospace'],
       },
+      screens: {
+        print: { raw: 'print' },
+        screen: { raw: 'screen' },
+      },
     },
   },
   plugins: [

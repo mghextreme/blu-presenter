@@ -5,6 +5,7 @@
     "parts": "Parts",
     "language": "Language",
     "editChords": "Edit chords",
+    "viewChords": "View chords",
     "organization": "Organization"
   },
   "actions": {
@@ -14,7 +15,13 @@
     "copyToOrganization": "Copy to different organization",
     "view": "View song",
     "preview": "Preview song",
-    "close": "Close"
+    "print": "Print",
+    "close": "Close",
+    "increaseFont": "Increase font size",
+    "resetFont": "Reset font size",
+    "decreaseFont": "Decrease font size",
+    "numbers": "Show numbers",
+    "compact": "Compact equal parts"
   },
   "button": {
     "add": "Add",
@@ -67,5 +74,8 @@
   "organizations": {
     "defaultName": "Personal space",
     "publicArchive": "Public archive"
+  },
+  "print": {
+    "sequence": "Sequence"
   }
 }

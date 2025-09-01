@@ -3,12 +3,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 
 import { ILanguage, ISongWithRole, isRoleHigherOrEqualThan, SupportedLanguage, supportedLanguagesMap } from "@/types";
-import { SongsService } from "@/services";
 import { useServices } from "@/hooks/services.provider";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link, Params, useLoaderData, useNavigate } from "react-router-dom";
+import { Link, useLoaderData, useNavigate } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import { useTranslation } from "react-i18next";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -17,6 +16,7 @@ import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
+import PrinterIcon from "@heroicons/react/24/solid/PrinterIcon";
 import i18next, { TFunction } from "i18next";
 import EditSongParts, { SongEditMode } from "@/components/app/songs/edit-parts";
 import { SongSchema } from "@/types/schemas/song.schema";
@@ -26,10 +26,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import Preview from "@/components/icons/preview";
 import ControllerProvider from "@/hooks/controller.provider";
-
-export async function loader({ params, songsService }: { params: Params, songsService: SongsService }) {
-  return await songsService.getById(Number(params.id));
-}
 
 function LanguageAndIcon({ t, language }: { t: TFunction, language: ILanguage["value"] }) {
   const lang = supportedLanguagesMap.find((lang) => lang.value === language);
@@ -151,6 +147,15 @@ export default function EditSong({
               <EyeIcon className="size-3" />
             </Link>
           </Button>}
+          <Button
+            type="button"
+            size="sm"
+            title={t('actions.print')}
+            asChild={true}>
+            <Link to={`/app/songs/${data.id}/print`}>
+              <PrinterIcon className="size-3" />
+            </Link>
+          </Button>
           <ControllerProvider>
             <SongPreview getSong={() => form.getValues()}>
               <Button
