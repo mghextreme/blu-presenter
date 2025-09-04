@@ -85,7 +85,7 @@ export class SongsService {
     const orgUser = userOrgs.find((org) => org.organization.id == song.orgId);
     return {
       ...song,
-      references: orgUser ? song.references : [],
+      references: song.references,
       organization: orgUser ? {
         ...orgUser.organization,
         role: orgUser.role as OrganizationRoleOptions,
