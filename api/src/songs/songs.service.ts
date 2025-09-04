@@ -47,6 +47,7 @@ export class SongsService {
         artist: true,
         language: true,
         blocks: true,
+        references: true,
       },
       where: {
         id,
@@ -164,6 +165,7 @@ export class SongsService {
       artist: createSongDto.artist,
       language: createSongDto.language,
       blocks: createSongDto.blocks,
+      references: createSongDto.references ?? [],
       orgId,
     });
     const songId = result.raw[0].id;
@@ -185,6 +187,7 @@ export class SongsService {
     song.artist = updateSongDto.artist;
     song.language = updateSongDto.language;
     song.blocks = updateSongDto.blocks;
+    song.references = updateSongDto.references ?? [];
 
     const result = await this.songsRepository.save(song);
     return result as Song;
@@ -220,6 +223,7 @@ export class SongsService {
         artist: song.artist,
         language: song.language,
         blocks: song.blocks,
+        references: song.references,
       }
     );
   }

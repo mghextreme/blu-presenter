@@ -1,5 +1,6 @@
 import { IsInt, IsNotEmpty, Length, Min } from 'class-validator';
 import { SongPartDto } from './song-part.dto';
+import { SongReference } from 'src/entities';
 
 export class UpdateSongDto {
   @IsInt()
@@ -16,4 +17,6 @@ export class UpdateSongDto {
   language?: string;
 
   blocks: SongPartDto[];
+
+  references?: SongReference[];
 }
