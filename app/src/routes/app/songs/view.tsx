@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useLoaderData } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Textarea } from "@/components/ui/textarea";
+import { SpotifyCode } from "@/components/app/songs/spotify-code";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import PrinterIcon from "@heroicons/react/24/solid/PrinterIcon";
 import ControllerProvider from "@/hooks/controller.provider";
@@ -110,6 +111,9 @@ export default function ViewSong() {
               <div className="flex-1 text-sm text-muted-foreground truncate">
                 {reference.name || reference.url}
               </div>
+              {reference.url.includes('spotify.com') && (
+                <SpotifyCode songUrl={reference.url} imgWidth={320} className="max-w-28" colorScheme="theme" />
+              )}
             </div>
           ))}
         </div>}

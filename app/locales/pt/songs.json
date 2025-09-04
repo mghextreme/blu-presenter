@@ -33,7 +33,8 @@
     "resetFont": "Redefinir fonte",
     "decreaseFont": "Diminuir fonte",
     "numbers": "Mostrar números",
-    "compact": "Compactar partes iguais"
+    "compact": "Compactar partes iguais",
+    "viewSpotifyCode": "Mostrar código do Spotify"
   },
   "button": {
     "add": "Adicionar",

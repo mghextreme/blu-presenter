@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLoaderData } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+import QRCode from "react-qr-code";
 import { ISongPart, ISongWithRole, isRoleHigherOrEqualThan } from "@/types";
 import { usePrintConfig } from "@/hooks/usePrintConfig";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,8 @@ import MinusIcon from "@heroicons/react/24/solid/MinusIcon";
 import BoldIcon from "@heroicons/react/24/solid/BoldIcon";
 import NumberedListIcon from "@heroicons/react/24/solid/NumberedListIcon";
 import ArrowsPointingInIcon from "@heroicons/react/24/solid/ArrowsPointingInIcon";
+import { SpotifyCode } from "@/components/app/songs/spotify-code";
+import { SpotifyIcon } from "@/components/logos/spotify";
 
 const isBlockEqual = (a: ISongPart, b: ISongPart) => {
   return a.text === b.text && a.chords === b.chords;
@@ -36,6 +39,8 @@ export default function PrintSong() {
     toggleNumbers,
     compactMode,
     toggleCompactMode,
+    showSpotifyCode,
+    toggleSpotifyCode,
   } = usePrintConfig();
 
   if (!data) {
@@ -95,6 +100,21 @@ export default function PrintSong() {
     }
   }, [data.blocks, compactedBlocks, compactMode]);
 
+  const [spotifyUrl, setSpotifyUrl] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    if (!data || !data.references) {
+      setSpotifyUrl(undefined);
+      return;
+    }
+
+    const spotifyReference = data.references.find((ref) => ref.url.includes('spotify.com'));
+    if (spotifyReference) {
+      setSpotifyUrl(spotifyReference.url);
+    } else {
+      setSpotifyUrl(undefined);
+    }
+  }, [data.references]);
+
   return (
     <>
       <title>{t('title.print', { title: data.title, artist: data.artist }) + ' - BluPresenter'}</title>
@@ -151,6 +171,14 @@ export default function PrintSong() {
               title={t('input.viewChords')}>
               {t('input.viewChords')}
             </Toggle>
+            {spotifyUrl && <Toggle
+              variant="print"
+              size="sm"
+              pressed={showSpotifyCode}
+              onPressedChange={toggleSpotifyCode}
+              title={t('actions.viewSpotifyCode')}>
+              <SpotifyIcon className="size-3" />
+            </Toggle>}
             <div className="h-7 border-s-1 border-slate-400"></div>
             <Button
               type="button"
@@ -180,8 +208,15 @@ export default function PrintSong() {
         </div>
       </div>
       <div className="w-2xl px-2 font-mono" style={{ fontSize: `${fontSize}px` }}>
-        <h1 className="font-bold" style={{ fontSize: '1.5em' }}>{data.title}</h1>
-        <h2 className="text-slate-600 mb-[.5em]" style={{ fontSize: '1.125em' }}>{data.artist}</h2>
+        <div className="flex flex-row justify-between items-center">
+          <div>
+            <h1 className="font-bold" style={{ fontSize: '1.5em' }}>{data.title}</h1>
+            <h2 className="text-slate-600 mb-[.5em]" style={{ fontSize: '1.125em' }}>{data.artist}</h2>
+          </div>
+          <div className="max-h-16 aspect-square">
+            <QRCode value={window.location.href} className="max-h-full max-w-full" />
+          </div>
+        </div>
         <div className="relative space-y-[.75em] leading-[1.6em]" style={{ fontSize: '0.875em' }}>
           {compactMode && showNumbers && <div className="absolute top-0 right-0 flex flex-col justify-start items-end">
             <b>{t('print.sequence')}</b>
@@ -209,6 +244,11 @@ export default function PrintSong() {
               </div>
             );
           })}
+          {showSpotifyCode && !!spotifyUrl && (
+            <div className="absolute bottom-0 right-0 max-w-36">
+              <SpotifyCode songUrl={spotifyUrl} />
+            </div>
+          )}
         </div>
       </div>
     </>
