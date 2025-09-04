@@ -26,6 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import Preview from "@/components/icons/preview";
 import ControllerProvider from "@/hooks/controller.provider";
+import EditSongReferences from "@/components/app/songs/edit-references";
 
 function LanguageAndIcon({ t, language }: { t: TFunction, language: ILanguage["value"] }) {
   const lang = supportedLanguagesMap.find((lang) => lang.value === language);
@@ -71,6 +72,7 @@ export default function EditSong({
       text: '',
       chords: '',
     }],
+    references: [],
     organization: organization,
   };
 
@@ -96,6 +98,7 @@ export default function EditSong({
       title: data.title,
       artist: data.artist ?? '',
       blocks: data.blocks ?? [],
+      references: data.references ?? [],
     },
   });
 
@@ -138,7 +141,8 @@ export default function EditSong({
       <div className="flex items-center px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
         <div className="buttons flex-1 flex justify-end gap-x-2">
-          {edit && <Button
+          {edit && <>
+            <Button
             type="button"
             size="sm"
             title={t('actions.view')}
@@ -146,7 +150,7 @@ export default function EditSong({
             <Link to={`/app/songs/${data.id}/view`}>
               <EyeIcon className="size-3" />
             </Link>
-          </Button>}
+            </Button>
           <Button
             type="button"
             size="sm"
@@ -156,6 +160,7 @@ export default function EditSong({
               <PrinterIcon className="size-3" />
             </Link>
           </Button>
+          </>}
           <ControllerProvider>
             <SongPreview getSong={() => form.getValues()}>
               <Button
@@ -171,7 +176,8 @@ export default function EditSong({
       <div className="p-8">
         <h1 className="text-3xl mb-4">{edit ? t('edit.title') : t('add.title')}</h1>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-wrap space-x-3 space-y-3 justify-start">
+            <div className="min-w-sm max-w-lg space-y-3 flex-1">
             <FormField
               control={form.control}
               name="title"
@@ -211,12 +217,12 @@ export default function EditSong({
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "justify-between",
+                              "justify-start",
                             !field.value && "text-muted-foreground"
                           )}
                         >
                           <LanguageAndIcon t={t} language={field.value!} />
-                          <ChevronDownIcon className="opacity-50" />
+                            <ChevronDownIcon className="opacity-50 ms-auto me-0" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -258,9 +264,16 @@ export default function EditSong({
               )}
             />
 
-            <FormLabel>{t('input.parts')}</FormLabel>
-            <Toggle variant="outline" pressed={editMode == 'chords'} onPressedChange={changeEditMode}>{t('input.editChords')}</Toggle>
-            <EditSongParts form={form} mode={editMode} />
+              <FormField
+                control={form.control}
+                name="references"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>{t('input.references')}</FormLabel>
+                    <EditSongReferences form={form} />
+                    <FormMessage />
+                  </FormItem>
+                )}></FormField>
 
             <div className="flex flex-row align-start space-x-2">
               <Button className="flex-0" type="submit" disabled={isLoading}>
@@ -270,6 +283,22 @@ export default function EditSong({
                 {t('button.' + (edit ? 'update' : 'add'))}
               </Button>
               <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-stretch min-w-md max-w-lg space-y-3 flex-1">
+              <FormLabel>{t('input.parts')}</FormLabel>
+              <Toggle variant="outline" pressed={editMode == 'chords'} onPressedChange={changeEditMode} className="me-auto">{t('input.editChords')}</Toggle>
+              <EditSongParts form={form} mode={editMode} />
+              <div className="flex flex-row align-start space-x-2">
+                <Button className="flex-0" type="submit" disabled={isLoading}>
+                  {isLoading && (
+                    <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+                  )}
+                  {t('button.' + (edit ? 'update' : 'add'))}
+                </Button>
+                <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+              </div>
             </div>
           </form>
         </Form>

@@ -6,7 +6,12 @@
     "language": "Idioma",
     "editChords": "Editar cifras",
     "viewChords": "Ver cifras",
-    "organization": "Organização"
+    "organization": "Organização",
+    "references": "Referências",
+    "placeholders": {
+      "referenceUrl": "URL da referência",
+      "referenceName": "Nome da referência"
+    }
   },
   "actions": {
     "create": "Adicionar música",
@@ -41,7 +46,10 @@
     "addPart": "Adicionar parte",
     "duplicatePart": "Duplicar parte",
     "deletePart": "Remover parte",
-    "reorder": "Reordenar"
+    "reorder": "Reordenar",
+    "addReference": "Adicionar referência",
+    "deleteReference": "Remover referência",
+    "expandReference": "Adicionar nome à referência"
   },
   "message": {
     "deleteSong": {
@@ -64,6 +72,7 @@
     "noPermission": "Você não tem permissão para acessar esta música"
   },
   "language": {
+    "search": "Pesquisar idiomas...",
     "english": "Inglês",
     "portuguese": "Português",
     "spanish": "Espanhol",

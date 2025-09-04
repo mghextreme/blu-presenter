@@ -11,6 +11,7 @@ import { SongPreview } from "@/components/app/songs/song-preview";
 import { Toggle } from "@/components/ui/toggle";
 import { SongEditMode } from "@/components/app/songs/edit-parts";
 import Preview from "@/components/icons/preview";
+import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOnSquareIcon";
 
 export default function ViewSong() {
 
@@ -100,6 +101,17 @@ export default function ViewSong() {
             </>
           ))}
         </div>
+        {data.references && <div className="max-w-lg space-y-2 mt-3">
+          <h3 className="font-medium text-sm">{t('input.references')}</h3>
+          {data.references?.map((reference, ix) => (
+            <div className="flex items-center gap-x-2" key={`references-${ix}`}>
+              <Button variant="secondary" size="icon" type="button" onClick={() => window.open(reference.url, '_blank')}><ArrowTopRightOnSquareIcon className="size-4" /></Button>
+              <div className="flex-1 text-sm text-muted-foreground truncate">
+                {reference.name || reference.url}
+              </div>
+            </div>
+          ))}
+        </div>}
         <div className="flex flex-row align-start space-x-2 mt-4">
           <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">{t('button.back')}</Button></Link>
         </div>

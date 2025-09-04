@@ -4,7 +4,8 @@
     "name": "Nome",
     "email": "E-mail",
     "role": "Permissões",
-    "invitedBy": "Convidado por"
+    "invitedBy": "Convidado por",
+    "transferMember": "Transferir para..."
   },
   "actions": {
     "inviteMember": "Convidar membro",
@@ -41,7 +42,7 @@
     "linkCopied": "Convite copiado para a área de transferência"
   },
   "transfer": {
-    "title": "Transferir organization",
+    "title": "Transferir organização",
     "success": "Organização transferida com sucesso"
   },
   "members": {

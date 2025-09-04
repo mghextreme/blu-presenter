@@ -6,7 +6,12 @@
     "language": "Language",
     "editChords": "Edit chords",
     "viewChords": "View chords",
-    "organization": "Organization"
+    "organization": "Organization",
+    "references": "References",
+    "placeholders": {
+      "referenceUrl": "Reference URL",
+      "referenceName": "Reference name"
+    }
   },
   "actions": {
     "create": "Add song",
@@ -41,7 +46,10 @@
     "addPart": "Add part",
     "duplicatePart": "Duplicate part",
     "deletePart": "Delete part",
-    "reorder": "Reorder"
+    "reorder": "Reorder",
+    "addReference": "Add reference",
+    "deleteReference": "Delete reference",
+    "expandReference": "Add name to reference"
   },
   "message": {
     "deleteSong": {
@@ -64,6 +72,7 @@
     "noPermission": "You don't have permission to access this song"
   },
   "language": {
+    "search": "Search languages...",
     "english": "English",
     "portuguese": "Portuguese",
     "spanish": "Spanish",
