@@ -108,7 +108,7 @@ export default function PrintSong() {
     if (!data) return;
 
     const currentUrl = new URL(window.location.href);
-    const completeUrl = `${currentUrl.protocol}//${currentUrl.host}/public/view/${data.id}/${data.secret ?? ''}`
+    const completeUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/view/${data.id}/${data.secret ?? ''}`
     setQrCodeUrl(completeUrl);
   }, [window, data]);
 
@@ -214,7 +214,7 @@ export default function PrintSong() {
                     </Link>
                   )
                 ) : (
-                  <Link to={`/public/view/${data.id}/${data.secret ?? ''}`}>
+                  <Link to={`/shared/view/${data.id}/${data.secret ?? ''}`}>
                     <EyeIcon className="size-3" />
                   </Link>
                 )}

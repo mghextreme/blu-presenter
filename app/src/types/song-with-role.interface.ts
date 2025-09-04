@@ -5,6 +5,6 @@ export interface ISongWithRole extends ISong {
   organization?: {
     id: number;
     name: string;
-    role: OrganizationRoleOptions;
+    role?: OrganizationRoleOptions;
   };
 }

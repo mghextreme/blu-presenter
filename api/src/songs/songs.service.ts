@@ -28,6 +28,10 @@ export class SongsService {
         blocks: true,
         references: true,
         secret: true,
+        organization: {
+          id: true,
+          name: true,
+        },
       },
       where: {
         id,
@@ -66,6 +70,10 @@ export class SongsService {
         blocks: true,
         references: true,
         secret: true,
+        organization: {
+          id: true,
+          name: true,
+        },
       },
       where: whereClause,
     });
@@ -81,7 +89,10 @@ export class SongsService {
       organization: orgUser ? {
         ...orgUser.organization,
         role: orgUser.role as OrganizationRoleOptions,
-      } : null,
+      } : {
+        ...song.organization,
+        role: undefined,
+      },
     } as SongWithRoleViewModel;
   }
 
@@ -151,6 +162,10 @@ export class SongsService {
         artist: true,
         blocks: true,
         secret: true,
+        organization: {
+          id: true,
+          name: true,
+        },
       },
       order: {
         orgId: {
@@ -172,7 +187,10 @@ export class SongsService {
         organization: orgUser ? {
           ...orgUser.organization,
           role: orgUser.role as OrganizationRoleOptions,
-         } : null,
+         } : {
+          ...song.organization,
+          role: undefined,
+         },
       } as SongWithRoleViewModel;
     });
   }

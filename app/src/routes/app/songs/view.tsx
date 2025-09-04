@@ -76,7 +76,7 @@ export default function ViewSong() {
             size="sm"
             title={t('actions.print')}
             asChild={true}>
-            <Link to={hasAccess ? `/app/songs/${data.id}/print` : `/public/print/${data.id}/${data.secret ?? ''}`}>
+            <Link to={hasAccess ? `/app/songs/${data.id}/print` : `/shared/print/${data.id}/${data.secret ?? ''}`}>
               <PrinterIcon className="size-3" />
             </Link>
           </Button>

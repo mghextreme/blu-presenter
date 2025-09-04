@@ -11,7 +11,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 
-export default function AppPublicLayout() {
+export default function AppSharedLayout() {
   const { authService } = useServices();
 
   const { t } = useTranslation('home');
