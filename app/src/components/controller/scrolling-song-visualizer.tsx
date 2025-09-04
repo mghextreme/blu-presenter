@@ -39,7 +39,6 @@ export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
   const updateSong = () => {
     const scheduleItemAsSong = scheduleItem as IScheduleSong;
     setScheduleSong(scheduleItemAsSong);
-    console.log('updateSong: blocks length', scheduleItemAsSong?.blocks?.length ?? 0);
     blocksDivs.current = blocksDivs.current.slice(0, (scheduleItemAsSong?.blocks?.length ?? 0) + 1);
     updatePosition();
   }

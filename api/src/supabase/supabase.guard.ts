@@ -24,19 +24,21 @@ export class SupabaseGuard extends AuthGuard('jwt') {
       contextClass,
     ]);
 
-    if (isPublic) {
-      return true;
-    }
+    const defaultResponse = isPublic ? true : false;
 
-    const result = (await super.canActivate(context)) as boolean;
-    if (!result) {
-      return false;
+    try {
+      const result = (await super.canActivate(context)) as boolean;
+      if (!result) {
+        return defaultResponse;
+      }
+    } catch (e) {
+      return defaultResponse;
     }
 
     const request = context.switchToHttp().getRequest();
     const internalUser = await this.userService.findByAuthId(request.user.sub);
     if (!internalUser) {
-      return false;
+      return defaultResponse;
     }
     internalUser.email = request.user.email;
     request['user']['internal'] = internalUser;
@@ -50,7 +52,7 @@ export class SupabaseGuard extends AuthGuard('jwt') {
     }
 
     if (!request.headers?.organization) {
-      return false;
+      return defaultResponse;
     }
 
     request['user']['organization'] = request.headers?.organization;

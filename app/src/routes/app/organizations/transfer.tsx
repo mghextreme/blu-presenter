@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { useServices } from "@/hooks/services.provider";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Link, useLoaderData, useNavigate } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
@@ -23,6 +24,7 @@ export default function TransferOrganization() {
   const [selectedMember, setSelectedMember] = useState<IOrganizationUser | undefined>(undefined);
 
   const navigate = useNavigate();
+  const { organization } = useAuth();
   const { organizationsService } = useServices();
 
   if (!isRoleHigherOrEqualThan(data.role, 'owner')) {
@@ -56,6 +58,7 @@ export default function TransferOrganization() {
 
   return (
     <div className="p-8">
+      <title>{t('title.transfer', {organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
       <h1 className="text-3xl mb-4">{t('transfer.title')}</h1>
       <div className="max-w-lg space-y-3">
         <Label data-slot="form-label">{t('input.transferMember')}</Label>
@@ -114,7 +117,7 @@ export default function TransferOrganization() {
           )}
         </div>
         <div className="flex flex-row align-start space-x-2">
-          <Button className="flex-0" type="button" disabled={isLoading} onClick={onSubmit}>
+          <Button className="flex-0" type="button" disabled={isLoading || !selectedMember} onClick={onSubmit}>
             {isLoading && (
               <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
             )}

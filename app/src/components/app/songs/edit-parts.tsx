@@ -128,6 +128,7 @@ export default function EditSongParts({
         variant="secondary"
         size="sm"
         onClick={handleAppend}
+        className="me-auto"
       >
         {t('edit.addPart')}
       </Button>

@@ -1,4 +1,11 @@
 {
+  "title": {
+    "view": "\"{{title}}\" by {{artist}} - View - Songs",
+    "edit": "\"{{title}}\" by {{artist}} - Edit - Songs",
+    "print": "\"{{title}}\" by {{artist}} - Print - Songs",
+    "add": "Add - Songs",
+    "list": "Songs - {{organization}}"
+  },
   "input": {
     "title": "Title",
     "artist": "Artist",
@@ -6,7 +13,12 @@
     "language": "Language",
     "editChords": "Edit chords",
     "viewChords": "View chords",
-    "organization": "Organization"
+    "organization": "Organization",
+    "references": "References",
+    "placeholders": {
+      "referenceUrl": "Reference URL",
+      "referenceName": "Reference name"
+    }
   },
   "actions": {
     "create": "Add song",
@@ -21,7 +33,8 @@
     "resetFont": "Reset font size",
     "decreaseFont": "Decrease font size",
     "numbers": "Show numbers",
-    "compact": "Compact equal parts"
+    "compact": "Compact equal parts",
+    "viewSpotifyCode": "Show Spotify code"
   },
   "button": {
     "add": "Add",
@@ -41,7 +54,10 @@
     "addPart": "Add part",
     "duplicatePart": "Duplicate part",
     "deletePart": "Delete part",
-    "reorder": "Reorder"
+    "reorder": "Reorder",
+    "addReference": "Add reference",
+    "deleteReference": "Delete reference",
+    "expandReference": "Add name to reference"
   },
   "message": {
     "deleteSong": {
@@ -64,6 +80,7 @@
     "noPermission": "You don't have permission to access this song"
   },
   "language": {
+    "search": "Search languages...",
     "english": "English",
     "portuguese": "Portuguese",
     "spanish": "Spanish",

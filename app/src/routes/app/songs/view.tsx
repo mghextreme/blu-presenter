@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { ISongWithRole, isRoleHigherOrEqualThan } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Link, useLoaderData } from "react-router-dom";
+import { Link, useLoaderData, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/useAuth";
+import { SpotifyCode } from "@/components/app/songs/spotify-code";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import PrinterIcon from "@heroicons/react/24/solid/PrinterIcon";
 import ControllerProvider from "@/hooks/controller.provider";
@@ -11,18 +12,25 @@ import { SongPreview } from "@/components/app/songs/song-preview";
 import { Toggle } from "@/components/ui/toggle";
 import { SongEditMode } from "@/components/app/songs/edit-parts";
 import Preview from "@/components/icons/preview";
+import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOnSquareIcon";
+import { alternateLyricsAndChords } from "@/lib/songs";
+import { cn } from "@/lib/utils";
+import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
 
 export default function ViewSong() {
 
   const { t } = useTranslation("songs");
 
   const data = useLoaderData() as ISongWithRole;
+  const params = useParams();
+  const { isLoggedIn } = useAuth();
 
   if (!data) {
     throw new Error("Can't find song");
   }
 
-  if (!isRoleHigherOrEqualThan(data.organization?.role, 'guest')) {
+  const hasAccess = isRoleHigherOrEqualThan(data.organization?.role, 'guest');
+  if (!hasAccess && !!data.secret && params.secret !== data.secret) {
     throw new Error(t('error.noPermission'));
   }
 
@@ -44,6 +52,7 @@ export default function ViewSong() {
 
   return (
     <>
+      <title>{t('title.view', { title: data.title, artist: data.artist }) + ' - BluPresenter'}</title>
       <div className="flex items-center px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
         <div className="buttons flex-1 flex justify-end gap-x-2">
@@ -61,16 +70,17 @@ export default function ViewSong() {
               <PencilIcon className="size-3" />
             )}
           </Button>
+          {isLoggedIn && <CopySongToOrganization songId={data.id} title={data.title} artist={data.artist} variant="default"></CopySongToOrganization>}
           <Button
             type="button"
             size="sm"
             title={t('actions.print')}
             asChild={true}>
-            <Link to={`/app/songs/${data.id}/print`}>
+            <Link to={hasAccess ? `/app/songs/${data.id}/print` : `/shared/print/${data.id}/${data.secret ?? ''}`}>
               <PrinterIcon className="size-3" />
             </Link>
           </Button>
-          <ControllerProvider>
+          {hasAccess && <ControllerProvider>
             <SongPreview getSong={() => data}>
               <Button
                 type="button"
@@ -79,30 +89,40 @@ export default function ViewSong() {
                 <Preview className="size-5" />
               </Button>
             </SongPreview>
-          </ControllerProvider>
+          </ControllerProvider>}
         </div>
       </div>
       <div className="p-8">
         <h1 className="text-3xl mb-2">{data.title}</h1>
         <h2 className="text-lg mb-2 opacity-50">{data.artist}</h2>
         <Toggle variant="outline" pressed={viewMode == 'chords'} onPressedChange={changeViewMode} className="mb-3">{t('input.viewChords')}</Toggle>
-        <div className="max-w-lg space-y-2">
+        <div className={cn(
+          'max-w-lg space-y-3',
+          viewMode === 'chords' && 'font-mono'
+        )}>
           {data.blocks?.map((block, ix) => (
-            <>
-              {viewMode === 'chords' ? (
-                <div className="flex-1 grid grid-cols-1 grid-rows-1 border-input shadow-xs dark:bg-input/30" key={`chords-${ix}`}>
-                  <Textarea variant="invisible" className="col-start-1 row-start-1 pt-5 pb-0 font-mono leading-[3.2em] pointer-events-none text-muted-foreground resize-none" value={block.text} />
-                  <Textarea variant="transparent" className="col-start-1 row-start-1 pt-0 pb-5 font-mono leading-[3.2em] min-h-full resize-none" value={block.chords} />
-                </div>
-              ) : (
-                <Textarea className="flex-1 resize-none" value={block.text} key={`text-${ix}`} />
-              )}
-            </>
+            <div key={`block-${ix}`} className="border-s-1 ps-[.75em] py-[.2em] min-h-[.75em] whitespace-pre">
+              {alternateLyricsAndChords(block.text, viewMode === 'chords' ? block.chords : undefined)}
+            </div>
           ))}
         </div>
-        <div className="flex flex-row align-start space-x-2 mt-4">
+        {data.references && data.references.length > 0 && <div className="max-w-lg space-y-2 mt-3">
+          <h3 className="font-medium text-sm">{t('input.references')}</h3>
+          {data.references?.map((reference, ix) => (
+            <div className="flex items-center gap-x-2" key={`references-${ix}`}>
+              <Button variant="secondary" size="icon" type="button" onClick={() => window.open(reference.url, '_blank')}><ArrowTopRightOnSquareIcon className="size-4" /></Button>
+              <div className="flex-1 text-sm text-muted-foreground truncate">
+                {reference.name || reference.url}
+              </div>
+              {reference.url.includes('spotify.com') && (
+                <SpotifyCode songUrl={reference.url} imgWidth={320} className="max-w-28" colorScheme="theme" />
+              )}
+            </div>
+          ))}
+        </div>}
+        {isLoggedIn && <div className="flex flex-row align-start space-x-2 mt-4">
           <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">{t('button.back')}</Button></Link>
-        </div>
+        </div>}
       </div>
     </>
   );

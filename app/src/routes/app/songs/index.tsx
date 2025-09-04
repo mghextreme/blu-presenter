@@ -119,6 +119,7 @@ export default function Songs() {
 
   return (
     <div className="p-8">
+      <title>{t('title.list', {organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
       <h1 className="text-3xl mb-2">{t('list.title')}</h1>
       <h2 className="text-lg mb-4 opacity-50">{organization?.name || t('organizations.defaultName')}</h2>
       <DataTable columns={columns} data={data ?? []} addButton={(

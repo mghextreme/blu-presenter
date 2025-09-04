@@ -12,4 +12,10 @@ export const SongSchema = z.object({
       chords: z.string().optional(),
     }),
   ),
+  references: z.array(
+    z.object({
+      name: z.string().optional(),
+      url: z.string().url(),
+    }),
+  ),
 });

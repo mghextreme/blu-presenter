@@ -10,6 +10,8 @@ interface PrintConfigState {
   toggleChords: () => void
   showNumbers: boolean
   toggleNumbers: () => void
+  showSpotifyCode: boolean
+  toggleSpotifyCode: () => void
   compactMode: boolean
   toggleCompactMode: () => void
 }
@@ -42,11 +44,19 @@ export const usePrintConfig = create<PrintConfigState>()(
       toggleCompactMode: () => {
         return set({ compactMode: !get().compactMode });
       },
+      showSpotifyCode: true,
+      toggleSpotifyCode: () => {
+        return set({ showSpotifyCode: !get().showSpotifyCode });
+      },
     }),
     {
       name: "printConfig",
       partialize: (state: PrintConfigState) => ({
         fontSize: state.fontSize,
+        showChords: state.showChords,
+        showNumbers: state.showNumbers,
+        compactMode: state.compactMode,
+        showSpotifyCode: state.showSpotifyCode,
       }),
       storage: createJSONStorage(() => localStorage),
     }

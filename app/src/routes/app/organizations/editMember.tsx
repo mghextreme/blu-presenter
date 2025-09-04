@@ -31,7 +31,7 @@ export default function EditMember() {
   const navigate = useNavigate();
 
   const { organizationsService } = useServices();
-  const { user } = useAuth();
+  const { organization, user } = useAuth();
   const data = useLoaderData() as IOrganizationUser;
 
   if (!isRoleHigherOrEqualThan(data.role, 'admin')) {
@@ -79,6 +79,7 @@ export default function EditMember() {
 
   return (
     <div className="p-8">
+      <title>{t('title.member', {member: data.name || data.email, organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
       <h1 className="text-3xl mb-4">{t('editMember.title')}</h1>
       <Form {...form}>
         {/*

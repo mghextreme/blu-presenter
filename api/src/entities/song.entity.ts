@@ -4,9 +4,12 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { SongPart } from './song-part.entity';
 import { Organization } from './organization.entity';
+import { SongReference } from './song-reference.entity';
 
 @Entity({ name: 'songs' })
 export class Song {
@@ -44,4 +47,27 @@ export class Song {
   })
   @JoinColumn({ name: 'orgId' })
   organization: Organization;
+
+  @Column({
+    type: 'json',
+    array: true,
+    select: false,
+    default: () => "'[]'",
+    nullable: false,
+  })
+  references: SongReference[];
+
+  @Column({
+    nullable: true,
+    default: null,
+    type: 'varchar',
+    length: 32,
+  })
+  secret: string;
+
+  @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
+  createdAt: Date;
+
+  @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
+  updatedAt: Date;
 }

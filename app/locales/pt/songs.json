@@ -1,4 +1,11 @@
 {
+  "title": {
+    "view": "\"{{title}}\" por {{artist}} - Visualizar - Músicas",
+    "edit": "\"{{title}}\" por {{artist}} - Editar - Músicas",
+    "print": "\"{{title}}\" por {{artist}} - Imprimir - Songs",
+    "add": "Adicionar - Músicas",
+    "list": "Músicas - {{organization}}"
+  },
   "input": {
     "title": "Título",
     "artist": "Artista",
@@ -6,7 +13,12 @@
     "language": "Idioma",
     "editChords": "Editar cifras",
     "viewChords": "Ver cifras",
-    "organization": "Organização"
+    "organization": "Organização",
+    "references": "Referências",
+    "placeholders": {
+      "referenceUrl": "URL da referência",
+      "referenceName": "Nome da referência"
+    }
   },
   "actions": {
     "create": "Adicionar música",
@@ -21,7 +33,8 @@
     "resetFont": "Redefinir fonte",
     "decreaseFont": "Diminuir fonte",
     "numbers": "Mostrar números",
-    "compact": "Compactar partes iguais"
+    "compact": "Compactar partes iguais",
+    "viewSpotifyCode": "Mostrar código do Spotify"
   },
   "button": {
     "add": "Adicionar",
@@ -41,7 +54,10 @@
     "addPart": "Adicionar parte",
     "duplicatePart": "Duplicar parte",
     "deletePart": "Remover parte",
-    "reorder": "Reordenar"
+    "reorder": "Reordenar",
+    "addReference": "Adicionar referência",
+    "deleteReference": "Remover referência",
+    "expandReference": "Adicionar nome à referência"
   },
   "message": {
     "deleteSong": {
@@ -64,6 +80,7 @@
     "noPermission": "Você não tem permissão para acessar esta música"
   },
   "language": {
+    "search": "Pesquisar idiomas...",
     "english": "Inglês",
     "portuguese": "Português",
     "spanish": "Espanhol",

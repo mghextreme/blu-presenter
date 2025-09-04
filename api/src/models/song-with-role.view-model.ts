@@ -10,6 +10,6 @@ export interface SongWithRoleViewModel {
   organization: {
     id: number;
     name: string;
-    role: OrganizationRoleOptions;
+    role?: OrganizationRoleOptions;
   } | null;
 }
