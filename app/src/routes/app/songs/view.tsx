@@ -15,6 +15,7 @@ import Preview from "@/components/icons/preview";
 import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOnSquareIcon";
 import { alternateLyricsAndChords } from "@/lib/songs";
 import { cn } from "@/lib/utils";
+import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
 
 export default function ViewSong() {
 
@@ -69,6 +70,7 @@ export default function ViewSong() {
               <PencilIcon className="size-3" />
             )}
           </Button>
+          {isLoggedIn && <CopySongToOrganization songId={data.id} title={data.title} artist={data.artist} variant="default"></CopySongToOrganization>}
           <Button
             type="button"
             size="sm"
