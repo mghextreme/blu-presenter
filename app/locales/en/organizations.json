@@ -1,4 +1,10 @@
 {
+  "title": {
+    "edit": "{{organization}}",
+    "invite": "Invite member - {{organization}}",
+    "member": "{{member}} - Member - {{organization}}",
+    "transfer": "Transfer - {{organization}}"
+  },
   "defaultName": "Personal space",
   "input": {
     "name": "Name",

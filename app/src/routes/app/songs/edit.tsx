@@ -138,28 +138,29 @@ export default function EditSong({
 
   return (
     <>
+      <title>{(edit ? t('title.edit', { title: data.title, artist: data.artist }) : t('title.add')) + ' - BluPresenter'}</title>
       <div className="flex items-center px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
         <div className="buttons flex-1 flex justify-end gap-x-2">
           {edit && <>
             <Button
-            type="button"
-            size="sm"
-            title={t('actions.view')}
-            asChild={true}>
-            <Link to={`/app/songs/${data.id}/view`}>
-              <EyeIcon className="size-3" />
-            </Link>
+              type="button"
+              size="sm"
+              title={t('actions.view')}
+              asChild={true}>
+              <Link to={`/app/songs/${data.id}/view`}>
+                <EyeIcon className="size-3" />
+              </Link>
             </Button>
-          <Button
-            type="button"
-            size="sm"
-            title={t('actions.print')}
-            asChild={true}>
-            <Link to={`/app/songs/${data.id}/print`}>
-              <PrinterIcon className="size-3" />
-            </Link>
-          </Button>
+            <Button
+              type="button"
+              size="sm"
+              title={t('actions.print')}
+              asChild={true}>
+              <Link to={`/app/songs/${data.id}/print`}>
+                <PrinterIcon className="size-3" />
+              </Link>
+            </Button>
           </>}
           <ControllerProvider>
             <SongPreview getSong={() => form.getValues()}>
@@ -178,91 +179,91 @@ export default function EditSong({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-wrap space-x-3 space-y-3 justify-start">
             <div className="min-w-sm max-w-lg space-y-3 flex-1">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('input.title')}</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}></FormField>
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('input.title')}</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}></FormField>
 
-            <FormField
-              control={form.control}
-              name="artist"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('input.artist')}</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}></FormField>
+              <FormField
+                control={form.control}
+                name="artist"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('input.artist')}</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}></FormField>
 
-            <FormField
-              control={form.control}
-              name="language"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>{t('input.language')}</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
+              <FormField
+                control={form.control}
+                name="language"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>{t('input.language')}</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
                               "justify-start",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          <LanguageAndIcon t={t} language={field.value!} />
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            <LanguageAndIcon t={t} language={field.value!} />
                             <ChevronDownIcon className="opacity-50 ms-auto me-0" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0">
-                      <Command>
-                        <CommandInput
-                          placeholder={t('language.search')}
-                          className="h-9"
-                        />
-                        <CommandList>
-                          <CommandEmpty>{t('language.notFound')}</CommandEmpty>
-                          <CommandGroup>
-                            {supportedLanguagesMap.map((language) => (
-                              <CommandItem
-                                value={language.label}
-                                key={language.value}
-                                onSelect={() => {
-                                  form.setValue("language", language.value)
-                                }}
-                              >
-                                <LanguageAndIcon t={t} language={language.value} />
-                                <CheckIcon
-                                  className={cn(
-                                    "ml-auto",
-                                    language.value === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0">
+                        <Command>
+                          <CommandInput
+                            placeholder={t('language.search')}
+                            className="h-9"
+                          />
+                          <CommandList>
+                            <CommandEmpty>{t('language.notFound')}</CommandEmpty>
+                            <CommandGroup>
+                              {supportedLanguagesMap.map((language) => (
+                                <CommandItem
+                                  value={language.label}
+                                  key={language.value}
+                                  onSelect={() => {
+                                    form.setValue("language", language.value)
+                                  }}
+                                >
+                                  <LanguageAndIcon t={t} language={language.value} />
+                                  <CheckIcon
+                                    className={cn(
+                                      "ml-auto",
+                                      language.value === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -275,14 +276,14 @@ export default function EditSong({
                   </FormItem>
                 )}></FormField>
 
-            <div className="flex flex-row align-start space-x-2">
-              <Button className="flex-0" type="submit" disabled={isLoading}>
-                {isLoading && (
-                  <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
-                )}
-                {t('button.' + (edit ? 'update' : 'add'))}
-              </Button>
-              <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+              <div className="flex flex-row align-start space-x-2">
+                <Button className="flex-0" type="submit" disabled={isLoading}>
+                  {isLoading && (
+                    <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+                  )}
+                  {t('button.' + (edit ? 'update' : 'add'))}
+                </Button>
+                <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
               </div>
             </div>
 

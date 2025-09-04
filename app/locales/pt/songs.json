@@ -1,4 +1,11 @@
 {
+  "title": {
+    "view": "\"{{title}}\" por {{artist}} - Visualizar - Músicas",
+    "edit": "\"{{title}}\" por {{artist}} - Editar - Músicas",
+    "print": "\"{{title}}\" por {{artist}} - Imprimir - Songs",
+    "add": "Adicionar - Músicas",
+    "list": "Músicas - {{organization}}"
+  },
   "input": {
     "title": "Título",
     "artist": "Artista",

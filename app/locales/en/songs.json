@@ -1,4 +1,11 @@
 {
+  "title": {
+    "view": "\"{{title}}\" by {{artist}} - View - Songs",
+    "edit": "\"{{title}}\" by {{artist}} - Edit - Songs",
+    "print": "\"{{title}}\" by {{artist}} - Print - Songs",
+    "add": "Add - Songs",
+    "list": "Songs - {{organization}}"
+  },
   "input": {
     "title": "Title",
     "artist": "Artist",

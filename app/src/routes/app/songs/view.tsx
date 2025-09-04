@@ -45,6 +45,7 @@ export default function ViewSong() {
 
   return (
     <>
+      <title>{t('title.view', { title: data.title, artist: data.artist }) + ' - BluPresenter'}</title>
       <div className="flex items-center px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
         <div className="buttons flex-1 flex justify-end gap-x-2">

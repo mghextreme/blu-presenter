@@ -97,6 +97,7 @@ export default function PrintSong() {
 
   return (
     <>
+      <title>{t('title.print', { title: data.title, artist: data.artist }) + ' - BluPresenter'}</title>
       <div className="w-full bg-slate-200 print:hidden">
         <div className="max-w-2xl mx-auto flex items-center px-2 py-3 gap-x-2">
           <span className="text-sm">{t('input.organization')}:<br/><b>{orgName}</b></span>
@@ -131,7 +132,7 @@ export default function PrintSong() {
               size="sm"
               pressed={showNumbers}
               title={t('actions.numbers')}
-              onClick={toggleNumbers}>
+              onPressedChange={toggleNumbers}>
               <NumberedListIcon className="size-3" />
             </Toggle>
             <Toggle
@@ -139,10 +140,17 @@ export default function PrintSong() {
               size="sm"
               pressed={compactMode}
               title={t('actions.compact')}
-              onClick={toggleCompactMode}>
+              onPressedChange={toggleCompactMode}>
               <ArrowsPointingInIcon className="size-3" />
             </Toggle>
-            <Toggle variant="print" size="sm" pressed={showChords} onPressedChange={toggleChords} title={t('input.viewChords')}>{t('input.viewChords')}</Toggle>
+            <Toggle
+              variant="print"
+              size="sm"
+              pressed={showChords}
+              onPressedChange={toggleChords}
+              title={t('input.viewChords')}>
+              {t('input.viewChords')}
+            </Toggle>
             <div className="h-7 border-s-1 border-slate-400"></div>
             <Button
               type="button"
@@ -177,8 +185,8 @@ export default function PrintSong() {
         <div className="relative space-y-[.75em] leading-[1.6em]" style={{ fontSize: '0.875em' }}>
           {compactMode && showNumbers && <div className="absolute top-0 right-0 flex flex-col justify-start items-end">
             <b>{t('print.sequence')}</b>
-            {sequence.map(item => (
-              <span className="border-t-1 border-slate-300 text-center min-w-[1em] my-[.2em] py-[.2em]">{item}</span>
+            {sequence.map((item, ix) => (
+              <span className="border-t-1 border-slate-300 text-center min-w-[1em] my-[.2em] py-[.2em]" key={`sequence-${ix}`}>{item}</span>
             ))}
           </div>}
           {showBlocks.map((block, ix) => {

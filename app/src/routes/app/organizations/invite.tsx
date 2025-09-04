@@ -4,6 +4,7 @@ import {useForm} from "react-hook-form";
 import {z} from "zod";
 
 import {useServices} from "@/hooks/services.provider";
+import { useAuth } from "@/hooks/useAuth";
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
@@ -30,11 +31,13 @@ const formSchema = z.object({
 
 export default function InviteOrganizationMember() {
 
-  const {t} = useTranslation("organizations");
+  const { t } = useTranslation("organizations");
 
   const navigate = useNavigate();
 
-  const {organizationsService} = useServices();
+  const { organization } = useAuth();
+
+  const { organizationsService } = useServices();
   const data = useLoaderData() as IOrganization;
   
   if (!isRoleHigherOrEqualThan(data.role, 'admin')) {
@@ -78,6 +81,7 @@ export default function InviteOrganizationMember() {
 
   return (
     <div className="p-8">
+      <title>{t('title.invite', {organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
       <h1 className="text-3xl mb-2">{t('invite.title')}</h1>
       <h2 className="text mb-4 opacity-50">{data.name || t('defaultName')}</h2>
       <Form {...form}>

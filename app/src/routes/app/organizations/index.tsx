@@ -296,6 +296,7 @@ export default function EditOrganization({
 
   return (
     <div className="p-8">
+      <title>{t('title.edit', {organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
       {isPersonalSpace ? (
         <Alert>
           <AlertTitle>{t('warning.personalSpace.title')}</AlertTitle>
@@ -349,58 +350,62 @@ export default function EditOrganization({
               )}
             </>
           )}
-          <h2 className="text-xl mt-6 mb-4">{t('edit.manage')}</h2>
-          <div className="flex flex-row align-start space-x-2">
-          {edit && loadedData?.role === 'owner' && (
+          {edit && (
             <>
-              <Link to={'/app/organization/transfer'}>
-                <Button className="flex-0" type="button">{t('button.transfer')}</Button>
-              </Link>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button className="flex-0" variant="destructive" disabled={true || isLoading}>
-                    {isLoading && (
-                      <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
-                    )}
-                    {t('button.delete')}
-                    </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t('message.deleteOrganization.title')}</AlertDialogTitle>
-                    <AlertDialogDescription>{t('message.deleteOrganization.description')}</AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
-                    <AlertDialogAction variant="destructive" disabled={isLoading} onClick={onDeleteOrganization}>{t('button.confirm')}</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+            <h2 className="text-xl mt-6 mb-4">{t('edit.manage')}</h2>
+              <div className="flex flex-row align-start space-x-2">
+              {loadedData?.role === 'owner' && (
+                <>
+                  <Link to={'/app/organization/transfer'}>
+                    <Button className="flex-0" type="button">{t('button.transfer')}</Button>
+                  </Link>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button className="flex-0" variant="destructive" disabled={true || isLoading}>
+                        {isLoading && (
+                          <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+                        )}
+                        {t('button.delete')}
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{t('message.deleteOrganization.title')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('message.deleteOrganization.description')}</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction variant="destructive" disabled={isLoading} onClick={onDeleteOrganization}>{t('button.confirm')}</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              )}
+              {loadedData && loadedData.role !== 'owner' && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button className="flex-0" variant="destructive" disabled={isLoading}>
+                      {isLoading && (
+                        <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+                      )}
+                      {t('button.leave')}
+                      </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t('message.leaveOrganization.title')}</AlertDialogTitle>
+                      <AlertDialogDescription>{t('message.leaveOrganization.description')}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
+                      <AlertDialogAction variant="destructive" disabled={isLoading} onClick={onLeaveOrganization}>{t('button.confirm')}</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+              </div>
             </>
           )}
-          {loadedData && loadedData.role !== 'owner' && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button className="flex-0" variant="destructive" disabled={isLoading}>
-                  {isLoading && (
-                    <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
-                  )}
-                  {t('button.leave')}
-                  </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t('message.leaveOrganization.title')}</AlertDialogTitle>
-                  <AlertDialogDescription>{t('message.leaveOrganization.description')}</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" disabled={isLoading} onClick={onLeaveOrganization}>{t('button.confirm')}</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-          </div>
         </>
       )}
     </div>
