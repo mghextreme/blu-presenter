@@ -9,6 +9,7 @@ import {
 import AuthLayout from "@/layouts/auth";
 import { loader as authLoader } from "@/layouts/auth.loader"
 import AppLayout from "@/layouts/app";
+import AppPublicLayout from "@/layouts/app-public";
 import ErrorLayout from "@/layouts/error";
 import ControllerLayout from "@/layouts/controller";
 import PrintLayout from "@/layouts/print";
@@ -77,6 +78,18 @@ export const buildRouter = (services: ServicesProviderState) => {
         </Route>
         <Route path="/app/controller" element={<ControllerLayout />} errorElement={<ErrorLayout />}>
           <Route index={true} element={<Controller />} />
+        </Route>
+        <Route path="/public" element={<PrintLayout />} errorElement={<ErrorLayout />}>
+          <Route path="print/:id">
+            <Route index={true} element={<PrintSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
+            <Route path=":secret" element={<PrintSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.code })} />
+          </Route>
+        </Route>
+        <Route path="/public" element={<AppPublicLayout />} errorElement={<ErrorLayout />}>
+          <Route path="view/:id">
+            <Route index={true} element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
+            <Route path=":secret" element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.code })} />
+          </Route>
         </Route>
       </>
     )

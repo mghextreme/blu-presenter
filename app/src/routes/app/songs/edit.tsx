@@ -148,7 +148,7 @@ export default function EditSong({
               size="sm"
               title={t('actions.view')}
               asChild={true}>
-              <Link to={`/app/songs/${data.id}/view`}>
+              <Link to={`/app/songs/${loadedData.id}/view`}>
                 <EyeIcon className="size-3" />
               </Link>
             </Button>
@@ -157,7 +157,7 @@ export default function EditSong({
               size="sm"
               title={t('actions.print')}
               asChild={true}>
-              <Link to={`/app/songs/${data.id}/print`}>
+              <Link to={`/app/songs/${loadedData.id}/print`}>
                 <PrinterIcon className="size-3" />
               </Link>
             </Button>

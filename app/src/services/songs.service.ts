@@ -14,10 +14,13 @@ export class SongsService extends ApiService {
     });
   }
 
-  public async getById(songId: number): Promise<ISong | null> {
+  public async getById(songId: number, secret?: string): Promise<ISong | null> {
+    const hasSecret = secret && secret.length > 0;
+    const secretParam = hasSecret ? `?secret=${secret}` : '';
+
     return await this.getOrFetch({
-      queryKey: ['songs', 'id', songId],
-      queryFn: async () => await this.getRequest(`/songs/${songId}`) as ISong,
+      queryKey: ['songs', 'id', songId, hasSecret ? secret : null],
+      queryFn: async () => await this.getRequest(`/songs/${songId}${secretParam}`) as ISong,
     });
   }
 

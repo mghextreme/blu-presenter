@@ -9,4 +9,5 @@ export interface ISong {
   artist?: string
   blocks?: ISongPart[]
   references?: ISongReference[]
+  secret?: string
 }

@@ -7,12 +7,14 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { Song } from 'src/entities';
 import { AdvancedSearchDto, CopySongToOrganizationDto, CreateSongDto, UpdateSongDto } from 'src/types';
 import { SongsService } from './songs.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
 import { SongWithRoleViewModel } from 'src/models/song-with-role.view-model';
+import { Public } from 'src/supabase/public.decorator';
 
 @Controller('songs')
 export class SongsController {
@@ -26,11 +28,13 @@ export class SongsController {
     return await this.songsService.findAll(orgId);
   }
 
+  @Public()
   @Get(':id')
   async findOne(
     @Param('id') id: number,
+    @Query('secret') secret?: string,
   ): Promise<SongWithRoleViewModel | null> {
-    return await this.songsService.findOneInAnyOrg(id);
+    return await this.songsService.findOneInAnyOrgOrBySecret(id, secret);
   }
 
   @Post('advancedSearch')

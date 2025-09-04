@@ -35,7 +35,6 @@ export default function EditSongReferencesItem({
   const updateReferences = () => {
     const newReferences = form.getValues('references');
     form.setValue('references', newReferences);
-    console.log(newReferences);
 
     setTimeout(checkValidUrl, 100);
   }
