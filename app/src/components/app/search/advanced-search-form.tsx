@@ -27,6 +27,7 @@ export function AdvancedSearchForm() {
 
   const { t } = useTranslation('discover');
   const {
+    formValues,
     advancedSearch,
     isSearching,
   } = useSearch();
@@ -38,17 +39,16 @@ export function AdvancedSearchForm() {
     resolver: zodResolver(advancedSearchFormSchema),
     defaultValues: {
       query: '',
-      languages: [curLang],
-      organizations: organizations?.map(o => o.id.toString()) || [],
-      searchPublicArchive: true,
+      languages: formValues.languages || [curLang],
+      organizations: formValues.organizations?.map(id => id.toString()) || organizations?.map(o => o.id.toString()) || [],
+      searchPublicArchive: formValues.searchPublicArchive || true,
     },
   });
 
   const onSubmit = async (values: z.infer<typeof advancedSearchFormSchema>) => {
-    advancedSearch({
-      query: values.query,
+    advancedSearch(values.query, {
       languages: values.languages as SupportedLanguage[],
-      organizations: values.organizations?.map(x => parseInt(x)) || [],
+      organizations: values.organizations?.length === organizations.length ? undefined : (values.organizations?.map(x => parseInt(x)) || []),
       searchPublicArchive: values.searchPublicArchive,
     })
       .catch((e) => {
