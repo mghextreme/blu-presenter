@@ -109,7 +109,7 @@ export abstract class ApiService {
       catch (e) {
         return null;
       }
-    } else if (refreshAuth && response.status == 401 && headers['Authorization']) {
+    } else if (refreshAuth && [401, 403].includes(response.status) && headers['Authorization']) {
       await this.refreshSession();
       return await this.internalFetch(path, method, body, baseHeaders, false);
     } else {
