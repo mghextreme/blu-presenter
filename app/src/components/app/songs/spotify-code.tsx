@@ -35,7 +35,7 @@ export function SpotifyCode({
     return null;
   }
 
-  const imgUrl = `https://scannables.scdn.co/uri/plain/jpeg/${backgroundColor}/${foregroundColor}/${imgWidth}/spotify:track:${trackBits[1]}`;
+  const imgUrl = `https://scannables.scdn.co/uri/plain/svg/${backgroundColor}/${foregroundColor}/${imgWidth}/spotify:track:${trackBits[1]}`;
 
   return (
     <img src={imgUrl} {...props} />

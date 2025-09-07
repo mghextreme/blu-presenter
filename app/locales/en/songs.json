@@ -4,6 +4,7 @@
     "edit": "\"{{title}}\" by {{artist}} - Edit - Songs",
     "print": "\"{{title}}\" by {{artist}} - Print - Songs",
     "add": "Add - Songs",
+    "import": "Import - Songs",
     "list": "Songs - {{organization}}"
   },
   "input": {
@@ -18,16 +19,30 @@
     "placeholders": {
       "referenceUrl": "Reference URL",
       "referenceName": "Reference name"
+    },
+    "import": {
+      "label": "Song content",
+      "description": "Paste the complete song here, including both chords and lyrics."
+    },
+    "importLine": {
+      "add": "Import line",
+      "remove": "Don't import line"
+    },
+    "lineType": {
+      "chords": "Chords",
+      "lyrics": "Lyrics"
     }
   },
   "actions": {
     "create": "Add song",
+    "import": "Import song",
     "edit": "Edit song",
     "delete": "Delete song",
     "copyToOrganization": "Copy to different organization",
     "view": "View song",
     "preview": "Preview song",
     "print": "Print",
+    "share": "Share",
     "close": "Close",
     "increaseFont": "Increase font size",
     "resetFont": "Reset font size",
@@ -41,13 +56,17 @@
     "update": "Update",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "back": "Back"
+    "back": "Back",
+    "continue": "Continue"
   },
   "list": {
     "title": "Songs"
   },
   "add": {
     "title": "Add song"
+  },
+  "import": {
+    "title": "Import song"
   },
   "edit": {
     "title": "Edit song",
@@ -72,6 +91,10 @@
       "searchOrgs": "Search organizations",
       "noOrgFound": "No organization found",
       "defaultName": "Personal space"
+    },
+    "share": {
+      "title": "Link copied",
+      "description": "A shareable link to the song has been copied to the clipboard."
     }
   },
   "error": {

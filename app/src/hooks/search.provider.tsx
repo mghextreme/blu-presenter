@@ -1,9 +1,8 @@
 import { SongsService } from "@/services";
 import { ISongWithRole, SupportedLanguage } from "@/types";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 
 export type AdvancedSearchOptions = {
-  query: string;
   languages?: SupportedLanguage[];
   organizations?: number[];
   searchPublicArchive?: boolean;
@@ -15,13 +14,15 @@ type SearchProviderProps = {
 }
 
 export type SearchProviderState = {
+  formValues: AdvancedSearchOptions;
   search: (query: string) => Promise<void>;
-  advancedSearch: (options: AdvancedSearchOptions) => Promise<void>;
+  advancedSearch: (query: string, options: AdvancedSearchOptions) => Promise<void>;
   isSearching: boolean;
   results: ISongWithRole[];
 }
 
 const initialState: SearchProviderState = {
+  formValues: {} as AdvancedSearchOptions,
   search: () => Promise.resolve(),
   advancedSearch: () => Promise.resolve(),
   isSearching: false,
@@ -34,6 +35,22 @@ export const SearchProvider = ({ songsService, children }: SearchProviderProps) 
   const [results, setResults] = useState<ISongWithRole[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
 
+  try {
+    const storedFormValues = localStorage.getItem('advancedSearchOptions');
+    if (storedFormValues) {
+      initialState.formValues = (JSON.parse(storedFormValues) as AdvancedSearchOptions) || null;
+    }
+  }
+  catch (e) {
+    // Ignore error
+  }
+  const [formValues, setFormValues] = useState<AdvancedSearchOptions>(initialState.formValues);
+
+  const setAndStoreFormValues = (values: AdvancedSearchOptions) => {
+    setFormValues(values);
+    localStorage.setItem('advancedSearchOptions', JSON.stringify(values));
+  };
+
   const search = async (query: string) => {
     setIsSearching(true);
     const response = await songsService.advancedSearch({ query });
@@ -41,10 +58,11 @@ export const SearchProvider = ({ songsService, children }: SearchProviderProps) 
     setIsSearching(false);
   };
 
-  const advancedSearch = async (options: AdvancedSearchOptions) => {
+  const advancedSearch = async (query: string, options: AdvancedSearchOptions) => {
     setIsSearching(true);
+    setAndStoreFormValues(options);
     const response = await songsService.advancedSearch({
-      query: options.query,
+      query: query,
       languages: options.languages,
       organizations: options.organizations,
       searchPublicArchive: options.searchPublicArchive,
@@ -53,12 +71,15 @@ export const SearchProvider = ({ songsService, children }: SearchProviderProps) 
     setIsSearching(false);
   };
 
-  const value = {
-    search,
-    isSearching,
-    advancedSearch,
-    results,
-  };
+  const value = useMemo(() => {
+    return {
+      formValues,
+      search,
+      isSearching,
+      advancedSearch,
+      results,
+    };
+  }, [isSearching, results]);
   return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;
 };
 

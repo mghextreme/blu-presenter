@@ -33,7 +33,7 @@ export function DataTableHeader<TData>({
           className="max-w-sm"
         />
       </div>
-      <div>
+      <div className="flex items-center justify-end space-x-2">
         {(actions)}
       </div>
     </div>

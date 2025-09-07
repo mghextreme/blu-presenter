@@ -9,3 +9,7 @@ export interface IScheduleItem {
 
   slides: ISlide[]
 }
+
+export interface ISortableScheduleItem extends IScheduleItem {
+  uniqueId: number;
+}

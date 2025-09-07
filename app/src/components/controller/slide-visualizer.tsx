@@ -18,7 +18,7 @@ export default function SlideVisualizer({
     setSelection,
   } = useController();
 
-  const componentRef = useRef(null);
+  const componentRef = useRef<typeof ScrollingSongVisualizer | typeof SingleSlideVisualizer>(null);
   useEffect(() => {
     if (theme !== 'chromaKey') {
       setSelection({
@@ -27,7 +27,7 @@ export default function SlideVisualizer({
     }
 
     if (componentRef.current) {
-      (componentRef.current as any).update();
+      (componentRef.current as any)?.update();
     }
   }, [mode, theme]);
 

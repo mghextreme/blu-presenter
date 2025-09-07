@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { SpotifyCode } from "@/components/app/songs/spotify-code";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import PrinterIcon from "@heroicons/react/24/solid/PrinterIcon";
+import ShareIcon from "@heroicons/react/24/solid/ShareIcon";
 import ControllerProvider from "@/hooks/controller.provider";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { Toggle } from "@/components/ui/toggle";
@@ -16,6 +17,7 @@ import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOn
 import { alternateLyricsAndChords } from "@/lib/songs";
 import { cn } from "@/lib/utils";
 import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
+import { toast } from "sonner";
 
 export default function ViewSong() {
 
@@ -50,12 +52,43 @@ export default function ViewSong() {
     }
   }
 
+  const copyShareableUrlToClipboard = async () => {
+    const currentUrl = new URL(window.location.href);
+    const shareUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/view/${data.id}/${data.secret ?? ''}`
+    const clipboard = navigator.clipboard;
+    if (!!clipboard) {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success(t('message.share.title'), {
+        description: t('message.share.description'),
+      });
+    } else {
+      window.open(shareUrl, '_blank');
+    }
+  }
+
   return (
     <>
       <title>{t('title.view', { title: data.title, artist: data.artist }) + ' - BluPresenter'}</title>
       <div className="flex items-center px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
         <div className="buttons flex-1 flex justify-end gap-x-2">
+          {isLoggedIn && <CopySongToOrganization songId={data.id} title={data.title} artist={data.artist} variant="default"></CopySongToOrganization>}
+          <Button
+            type="button"
+            size="sm"
+            title={t('actions.share')}
+            onClick={copyShareableUrlToClipboard}>
+            <ShareIcon className="size-3" />
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            title={t('actions.print')}
+            asChild={true}>
+            <Link to={hasAccess ? `/app/songs/${data.id}/print` : `/shared/print/${data.id}/${data.secret ?? ''}`}>
+              <PrinterIcon className="size-3" />
+            </Link>
+          </Button>
           <Button
             type="button"
             size="sm"
@@ -69,16 +102,6 @@ export default function ViewSong() {
             ) : (
               <PencilIcon className="size-3" />
             )}
-          </Button>
-          {isLoggedIn && <CopySongToOrganization songId={data.id} title={data.title} artist={data.artist} variant="default"></CopySongToOrganization>}
-          <Button
-            type="button"
-            size="sm"
-            title={t('actions.print')}
-            asChild={true}>
-            <Link to={hasAccess ? `/app/songs/${data.id}/print` : `/shared/print/${data.id}/${data.secret ?? ''}`}>
-              <PrinterIcon className="size-3" />
-            </Link>
           </Button>
           {hasAccess && <ControllerProvider>
             <SongPreview getSong={() => data}>
