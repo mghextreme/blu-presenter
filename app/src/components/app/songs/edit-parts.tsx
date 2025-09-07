@@ -93,7 +93,7 @@ export default function EditSongParts({
                           size="sm"
                           title={t('edit.reorder')}
                         >
-                          <ArrowsUpDownIcon className="h-4 w-4" />
+                          <ArrowsUpDownIcon className="size-3" />
                         </Button>
                       </SortableItemHandle>
                       <Button

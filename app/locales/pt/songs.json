@@ -28,6 +28,7 @@
     "view": "Visualizar música",
     "preview": "Pré-visualizar música",
     "print": "Imprimir",
+    "share": "Compartilhar",
     "close": "Fechar",
     "increaseFont": "Aumentar fonte",
     "resetFont": "Redefinir fonte",
@@ -72,6 +73,10 @@
       "searchOrgs": "Pesquisar organizações...",
       "noOrgFound": "Nenhuma organização encontrada",
       "defaultName": "Espaço pessoal"
+    },
+    "share": {
+      "title": "Link copiado",
+      "description": "Um link compartilhável para a música foi copiado para a área de transferência."
     }
   },
   "error": {

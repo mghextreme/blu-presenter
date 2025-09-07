@@ -28,6 +28,7 @@
     "view": "View song",
     "preview": "Preview song",
     "print": "Print",
+    "share": "Share",
     "close": "Close",
     "increaseFont": "Increase font size",
     "resetFont": "Reset font size",
@@ -72,6 +73,10 @@
       "searchOrgs": "Search organizations",
       "noOrgFound": "No organization found",
       "defaultName": "Personal space"
+    },
+    "share": {
+      "title": "Link copied",
+      "description": "A shareable link to the song has been copied to the clipboard."
     }
   },
   "error": {
