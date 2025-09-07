@@ -123,7 +123,10 @@ export default function Songs() {
       <h1 className="text-3xl mb-2">{t('list.title')}</h1>
       <h2 className="text-lg mb-4 opacity-50">{organization?.name || t('organizations.defaultName')}</h2>
       <DataTable columns={columns} data={data ?? []} addButton={(
-        <Link to="/app/songs/add"><Button>{t('actions.create')}</Button></Link>
+        <>
+          <Link to="/app/songs/add"><Button>{t('actions.create')}</Button></Link>
+          <Link to="/app/songs/import"><Button>{t('actions.import')}</Button></Link>
+        </>
       )}></DataTable>
     </div>
   );

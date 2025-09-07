@@ -41,3 +41,17 @@ export const alternateLyricsAndChords = (lyrics?: string, chords?: string): Reac
     </>
   );
 }
+
+const chordsRegex = /\s[A-G](#{1,2}|b{1,2})?\d*(M|maj|m|min|sus|º|\+)?\d*(\(\d*[+-]?\))?([\\\/][A-G](#{1,2}|b{1,2})?)?\s/gi;
+export const getChordsData = (text: string) => {
+  const words = text.replace(/[\[\]\(\)]+/gi, '').replace(/\s+/gi, ' ').trim().split(/\s/gi);
+  const chordsIter = (` ${text} `).matchAll(chordsRegex);
+  const chords = Array.from(chordsIter, m => m[0].trim());
+
+  return {
+    wordCount: words.length,
+    chordCount: chords ? chords.length : 0,
+    chords: chords,
+    proportion: chords && words.length > 0 ? chords.length / words.length : 0,
+  }
+}

@@ -2,8 +2,9 @@
   "title": {
     "view": "\"{{title}}\" por {{artist}} - Visualizar - Músicas",
     "edit": "\"{{title}}\" por {{artist}} - Editar - Músicas",
-    "print": "\"{{title}}\" por {{artist}} - Imprimir - Songs",
+    "print": "\"{{title}}\" por {{artist}} - Imprimir - Músicas",
     "add": "Adicionar - Músicas",
+    "import": "Importar - Músicas",
     "list": "Músicas - {{organization}}"
   },
   "input": {
@@ -18,10 +19,23 @@
     "placeholders": {
       "referenceUrl": "URL da referência",
       "referenceName": "Nome da referência"
+    },
+    "import": {
+      "label": "Conteúdo da música",
+      "description": "Cole aqui o conteúdo completo da música, incluindo cifras e letras."
+    },
+    "importLine": {
+      "add": "Importar linha",
+      "remove": "Não importar linha"
+    },
+    "lineType": {
+      "chords": "Acordes",
+      "lyrics": "Letra"
     }
   },
   "actions": {
     "create": "Adicionar música",
+    "import": "Importar música",
     "edit": "Editar música",
     "delete": "Remover música",
     "copyToOrganization": "Copiar para outra organização",
@@ -42,13 +56,17 @@
     "update": "Atualizar",
     "cancel": "Cancelar",
     "confirm": "Confirmar",
-    "back": "Voltar"
+    "back": "Voltar",
+    "continue": "Continuar"
   },
   "list": {
     "title": "Músicas"
   },
   "add": {
     "title": "Adicionar música"
+  },
+  "import": {
+    "title": "Importar música"
   },
   "edit": {
     "title": "Editar música",
