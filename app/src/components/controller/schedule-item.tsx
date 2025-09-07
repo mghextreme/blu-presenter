@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardHeaderActions, CardHeaderText, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -15,12 +15,14 @@ type ScheduleItemParams = {
   item: IScheduleItem
   selected?: boolean
   index: number
+  buttonsOverride?: ReactNode;
 }
 
 export function ScheduleItem({
   item,
   selected = false,
   index,
+  buttonsOverride,
 }: ScheduleItemParams) {
 
   const { t } = useTranslation("controller");
@@ -69,19 +71,23 @@ export function ScheduleItem({
             )}
           </CardHeaderText>
           <CardHeaderActions>
-            {item.type === 'song' && (
-              <CollapsibleTrigger asChild>
-                <Button size="sm" title={t('schedule.items.expand')}>
-                  <ChevronUpDownIcon className="size-4"></ChevronUpDownIcon>
+            {buttonsOverride ? buttonsOverride : (
+              <>
+                {item.type === 'song' && (
+                  <CollapsibleTrigger asChild>
+                    <Button size="sm" title={t('schedule.items.expand')}>
+                      <ChevronUpDownIcon className="size-4"></ChevronUpDownIcon>
+                    </Button>
+                  </CollapsibleTrigger>
+                )}
+                <Button size="sm" title={t('schedule.items.removeFromSchedule')} onClick={removeItem} variant={item.type === 'comment' ? 'secondary' : 'default'}>
+                  <TrashIcon className="size-3"></TrashIcon>
                 </Button>
-              </CollapsibleTrigger>
+                <Button size="sm" title={t('schedule.items.open')} onClick={loadItem} variant={item.type === 'comment' ? 'secondary' : 'default'}>
+                  <PlayIcon className="size-3"></PlayIcon>
+                </Button>
+              </>
             )}
-            <Button size="sm" title={t('schedule.items.removeFromSchedule')} onClick={removeItem} variant={item.type === 'comment' ? 'secondary' : 'default'}>
-              <TrashIcon className="size-3"></TrashIcon>
-            </Button>
-            <Button size="sm" title={t('schedule.items.open')} onClick={loadItem} variant={item.type === 'comment' ? 'secondary' : 'default'}>
-              <PlayIcon className="size-3"></PlayIcon>
-            </Button>
           </CardHeaderActions>
         </CardHeader>
         {item.type === 'song' && item?.slides && (

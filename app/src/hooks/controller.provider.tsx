@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
 
@@ -17,6 +17,7 @@ type ControllerProviderState = {
 
   schedule: IScheduleItem[],
   addToSchedule: (item: IScheduleItem | IScheduleItem[]) => void,
+  moveItemInSchedule: (fromIx: number, toIx: number) => void,
   removeFromSchedule: (ix: number) => void,
   removeAllFromSchedule: () => void,
 
@@ -47,6 +48,7 @@ const initialState: ControllerProviderState = {
 
   schedule: [],
   addToSchedule: () => null,
+  moveItemInSchedule: () => null,
   removeFromSchedule: () => null,
   removeAllFromSchedule: () => null,
 
@@ -102,10 +104,11 @@ export default function ControllerProvider({
   const addToSchedule = (item: IScheduleItem | IScheduleItem[]) => {
     const items = Array.isArray(item) ? item : [item];
 
+    const uniqueIdBase = Date.now();
     const startingIx = schedule.length;
     const newValue = [
       ...schedule,
-      ...items.map((item, ix) => ({ ...item, index: startingIx + ix }))
+      ...items.map((item, ix) => ({ ...item, index: startingIx + ix, uniqueId: uniqueIdBase + ix })),
     ];
     internalSetSchedule(newValue);
   };
@@ -123,6 +126,15 @@ export default function ControllerProvider({
       ...schedule.slice(ix + 1).map((item, halfIx) => ({ ...item, index: ix + halfIx })),
     ]
     internalSetSchedule(newValue);
+  };
+  const moveItemInSchedule = (fromIx: number, toIx: number) => {
+    if (fromIx === toIx) return;
+
+    const newValue = structuredClone(schedule);
+    newValue.splice(fromIx, 1);
+    newValue.splice(toIx, 0, schedule[fromIx]);
+
+    internalSetSchedule(newValue.map((item, ix) => ({ ...item, index: ix })));
   };
   const removeAllFromSchedule = () => {
     internalSetSchedule([]);
@@ -321,41 +333,52 @@ export default function ControllerProvider({
     setWindows([]);
   }
 
-  const initialValue = {
+  const value = useMemo(() => {
+    return {
+      mode,
+      setMode,
+
+      schedule,
+      addToSchedule,
+      moveItemInSchedule,
+      removeFromSchedule,
+      removeAllFromSchedule,
+
+      scheduleItem: scheduleItem,
+      setScheduleItem: externalSetScheduleItem,
+
+      selectedSlide,
+      overrideSlide,
+      setBlank,
+      setLogo,
+      clearOverrideSlide,
+
+      previous,
+      next,
+
+      selection,
+      setSelection: externalSetSelection,
+
+      windows,
+      addWindow,
+      closeWindow,
+      closeAllWindows,
+    } as ControllerProviderState;
+  }, [
     mode,
-    setMode,
-
     schedule,
-    addToSchedule,
-    removeFromSchedule,
-    removeAllFromSchedule,
-
-    scheduleItem: scheduleItem,
-    setScheduleItem: externalSetScheduleItem,
-
+    scheduleItem,
     selectedSlide,
     overrideSlide,
-    setBlank,
-    setLogo,
-    clearOverrideSlide,
-
-    previous,
-    next,
-
     selection,
-    setSelection: externalSetSelection,
-
     windows,
-    addWindow,
-    closeWindow,
-    closeAllWindows,
-  } as ControllerProviderState
+  ]);
 
   useHotkeys(Key.ArrowLeft, previous);
   useHotkeys(Key.ArrowRight, next);
 
   return (
-    <ControllerProviderContext.Provider {...props} value={initialValue}>
+    <ControllerProviderContext.Provider {...props} value={value}>
       {children}
       {windows.map((w) => (
         <WindowProvider key={w.id} id={w.id}>
