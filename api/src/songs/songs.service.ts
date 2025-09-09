@@ -1,6 +1,6 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOperator, FindOptionsWhere, ILike, In, IsNull, Or, Repository } from 'typeorm';
+import { FindOperator, FindOptionsWhere, ILike, In, IsNull, Or, Raw, Repository } from 'typeorm';
 import { AdvancedSearchDto, CreateSongDto, OrganizationRoleOptions, UpdateSongDto } from 'src/types';
 import { OrganizationUser, Song } from 'src/entities';
 import { OrganizationsService } from 'src/organizations/organizations.service';
@@ -140,40 +140,27 @@ export class SongsService {
       ? {language: In(advancedSearchDto.languages)}
       : {};
 
+    const queryLang = !!advancedSearchDto.queryLanguage ? advancedSearchDto.queryLanguage : ((advancedSearchDto.languages?.length ?? 0) === 1 ? advancedSearchDto.languages[0] : 'en');
     const whereQuery = [
       {
         ...orgIdCondition,
         ...languageCondition,
-        title: ILike(`%${advancedSearchDto.query}%`),
-      },
-      {
-        ...orgIdCondition,
-        ...languageCondition,
-        artist: ILike(`%${advancedSearchDto.query}%`),
+        searchVector: Raw((alias: string) => `searchVector @@ get_combined_tsquery_code(:query, :lang)`, {
+          query: advancedSearchDto.query,
+          lang: queryLang,
+        }),
       },
     ];
 
-    const songs = await this.songsRepository.find({
-      where: whereQuery,
-      select: {
-        id: true,
-        orgId: true,
-        title: true,
-        artist: true,
-        blocks: true,
-        secret: true,
-        organization: {
-          id: true,
-          name: true,
-        },
-      },
-      order: {
-        orgId: {
-          nulls: 'last',
-        },
-      },
-      take: 100,
-    });
+    const songs = await this.songsRepository
+      .createQueryBuilder('s')
+      .addSelect('ts_rank(searchVector, get_combined_tsquery_code(:query, :lang))', 'rank')
+      .where(whereQuery)
+      .orderBy('rank', 'DESC')
+      .setParameter('query', advancedSearchDto.query)
+      .setParameter('lang', queryLang)
+      .take(100)
+      .getMany();
 
     const userOrgsMap: {[key: number]: Partial<OrganizationUser>} = {};
     for (const org of userOrgs) {

@@ -2,7 +2,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslation } from "react-i18next";
-import i18next from "i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useSearch } from "@/hooks/search.provider";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -32,14 +31,13 @@ export function AdvancedSearchForm() {
     isSearching,
   } = useSearch();
 
-  const curLang = (i18next.resolvedLanguage || 'en') as SupportedLanguage;
   const { organizations } = useAuth();
 
   const form = useForm<z.infer<typeof advancedSearchFormSchema>>({
     resolver: zodResolver(advancedSearchFormSchema),
     defaultValues: {
       query: '',
-      languages: formValues.languages || [curLang],
+      languages: formValues.languages || [],
       organizations: formValues.organizations?.map(id => id.toString()) || organizations?.map(o => o.id.toString()) || [],
       searchPublicArchive: formValues.searchPublicArchive || true,
     },

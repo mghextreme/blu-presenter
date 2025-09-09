@@ -1,5 +1,6 @@
 import { SongsService } from "@/services";
 import { ISongWithRole, SupportedLanguage } from "@/types";
+import i18next from "i18next";
 import { createContext, useContext, useMemo, useState } from "react";
 
 export type AdvancedSearchOptions = {
@@ -53,22 +54,31 @@ export const SearchProvider = ({ songsService, children }: SearchProviderProps) 
 
   const search = async (query: string) => {
     setIsSearching(true);
-    const response = await songsService.advancedSearch({ query });
-    setResults(response);
-    setIsSearching(false);
+    try {
+      const response = await songsService.advancedSearch({ query });
+      setResults(response);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const advancedSearch = async (query: string, options: AdvancedSearchOptions) => {
     setIsSearching(true);
     setAndStoreFormValues(options);
-    const response = await songsService.advancedSearch({
-      query: query,
-      languages: options.languages,
-      organizations: options.organizations,
-      searchPublicArchive: options.searchPublicArchive,
-    });
-    setResults(response);
-    setIsSearching(false);
+
+    const curLang = (i18next.resolvedLanguage || 'en') as SupportedLanguage;
+    try {
+      const response = await songsService.advancedSearch({
+        query: query,
+        queryLanguage: curLang ?? undefined,
+        languages: options.languages,
+        organizations: options.organizations,
+        searchPublicArchive: options.searchPublicArchive,
+      });
+      setResults(response);
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const value = useMemo(() => {
