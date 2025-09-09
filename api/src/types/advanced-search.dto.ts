@@ -6,6 +6,9 @@ export class AdvancedSearchDto {
   @Length(2, 255)
   query: string;
 
+  @IsIn(SupportedLanguages)
+  queryLanguage: string;
+
   @IsArray()
   @IsNotEmpty({ each: true })
   @IsIn(SupportedLanguages, { each: true })

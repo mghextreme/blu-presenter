@@ -27,6 +27,7 @@ export class SongsService extends ApiService {
   public async advancedSearch(
     payload: {
       query: string;
+      queryLanguage?: string | undefined;
       organizations?: number[];
       languages?: string[] | undefined;
       searchPublicArchive?: boolean;

@@ -65,6 +65,9 @@ export class Song {
   })
   secret: string;
 
+  @Column({ type: 'tsvector', select: false, insert: false, update: false })
+  searchVector: string;
+
   @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
   createdAt: Date;
 
