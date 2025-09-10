@@ -16,8 +16,8 @@ type SearchProviderProps = {
 
 export type SearchProviderState = {
   formValues: AdvancedSearchOptions;
-  search: (query: string) => Promise<void>;
-  advancedSearch: (query: string, options: AdvancedSearchOptions) => Promise<void>;
+  search: (query: string, includeBlocks: boolean) => Promise<void>;
+  advancedSearch: (query: string, options: AdvancedSearchOptions & { includeBlocks?: boolean; }) => Promise<void>;
   isSearching: boolean;
   results: ISongWithRole[];
 }
@@ -52,19 +52,24 @@ export const SearchProvider = ({ songsService, children }: SearchProviderProps) 
     localStorage.setItem('advancedSearchOptions', JSON.stringify(values));
   };
 
-  const search = async (query: string) => {
+  const search = async (query: string, includeBlocks: boolean = false) => {
     setIsSearching(true);
+    const curLang = (i18next.resolvedLanguage || 'en') as SupportedLanguage;
     try {
-      const response = await songsService.advancedSearch({ query });
+      const response = await songsService.advancedSearch({
+        query,
+        queryLanguage: curLang ?? undefined,
+        includeBlocks
+      });
       setResults(response);
     } finally {
       setIsSearching(false);
     }
   };
 
-  const advancedSearch = async (query: string, options: AdvancedSearchOptions) => {
+  const advancedSearch = async (query: string, options: AdvancedSearchOptions & { includeBlocks?: boolean; }) => {
     setIsSearching(true);
-    setAndStoreFormValues(options);
+    setAndStoreFormValues(options as AdvancedSearchOptions);
 
     const curLang = (i18next.resolvedLanguage || 'en') as SupportedLanguage;
     try {
@@ -74,6 +79,7 @@ export const SearchProvider = ({ songsService, children }: SearchProviderProps) 
         languages: options.languages,
         organizations: options.organizations,
         searchPublicArchive: options.searchPublicArchive,
+        includeBlocks: options.includeBlocks,
       });
       setResults(response);
     } finally {

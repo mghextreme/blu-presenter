@@ -145,20 +145,28 @@ export class SongsService {
       {
         ...orgIdCondition,
         ...languageCondition,
-        searchVector: Raw((alias: string) => `searchVector @@ get_combined_tsquery_code(:query, :lang)`, {
+        searchVector: Raw(() => `searchVector @@ get_combined_tsquery_code(:query, :lang)`, {
           query: advancedSearchDto.query,
           lang: queryLang,
         }),
       },
     ];
 
-    const songs = await this.songsRepository
+    let songsQuery = this.songsRepository
       .createQueryBuilder('s')
-      .addSelect('ts_rank(searchVector, get_combined_tsquery_code(:query, :lang))', 'rank')
+      .addSelect('ts_rank(searchVector, get_combined_tsquery_code(:query, :lang))', 'rank');
+
+    if (advancedSearchDto.includeBlocks === true) {
+      songsQuery = songsQuery.addSelect('s.blocks');
+    }
+
+    songsQuery = songsQuery
       .where(whereQuery)
       .orderBy('rank', 'DESC')
       .setParameter('query', advancedSearchDto.query)
-      .setParameter('lang', queryLang)
+      .setParameter('lang', queryLang);
+
+    const songs = await songsQuery
       .take(100)
       .getMany();
 

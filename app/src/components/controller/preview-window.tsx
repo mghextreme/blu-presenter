@@ -84,7 +84,8 @@ export function PreviewWindow({
 
   useEffect(() => {
     const browserWindow = window as unknown as IBrowserWindow;
-    const screenDetailsPromise = browserWindow.getScreenDetails();
+    if (!browserWindow?.getScreenDetails) return;
+    const screenDetailsPromise = browserWindow?.getScreenDetails();
     if (screenDetailsPromise) {
       screenDetailsPromise.then((details: { screens: IScreenDetails[] }) => {
         const screenRatioOptions = details.screens.map((s, ix: number) => {

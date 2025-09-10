@@ -20,4 +20,7 @@ export class AdvancedSearchDto {
 
   @IsBoolean()
   searchPublicArchive?: boolean;
+
+  @IsBoolean()
+  includeBlocks?: boolean;
 }

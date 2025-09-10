@@ -22,7 +22,13 @@ const advancedSearchFormSchema = z.object({
   searchPublicArchive: z.boolean(),
 });
 
-export function AdvancedSearchForm() {
+interface AdvancedSearchFormProps {
+  includeBlocks?: boolean;
+}
+
+export function AdvancedSearchForm({
+  includeBlocks = false,
+}: AdvancedSearchFormProps) {
 
   const { t } = useTranslation('discover');
   const {
@@ -48,6 +54,7 @@ export function AdvancedSearchForm() {
       languages: values.languages as SupportedLanguage[],
       organizations: values.organizations?.length === organizations.length ? undefined : (values.organizations?.map(x => parseInt(x)) || []),
       searchPublicArchive: values.searchPublicArchive,
+      includeBlocks,
     })
       .catch((e) => {
         toast.error(t('errors.search'), {
