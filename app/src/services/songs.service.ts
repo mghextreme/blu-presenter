@@ -31,6 +31,7 @@ export class SongsService extends ApiService {
       organizations?: number[];
       languages?: string[] | undefined;
       searchPublicArchive?: boolean;
+      includeBlocks?: boolean;
     }
   ): Promise<ISongWithRole[]> {
     return await this.postRequest('/songs/advancedSearch', JSON.stringify(payload), {

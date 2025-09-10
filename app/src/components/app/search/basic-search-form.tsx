@@ -12,7 +12,13 @@ const basicSearchFormSchema = z.object({
   query: z.string().min(3),
 });
 
-export function BasicSearchForm() {
+interface BasicSearchFormProps {
+  includeBlocks?: boolean;
+}
+
+export function BasicSearchForm({
+  includeBlocks = false,
+}: BasicSearchFormProps) {
 
   const { t } = useTranslation('discover');
   const {
@@ -28,7 +34,7 @@ export function BasicSearchForm() {
   });
 
   const onSubmit = async (values: z.infer<typeof basicSearchFormSchema>) => {
-    await search(values.query);
+    await search(values.query, includeBlocks);
   }
 
   return (

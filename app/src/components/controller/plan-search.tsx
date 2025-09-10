@@ -56,10 +56,10 @@ export function PlanSearch() {
           <TabsTrigger value="advanced">{t('plan.search.advanced')}</TabsTrigger>
         </TabsList>
         <TabsContent value="basic">
-          <BasicSearchForm />
+          <BasicSearchForm includeBlocks={true} />
         </TabsContent>
         <TabsContent value="advanced">
-          <AdvancedSearchForm />
+          <AdvancedSearchForm includeBlocks={true} />
         </TabsContent>
       </Tabs>
       <div

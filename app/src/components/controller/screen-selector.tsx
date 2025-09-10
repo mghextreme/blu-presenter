@@ -37,15 +37,17 @@ export default function ScreenSelector({ children }: { children: ReactNode }) {
     const browserWindow = childWindow as unknown as IBrowserWindow;
     const browserScreen = browserWindow?.screen || browserWindow?.currentScreen;
 
-    if (browserScreen?.isExtended == true || browserWindow?.screens?.length > 1) {
-      const screenDetailsPromise = browserWindow?.getScreenDetails();
-      if (screenDetailsPromise) {
-        screenDetailsPromise.then((details: {screens: IScreenDetails[]}) => {
-          setDisplayOptions(details.screens);
-        });
-      }
-    } else {
+    if (!browserScreen || !(browserScreen?.isExtended) || !((browserWindow?.screens?.length ?? 1) > 1)) {
       setSelected(true);
+      return;
+    }
+
+    if (!browserWindow?.getScreenDetails) return;
+    const screenDetailsPromise = browserWindow?.getScreenDetails();
+    if (screenDetailsPromise) {
+      screenDetailsPromise.then((details: {screens: IScreenDetails[]}) => {
+        setDisplayOptions(details.screens);
+      });
     }
   }, []);
 
