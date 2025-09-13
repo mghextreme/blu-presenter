@@ -112,7 +112,7 @@ export default function ImportSong() {
 
                 <div className="flex flex-row align-start space-x-2">
                   <Button className="flex-0" type="submit">{t('button.continue')}</Button>
-                  <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+                  <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/songs'}>{t('button.cancel')}</Link></Button>
                 </div>
               </div>
             </form>
@@ -124,7 +124,7 @@ export default function ImportSong() {
             <div className="flex flex-row align-start space-x-2">
               <Button className="flex-0" type="button" onClick={onSubmitStep2}>{t('button.continue')}</Button>
               <Button className="flex-0" type="button" variant="secondary" onClick={() => setStep(1)}>{t('button.back')}</Button>
-              <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+              <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/songs'}>{t('button.cancel')}</Link></Button>
             </div>
           </div>
         )}

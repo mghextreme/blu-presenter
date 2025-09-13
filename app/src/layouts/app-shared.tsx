@@ -26,17 +26,17 @@ export default function AppSharedLayout() {
       <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
         <AppNavbar>
           {isLoggedIn ? (
-            <Link to="/app">
-              <Button>{t('button.openDashboard')}</Button>
-            </Link>
+            <Button asChild>
+              <Link to="/app">{t('button.openDashboard')}</Link>
+            </Button>
           ) : (
             <>
-              <Link to="/login">
-                <Button variant="outline">{t('button.login')}</Button>
-              </Link>
-              <Link to="/signup">
-                <Button>{t('button.signUp')}</Button>
-              </Link>
+              <Button variant="outline" asChild>
+                <Link to="/login">{t('button.login')}</Link>
+              </Button>
+              <Button asChild>
+                <Link to="/signup">{t('button.signUp')}</Link>
+              </Button>
             </>
           )}
         </AppNavbar>

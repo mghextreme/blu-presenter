@@ -84,7 +84,7 @@ export default function ViewSong() {
             type="button"
             size="sm"
             title={t('actions.print')}
-            asChild={true}>
+            asChild>
             <Link to={hasAccess ? `/app/songs/${data.id}/print` : `/shared/print/${data.id}/${data.secret ?? ''}`}>
               <PrinterIcon className="size-3" />
             </Link>
@@ -144,7 +144,7 @@ export default function ViewSong() {
           ))}
         </div>}
         {isLoggedIn && <div className="flex flex-row align-start space-x-2 mt-4">
-          <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">{t('button.back')}</Button></Link>
+          <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/songs'}>{t('button.back')}</Link></Button>
         </div>}
       </div>
     </>

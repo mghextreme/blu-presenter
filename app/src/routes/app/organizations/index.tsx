@@ -72,14 +72,15 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
           <div className="flex justify-end space-x-2 -m-1">
             {isRoleHigherOrEqualThan(userRole, 'admin') && (
               <>
-                <Link to={`/app/organization/member/${row.original.id}`}>
-                  <Button
-                    type="button"
-                    size="sm"
-                    title={t('actions.editMember')}>
+                <Button
+                  type="button"
+                  size="sm"
+                  title={t('actions.editMember')}
+                  asChild>
+                  <Link to={`/app/organization/member/${row.original.id}`}>
                     <PencilIcon className="size-3" />
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
                 <Button
                   disabled={!canDelete}
                   size="sm"
@@ -330,7 +331,7 @@ export default function EditOrganization({
                     {t('button.' + (edit ? 'update' : 'add'))}
                     </Button>
                 )}
-                <Link to={'/app'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+                <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app'}>{t('button.cancel')}</Link></Button>
               </div>
             </form>
           </Form>
@@ -339,7 +340,7 @@ export default function EditOrganization({
               <h2 className="text-xl mt-6 mb-4">{t('edit.members')}</h2>
               <DataTable columns={columns} data={loadedData.users ?? []} addButton={(
                 isRoleHigherOrEqualThan(loadedData?.role, 'admin') ? (
-                  <Link to={`/app/organization/invite`}><Button>{t('actions.inviteMember')}</Button></Link>
+                  <Button asChild><Link to={`/app/organization/invite`}>{t('actions.inviteMember')}</Link></Button>
                 ) : null
               )}></DataTable>
               {(loadedData?.invitations?.length ?? 0) > 0 && (
@@ -356,9 +357,9 @@ export default function EditOrganization({
               <div className="flex flex-row align-start space-x-2">
               {loadedData?.role === 'owner' && (
                 <>
-                  <Link to={'/app/organization/transfer'}>
-                    <Button className="flex-0" type="button">{t('button.transfer')}</Button>
-                  </Link>
+                  <Button className="flex-0" type="button" asChild>
+                    <Link to={'/app/organization/transfer'}>{t('button.transfer')}</Link>
+                  </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button className="flex-0" variant="destructive" disabled={true || isLoading}>
