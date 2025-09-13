@@ -215,7 +215,7 @@ export const EditSongForm = forwardRef((
               {t('button.' + (edit ? 'update' : 'add'))}
             </Button>
             {additionalSubmitButtons}
-            <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+            <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/songs'}>{t('button.cancel')}</Link></Button>
           </div>
         </div>
 
@@ -231,7 +231,7 @@ export const EditSongForm = forwardRef((
               {t('button.' + (edit ? 'update' : 'add'))}
             </Button>
             {additionalSubmitButtons}
-            <Link to={'/app/songs'}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+            <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/songs'}>{t('button.cancel')}</Link></Button>
           </div>
         </div>
       </form>

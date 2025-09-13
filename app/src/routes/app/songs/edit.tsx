@@ -88,7 +88,7 @@ export default function EditSong({
               type="button"
               size="sm"
               title={t('actions.view')}
-              asChild={true}>
+              asChild>
               <Link to={`/app/songs/${loadedData.id}/view`}>
                 <EyeIcon className="size-3" />
               </Link>

@@ -95,6 +95,9 @@ export const ImportSongForm = forwardRef((
           currentText = '';
           currentChords = '';
         }
+      }
+
+      if (!part.enabled) {
         continue;
       }
 

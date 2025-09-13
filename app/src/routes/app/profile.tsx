@@ -154,7 +154,7 @@ export default function Profile() {
               )}
               {t('button.update')}
             </Button>
-            <Link to={'/app/profile'} reloadDocument={true}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+            <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/profile'} reloadDocument={true}>{t('button.cancel')}</Link></Button>
           </div>
         </form>
       </Form>

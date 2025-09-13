@@ -19,17 +19,17 @@ export default function Welcome() {
           <LanguageToggler></LanguageToggler>
           <ThemeToggler></ThemeToggler>
           {isLoggedIn ? (
-            <Link to="/app">
-              <Button>{t('button.openDashboard')}</Button>
-            </Link>
+            <Button asChild>
+              <Link to="/app">{t('button.openDashboard')}</Link>
+            </Button>
           ) : (
             <>
-              <Link to="/login">
-                <Button variant="outline">{t('button.login')}</Button>
-              </Link>
-              <Link to="/signup">
-                <Button>{t('button.signUp')}</Button>
-              </Link>
+              <Button variant="outline" asChild>
+                <Link to="/login">{t('button.login')}</Link>
+              </Button>
+              <Button asChild>
+                <Link to="/signup">{t('button.signUp')}</Link>
+              </Button>
             </>
           )}
         </div>
@@ -43,17 +43,17 @@ export default function Welcome() {
         </p>
         <div className="space-x-4">
           {isLoggedIn ? (
-            <Link to="/app">
-              <Button size="lg">{t('button.openDashboard')}</Button>
-            </Link>
+            <Button size="lg" asChild>
+              <Link to="/app">{t('button.openDashboard')}</Link>
+            </Button>
           ) : (
             <>
-              <Link to="/login">
-                <Button variant="outline" size="lg">{t('button.login')}</Button>
-              </Link>
-              <Link to="/signup">
-                <Button size="lg">{t('button.signUp')}</Button>
-              </Link>
+              <Button variant="outline" size="lg" asChild>
+                <Link to="/login">{t('button.login')}</Link>
+              </Button>
+              <Button size="lg" asChild>
+                <Link to="/signup">{t('button.signUp')}</Link>
+              </Button>
             </>
           )}
         </div>

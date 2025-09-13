@@ -32,7 +32,7 @@ export default function ModeToggler() {
         <Dialog>
           <DialogTrigger asChild>
             <Button onClick={() => setMode('part')}>
-            {t('mode.mode')}: {t('mode.part')}
+              {t('mode.mode')}: {t('mode.part')}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">

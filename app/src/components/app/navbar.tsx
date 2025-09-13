@@ -14,7 +14,7 @@ export default function AppNavbar({ children }: { children?: React.ReactNode }) 
         <div className="flex items-center space-x-2">
           {children}
         </div>
-        <div className="space-x-2">
+        <div className="flex gap-2">
           <LanguageToggler></LanguageToggler>
           <ThemeToggler></ThemeToggler>
           {isLoggedIn && <>

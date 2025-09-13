@@ -69,10 +69,10 @@ export default function ErrorLayout() {
               isAuthError ? (
                 <Button onClick={signOutAndRedirect}>{t('actions.signOut')}</Button>
               ) : (
-                <Link to="/app"><Button>{t('actions.app')}</Button></Link>
+                <Button asChild><Link to="/app">{t('actions.app')}</Link></Button>
               )
             ) : (
-              <Link to="/"><Button>{t('actions.home')}</Button></Link>
+              <Button asChild><Link to="/">{t('actions.home')}</Link></Button>
             )}
           </div>
           {!isAuthError && (

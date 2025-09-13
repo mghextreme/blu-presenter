@@ -44,23 +44,23 @@ export function Controls({
 
   return (
     <div id="controls" className="p-3 flex gap-2 flex-0 justify-between items-center">
-      <Button onClick={previous} title={t('controls.previous')} className="flex-1">
-        <ArrowLeftIcon className="size-4"></ArrowLeftIcon>
+      <Button onClick={previous} title={t('controls.previous')} className="flex-1" type="button">
+        <ArrowLeftIcon className="size-4" />
       </Button>
       {showBlank && (
-        <Button onClick={toggleBlank} title={t('controls.blank')} className="flex-1"
+        <Button onClick={toggleBlank} title={t('controls.blank')} className="flex-1" type="button"
                 variant={overrideSlide?.id == 'blank' ? 'muted' : 'default'}>
-          <StopSolidIcon className="size-4"></StopSolidIcon>
+          <StopSolidIcon className="size-4" />
         </Button>
       )}
       {showLogo && (
-        <Button onClick={toggleLogo} title={t('controls.logo')} className="flex-1"
+        <Button onClick={toggleLogo} title={t('controls.logo')} className="flex-1" type="button"
                 variant={overrideSlide?.id == 'logo' ? 'muted' : 'default'}>
-          <FingerPrintSolidIcon className="size-4"></FingerPrintSolidIcon>
+          <FingerPrintSolidIcon className="size-4" />
         </Button>
       )}
-      <Button onClick={next} title={t('controls.next')} className="flex-1">
-        <ArrowRightIcon className="size-4"></ArrowRightIcon>
+      <Button onClick={next} title={t('controls.next')} className="flex-1" type="button">
+        <ArrowRightIcon className="size-4" />
       </Button>
     </div>
   );

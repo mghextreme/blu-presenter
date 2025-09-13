@@ -107,7 +107,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
                 </FormControl>
                 <FormMessage />
                 {invitedEmail && (
-                  <Link to="/signup"><Button variant="link" className="text-xs px-2 text-muted-foreground">{t('invitation.notYourEmail')}</Button></Link>
+                  <Button variant="link" className="text-xs px-2 text-muted-foreground" asChild><Link to="/signup">{t('invitation.notYourEmail')}</Link></Button>
                 )}
               </FormItem>
             )}></FormField>

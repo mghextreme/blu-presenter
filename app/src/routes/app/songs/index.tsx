@@ -124,8 +124,8 @@ export default function Songs() {
       <h2 className="text-lg mb-4 opacity-50">{organization?.name || t('organizations.defaultName')}</h2>
       <DataTable columns={columns} data={data ?? []} addButton={(
         <>
-          <Link to="/app/songs/add"><Button>{t('actions.create')}</Button></Link>
-          <Link to="/app/songs/import"><Button>{t('actions.import')}</Button></Link>
+          <Button asChild><Link to="/app/songs/add">{t('actions.create')}</Link></Button>
+          <Button asChild><Link to="/app/songs/import">{t('actions.import')}</Link></Button>
         </>
       )}></DataTable>
     </div>

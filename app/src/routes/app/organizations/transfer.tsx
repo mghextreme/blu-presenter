@@ -123,7 +123,7 @@ export default function TransferOrganization() {
             )}
             {t('button.transfer')}
           </Button>
-          <Link to={`/app/organization`}><Button className="flex-0" type="button" variant="secondary">{t('button.cancel')}</Button></Link>
+          <Button className="flex-0" type="button" variant="secondary" asChild><Link to={`/app/organization`}>{t('button.cancel')}</Link></Button>
         </div>
       </div>
     </div>
