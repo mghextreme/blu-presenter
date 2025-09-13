@@ -1,10 +1,9 @@
 import { ControllerMode } from "./controller-mode.type";
-
-export type WindowTheme = 'black' | 'chromaKey' | 'chords';
+import { ITheme } from "./theme.interface";
 
 export interface IWindow {
   id: string
 
-  theme: WindowTheme
+  theme: ITheme
   mode: ControllerMode
 }

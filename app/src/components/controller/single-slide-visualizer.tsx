@@ -1,23 +1,24 @@
-import { ControllerMode, ISlideContent, ISlideImageContent, ISlideTextContent, ISlideTitleContent, WindowTheme } from "@/types";
+import { ControllerMode, ISlideContent, ISlideImageContent, ISlideTextContent, ISlideTitleContent, ISubtitlesThemeConfig, ITheme, LyricsTheme } from "@/types";
 import { useController } from "@/hooks/controller.provider";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useWindow } from "@/hooks/window.provider";
+import { cn } from "@/lib/utils";
 
 type SingleSlideVisualizerProps = {
   mode: ControllerMode
-  theme?: WindowTheme
+  theme?: ITheme
 }
 
 export const SingleSlideVisualizer = forwardRef((
   {
     mode,
-    theme = 'black',
+    theme = LyricsTheme,
   }: SingleSlideVisualizerProps,
   ref,
 ) => {
 
-  if (theme === 'chords') {
-    return <></>; // Chords theme is not supported in single slide visualizer
+  if (theme.extends === 'teleprompter') {
+    return <></>; // Teleprompter theme is not supported in single slide visualizer
   }
 
   const {
@@ -70,18 +71,9 @@ export const SingleSlideVisualizer = forwardRef((
   }
   useEffect(updateContent, [mode, selectedSlide, overrideSlide, selection]);
 
-  const [themeClass, setThemeClass] = useState<string>('');
-  useEffect(() => {
-    if (theme == 'black') {
-      setThemeClass('justify-center bg-black');
-    } else {
-      setThemeClass('justify-end bg-chroma-green text-shadow-solid');
-    }
-  }, [theme]);
-
   const getTitleContent = (content: ISlideTitleContent) => {
     return (
-      <div className={theme == 'black' ? 'py-[1em]' : ''}>
+      <div className={theme.extends == 'lyrics' ? 'py-[1em]' : ''}>
         <h1 className="text-[1.25em] font-bold">{content.title}</h1>
         {content?.subtitle && <h2 className="text-[.75em] font-medium">{content.subtitle}</h2>}
       </div>
@@ -117,18 +109,30 @@ export const SingleSlideVisualizer = forwardRef((
     update,
   }));
 
+  const subtitleConfig = theme.config as ISubtitlesThemeConfig;
+
   return (
     <div
       ref={wrapperDiv as React.Ref<HTMLDivElement>}
-      className={'w-full h-full leading-[1.15em] p-[.5em] flex flex-col items-stretch text-white text-center pointer-events-none ' + themeClass}
-      style={{fontSize: fontSize}}>
-      {toShow.map((c, ix) => (
+      className={cn(
+        'w-full h-full leading-[1.15em] p-[.5em] flex flex-col items-stretch text-center pointer-events-none',
+        theme.extends === 'lyrics' && 'justify-center',
+        theme.extends === 'subtitles' && (subtitleConfig?.position === 'bottom' ? 'justify-end' : 'justify-start'),
+        theme.extends === 'subtitles' && 'text-shadow-solid',
+      )}
+      style={{
+        fontSize: fontSize,
+        backgroundColor: theme.config?.backgroundColor,
+        color: theme.config?.foregroundColor,
+      }}>
+      {toShow.map((c, ix) => !!c ? (
         <div key={ix}>
           {c.type == "title" && getTitleContent(c as ISlideTitleContent)}
           {c.type == "lyrics" && getTextContent(c as ISlideTextContent)}
           {c.type == "image" && getImageContent(c as ISlideImageContent)}
         </div>
-      ))}
+        ) : <></>
+      )}
     </div>
   );
 });

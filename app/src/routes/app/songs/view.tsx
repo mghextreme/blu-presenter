@@ -121,7 +121,7 @@ export default function ViewSong() {
         <Toggle variant="outline" pressed={viewMode == 'chords'} onPressedChange={changeViewMode} className="mb-3">{t('input.viewChords')}</Toggle>
         <div className={cn(
           'max-w-lg space-y-3',
-          viewMode === 'chords' && 'font-mono'
+          viewMode === 'chords' && 'font-source-code-pro'
         )}>
           {data.blocks?.map((block, ix) => (
             <div key={`block-${ix}`} className="border-s-1 ps-[.75em] py-[.2em] min-h-[.75em] whitespace-pre">

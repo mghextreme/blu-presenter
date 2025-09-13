@@ -46,9 +46,9 @@ export default function ControllerNavbar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => addWindow({id: v4(), theme: 'black', mode: 'slide'} as IWindow)}>{t('controls.windows.projector')}</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => {addWindow({id: v4(), theme: 'chromaKey', mode: 'part'} as IWindow); setMode('part')}}>{t('controls.windows.chromaKey')}</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => {addWindow({id: v4(), theme: 'chords', mode: 'slide'} as IWindow)}}>{t('controls.windows.chords')}</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => addWindow({id: v4(), theme: { extends: 'lyrics' }, mode: 'slide'} as IWindow)}>{t('controls.windows.lyrics')}</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => {addWindow({id: v4(), theme: { extends: 'subtitles' }, mode: 'part'} as IWindow); setMode('part')}}>{t('controls.windows.subtitles')}</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer" onClick={() => {addWindow({id: v4(), theme: { extends: 'teleprompter' }, mode: 'slide'} as IWindow)}}>{t('controls.windows.teleprompter')}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           {windows.length > 0 && <Button title={t('controls.windows.closeAll')} onClick={() => closeAllWindows()}>

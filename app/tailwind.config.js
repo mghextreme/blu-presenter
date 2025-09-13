@@ -1,4 +1,5 @@
 const plugin = require('tailwindcss/plugin');
+const { fontFamily } = require('tailwindcss/defaultTheme')
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -79,7 +80,18 @@ module.exports = {
         'solid': '.05em .05em 0 rgb(0, 0, 0)',
       },
       fontFamily: {
-        mono: ['Source Code Pro', 'ui-monospace', 'monospace'],
+        "epunda-slab": ['Epunda Slab', ...fontFamily.serif],
+        "inter": ['Montserrat', ...fontFamily.sans],
+        "montserrat": ['Montserrat', ...fontFamily.sans],
+        "open-sans": ['Open Sans', ...fontFamily.sans],
+        "oswald": ['Oswald', ...fontFamily.sans],
+        "outfit": ['Outfit', ...fontFamily.serif],
+        "playfair-display": ['Playfair Display', ...fontFamily.serif],
+        "raleway": ['Raleway', ...fontFamily.sans],
+        "roboto": ['Roboto', ...fontFamily.sans],
+        "roboto-condensed": ['Roboto Condensed', ...fontFamily.sans],
+        "roboto-mono": ['Roboto Mono', ...fontFamily.mono],
+        "source-code-pro": ['Source Code Pro', ...fontFamily.mono],
       },
       screens: {
         print: { raw: 'print' },

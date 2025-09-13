@@ -60,9 +60,9 @@
     "windows": {
       "open": "Abrir janela",
       "closeAll": "Fechar todas janelas",
-      "projector": "Projetor (fundo preto)",
-      "chromaKey": "Chroma Key (fundo verde)",
-      "chords": "Acordes (para banda)"
+      "lyrics": "Letra (fundo preto)",
+      "subtitles": "Legendas (fundo verde, para chroma key)",
+      "teleprompter": "Teleprompter (com acordes, para banda)"
     }
   },
   "screenSelector": {
@@ -88,9 +88,9 @@
     }
   },
   "theme": {
-    "black": "Preto (slides)",
-    "chromaKey": "Chroma Key (legendas)",
-    "chords": "Acordes (para banda)",
+    "lyrics": "Letra (fundo preto)",
+    "subtitles": "Legendas (fundo verde)",
+    "teleprompter": "Teleprompter (com acordes)",
     "none": "Nenhum selecionado"
   },
   "nextUp": "A seguir..."

@@ -34,6 +34,11 @@ import PrintSong from "./app/songs/print";
 import { loader as singleSongLoader } from "./app/songs/single.loader";
 import { loader as allSongsLoader } from "./app/songs/all.loader";
 
+import ThemesIndex from "./app/themes/index";
+import EditTheme from "./app/themes/edit";
+import { loader as singleThemeLoader } from "./app/themes/single.loader";
+import { loader as allThemesLoader } from "./app/themes/all.loader";
+
 import EditOrganization from "./app/organizations/index";
 import { loader as editOrganizationLoader } from "./app/organizations/index.loader"
 import InviteOrganizationMember, { loader as inviteOrganizationMemberLoader } from "./app/organizations/invite";
@@ -73,6 +78,11 @@ export const buildRouter = (services: ServicesProviderState) => {
           </Route>
           <Route path="organizations">
             <Route path="add" element={<EditOrganization edit={false} />} />
+          </Route>
+          <Route path="themes">
+            <Route index={true} element={<ThemesIndex />} loader={() => allThemesLoader({ themesService: services.themesService })} />
+            <Route path="add" element={<EditTheme edit={false} />} />
+            <Route path=":id/edit" element={<EditTheme />} loader={(loader: LoaderFunctionArgs) => singleThemeLoader({ params: loader.params, themesService: services.themesService })} />
           </Route>
         </Route>
         <Route path="/app" element={<PrintLayout />} errorElement={<ErrorLayout />}>

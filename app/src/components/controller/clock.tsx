@@ -20,6 +20,6 @@ export default function Clock() {
   }, []);
 
   return (
-    <span className="font-mono">{time}</span>
+    <span className="font-source-code-pro">{time}</span>
   );
 }

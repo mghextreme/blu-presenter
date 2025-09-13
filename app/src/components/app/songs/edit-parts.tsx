@@ -80,8 +80,8 @@ export default function EditSongParts({
                     <div className="flex justify-stretch align-start space-x-2">
                       { mode === 'chords' ? (
                         <div className="flex-1 grid grid-cols-1 grid-rows-1 border-input shadow-xs dark:bg-input/30">
-                          <Textarea variant="invisible" className="col-start-1 row-start-1 pt-5 pb-0 font-mono leading-[3.2em] pointer-events-none text-muted-foreground" value={blocks[ix].text} />
-                          <Textarea variant="transparent" className="col-start-1 row-start-1 pt-0 pb-5 font-mono leading-[3.2em] min-h-full" {...form.register(`blocks.${ix}.chords`)} onBlur={updateBlocks} />
+                          <Textarea variant="invisible" className="col-start-1 row-start-1 pt-5 pb-0 font-source-code-pro leading-[3.2em] pointer-events-none text-muted-foreground" value={blocks[ix].text} />
+                          <Textarea variant="transparent" className="col-start-1 row-start-1 pt-0 pb-5 font-source-code-pro leading-[3.2em] min-h-full" {...form.register(`blocks.${ix}.chords`)} onBlur={updateBlocks} />
                         </div>
                       ) : (
                         <Textarea className="flex-1" {...form.register(`blocks.${ix}.text`)} onBlur={updateBlocks} />

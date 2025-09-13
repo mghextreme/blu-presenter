@@ -169,7 +169,7 @@ export const ImportSongForm = forwardRef((
               </Toggle>
             </div>
             <div className={cn(
-              'font-mono whitespace-pre',
+              'font-source-code-pro whitespace-pre',
               part.type === 'chords' && 'font-bold',
             )}>
               {part.text}

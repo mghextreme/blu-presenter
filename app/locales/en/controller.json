@@ -60,9 +60,9 @@
     "windows": {
       "open": "Open window",
       "closeAll": "Close all windows",
-      "projector": "Projector (black)",
-      "chromaKey": "Chroma Key (green)",
-      "chords": "Chords (for band)"
+      "lyrics": "Lyrics (black)",
+      "subtitles": "Subtitles (green, for chroma key)",
+      "teleprompter": "Teleprompter (with chords, for band)"
     }
   },
   "screenSelector": {
@@ -88,9 +88,9 @@
     }
   },
   "theme": {
-    "black": "Black (slides)",
-    "chromaKey": "Chroma Key (subtitles)",
-    "chords": "Chords (for band)",
+    "lyrics": "Lyrics (black)",
+    "subtitles": "Subtitles (green)",
+    "teleprompter": "Teleprompter (with chords)",
     "none": "None selected"
   },
   "nextUp": "Next up..."

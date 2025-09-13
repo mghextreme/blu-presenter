@@ -1,12 +1,19 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { IScheduleSong } from "@/types";
+import { IScheduleSong, ITheme, TeleprompterTheme } from "@/types";
 import { useController } from "@/hooks/controller.provider";
 import { useWindow } from "@/hooks/window.provider";
 import { IPositionableElement } from "@/types/browser";
 import Clock from "./clock";
+import { alternateLyricsAndChords } from "@/lib/songs";
 
-export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
+interface ScrollingSongVisualizerProps {
+  theme?: ITheme
+}
+
+export const ScrollingSongVisualizer = forwardRef(({
+  theme = TeleprompterTheme,
+}: ScrollingSongVisualizerProps, ref) => {
 
   const { t } = useTranslation('controller');
 
@@ -39,7 +46,7 @@ export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
   const updateSong = () => {
     const scheduleItemAsSong = scheduleItem as IScheduleSong;
     setScheduleSong(scheduleItemAsSong);
-    blocksDivs.current = blocksDivs.current.slice(0, (scheduleItemAsSong?.blocks?.length ?? 0) + 1);
+    blocksDivs.current = blocksDivs.current.slice(0, (scheduleItemAsSong?.blocks?.length ?? 0) + 2);
     updatePosition();
   }
   useEffect(updateSong, [scheduleItem]);
@@ -66,11 +73,11 @@ export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
 
     let slideNumber = 0;
     if (selection.slide) {
-      slideNumber = selection.slide - 1;
+      slideNumber = selection.slide;
       if (slideNumber < 0) {
         slideNumber = 0;
-      } else if (slideNumber > blocksLength + 1) {
-        slideNumber = blocksLength + 1;
+      } else if (slideNumber > blocksLength + 2) {
+        slideNumber = blocksLength + 2;
       }
     }
     setSelectedSlide(slideNumber);
@@ -105,29 +112,40 @@ export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
 
   return (
     <div
-      className="relative w-full h-full bg-black overflow-hidden"
+      className="relative w-full h-full overflow-hidden"
       ref={containerDiv as React.Ref<HTMLDivElement>}
-      style={{fontSize: fontSize}}>
+      style={{
+        fontSize: fontSize,
+        backgroundColor: theme.config?.backgroundColor,
+      }}>
       <div
         ref={wrapperDiv as React.Ref<HTMLDivElement>}
         className="w-full leading-[1.15em] px-[.5em] flex flex-col items-start text-white text-left pointer-events-none transition-transform duration-150 ease-out"
         style={{
           transform: `translateY(calc(.5em - ${yPxOffset}px - ${yPartsOffset * 6}em))`,
         }}>
+        <div
+          //@ts-expect-error // TODO look into ref usage here
+          ref={(el: HTMLDivElement) => blocksDivs.current[0] = el}
+          className="mb-[.6em]">
+          <div className="grid grid-cols-1 grid-rows-1 px-[.5em] -mt-[.7em]">
+            <pre className="col-start-1 row-start-1 pb-[.4em] font-source-code-pro leading-[3em] font-bold">{scheduleSong?.title}</pre>
+            <pre className="col-start-1 row-start-1 pt-[1.4em] font-source-code-pro leading-[3em]">{scheduleSong?.artist}</pre>
+          </div>
+        </div>
         {scheduleSong && scheduleSong.blocks?.map((block, blockIndex) => (
           <div
             //@ts-expect-error // TODO look into ref usage here
-            ref={(el: HTMLDivElement) => blocksDivs.current[blockIndex] = el}
+            ref={(el: HTMLDivElement) => blocksDivs.current[blockIndex + 1] = el}
             key={blockIndex}
-            className={'flex mb-[.6em]' + (blockIndex === selectedSlide ? '' : ' opacity-75 transform-[scale(0.95)]')}>
+            className={'flex mb-[.6em]' + (blockIndex === selectedSlide - 1 ? '' : ' opacity-75 transform-[scale(0.95)]')}>
             <div className="w-[3em] flex flex-col justify-start items-center pr-[.5em] border-r-1 mr-[.5em]">
-              <span className={'font-bold' + (blockIndex === selectedSlide ? ' text-yellow-500' : '')}>{blockIndex + 1}</span>
+              <span className={'font-bold' + (blockIndex === selectedSlide - 1 ? ' text-yellow-500' : '')}>{blockIndex + 1}</span>
               <span className="w-full pb-[.2em] border-b-1 mb-[.2em]"></span>
               <span className="text-[0.85em] text-muted">{scheduleSong.blocks?.length}</span>
             </div>
-            <div className="grid grid-cols-1 grid-rows-1 px-[.5em] -mt-[.7em]">
-              <pre className="col-start-1 row-start-1 pb-[.4em] font-mono leading-[3em] font-bold text-yellow-300">{block.chords}</pre>
-              <pre className="col-start-1 row-start-1 pt-[1.4em] font-mono leading-[3em]">{block.text}</pre>
+            <div className="px-[.5em] leading-[1.6em] font-source-code-pro whitespace-pre">
+              {alternateLyricsAndChords(block.text, block.chords, { chordsClassName: 'text-yellow-300' })}
             </div>
           </div>
         ))}
@@ -146,7 +164,9 @@ export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
           </div>
         )}
       </div>
-      <div className="absolute bottom-0 right-0 py-[.2em] px-[.5em] bg-black text-white z-50">
+      <div className="absolute bottom-0 right-0 py-[.2em] px-[.5em] text-white z-50" style={{
+        backgroundColor: theme.config?.backgroundColor,
+      }}>
         <Clock />
       </div>
     </div>
