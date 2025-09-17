@@ -7,7 +7,7 @@ import i18next from "i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { EditSongForm } from "@/components/app/songs/edit-form";
-import Preview from "@/components/icons/preview";
+import PreviewIcon from "@/components/icons/preview";
 import ControllerProvider from "@/hooks/controller.provider";
 import { useRef } from "react";
 
@@ -100,7 +100,7 @@ export default function EditSong({
                 type="button"
                 size="sm"
                 title={t('actions.preview')}>
-                <Preview className="size-5" />
+                <PreviewIcon className="size-5" />
               </Button>
             </SongPreview>
           </ControllerProvider>

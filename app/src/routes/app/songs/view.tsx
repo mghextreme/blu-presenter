@@ -12,7 +12,7 @@ import ControllerProvider from "@/hooks/controller.provider";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { Toggle } from "@/components/ui/toggle";
 import { SongEditMode } from "@/components/app/songs/edit-parts";
-import Preview from "@/components/icons/preview";
+import PreviewIcon from "@/components/icons/preview";
 import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOnSquareIcon";
 import { alternateLyricsAndChords } from "@/lib/songs";
 import { cn } from "@/lib/utils";
@@ -109,7 +109,7 @@ export default function ViewSong() {
                 type="button"
                 size="sm"
                 title={t('actions.preview')}>
-                <Preview className="size-5" />
+                <PreviewIcon className="size-5" />
               </Button>
             </SongPreview>
           </ControllerProvider>}

@@ -1,8 +1,9 @@
-import { ControllerMode, ISlideContent, ISlideImageContent, ISlideTextContent, ISlideTitleContent, ISubtitlesThemeConfig, ITheme, LyricsTheme } from "@/types";
+import { ControllerMode, ISlideContent, ISlideImageContent, ISlideTextContent, ISlideTitleContent, ITheme, LyricsTheme } from "@/types";
 import { useController } from "@/hooks/controller.provider";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useWindow } from "@/hooks/window.provider";
 import { cn } from "@/lib/utils";
+import { buildFontStyle } from "@/lib/style";
 
 type SingleSlideVisualizerProps = {
   mode: ControllerMode
@@ -74,16 +75,25 @@ export const SingleSlideVisualizer = forwardRef((
   const getTitleContent = (content: ISlideTitleContent) => {
     return (
       <div className={theme.extends == 'lyrics' ? 'py-[1em]' : ''}>
-        <h1 className="text-[1.25em] font-bold">{content.title}</h1>
-        {content?.subtitle && <h2 className="text-[.75em] font-medium">{content.subtitle}</h2>}
+        <h1 className={theme.config?.title?.fontFamily} style={buildFontStyle(theme.config?.title, {
+          fontSize: 125,
+          fontWeight: 700,
+        })}>{content.title.replace(/\s+/g, ' ')}</h1>
+        {content?.subtitle && <h2 className={cn('mt-[.25em]', theme.config?.artist?.fontFamily)} style={buildFontStyle(theme.config?.artist, {
+          fontSize: 75,
+          fontWeight: 500,
+        })}>{content.subtitle.replace(/\s+/g, ' ')}</h2>}
       </div>
     )
   }
 
   const getTextContent = (content: ISlideTextContent) => {
     return (
-      <div className="text-[1em] whitespace-pre-wrap font-medium">
-        {content.text}
+      <div className={cn('whitespace-pre-wrap', theme.config?.lyrics?.fontFamily)} style={buildFontStyle(theme.config?.lyrics, {
+        fontSize: 100,
+        fontWeight: 400,
+      })}>
+        {content.text.replace(/[^\S\r\n]+/g, ' ')}
       </div>
     )
   }
@@ -109,23 +119,24 @@ export const SingleSlideVisualizer = forwardRef((
     update,
   }));
 
-  const subtitleConfig = theme.config as ISubtitlesThemeConfig;
-
   return (
     <div
       ref={wrapperDiv as React.Ref<HTMLDivElement>}
       className={cn(
-        'w-full h-full leading-[1.15em] p-[.5em] flex flex-col items-stretch text-center pointer-events-none',
-        theme.extends === 'lyrics' && 'justify-center',
-        theme.extends === 'subtitles' && (subtitleConfig?.position === 'bottom' ? 'justify-end' : 'justify-start'),
-        theme.extends === 'subtitles' && 'text-shadow-solid',
+        'w-full h-full leading-[1.15em] p-[.5em] flex flex-col items-stretch pointer-events-none',
+        theme.config?.position == 'top' && 'justify-start',
+        theme.config?.position == 'middle' && 'justify-center',
+        theme.config?.position == 'bottom' && 'justify-end',
+        theme.config?.alignment == 'left' && 'text-start',
+        theme.config?.alignment == 'center' && 'text-center',
+        theme.config?.alignment == 'right' && 'text-end',
       )}
       style={{
         fontSize: fontSize,
-        backgroundColor: theme.config?.backgroundColor,
+        backgroundColor: selectedSlide?.isEmpty === true && theme.config?.invisibleOnEmptyItems === true ? 'transparent' : theme.config?.backgroundColor,
         color: theme.config?.foregroundColor,
       }}>
-      {toShow.map((c, ix) => !!c ? (
+      {toShow.length > 0 && toShow.map((c, ix) => !!c ? (
         <div key={ix}>
           {c.type == "title" && getTitleContent(c as ISlideTitleContent)}
           {c.type == "lyrics" && getTextContent(c as ISlideTextContent)}

@@ -13,17 +13,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ControllerProvider from "@/hooks/controller.provider";
-import { ThemeConfigForm } from "@/components/app/themes/theme-config-form";
-import SlideVisualizer from "@/components/controller/slide-visualizer";
 import { PreviewWindow } from "@/components/controller/preview-window";
 import { Controls } from "@/components/controller/controls";
 import { PreviewWindowTextForm } from "@/components/app/themes/preview-window-text-form";
-
-export const themeSchema = z.object({
-  id: z.number(),
-  title: z.string().min(2),
-  extends: z.enum(['lyrics', 'subtitles', 'teleprompter']),
-});
+import { ThemeSchema } from "@/types/schemas/theme.schema";
+import { ThemeConfigForm } from "@/components/app/themes/theme-config-form";
 
 type EditThemeProps = {
   edit?: boolean
@@ -41,8 +35,9 @@ export default function EditTheme({
   const loadedData = useLoaderData() as ITheme;
   const data = edit ? loadedData : {
     id: 0,
-    title: '',
+    name: '',
     extends: 'lyrics' as BaseTheme,
+    config: LyricsTheme.config,
   };
 
   if (!data) {
@@ -53,32 +48,32 @@ export default function EditTheme({
     throw new Error(t('error.noPermission'));
   }
 
-  const form = useForm<z.infer<typeof themeSchema>>({
-    resolver: zodResolver(themeSchema),
+  const form = useForm<z.infer<typeof ThemeSchema>>({
+    resolver: zodResolver(ThemeSchema),
     defaultValues: {
       id: data.id,
-      title: data.title,
+      name: data.name,
       extends: data.extends,
+      config: data.config,
     },
   });
 
-  const [theme, setTheme] = useState<ITheme>(LyricsTheme);
   useEffect(() => {
     switch (form.getValues('extends')) {
       case "subtitles":
-        setTheme(SubtitlesTheme);
+        form.setValue('config', SubtitlesTheme.config);
         return;
       case "teleprompter":
-        setTheme(TeleprompterTheme);
+        form.setValue('config', TeleprompterTheme.config);
         return;
     }
 
-    setTheme(LyricsTheme);
+    form.setValue('config', LyricsTheme.config);
   }, [form.watch('extends')]);
 
   const [isLoading, setLoading] = useState<boolean>(false);
 
-  const onSubmit = async (values: z.infer<typeof themeSchema>) => {
+  const onSubmit = async (values: z.infer<typeof ThemeSchema>) => {
     setLoading(true);
     let action;
     if (edit) {
@@ -102,7 +97,7 @@ export default function EditTheme({
 
   return (
     <>
-      <title>{(edit ? t('title.edit', { title: data.title }) : t('title.add')) + ' - ' + orgName + ' - BluPresenter'}</title>
+      <title>{(edit ? t('title.edit', { name: data.name }) : t('title.add')) + ' - ' + orgName + ' - BluPresenter'}</title>
       <div className="flex items-center px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
       </div>
@@ -112,19 +107,19 @@ export default function EditTheme({
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-row-reverse flex-wrap gap-3 justify-end">
               <div className="flex-1 min-w-sm max-w-lg">
-                <div className="relative w-full">
-                  <PreviewWindow theme={theme} attachControllerMode={true} showThemeSelector={false} />
+                <div className="relative w-full bg-[url(/src/images/sample-wallpaper.svg)] bg-cover bg-center rounded">
+                  <PreviewWindow theme={form.watch()} attachControllerMode={true} showThemeSelector={false} />
                 </div>
                 <Controls showBlank={false} className="px-0" />
-                <PreviewWindowTextForm baseTheme={theme.extends} />
+                <PreviewWindowTextForm baseTheme={form.watch('extends')} />
               </div>
               <div className="min-w-sm max-w-lg space-y-3 flex-1">
                 <FormField
                   control={form.control}
-                  name="title"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('input.title')}</FormLabel>
+                      <FormLabel>{t('input.name')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -138,7 +133,7 @@ export default function EditTheme({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('input.baseTheme')}</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder={t('input.baseTheme')} />
@@ -156,7 +151,7 @@ export default function EditTheme({
 
                 <hr />
 
-                <ThemeConfigForm theme={theme} setTheme={setTheme} />
+                <ThemeConfigForm form={form} />
 
                 <div className="flex flex-row align-start space-x-2">
                   <Button className="flex-0" type="submit" disabled={isLoading}>

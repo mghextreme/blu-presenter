@@ -25,10 +25,10 @@ export function PreviewWindowTextForm({
     selection,
   } = useController();
 
-  const [title, setTitle] = useState<string>("The quick brown fox jumps over");
-  const [artist, setArtist] = useState<string>("The lazy dog");
-  const [lyrics, setLyrics] = useState<string>("The quick brown fox jumps\nover the lazy dog\nOr is it the lazy dog that\njumps over the quick brown fox?");
-  const [chords, setChords] = useState<string>("Am      C\nD      E\nF      G\nAm      C");
+  const [title, setTitle] = useState<string>(t("input.preview.placeholders.title"));
+  const [artist, setArtist] = useState<string>(t("input.preview.placeholders.artist"));
+  const [lyrics, setLyrics] = useState<string>(t("input.preview.placeholders.lyrics"));
+  const [chords, setChords] = useState<string>(t("input.preview.placeholders.chords"));
 
   const setSong = () => {
     const content: ISlideTextContent[] = [];
@@ -75,6 +75,7 @@ export function PreviewWindowTextForm({
           content: [...content],
         } as ISlide,
         {} as ISlide,
+        { isEmpty: true } as ISlide,
       ],
       blocks: [
         {

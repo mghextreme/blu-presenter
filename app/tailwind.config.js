@@ -54,8 +54,7 @@ module.exports = {
         selected: {
           DEFAULT: "hsl(var(--selected))",
           foreground: "hsl(var(--selected-foreground))",
-        },
-        'chroma-green': '#00ff00',
+        }
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -81,7 +80,7 @@ module.exports = {
       },
       fontFamily: {
         "epunda-slab": ['Epunda Slab', ...fontFamily.serif],
-        "inter": ['Montserrat', ...fontFamily.sans],
+        "inter": ['Inter', ...fontFamily.sans],
         "montserrat": ['Montserrat', ...fontFamily.sans],
         "open-sans": ['Open Sans', ...fontFamily.sans],
         "oswald": ['Oswald', ...fontFamily.sans],

@@ -13,7 +13,8 @@
     "discover": "Discover",
     "organization": "Edit",
     "songs": "Songs",
-    "profile": "Profile"
+    "profile": "Profile",
+    "themes": "Themes"
   },
   "invitations": {
     "title": "Pending invitations"

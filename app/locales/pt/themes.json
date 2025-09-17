@@ -1,0 +1,119 @@
+{
+  "title": {
+    "list": "Temas - {{organization}}",
+    "add": "Adicionar - Temas",
+    "edit": "{{name}} - Temas"
+  },
+  "actions": {
+    "create": "Criar tema"
+  },
+  "button": {
+    "add": "Adicionar",
+    "cancel": "Cancelar"
+  },
+  "input": {
+    "organization": "Organização",
+    "name": "Nome",
+    "baseTheme": "Tema base",
+    "titles": {
+      "colors": "Cores",
+      "alignment": "Alinhamento",
+      "title": "Título",
+      "artist": "Artista",
+      "lyrics": "Letra",
+      "chords": "Acordes",
+      "clock": "Relógio"
+    },
+    "font": {
+      "family": "Fonte",
+      "weight": "Peso",
+      "size": "Tamanho",
+      "italic": "Itálico",
+      "uppercase": "Maiúsculo",
+      "shadow": "Sombra no texto"
+    },
+    "config": {
+      "backgroundColor": "Fundo",
+      "foregroundColor": "Texto",
+      "chordsColor": "Acordes",
+      "clockColor": "Relógio",
+      "vertical": "Vertical",
+      "horizontal": "Horizontal",
+      "shadowColor": "Cor da sombra",
+      "shadowBlur": "Esmaecer",
+      "shadowOffset": "Distância",
+      "clockEnabled": "Estado",
+      "clockFormat": "Formato",
+      "invisibleOnEmptyItems": "Invisível nos itens vazios da programação",
+      "invisibleOnEmptyItemsDescription": "Selecione este item se você deseja embutir HTML em softwares de vídeo."
+    },
+    "preview": {
+      "title": "Título",
+      "artist": "Artista",
+      "lyrics": "Letra",
+      "chords": "Acordes",
+      "update": "Atualizar",
+      "placeholders": {
+        "title": "Nota de faxina na quermesse",
+        "artist": "Gazeta pública",
+        "lyrics": "Gazeta publica hoje breve\nnota de faxina na quermesse\nOu seria a gazeta pública\nQue faxina hoje a quermesse?",
+        "chords": "Am      C\nD      E\nF      G\nAm      C"
+      }
+    }
+  },
+  "list": {
+    "title": "Temas"
+  },
+  "add": {
+    "title": "Adicionar tema"
+  },
+  "theme": {
+    "lyrics": "Letra",
+    "subtitles": "Legendas",
+    "teleprompter": "Teleprompter"
+  },
+  "position": {
+    "top": "Topo",
+    "middle": "Meio",
+    "bottom": "Embaixo"
+  },
+  "alignment": {
+    "left": "Esquerda",
+    "center": "Centro",
+    "right": "Direita"
+  },
+  "state": {
+    "enabled": "Ativo",
+    "disabled": "Desativado"
+  },
+  "fontWeight": {
+    "100": "Extra fino",
+    "200": "Ultra leve",
+    "300": "Leve",
+    "400": "Regular",
+    "500": "Médio",
+    "600": "Semi negrito",
+    "700": "Negrito",
+    "800": "Super negrito",
+    "900": "Ultra negrito"
+  },
+  "clockFormat": {
+    "12": "12 horas (AM/PM)",
+    "24": "24 horas",
+    "12withSeconds": "12 horas (AM/PM) com segundos",
+    "24withSeconds": "24 horas com segundos"
+  },
+  "organizations": {
+    "defaultName": "Espaço pessoal"
+  },
+  "message": {
+    "deleteTheme": {
+      "title": "Remover tema",
+      "description": "Tem certeza de que deseja remover o tema \"{{name}}\"? Esta ação não pode ser desfeita."
+    }
+  },
+  "error": {
+    "deleteTheme": "Erro ao remover tema",
+    "noPermission": "Você não tem permissão para acessar este tema"
+  }
+}

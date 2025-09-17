@@ -1,0 +1,119 @@
+{
+  "title": {
+    "list": "Themes - {{organization}}",
+    "add": "Add - Themes",
+    "edit": "{{name}} - Themes"
+  },
+  "actions": {
+    "create": "Create theme"
+  },
+  "button": {
+    "add": "Add",
+    "cancel": "Cancel"
+  },
+  "input": {
+    "organization": "Organization",
+    "name": "Name",
+    "baseTheme": "Base theme",
+    "titles": {
+      "colors": "Colors",
+      "alignment": "Alignment",
+      "title": "Title",
+      "artist": "Artist",
+      "lyrics": "Lyrics",
+      "chords": "Chords",
+      "clock": "Clock"
+    },
+    "font": {
+      "family": "Font",
+      "weight": "Weight",
+      "size": "Size",
+      "italic": "Italic",
+      "uppercase": "Uppercase",
+      "shadow": "Text shadow"
+    },
+    "config": {
+      "backgroundColor": "Background",
+      "foregroundColor": "Foreground",
+      "chordsColor": "Chords",
+      "clockColor": "Clock",
+      "vertical": "Vertical",
+      "horizontal": "Horizontal",
+      "shadowColor": "Shadow color",
+      "shadowBlur": "Blur",
+      "shadowOffset": "Offset",
+      "clockEnabled": "Enabled",
+      "clockFormat": "Format",
+      "invisibleOnEmptyItems": "Invisible on empty schedule items",
+      "invisibleOnEmptyItemsDescription": "Use this if you're embedding the HTML in a video software"
+    },
+    "preview": {
+      "title": "Title",
+      "artist": "Artist",
+      "lyrics": "Lyrics",
+      "chords": "Chords",
+      "update": "Update",
+      "placeholders": {
+        "title": "The quick brown fox jumps over",
+        "artist": "The lazy dog",
+        "lyrics": "The quick brown fox jumps\nover the lazy dog\nOr is it the lazy dog that\njumps over the quick brown fox?",
+        "chords": "Am      C\nD      E\nF      G\nAm      C"
+      }
+    }
+  },
+  "list": {
+    "title": "Themes"
+  },
+  "add": {
+    "title": "Add theme"
+  },
+  "theme": {
+    "lyrics": "Lyrics",
+    "subtitles": "Subtitles",
+    "teleprompter": "Teleprompter"
+  },
+  "position": {
+    "top": "Top",
+    "middle": "Middle",
+    "bottom": "Bottom"
+  },
+  "alignment": {
+    "left": "Left",
+    "center": "Center",
+    "right": "Right"
+  },
+  "state": {
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "fontWeight": {
+    "100": "Extra thin",
+    "200": "Thin",
+    "300": "Light",
+    "400": "Normal",
+    "500": "Medium",
+    "600": "Semi bold",
+    "700": "Bold",
+    "800": "Extra bold",
+    "900": "Black"
+  },
+  "clockFormat": {
+    "12": "12 hours (AM/PM)",
+    "24": "24 hours",
+    "12withSeconds": "12 hours (AM/PM) with seconds",
+    "24withSeconds": "24 hours with seconds"
+  },
+  "organizations": {
+    "defaultName": "Personal space"
+  },
+  "message": {
+    "deleteTheme": {
+      "title": "Delete theme",
+      "description": "Are you sure you want to delete the theme \"{{name}}\"? This action cannot be undone."
+    }
+  },
+  "error": {
+    "deleteTheme": "Error deleting theme",
+    "noPermission": "You don't have permission to access this theme"
+  }
+}

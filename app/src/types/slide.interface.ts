@@ -5,5 +5,5 @@ export interface ISlide {
   index?: number
 
   content?: ISlideContent[]
-  background?: any
+  isEmpty?: boolean
 }

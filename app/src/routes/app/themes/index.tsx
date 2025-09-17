@@ -17,9 +17,9 @@ import { toast } from "sonner";
 const buildColumns = (t: TFunction, organization: IOrganization | null, onDeleteTheme: (themeId: number) => void) => {
   const columns: ColumnDef<ITheme>[] = [
     {
-      accessorKey: "title",
+      accessorKey: "name",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.title')} />
+        <DataTableColumnHeader column={column} title={t('input.name')} />
       ),
       filterFn: fuzzyFilter,
       sortingFn: fuzzySort,
@@ -27,7 +27,7 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
     {
       accessorKey: "extends",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.extends')} />
+        <DataTableColumnHeader column={column} title={t('input.baseTheme')} />
       ),
       filterFn: fuzzyFilter,
       sortingFn: fuzzySort,
@@ -61,7 +61,7 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>{t('message.deleteTheme.title')}</AlertDialogTitle>
-                  <AlertDialogDescription>{t('message.deleteTheme.description', {title: row.original.title})}</AlertDialogDescription>
+                  <AlertDialogDescription>{t('message.deleteTheme.description', {name: row.original.name})}</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
