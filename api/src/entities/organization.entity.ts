@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Song } from './song.entity';
+import { Theme } from './theme.entity';
 import { OrganizationUser } from './organization-user.entity';
 import { OrganizationInvitation } from './organization-invitation.entity';
 
@@ -36,6 +37,9 @@ export class Organization {
   @OneToMany(() => Song, (song) => song.organization)
   songs: Song[];
 
+  @OneToMany(() => Song, (theme) => theme.organization)
+  themes: Theme[];
+
   @OneToMany(
     () => OrganizationInvitation,
     (orgInvitation) => orgInvitation.organization,
@@ -44,4 +48,12 @@ export class Organization {
     },
   )
   invitations: OrganizationInvitation[];
+
+  @Column({
+    nullable: true,
+    default: null,
+    type: 'varchar',
+    length: 32,
+  })
+  secret: string;
 }

@@ -8,6 +8,7 @@ import { UsersService } from 'src/users/users.service';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 import { SongWithRoleViewModel } from 'src/models/song-with-role.view-model';
+import { generateRandomSecret } from 'src/utils/secret';
 
 @Injectable({ scope: Scope.REQUEST })
 export class SongsService {
@@ -197,22 +198,12 @@ export class SongsService {
       language: createSongDto.language,
       blocks: createSongDto.blocks,
       references: createSongDto.references ?? [],
-      secret: this.generateRandomSecret(),
+      secret: generateRandomSecret(10),
       orgId,
     });
     const songId = result.raw[0].id;
 
     return this.findOne(orgId, songId);
-  }
-
-  private generateRandomSecret(length: number = 10): string {
-    var result = '';
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for (var i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
   }
 
   async update(

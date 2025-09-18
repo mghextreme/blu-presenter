@@ -58,8 +58,15 @@ export default function EditTheme({
     },
   });
 
+  const [extendsValue, setExtendsValue] = useState(data.extends);
   useEffect(() => {
-    switch (form.getValues('extends')) {
+    const curExtends = form.getValues('extends');
+    if (curExtends === extendsValue) {
+      return;
+    }
+
+    setExtendsValue(curExtends);
+    switch (curExtends) {
       case "subtitles":
         form.setValue('config', SubtitlesTheme.config);
         return;

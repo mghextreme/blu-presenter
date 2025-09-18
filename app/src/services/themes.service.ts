@@ -8,8 +8,6 @@ export class ThemesService extends ApiService {
   }
 
   public async getAll(): Promise<ITheme[]> {
-    return [];
-
     return await this.getOrFetch({
       queryKey: ['themes', 'all'],
       queryFn: async () => await this.getRequest('/themes') as ITheme[],
@@ -17,16 +15,9 @@ export class ThemesService extends ApiService {
   }
 
   public async getById(themeId: number): Promise<ITheme | null> {
-    return {
-      id: 1,
-      title: 'test',
-      extends: 'test',
-      config: {},
-    };
-
     return await this.getOrFetch({
-      queryKey: ['songs', 'id', themeId],
-      queryFn: async () => await this.getRequest(`/songs/${themeId}`) as ITheme,
+      queryKey: ['themes', 'id', themeId],
+      queryFn: async () => await this.getRequest(`/themes/${themeId}`) as ITheme,
     });
   }
 

@@ -5,13 +5,13 @@ export const ColorField = z.string().regex(/^#[0-9a-f]{6}([0-9a-f]{2})?$/i, { me
 export const ShadowSchema = z.object({
   enabled: z.boolean(),
   color: ColorField.optional(),
-  offset: z.number().min(0).optional(),
-  blur: z.number().min(0).max(100).optional(),
+  offset: z.coerce.number().min(0).optional(),
+  blur: z.coerce.number().min(0).max(100).optional(),
 });
 
 export const FontSchema = z.object({
-  fontSize: z.number().min(10),
-  fontWeight: z.number().min(100).max(900),
+  fontSize: z.coerce.number().min(10),
+  fontWeight: z.coerce.number().min(100).max(900),
   fontFamily: z.string().min(6),
   transform: z.enum(['none', 'uppercase']),
   italic: z.boolean(),

@@ -12,6 +12,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { SupabaseModule } from './supabase/supabase.module';
 import { PassportModule } from '@nestjs/passport';
 import { AuthModule } from './auth/auth.module';
+import { ThemesModule } from './themes/themes.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { AuthModule } from './auth/auth.module';
     SupabaseModule,
     UsersModule,
     SongsModule,
+    ThemesModule,
     OrganizationsModule,
     AuthModule,
   ],

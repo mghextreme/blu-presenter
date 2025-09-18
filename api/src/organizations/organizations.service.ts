@@ -27,6 +27,7 @@ import {
 } from 'src/entities';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
+import { generateRandomSecret } from 'src/utils/secret';
 
 @Injectable({ scope: Scope.REQUEST })
 export class OrganizationsService {
@@ -83,6 +84,7 @@ export class OrganizationsService {
           inviter: true,
         };
 
+        query.select['secret'] = true;
         query.select['users'] = {
           role: true,
           user: {
@@ -125,6 +127,7 @@ export class OrganizationsService {
       const result = await organizationsRepository.insert({
         name: createOrgDto.name,
         ownerId: userId,
+        secret: generateRandomSecret(16),
       });
       orgId = result.raw[0].id;
 
@@ -207,6 +210,8 @@ export class OrganizationsService {
     // TODO: Transaction
     // TODO: Delete organization invitations
     // TODO: Delete organization users
+    // TODO: Delete themes
+    // TODO: Delete schedules
     // TODO: Delete songs
 
     throw new NotImplementedException(

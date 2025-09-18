@@ -5,11 +5,15 @@
     "edit": "{{name}} - Temas"
   },
   "actions": {
-    "create": "Criar tema"
+    "create": "Criar tema",
+    "edit": "Editar tema",
+    "delete": "Remover tema"
   },
   "button": {
     "add": "Adicionar",
-    "cancel": "Cancelar"
+    "update": "Atualizar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar"
   },
   "input": {
     "organization": "Organização",
@@ -66,6 +70,9 @@
   },
   "add": {
     "title": "Adicionar tema"
+  },
+  "edit": {
+    "title": "Editar tema"
   },
   "theme": {
     "lyrics": "Letra",
