@@ -1,16 +1,14 @@
 import { useEffect, useRef } from "react";
-import { ControllerMode, ITheme, LyricsTheme } from "@/types";
+import { ITheme, LyricsTheme } from "@/types";
 import { useController } from "@/hooks/controller.provider";
 import { SingleSlideVisualizer } from "./single-slide-visualizer";
 import { ScrollingSongVisualizer } from "./scrolling-song-visualizer";
 
 type SlideVisualizerProps = {
-  mode: ControllerMode
   theme?: ITheme
 }
 
 export default function SlideVisualizer({
-  mode,
   theme = LyricsTheme,
 }: SlideVisualizerProps) {
 
@@ -29,11 +27,11 @@ export default function SlideVisualizer({
     if (componentRef.current) {
       (componentRef.current as any)?.update();
     }
-  }, [mode, theme]);
+  }, [theme]);
 
   return theme.extends === 'teleprompter' ? (
     <ScrollingSongVisualizer ref={componentRef} theme={theme}></ScrollingSongVisualizer>
   ) : (
-    <SingleSlideVisualizer ref={componentRef} mode={mode} theme={theme}></SingleSlideVisualizer>
+    <SingleSlideVisualizer ref={componentRef} theme={theme}></SingleSlideVisualizer>
   );
 }

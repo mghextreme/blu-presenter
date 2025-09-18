@@ -1,4 +1,4 @@
-import { ControllerMode, ISlideContent, ISlideImageContent, ISlideTextContent, ISlideTitleContent, ITheme, LyricsTheme } from "@/types";
+import { ISlideContent, ISlideImageContent, ISlideTextContent, ISlideTitleContent, ITheme, LyricsTheme } from "@/types";
 import { useController } from "@/hooks/controller.provider";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useWindow } from "@/hooks/window.provider";
@@ -6,13 +6,11 @@ import { cn } from "@/lib/utils";
 import { buildFontStyle } from "@/lib/style";
 
 type SingleSlideVisualizerProps = {
-  mode: ControllerMode
   theme?: ITheme
 }
 
 export const SingleSlideVisualizer = forwardRef((
   {
-    mode,
     theme = LyricsTheme,
   }: SingleSlideVisualizerProps,
   ref,
@@ -64,13 +62,13 @@ export const SingleSlideVisualizer = forwardRef((
 
     content = selectedSlide?.content ?? [];
 
-    if (mode == 'part') {
+    if (theme.extends === 'subtitles') {
       setToShow(content.length > 0 ? [content[selection.part ?? 0]] : []);
     } else {
       setToShow(content);
     }
   }
-  useEffect(updateContent, [mode, selectedSlide, overrideSlide, selection]);
+  useEffect(updateContent, [selectedSlide, overrideSlide, selection]);
 
   const getTitleContent = (content: ISlideTitleContent) => {
     return (
@@ -99,7 +97,7 @@ export const SingleSlideVisualizer = forwardRef((
   }
 
   const getImageContent = (content: ISlideImageContent) => {
-    if (mode == "part") {
+    if (theme.extends === "subtitles") {
       return <></>;
     }
 

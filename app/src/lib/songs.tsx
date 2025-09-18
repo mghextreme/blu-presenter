@@ -65,3 +65,11 @@ export const getChordsData = (text: string) => {
     proportion: chords && words.length > 0 ? chords.length / words.length : 0,
   }
 }
+
+export const capitalize = (line: string) => {
+  return line.charAt(0).toUpperCase() + line.slice(1).toLowerCase();
+}
+
+export const capitalizeEachLine = (text: string) => {
+  return text.split(/\n/).map(capitalize).join('\n');
+}

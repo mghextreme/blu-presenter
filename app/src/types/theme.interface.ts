@@ -46,6 +46,10 @@ export interface ITheme {
   name: string
   extends: BaseTheme
   config?: ILyricsThemeConfig | ISubtitlesThemeConfig | ITeleprompterThemeConfig
+  organization?: {
+    id: string
+    name: string
+  }
 }
 
 export const LyricsTheme = {

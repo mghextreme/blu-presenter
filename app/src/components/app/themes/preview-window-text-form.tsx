@@ -107,21 +107,21 @@ export function PreviewWindowTextForm({
   return (
     <div className="flex flex-col gap-3 mt-1">
       <div className="flex flex-col gap-2">
-        <Label>{t("input.preview.title")}</Label>
+        <Label htmlFor="title">{t("input.preview.title")}</Label>
         <Input name="title" value={title} onChange={(e) => setTitle(e.target.value)} />
       </div>
       <div className="flex flex-col gap-2">
-        <Label>{t("input.preview.artist")}</Label>
+        <Label htmlFor="artist">{t("input.preview.artist")}</Label>
         <Input name="artist" value={artist} onChange={(e) => setArtist(e.target.value)}  />
       </div>
       <div className="flex flex-col gap-2">
-        <Label>{t("input.preview.lyrics")}</Label>
+        <Label htmlFor="lyrics">{t("input.preview.lyrics")}</Label>
         <Textarea name="lyrics" value={lyrics} onChange={(e) => setLyrics(e.target.value)}  className={cn(
           baseTheme === 'teleprompter' && 'font-source-code-pro',
         )} />
       </div>
       {baseTheme === 'teleprompter' && <div className="flex flex-col gap-2">
-        <Label>{t("input.preview.chords")}</Label>
+        <Label htmlFor="chords">{t("input.preview.chords")}</Label>
         <Textarea name="chords" value={chords} onChange={(e) => setChords(e.target.value)}  className="font-source-code-pro" />
       </div>}
       <Button onClick={setSong} className="w-auto me-auto" type="button">{t("input.preview.update")}</Button>

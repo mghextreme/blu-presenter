@@ -17,7 +17,7 @@ export default function ModeToggler() {
   const [anyPartWindow, setAnyPartWindow] = useState<boolean>(false);
 
   useEffect(() => {
-    const partWind = windows.find((w) => w.mode == 'part');
+    const partWind = windows.find((w) => w.theme?.extends === 'subtitles');
     setAnyPartWindow(partWind !== undefined);
   }, [windows]);
 

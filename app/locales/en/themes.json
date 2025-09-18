@@ -5,7 +5,7 @@
     "edit": "{{name}} - Themes"
   },
   "actions": {
-    "create": "Create theme",
+    "create": "Add theme",
     "edit": "Edit theme",
     "delete": "Delete theme"
   },

@@ -5,7 +5,7 @@
     "edit": "{{name}} - Temas"
   },
   "actions": {
-    "create": "Criar tema",
+    "create": "Adicionar tema",
     "edit": "Editar tema",
     "delete": "Remover tema"
   },

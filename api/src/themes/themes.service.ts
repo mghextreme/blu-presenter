@@ -72,6 +72,9 @@ export class ThemesService {
           name: true,
         },
       },
+      relations: {
+        organization: true,
+      },
       where: {
         orgId: In(userOrgIds)
       },

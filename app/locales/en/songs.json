@@ -102,6 +102,14 @@
     "copyToOrganization": "Error copying song",
     "noPermission": "You don't have permission to access this song"
   },
+  "warning": {
+    "uppercase": {
+      "title": "Avoid all uppercase lyrics",
+      "description": "This record is used not only for slides, but also printing and teleprompter. Try to keep a standard capitalization throughout your songs.\nIf you want your slides to have all uppercase lyrics, you can create a Theme and configure the Uppercase option.\nBelow you can try automatically fixing this song or just ignore this warning by checking the box.",
+      "autoFix": "Automatically fix",
+      "ignore": "Ignore warning"
+    }
+  },
   "language": {
     "search": "Search languages...",
     "english": "English",
