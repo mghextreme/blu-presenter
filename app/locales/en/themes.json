@@ -117,10 +117,19 @@
     "deleteTheme": {
       "title": "Delete theme",
       "description": "Are you sure you want to delete the theme \"{{name}}\"? This action cannot be undone."
+    },
+    "copyToOrganization": {
+      "title": "Copy theme to a different organization",
+      "description": "Select the organization to copy the theme to:",
+      "selectOrg": "Select organization",
+      "searchOrgs": "Search organizations",
+      "noOrgFound": "No organization found",
+      "defaultName": "Personal space"
     }
   },
   "error": {
     "deleteTheme": "Error deleting theme",
+    "copyToOrganization": "Error copying theme",
     "noPermission": "You don't have permission to access this theme"
   }
 }

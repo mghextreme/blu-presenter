@@ -117,10 +117,19 @@
     "deleteTheme": {
       "title": "Remover tema",
       "description": "Tem certeza de que deseja remover o tema \"{{name}}\"? Esta ação não pode ser desfeita."
+    },
+    "copyToOrganization": {
+      "title": "Copiar tema para outra organização",
+      "description": "Selecione a organização para copiar o tema:",
+      "selectOrg": "Selecione uma organização",
+      "searchOrgs": "Pesquisar organizações...",
+      "noOrgFound": "Nenhuma organização encontrada",
+      "defaultName": "Espaço pessoal"
     }
   },
   "error": {
     "deleteTheme": "Erro ao remover tema",
+    "copyToOrganization": "Erro ao copiar tema",
     "noPermission": "Você não tem permissão para acessar este tema"
   }
 }

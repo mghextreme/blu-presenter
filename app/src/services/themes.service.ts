@@ -42,4 +42,13 @@ export class ThemesService extends ApiService {
     this.clearCache();
   }
 
+  public async copyToOrganization(id: number, toOrganizationId: number): Promise<void> {
+    await this.postRequest('/themes/copyToOrganization', JSON.stringify({
+      themeId: id,
+      organizationId: toOrganizationId,
+    }), {
+      'content-type': 'application/json',
+    });
+  }
+
 }

@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { CopyThemeToOrganization } from "@/components/app/themes/copy-theme-to-organization";
 
 const buildColumns = (t: TFunction, organization: IOrganization | null, onDeleteTheme: (themeId: number) => void) => {
   const columns: ColumnDef<ITheme>[] = [
@@ -52,6 +53,7 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
                 <PencilIcon className="size-3" />
               </Link>
             </Button>
+            <CopyThemeToOrganization themeId={row.original.id} name={row.original.name} />
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button size="sm" className="flex-0" variant="destructive" disabled={!canDelete} title={t('actions.delete')}>
