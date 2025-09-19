@@ -68,8 +68,6 @@ export function PreviewWindow({
   } = useServices();
 
   const updatePreviewTheme = (theme: ITheme) => {
-    if (previewTheme.id === theme.id && previewTheme.extends === theme.extends) return;
-
     setPreviewTheme(theme);
 
     if (attachControllerMode) {

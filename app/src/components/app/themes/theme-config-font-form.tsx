@@ -14,6 +14,13 @@ import { ColorForm } from "./color-form";
 
 const fontOptions = [
   {
+    value: "font-epunda-slab",
+    label: "Epunda Slab",
+    isMonospace: false,
+    minWeight: 300,
+    maxWeight: 900,
+  },
+  {
     value: "font-inter",
     label: "Inter",
     isMonospace: false,
@@ -35,6 +42,13 @@ const fontOptions = [
     maxWeight: 800,
   },
   {
+    value: "font-outfit",
+    label: "Outfit",
+    isMonospace: false,
+    minWeight: 100,
+    maxWeight: 900,
+  },
+  {
     value: "font-playfair-display",
     label: "Playfair Display",
     isMonospace: false,
@@ -42,8 +56,22 @@ const fontOptions = [
     maxWeight: 900,
   },
   {
+    value: "font-raleway",
+    label: "Raleway",
+    isMonospace: false,
+    minWeight: 100,
+    maxWeight: 900,
+  },
+  {
     value: "font-roboto",
     label: "Roboto",
+    isMonospace: false,
+    minWeight: 100,
+    maxWeight: 900,
+  },
+  {
+    value: "font-roboto-condensed",
+    label: "Roboto Condensed",
     isMonospace: false,
     minWeight: 100,
     maxWeight: 900,
