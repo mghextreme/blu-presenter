@@ -231,7 +231,7 @@ export default function PrintSong() {
           </div>
         </div>
       </div>
-      <div className="print:w-2xl screen:w-full screen:max-w-2xl px-2 font-mono" style={{ fontSize: `${fontSize}px` }}>
+      <div className="print:w-2xl screen:w-full screen:max-w-2xl px-2 font-source-code-pro" style={{ fontSize: `${fontSize}px` }}>
         <div className="flex flex-row justify-between items-center">
           <div>
             <h1 className="font-bold" style={{ fontSize: '1.5em' }}>{data.title}</h1>

@@ -33,7 +33,7 @@ export function PlanComment() {
       id: Date.now(),
       type: "comment",
       title: values.title,
-      slides: [{}],
+      slides: [{ isEmpty: true }],
     } as IScheduleItem;
   }
 

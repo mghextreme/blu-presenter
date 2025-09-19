@@ -1,17 +1,15 @@
 import { useEffect, useRef } from "react";
-import { ControllerMode, WindowTheme } from "@/types";
+import { ITheme, LyricsTheme } from "@/types";
 import { useController } from "@/hooks/controller.provider";
 import { SingleSlideVisualizer } from "./single-slide-visualizer";
 import { ScrollingSongVisualizer } from "./scrolling-song-visualizer";
 
 type SlideVisualizerProps = {
-  mode: ControllerMode
-  theme?: WindowTheme
+  theme?: ITheme
 }
 
 export default function SlideVisualizer({
-  mode,
-  theme = 'black',
+  theme = LyricsTheme,
 }: SlideVisualizerProps) {
 
   const {
@@ -20,7 +18,7 @@ export default function SlideVisualizer({
 
   const componentRef = useRef<typeof ScrollingSongVisualizer | typeof SingleSlideVisualizer>(null);
   useEffect(() => {
-    if (theme !== 'chromaKey') {
+    if (theme.extends !== 'subtitles') {
       setSelection({
         part: 0,
       });
@@ -29,11 +27,11 @@ export default function SlideVisualizer({
     if (componentRef.current) {
       (componentRef.current as any)?.update();
     }
-  }, [mode, theme]);
+  }, [theme]);
 
-  return theme === 'chords' ? (
-    <ScrollingSongVisualizer ref={componentRef}></ScrollingSongVisualizer>
+  return theme.extends === 'teleprompter' ? (
+    <ScrollingSongVisualizer ref={componentRef} theme={theme}></ScrollingSongVisualizer>
   ) : (
-    <SingleSlideVisualizer ref={componentRef} mode={mode} theme={theme}></SingleSlideVisualizer>
+    <SingleSlideVisualizer ref={componentRef} theme={theme}></SingleSlideVisualizer>
   );
 }

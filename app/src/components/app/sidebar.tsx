@@ -44,6 +44,11 @@ export default function AppSidebar() {
                 {t('menu.songs')}
               </Link>
             </li>
+            <li>
+              <Link to={'/app/themes'} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background">
+                {t('menu.themes')}
+              </Link>
+            </li>
             <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.account')}</h3>
             <hr />
             <li>

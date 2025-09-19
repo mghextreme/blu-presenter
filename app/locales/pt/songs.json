@@ -102,6 +102,14 @@
     "copyToOrganization": "Erro ao copiar música",
     "noPermission": "Você não tem permissão para acessar esta música"
   },
+  "warning": {
+    "uppercase": {
+      "title": "Evite letras completamente maiúsculas",
+      "description": "Este registro é usado não somente para slides, mas também impressão e teleprompter. Tente manter uma capitalização padrão em todas as músicas.\nSe você deseja que suas músicas tenham letras completamente maiúsculas, você pode criar um Tema e configurar a opção Maiúsculas.\nAbaixo você pode tentar corrigir automaticamente esta música ou apenas ignorar este aviso marcando a caixa.",
+      "autoFix": "Corrigir automaticamente",
+      "ignore": "Ignorar aviso"
+    }
+  },
   "language": {
     "search": "Pesquisar idiomas...",
     "english": "Inglês",

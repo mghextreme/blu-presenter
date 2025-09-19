@@ -15,6 +15,7 @@ export function LivePanel() {
     mode,
     scheduleItem,
     selection,
+    windows,
   } = useController();
 
   const contentWrapper = useRef<HTMLDivElement>(null);
@@ -46,7 +47,7 @@ export function LivePanel() {
         {!previewOpen && <Button onClick={() => setPreviewOpen(true)} title={t('preview.openTitle')} className="flex-1">
           {t('preview.open')}
         </Button>}
-        {previewOpen && <PreviewWindow closeWindow={closePreview}></PreviewWindow>}
+        {previewOpen && <PreviewWindow closeWindow={closePreview} attachControllerMode={windows.length === 0}></PreviewWindow>}
       </div>
       <Controls></Controls>
       <div id="content" className="p-3 pt-0 flex-1 overflow-y-auto" ref={contentWrapper}>

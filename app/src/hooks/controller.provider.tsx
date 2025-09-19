@@ -2,8 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
 
-import SlideVisualizer from "@/components/controller/slide-visualizer"
-import ScreenSelector from "@/components/controller/screen-selector"
+import SelectorScreen from "@/components/controller/selector-screen"
 import { IScheduleItem, IWindow, ISlide, ControllerMode, ISlideTextContent, ISlideImageContent, IControllerSelection } from "@/types"
 import WindowProvider from "./window.provider"
 
@@ -382,9 +381,7 @@ export default function ControllerProvider({
       {children}
       {windows.map((w) => (
         <WindowProvider key={w.id} id={w.id}>
-          <ScreenSelector>
-            <SlideVisualizer theme={w.theme} mode={w.mode}></SlideVisualizer>
-          </ScreenSelector>
+          <SelectorScreen setMode={setMode} />
         </WindowProvider>
       ))}
     </ControllerProviderContext.Provider>

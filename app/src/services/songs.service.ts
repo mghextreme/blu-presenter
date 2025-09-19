@@ -49,7 +49,7 @@ export class SongsService extends ApiService {
 
   public async copyToOrganization(id: number, toOrganizationId: number): Promise<void> {
     await this.postRequest('/songs/copyToOrganization', JSON.stringify({
-      id,
+      songId: id,
       organizationId: toOrganizationId,
     }), {
       'content-type': 'application/json',

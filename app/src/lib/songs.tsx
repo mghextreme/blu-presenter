@@ -1,6 +1,12 @@
 import { ReactNode } from "react";
+import { cn } from "./utils";
 
-export const alternateLyricsAndChords = (lyrics?: string, chords?: string): ReactNode => {
+export const alternateLyricsAndChords = (lyrics?: string, chords?: string, options?: {
+  lyricsClassName?: string;
+  lyricsStyle?: any;
+  chordsClassName?: string;
+  chordsStyle?: any;
+}): ReactNode => {
 
   const hasLyrics = (lyrics?.trim() ?? '').length > 0;
   const hasChords = (chords?.trim() ?? '').length > 0;
@@ -11,13 +17,13 @@ export const alternateLyricsAndChords = (lyrics?: string, chords?: string): Reac
 
   if (!hasChords) {
     return (
-      <>{lyrics}</>
+      <p className={options?.lyricsClassName} style={options?.lyricsStyle}>{lyrics}</p>
     );
   }
 
   if (!hasLyrics) {
     return (
-      <b>{chords}</b>
+      <p className={cn('font-bold', options?.chordsClassName)} style={options?.chordsStyle}>{chords}</p>
     );
   }
 
@@ -28,13 +34,17 @@ export const alternateLyricsAndChords = (lyrics?: string, chords?: string): Reac
   return (
     <>
       {Array.from(Array(maxLines)).map((_, i) => {
-        const lyricsLine = lyricsLines[i] ?? '';
-        const chordsLine = chordsLines[i] ?? '';
+        const lyricsLine = lyricsLines[i].trimEnd() ?? '';
+        const chordsLine = chordsLines[i].trimEnd() ?? '';
+
+        if (lyricsLine.length === 0 && chordsLine.length === 0) {
+          return null;
+        }
+
         return (
           <>
-            {i > 0 && '\n'}
-            <b>{chordsLine}</b>
-            {'\n' + lyricsLine}
+            <p className={cn('font-bold', options?.chordsClassName)} style={options?.chordsStyle}>{chordsLine}</p>
+            <p className={options?.lyricsClassName} style={options?.lyricsStyle}>{lyricsLine}</p>
           </>
         );
       })}
@@ -54,4 +64,12 @@ export const getChordsData = (text: string) => {
     chords: chords,
     proportion: chords && words.length > 0 ? chords.length / words.length : 0,
   }
+}
+
+export const capitalize = (line: string) => {
+  return line.charAt(0).toUpperCase() + line.slice(1).toLowerCase();
+}
+
+export const capitalizeEachLine = (text: string) => {
+  return text.split(/\n/).map(capitalize).join('\n');
 }

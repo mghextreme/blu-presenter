@@ -1,0 +1,135 @@
+{
+  "title": {
+    "list": "Themes - {{organization}}",
+    "add": "Add - Themes",
+    "edit": "{{name}} - Themes"
+  },
+  "actions": {
+    "create": "Add theme",
+    "edit": "Edit theme",
+    "delete": "Delete theme"
+  },
+  "button": {
+    "add": "Add",
+    "update": "Update",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "input": {
+    "organization": "Organization",
+    "name": "Name",
+    "baseTheme": "Base theme",
+    "titles": {
+      "colors": "Colors",
+      "alignment": "Alignment",
+      "title": "Title",
+      "artist": "Artist",
+      "lyrics": "Lyrics",
+      "chords": "Chords",
+      "clock": "Clock"
+    },
+    "font": {
+      "family": "Font",
+      "weight": "Weight",
+      "size": "Size",
+      "italic": "Italic",
+      "uppercase": "Uppercase",
+      "shadow": "Text shadow"
+    },
+    "config": {
+      "backgroundColor": "Background",
+      "foregroundColor": "Foreground",
+      "chordsColor": "Chords",
+      "clockColor": "Clock",
+      "vertical": "Vertical",
+      "horizontal": "Horizontal",
+      "shadowColor": "Shadow color",
+      "shadowBlur": "Blur",
+      "shadowOffset": "Offset",
+      "clockEnabled": "Enabled",
+      "clockFormat": "Format",
+      "invisibleOnEmptyItems": "Invisible on empty schedule items",
+      "invisibleOnEmptyItemsDescription": "Use this if you're embedding the HTML in a video software"
+    },
+    "preview": {
+      "title": "Title",
+      "artist": "Artist",
+      "lyrics": "Lyrics",
+      "chords": "Chords",
+      "update": "Update",
+      "placeholders": {
+        "title": "The quick brown fox jumps over",
+        "artist": "The lazy dog",
+        "lyrics": "The quick brown fox jumps\nover the lazy dog\nOr is it the lazy dog that\njumps over the quick brown fox?",
+        "chords": "Am      C\nD      E\nF      G\nAm      C"
+      }
+    }
+  },
+  "list": {
+    "title": "Themes"
+  },
+  "add": {
+    "title": "Add theme"
+  },
+  "edit": {
+    "title": "Edit theme"
+  },
+  "theme": {
+    "lyrics": "Lyrics",
+    "subtitles": "Subtitles",
+    "teleprompter": "Teleprompter"
+  },
+  "position": {
+    "top": "Top",
+    "middle": "Middle",
+    "bottom": "Bottom"
+  },
+  "alignment": {
+    "left": "Left",
+    "center": "Center",
+    "right": "Right"
+  },
+  "state": {
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "fontWeight": {
+    "100": "Extra thin",
+    "200": "Thin",
+    "300": "Light",
+    "400": "Normal",
+    "500": "Medium",
+    "600": "Semi bold",
+    "700": "Bold",
+    "800": "Extra bold",
+    "900": "Black"
+  },
+  "clockFormat": {
+    "12": "12 hours (AM/PM)",
+    "24": "24 hours",
+    "12withSeconds": "12 hours (AM/PM) with seconds",
+    "24withSeconds": "24 hours with seconds"
+  },
+  "organizations": {
+    "defaultName": "Personal space"
+  },
+  "message": {
+    "deleteTheme": {
+      "title": "Delete theme",
+      "description": "Are you sure you want to delete the theme \"{{name}}\"? This action cannot be undone."
+    },
+    "copyToOrganization": {
+      "title": "Copy theme to a different organization",
+      "description": "Select the organization to copy the theme to:",
+      "selectOrg": "Select organization",
+      "searchOrgs": "Search organizations",
+      "noOrgFound": "No organization found",
+      "defaultName": "Personal space"
+    }
+  },
+  "error": {
+    "deleteTheme": "Error deleting theme",
+    "copyToOrganization": "Error copying theme",
+    "noPermission": "You don't have permission to access this theme"
+  }
+}

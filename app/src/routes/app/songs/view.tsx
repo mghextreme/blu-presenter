@@ -12,7 +12,7 @@ import ControllerProvider from "@/hooks/controller.provider";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { Toggle } from "@/components/ui/toggle";
 import { SongEditMode } from "@/components/app/songs/edit-parts";
-import Preview from "@/components/icons/preview";
+import PreviewIcon from "@/components/icons/preview";
 import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOnSquareIcon";
 import { alternateLyricsAndChords } from "@/lib/songs";
 import { cn } from "@/lib/utils";
@@ -72,7 +72,7 @@ export default function ViewSong() {
       <div className="flex items-center px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
         <div className="buttons flex-1 flex justify-end gap-x-2">
-          {isLoggedIn && <CopySongToOrganization songId={data.id} title={data.title} artist={data.artist} variant="default"></CopySongToOrganization>}
+          {isLoggedIn && <CopySongToOrganization songId={data.id} title={data.title} artist={data.artist} variant="default" />}
           <Button
             type="button"
             size="sm"
@@ -109,7 +109,7 @@ export default function ViewSong() {
                 type="button"
                 size="sm"
                 title={t('actions.preview')}>
-                <Preview className="size-5" />
+                <PreviewIcon className="size-5" />
               </Button>
             </SongPreview>
           </ControllerProvider>}
@@ -121,7 +121,7 @@ export default function ViewSong() {
         <Toggle variant="outline" pressed={viewMode == 'chords'} onPressedChange={changeViewMode} className="mb-3">{t('input.viewChords')}</Toggle>
         <div className={cn(
           'max-w-lg space-y-3',
-          viewMode === 'chords' && 'font-mono'
+          viewMode === 'chords' && 'font-source-code-pro'
         )}>
           {data.blocks?.map((block, ix) => (
             <div key={`block-${ix}`} className="border-s-1 ps-[.75em] py-[.2em] min-h-[.75em] whitespace-pre">

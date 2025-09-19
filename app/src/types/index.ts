@@ -21,5 +21,6 @@ export * from './song-reference.interface';
 export * from './song.interface';
 export * from './song-with-role.interface';
 export * from './supported-language';
+export * from './theme.interface';
 export * from './user-organization';
 export * from './window.interface';

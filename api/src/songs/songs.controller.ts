@@ -53,7 +53,7 @@ export class SongsController {
     return await this.songsService.create(orgId, createSongDto);
   }
 
-  @Post('/copyToOrganization')
+  @Post('copyToOrganization')
   @OrganizationRole('owner', 'admin', 'member', 'guest')
   async copyToOrganization(
     @Body() copySongDto: CopySongToOrganizationDto,

@@ -15,7 +15,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { EditSongForm } from "@/components/app/songs/edit-form";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { ImportSongForm } from "@/components/app/songs/import-song-form";
-import Preview from "@/components/icons/preview";
+import PreviewIcon from "@/components/icons/preview";
 
 export const ImportSongSchema = z.object({
   fullText: z.string().min(2),
@@ -83,7 +83,7 @@ export default function ImportSong() {
                   type="button"
                   size="sm"
                   title={t('actions.preview')}>
-                  <Preview className="size-5" />
+                  <PreviewIcon className="size-5" />
                 </Button>
               </SongPreview>
             </ControllerProvider>

@@ -62,7 +62,7 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
                 </Link>
               </Button>
             )}
-            <CopySongToOrganization songId={row.original.id} title={row.original.title} artist={row.original.artist}></CopySongToOrganization>
+            <CopySongToOrganization songId={row.original.id} title={row.original.title} artist={row.original.artist} />
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button size="sm" className="flex-0" variant="destructive" disabled={!canDelete} title={t('actions.delete')}>

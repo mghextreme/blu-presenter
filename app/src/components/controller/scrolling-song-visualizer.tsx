@@ -1,12 +1,21 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { IScheduleSong } from "@/types";
+import { IScheduleSong, ITeleprompterThemeConfig, ITheme, TeleprompterTheme } from "@/types";
 import { useController } from "@/hooks/controller.provider";
 import { useWindow } from "@/hooks/window.provider";
 import { IPositionableElement } from "@/types/browser";
 import Clock from "./clock";
+import { alternateLyricsAndChords } from "@/lib/songs";
+import { buildFontStyle } from "@/lib/style";
+import { cn } from "@/lib/utils";
 
-export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
+interface ScrollingSongVisualizerProps {
+  theme?: ITheme
+}
+
+export const ScrollingSongVisualizer = forwardRef(({
+  theme = TeleprompterTheme,
+}: ScrollingSongVisualizerProps, ref) => {
 
   const { t } = useTranslation('controller');
 
@@ -15,6 +24,7 @@ export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
     schedule,
     scheduleItem,
     selection,
+    selectedSlide,
   } = useController();
 
   const {childWindow} = useWindow();
@@ -39,7 +49,7 @@ export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
   const updateSong = () => {
     const scheduleItemAsSong = scheduleItem as IScheduleSong;
     setScheduleSong(scheduleItemAsSong);
-    blocksDivs.current = blocksDivs.current.slice(0, (scheduleItemAsSong?.blocks?.length ?? 0) + 1);
+    blocksDivs.current = blocksDivs.current.slice(0, (scheduleItemAsSong?.blocks?.length ?? 0) + 2);
     updatePosition();
   }
   useEffect(updateSong, [scheduleItem]);
@@ -57,24 +67,24 @@ export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
 
   const [yPxOffset, setYPxOffset] = useState<number>(0);
   const [yPartsOffset, setYPartsOffset] = useState<number>(0);
-  const [selectedSlide, setSelectedSlide] = useState<number>(0);
+  const [selectedBlock, setSelectedBlock] = useState<number>(0);
   const updatePosition = () => {
     const wrapper: IPositionableElement | undefined = wrapperDiv.current as IPositionableElement;
 
     const blocksLength = scheduleSong?.blocks?.length ?? -1;
     if (blocksLength < 0) return;
 
-    let slideNumber = 0;
+    let blockNumber = 0;
     if (selection.slide) {
-      slideNumber = selection.slide - 1;
-      if (slideNumber < 0) {
-        slideNumber = 0;
-      } else if (slideNumber > blocksLength + 1) {
-        slideNumber = blocksLength + 1;
+      blockNumber = selection.slide;
+      if (blockNumber < 0) {
+        blockNumber = 0;
+      } else if (blockNumber > blocksLength + 2) {
+        blockNumber = blocksLength + 2;
       }
     }
-    setSelectedSlide(slideNumber);
-    const block: IPositionableElement | undefined = blocksDivs.current[slideNumber] as IPositionableElement;
+    setSelectedBlock(blockNumber);
+    const block: IPositionableElement | undefined = blocksDivs.current[blockNumber] as IPositionableElement;
 
     if (!wrapper || !block) return;
 
@@ -103,31 +113,70 @@ export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
     };
   });
 
+  const config = theme.config as ITeleprompterThemeConfig;
+  const isInvisible = useMemo(() => {
+    return selectedSlide?.isEmpty === true && theme.config?.invisibleOnEmptyItems === true;
+  }, [selectedSlide, theme.config?.invisibleOnEmptyItems]);
+
   return (
     <div
-      className="relative w-full h-full bg-black overflow-hidden"
+      className="relative w-full h-full overflow-hidden"
       ref={containerDiv as React.Ref<HTMLDivElement>}
-      style={{fontSize: fontSize}}>
-      <div
+      style={{
+        fontSize: fontSize,
+        backgroundColor: isInvisible ? 'transparent' : config?.backgroundColor,
+      }}>
+      {!isInvisible && <div
         ref={wrapperDiv as React.Ref<HTMLDivElement>}
-        className="w-full leading-[1.15em] px-[.5em] flex flex-col items-start text-white text-left pointer-events-none transition-transform duration-150 ease-out"
+        className="w-full leading-[1.15em] px-[.5em] flex flex-col items-start text-left pointer-events-none transition-transform duration-150 ease-out"
         style={{
           transform: `translateY(calc(.5em - ${yPxOffset}px - ${yPartsOffset * 6}em))`,
         }}>
+        <div
+          //@ts-expect-error // TODO look into ref usage here
+          ref={(el: HTMLDivElement) => blocksDivs.current[0] = el}
+          className="mb-[.6em]">
+          <pre className={cn(config?.title?.fontFamily ?? 'font-source-code-pro')} style={
+            buildFontStyle(config?.title, {
+              fontSize: 110,
+              fontWeight: 700,
+              color: config?.foregroundColor,
+            })
+          }>{scheduleSong?.title}</pre>
+          <pre className={cn('pt-[.2em]', config?.title?.fontFamily ?? 'font-source-code-pro')} style={
+            buildFontStyle(config?.artist, {
+              fontSize: 110,
+              fontWeight: 700,
+              color: config?.foregroundColor,
+            })
+          }>{scheduleSong?.artist}</pre>
+        </div>
         {scheduleSong && scheduleSong.blocks?.map((block, blockIndex) => (
           <div
             //@ts-expect-error // TODO look into ref usage here
-            ref={(el: HTMLDivElement) => blocksDivs.current[blockIndex] = el}
+            ref={(el: HTMLDivElement) => blocksDivs.current[blockIndex + 1] = el}
             key={blockIndex}
-            className={'flex mb-[.6em]' + (blockIndex === selectedSlide ? '' : ' opacity-75 transform-[scale(0.95)]')}>
+            className={'flex mb-[.6em]' + (blockIndex === selectedBlock - 1 ? '' : ' opacity-75 transform-[scale(0.95)]')}>
             <div className="w-[3em] flex flex-col justify-start items-center pr-[.5em] border-r-1 mr-[.5em]">
-              <span className={'font-bold' + (blockIndex === selectedSlide ? ' text-yellow-500' : '')}>{blockIndex + 1}</span>
+              <span className={'font-bold' + (blockIndex === selectedBlock - 1 ? ' text-yellow-500' : '')}>{blockIndex + 1}</span>
               <span className="w-full pb-[.2em] border-b-1 mb-[.2em]"></span>
               <span className="text-[0.85em] text-muted">{scheduleSong.blocks?.length}</span>
             </div>
-            <div className="grid grid-cols-1 grid-rows-1 px-[.5em] -mt-[.7em]">
-              <pre className="col-start-1 row-start-1 pb-[.4em] font-mono leading-[3em] font-bold text-yellow-300">{block.chords}</pre>
-              <pre className="col-start-1 row-start-1 pt-[1.4em] font-mono leading-[3em]">{block.text}</pre>
+            <div className="px-[.5em] leading-[1.6em] whitespace-pre">
+              {alternateLyricsAndChords(block.text, block.chords, {
+                chordsClassName: config?.chords?.fontFamily ?? 'font-source-code-pro',
+                chordsStyle: buildFontStyle(config?.chords, {
+                  fontSize: 100,
+                  fontWeight: 700,
+                  color: config?.chords?.color,
+                }),
+                lyricsClassName: config?.lyrics?.fontFamily ?? 'font-source-code-pro',
+                lyricsStyle: buildFontStyle(config?.lyrics, {
+                  fontSize: 100,
+                  fontWeight: 400,
+                  color: config?.foregroundColor,
+                }),
+              })}
             </div>
           </div>
         ))}
@@ -135,7 +184,7 @@ export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
           <div
             //@ts-expect-error // TODO look into ref usage here
             ref={(el: HTMLDivElement) => blocksDivs.current[-1] = el}
-            className={'flex mb-[.6em]' + ((scheduleSong?.blocks?.length ?? 0) === selectedSlide ? '' : ' opacity-75 transform-[scale(0.95)]')}>
+            className={'flex mb-[.6em]' + ((scheduleSong?.blocks?.length ?? 0) === selectedBlock ? '' : ' opacity-75 transform-[scale(0.95)]')}>
             <div className="w-[3em] flex flex-col justify-start items-center pr-[.5em] border-r-1 mr-[.5em]"></div>
             <div className="px-[.5em] leading-[1.3em]">
               {t('nextUp')}<br />
@@ -145,10 +194,19 @@ export const ScrollingSongVisualizer = forwardRef(({}, ref) => {
             </div>
           </div>
         )}
-      </div>
-      <div className="absolute bottom-0 right-0 py-[.2em] px-[.5em] bg-black text-white z-50">
-        <Clock />
-      </div>
+      </div>}
+      {config?.clock && config.clock.enabled && (
+        <div className="absolute bottom-0 right-0 py-[.2em] px-[.5em] z-50" style={{
+          ...buildFontStyle(config?.clock, {
+            fontSize: 100,
+            fontWeight: 400,
+            color: config?.clock?.color ?? config?.foregroundColor,
+          }),
+          backgroundColor: config?.backgroundColor,
+        }}>
+          <Clock format={config?.clock?.format} />
+        </div>
+      )}
     </div>
   );
 });

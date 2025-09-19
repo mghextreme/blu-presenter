@@ -59,17 +59,20 @@
     "logo": "Logo",
     "windows": {
       "open": "Open window",
-      "closeAll": "Close all windows",
-      "projector": "Projector (black)",
-      "chromaKey": "Chroma Key (green)",
-      "chords": "Chords (for band)"
+      "closeAll": "Close all windows"
     }
   },
-  "screenSelector": {
-    "title": "Select screen",
-    "windowed": "Windowed",
-    "fullScreen": "Full Screen",
-    "display": "Display"
+  "watch": {
+    "title": "Watch",
+    "screenSelector": {
+      "title": "Select screen",
+      "windowed": "Windowed",
+      "fullScreen": "Full Screen",
+      "display": "Display"
+    },
+    "themeSelector": {
+      "title": "Select theme"
+    }
   },
   "preview": {
     "open": "Open preview",
@@ -88,10 +91,19 @@
     }
   },
   "theme": {
-    "black": "Black (slides)",
-    "chromaKey": "Chroma Key (subtitles)",
-    "chords": "Chords (for band)",
+    "lyrics": "Lyrics",
+    "subtitles": "Subtitles",
+    "teleprompter": "Teleprompter",
+    "description": {
+      "lyrics": "black",
+      "subtitles": "green screen",
+      "teleprompter": "with chords"
+    },
     "none": "None selected"
   },
-  "nextUp": "Next up..."
+  "nextUp": "Next up...",
+  "organizations": {
+    "blupresenter": "BluPresenter",
+    "defaultName": "Personal space"
+  }
 }

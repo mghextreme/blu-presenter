@@ -9,7 +9,7 @@ export default function AppNavbar({ children }: { children?: React.ReactNode }) 
   const { isLoggedIn } = useAuth();
 
   return (
-    <header className="sticky top-0 z-900 flex w-full drop-shadow-1 bg-card">
+    <header className="sticky top-0 z-100 flex w-full drop-shadow-1 bg-card">
       <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-2 xl:px-6">
         <div className="flex items-center space-x-2">
           {children}

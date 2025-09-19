@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { useController } from "@/hooks/controller.provider";
 import { v4 } from "uuid";
 import { IWindow } from "@/types";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 import XMarkIcon from "@heroicons/react/24/solid/XMarkIcon";
 import LanguageToggler from "@/components/ui/language-toggler";
@@ -17,7 +16,6 @@ export default function ControllerNavbar() {
   const { t } = useTranslation("controller");
 
   const {
-    setMode,
     windows,
     addWindow,
     closeAllWindows,
@@ -38,19 +36,10 @@ export default function ControllerNavbar() {
           <LanguageToggler></LanguageToggler>
           <ThemeToggler></ThemeToggler>
           <ModeToggler></ModeToggler>
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button>
-                {t('controls.windows.open')}
-                <PlayIcon className="ms-2 size-4"></PlayIcon>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => addWindow({id: v4(), theme: 'black', mode: 'slide'} as IWindow)}>{t('controls.windows.projector')}</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => {addWindow({id: v4(), theme: 'chromaKey', mode: 'part'} as IWindow); setMode('part')}}>{t('controls.windows.chromaKey')}</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" onClick={() => {addWindow({id: v4(), theme: 'chords', mode: 'slide'} as IWindow)}}>{t('controls.windows.chords')}</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button onClick={() => addWindow({id: v4()} as IWindow)}>
+            {t('controls.windows.open')}
+            <PlayIcon className="ms-2 size-4"></PlayIcon>
+          </Button>
           {windows.length > 0 && <Button title={t('controls.windows.closeAll')} onClick={() => closeAllWindows()}>
             <XMarkIcon className="size-4"></XMarkIcon>
           </Button>}

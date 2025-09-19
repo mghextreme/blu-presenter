@@ -59,17 +59,20 @@
     "logo": "Logo",
     "windows": {
       "open": "Abrir janela",
-      "closeAll": "Fechar todas janelas",
-      "projector": "Projetor (fundo preto)",
-      "chromaKey": "Chroma Key (fundo verde)",
-      "chords": "Acordes (para banda)"
+      "closeAll": "Fechar todas janelas"
     }
   },
-  "screenSelector": {
-    "title": "Selecione tela",
-    "windowed": "Em janela",
-    "fullScreen": "Tela cheia",
-    "display": "Tela"
+  "watch": {
+    "title": "Assistir",
+    "screenSelector": {
+      "title": "Selecione a tela",
+      "windowed": "Em janela",
+      "fullScreen": "Tela cheia",
+      "display": "Tela"
+    },
+    "themeSelector": {
+      "title": "Selecione o tema"
+    }
   },
   "preview": {
     "open": "Abrir visualização",
@@ -88,10 +91,19 @@
     }
   },
   "theme": {
-    "black": "Preto (slides)",
-    "chromaKey": "Chroma Key (legendas)",
-    "chords": "Acordes (para banda)",
+    "lyrics": "Letra",
+    "subtitles": "Legendas",
+    "teleprompter": "Teleprompter",
+    "description": {
+      "lyrics": "fundo preto",
+      "subtitles": "fundo verde",
+      "teleprompter": "com acordes"
+    },
     "none": "Nenhum selecionado"
   },
-  "nextUp": "A seguir..."
+  "nextUp": "A seguir...",
+  "organizations": {
+    "blupresenter": "BluPresenter",
+    "defaultName": "Espaço pessoal"
+  }
 }

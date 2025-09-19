@@ -4,6 +4,10 @@ export * from './update-song.dto';
 export * from './copy-song-to-organization.dto';
 export * from './advanced-search.dto';
 
+export * from './create-theme.dto';
+export * from './update-theme.dto';
+export * from './copy-theme-to-organization.dto';
+
 export * from './organization-role.type';
 export * from './create-organization.dto';
 export * from './update-organization.dto';

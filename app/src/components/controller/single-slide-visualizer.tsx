@@ -1,23 +1,23 @@
-import { ControllerMode, ISlideContent, ISlideImageContent, ISlideTextContent, ISlideTitleContent, WindowTheme } from "@/types";
+import { ISlideContent, ISlideImageContent, ISlideTextContent, ISlideTitleContent, ITheme, LyricsTheme } from "@/types";
 import { useController } from "@/hooks/controller.provider";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useWindow } from "@/hooks/window.provider";
+import { cn } from "@/lib/utils";
+import { buildFontStyle } from "@/lib/style";
 
 type SingleSlideVisualizerProps = {
-  mode: ControllerMode
-  theme?: WindowTheme
+  theme?: ITheme
 }
 
 export const SingleSlideVisualizer = forwardRef((
   {
-    mode,
-    theme = 'black',
+    theme = LyricsTheme,
   }: SingleSlideVisualizerProps,
   ref,
 ) => {
 
-  if (theme === 'chords') {
-    return <></>; // Chords theme is not supported in single slide visualizer
+  if (theme.extends === 'teleprompter') {
+    return <></>; // Teleprompter theme is not supported in single slide visualizer
   }
 
   const {
@@ -62,42 +62,42 @@ export const SingleSlideVisualizer = forwardRef((
 
     content = selectedSlide?.content ?? [];
 
-    if (mode == 'part') {
+    if (theme.extends === 'subtitles') {
       setToShow(content.length > 0 ? [content[selection.part ?? 0]] : []);
     } else {
       setToShow(content);
     }
   }
-  useEffect(updateContent, [mode, selectedSlide, overrideSlide, selection]);
-
-  const [themeClass, setThemeClass] = useState<string>('');
-  useEffect(() => {
-    if (theme == 'black') {
-      setThemeClass('justify-center bg-black');
-    } else {
-      setThemeClass('justify-end bg-chroma-green text-shadow-solid');
-    }
-  }, [theme]);
+  useEffect(updateContent, [selectedSlide, overrideSlide, selection]);
 
   const getTitleContent = (content: ISlideTitleContent) => {
     return (
-      <div className={theme == 'black' ? 'py-[1em]' : ''}>
-        <h1 className="text-[1.25em] font-bold">{content.title}</h1>
-        {content?.subtitle && <h2 className="text-[.75em] font-medium">{content.subtitle}</h2>}
+      <div className={theme.extends == 'lyrics' ? 'py-[1em]' : ''}>
+        <h1 className={theme.config?.title?.fontFamily} style={buildFontStyle(theme.config?.title, {
+          fontSize: 125,
+          fontWeight: 700,
+        })}>{content.title.replace(/\s+/g, ' ')}</h1>
+        {content?.subtitle && <h2 className={cn('mt-[.25em]', theme.config?.artist?.fontFamily)} style={buildFontStyle(theme.config?.artist, {
+          fontSize: 75,
+          fontWeight: 500,
+        })}>{content.subtitle.replace(/\s+/g, ' ')}</h2>}
       </div>
     )
   }
 
   const getTextContent = (content: ISlideTextContent) => {
     return (
-      <div className="text-[1em] whitespace-pre-wrap font-medium">
-        {content.text}
+      <div className={cn('whitespace-pre-wrap', theme.config?.lyrics?.fontFamily)} style={buildFontStyle(theme.config?.lyrics, {
+        fontSize: 100,
+        fontWeight: 400,
+      })}>
+        {content.text.replace(/[^\S\r\n]+/g, ' ')}
       </div>
     )
   }
 
   const getImageContent = (content: ISlideImageContent) => {
-    if (mode == "part") {
+    if (theme.extends === "subtitles") {
       return <></>;
     }
 
@@ -120,15 +120,28 @@ export const SingleSlideVisualizer = forwardRef((
   return (
     <div
       ref={wrapperDiv as React.Ref<HTMLDivElement>}
-      className={'w-full h-full leading-[1.15em] p-[.5em] flex flex-col items-stretch text-white text-center pointer-events-none ' + themeClass}
-      style={{fontSize: fontSize}}>
-      {toShow.map((c, ix) => (
+      className={cn(
+        'w-full h-full leading-[1.15em] p-[.5em] flex flex-col items-stretch pointer-events-none',
+        theme.config?.position == 'top' && 'justify-start',
+        theme.config?.position == 'middle' && 'justify-center',
+        theme.config?.position == 'bottom' && 'justify-end',
+        theme.config?.alignment == 'left' && 'text-start',
+        theme.config?.alignment == 'center' && 'text-center',
+        theme.config?.alignment == 'right' && 'text-end',
+      )}
+      style={{
+        fontSize: fontSize,
+        backgroundColor: selectedSlide?.isEmpty === true && theme.config?.invisibleOnEmptyItems === true ? 'transparent' : theme.config?.backgroundColor,
+        color: theme.config?.foregroundColor,
+      }}>
+      {toShow.length > 0 && toShow.map((c, ix) => !!c ? (
         <div key={ix}>
           {c.type == "title" && getTitleContent(c as ISlideTitleContent)}
           {c.type == "lyrics" && getTextContent(c as ISlideTextContent)}
           {c.type == "image" && getImageContent(c as ISlideImageContent)}
         </div>
-      ))}
+        ) : <></>
+      )}
     </div>
   );
 });

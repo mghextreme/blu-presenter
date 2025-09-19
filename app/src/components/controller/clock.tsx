@@ -1,25 +1,44 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+interface ClockProps {
+  format?: "24withSeconds" | "24" | "12withSeconds" | "12";
+}
 
-export default function Clock() {
+export default function Clock({
+  format = "24withSeconds"
+}: ClockProps) {
 
   const [time, setTime] = useState<string>("00:00:00");
 
+  const formatRef = useRef<Intl.DateTimeFormatOptions>({});
+  const [formatConfig, setFormatConfig] = useState<Intl.DateTimeFormatOptions>({});
+
+  useEffect(() => {
+    formatRef.current = formatConfig;
+  }, [formatConfig]);
+
+  useEffect(() => {
+    setFormatConfig({
+      hour12: format.startsWith("12"),
+      hour: format.startsWith("24") ? '2-digit' : 'numeric',
+      minute: '2-digit',
+      second: format.endsWith("withSeconds") ? '2-digit' : undefined,
+    });
+  }, [format]);
+
   useEffect(() => {
     const tickInterval = setInterval(() => {
-      setTime(new Date().toLocaleTimeString(undefined, {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }));
+      setTime(new Date().toLocaleTimeString(undefined, formatRef.current));
     }, 500);
 
     return () => {
-      clearInterval(tickInterval);
+      if (tickInterval) {
+        clearInterval(tickInterval);
+      }
     }
   }, []);
 
   return (
-    <span className="font-mono">{time}</span>
+    <span className="font-source-code-pro">{time}</span>
   );
 }
