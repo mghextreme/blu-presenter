@@ -6,6 +6,10 @@ import SelectorScreen from "@/components/controller/selector-screen"
 import { IScheduleItem, IWindow, ISlide, ControllerMode, ISlideTextContent, ISlideImageContent, IControllerSelection } from "@/types"
 import WindowProvider from "./window.provider"
 
+export interface IControllerConfig {
+  autoAdvanceScheduleItem: boolean
+}
+
 type ControllerProviderProps = {
   children: React.ReactNode
 }
@@ -39,6 +43,9 @@ type ControllerProviderState = {
   addWindow: (window: IWindow) => void,
   closeWindow: (id: string) => void,
   closeAllWindows: () => void,
+
+  config: IControllerConfig,
+  setConfig: (config: IControllerConfig) => void,
 }
 
 const initialState: ControllerProviderState = {
@@ -70,6 +77,11 @@ const initialState: ControllerProviderState = {
   addWindow: () => null,
   closeWindow: () => null,
   closeAllWindows: () => null,
+
+  config: {
+    autoAdvanceScheduleItem: false,
+  },
+  setConfig: () => null,
 }
 
 const ControllerProviderContext = createContext<ControllerProviderState>(initialState);
@@ -94,7 +106,7 @@ export default function ControllerProvider({
   const [schedule, setSchedule] = useState<IScheduleItem[]>(initialState.schedule);
   const [scheduleItem, setScheduleItem] = useState<IScheduleItem | undefined>(initialState.scheduleItem);
 
-  const internalSetSchedule = (newSchedule: IScheduleItem[]) => {
+  const saveAndSetSchedule = (newSchedule: IScheduleItem[]) => {
     sessionStorage.setItem('controllerSchedule', JSON.stringify(newSchedule));
     localStorage.setItem('controllerSchedule', JSON.stringify(newSchedule));
     setSchedule(newSchedule);
@@ -109,14 +121,16 @@ export default function ControllerProvider({
       ...schedule,
       ...items.map((item, ix) => ({ ...item, index: startingIx + ix, uniqueId: uniqueIdBase + ix })),
     ];
-    internalSetSchedule(newValue);
+    saveAndSetSchedule(newValue);
   };
   const removeFromSchedule = (ix: number) => {
     if (scheduleItemIx !== undefined) {
       if (ix == scheduleItemIx) {
         setScheduleItemIx(undefined);
+        setLatestScheduleItemIx(latestScheduleItemIx - 1);
       } else if (ix < scheduleItemIx) {
         setScheduleItemIx(scheduleItemIx - 1);
+        setLatestScheduleItemIx(latestScheduleItemIx - 1);
       }
     }
 
@@ -124,7 +138,7 @@ export default function ControllerProvider({
       ...schedule.slice(0, ix),
       ...schedule.slice(ix + 1).map((item, halfIx) => ({ ...item, index: ix + halfIx })),
     ]
-    internalSetSchedule(newValue);
+    saveAndSetSchedule(newValue);
   };
   const moveItemInSchedule = (fromIx: number, toIx: number) => {
     if (fromIx === toIx) return;
@@ -133,10 +147,25 @@ export default function ControllerProvider({
     newValue.splice(fromIx, 1);
     newValue.splice(toIx, 0, schedule[fromIx]);
 
-    internalSetSchedule(newValue.map((item, ix) => ({ ...item, index: ix })));
+    saveAndSetSchedule(newValue.map((item, ix) => ({ ...item, index: ix })));
+
+    if (scheduleItemIx === undefined) return;
+    if (scheduleItemIx === fromIx) {
+      setScheduleItemIx(toIx);
+      setLatestScheduleItemIx(toIx);
+      return;
+    }
+
+    let scheduleItemDelta = 0;
+    if (fromIx < scheduleItemIx) { scheduleItemDelta -= 1; }
+    if (toIx <= scheduleItemIx) { scheduleItemDelta += 1; }
+    if (scheduleItemDelta !== 0) {
+      setScheduleItemIx(scheduleItemIx + scheduleItemDelta);
+      setLatestScheduleItemIx(scheduleItemIx + scheduleItemDelta);
+    }
   };
   const removeAllFromSchedule = () => {
-    internalSetSchedule([]);
+    saveAndSetSchedule([]);
   };
   const externalSetScheduleItem = (item: number | IScheduleItem) => {
     if (typeof item === 'number') {
@@ -181,6 +210,7 @@ export default function ControllerProvider({
 
   const [partIx, setPartIx] = useState<number | undefined>(undefined);
   const [slideIx, setSlideIx] = useState<number | undefined>(undefined);
+  const [latestScheduleItemIx, setLatestScheduleItemIx] = useState<number>(-1);
   const [scheduleItemIx, setScheduleItemIx] = useState<number | undefined>(undefined);
   const [selection, setSelection] = useState<IControllerSelection>(initialState.selection);
 
@@ -217,6 +247,9 @@ export default function ControllerProvider({
     }
 
     setScheduleItemIx(to.scheduleItem);
+    if (to.scheduleItem !== undefined) {
+      setLatestScheduleItemIx(to.scheduleItem);
+    }
     const curScheduleItem = to.scheduleItem !== undefined ? schedule[to.scheduleItem] : scheduleItem;
 
     if (curScheduleItem === undefined) return;
@@ -230,8 +263,15 @@ export default function ControllerProvider({
     clearOverrideSlide();
     const curSlide = curScheduleItem.slides[to.slide];
 
-    if (to.part !== undefined && curSlide.content !== undefined && to.part >= 0 && to.part < curSlide.content?.length) {
-      setPartIx(to.part);
+    if (to.part !== undefined) {
+      if (curSlide.content === undefined || to.part >= curSlide.content?.length) {
+        setPartIx(0);
+      } else {
+        if (to.part < 0) {
+          to.part = curSlide.content?.length - 1;
+        }
+        setPartIx(to.part);
+      }
     }
   };
 
@@ -249,6 +289,16 @@ export default function ControllerProvider({
 
       const newSlide = scheduleItem?.slides[newIndex];
       setPartIx((newSlide?.content?.length ?? 1) - 1);
+    } else if (config.autoAdvanceScheduleItem && scheduleItemIx !== undefined && scheduleItemIx > 0) {
+      setScheduleItemIx(scheduleItemIx - 1);
+      setLatestScheduleItemIx(scheduleItemIx - 1);
+      setSlideIx((schedule[scheduleItemIx - 1]?.slides.length ?? 1) - 1);
+      setPartIx(-1);
+    } else if (config.autoAdvanceScheduleItem && scheduleItemIx === undefined && latestScheduleItemIx > 0) {
+      setScheduleItemIx(latestScheduleItemIx - 1);
+      setLatestScheduleItemIx(latestScheduleItemIx - 1);
+      setSlideIx((schedule[latestScheduleItemIx - 1]?.slides.length ?? 1) - 1);
+      setPartIx(-1);
     }
   };
   const nextSlide = () => {
@@ -260,6 +310,16 @@ export default function ControllerProvider({
     } else if (slideIx + 1 < scheduleItem.slides.length) {
       const newIndex = slideIx + 1;
       setSlideIx(newIndex);
+      setPartIx(0);
+    } else if (config.autoAdvanceScheduleItem && scheduleItemIx !== undefined && scheduleItemIx + 1 < schedule.length) {
+      setScheduleItemIx(scheduleItemIx + 1);
+      setLatestScheduleItemIx(scheduleItemIx + 1);
+      setSlideIx(0);
+      setPartIx(0);
+    } else if (config.autoAdvanceScheduleItem && scheduleItemIx === undefined && latestScheduleItemIx + 1 < schedule.length) {
+      setScheduleItemIx(latestScheduleItemIx + 1);
+      setLatestScheduleItemIx(latestScheduleItemIx + 1);
+      setSlideIx(0);
       setPartIx(0);
     }
   };
@@ -332,6 +392,22 @@ export default function ControllerProvider({
     setWindows([]);
   }
 
+  try {
+    const savedControllerConfig = localStorage.getItem('controllerConfig');
+    if (savedControllerConfig) {
+      initialState.config = (JSON.parse(savedControllerConfig) as IControllerConfig) || initialState.config;
+    }
+  }
+  catch (e) {
+    // Ignore error
+  }
+  const [config, setConfig] = useState<IControllerConfig>(initialState.config);
+
+  const setAndSaveConfig = (newConfig: IControllerConfig) => {
+    localStorage.setItem('controllerConfig', JSON.stringify(newConfig));
+    setConfig(newConfig);
+  }
+
   const value = useMemo(() => {
     return {
       mode,
@@ -362,6 +438,9 @@ export default function ControllerProvider({
       addWindow,
       closeWindow,
       closeAllWindows,
+
+      config,
+      setConfig: setAndSaveConfig,
     } as ControllerProviderState;
   }, [
     mode,
