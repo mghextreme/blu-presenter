@@ -23,10 +23,14 @@
         "add": "Adicionar"
       }
     },
+    "configuration": {
+      "autoAdvanceScheduleItem": "Avançar programação ao avançar slide no final de uma música"
+    },
     "tabs": {
       "searchSongs": "Buscar músicas",
       "text": "Texto",
-      "comment": "Comentário"
+      "comment": "Comentário",
+      "configuration": "Configurações"
     }
   },
   "schedule": {

@@ -66,10 +66,23 @@ export const getChordsData = (text: string) => {
   }
 }
 
-export const capitalize = (line: string) => {
-  return line.charAt(0).toUpperCase() + line.slice(1).toLowerCase();
+const capitalizeEachSentence = (text: string) => {
+  return text.replace(/([\.\?!])\s*([A-Za-zÀ-ÖØ-öø-ÿ])/gui, (match, punctuation, letter) => {
+    return punctuation + match.slice(1, -1) + letter.toUpperCase();
+  })
 }
 
-export const capitalizeEachLine = (text: string) => {
-  return text.split(/\n/).map(capitalize).join('\n');
+const capitalizeEachLine = (text: string) => {
+  return text.replace(/(\n)\s*([A-Za-zÀ-ÖØ-öø-ÿ])/gui, (match, newline, letter) => {
+    return newline + match.slice(1, -1) + letter.toUpperCase();
+  });
+}
+
+export const capitalizeText = (text: string) => {
+
+  text = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  text = capitalizeEachLine(text);
+  text = capitalizeEachSentence(text);
+
+  return text;
 }

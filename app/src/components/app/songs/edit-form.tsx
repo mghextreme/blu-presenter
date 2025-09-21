@@ -24,7 +24,7 @@ import EditSongReferences from "@/components/app/songs/edit-references";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { capitalizeEachLine } from "@/lib/songs";
+import { capitalizeText } from "@/lib/songs";
 
 function LanguageAndIcon({ t, language }: { t: TFunction, language: ILanguage["value"] }) {
   const lang = supportedLanguagesMap.find((lang) => lang.value === language);
@@ -147,8 +147,8 @@ export const EditSongForm = forwardRef((
       let blockText = blocks[i]?.text?.trimEnd();
       if (!blockText) continue;
 
-      if (blockText.length > 0 && blockText === blockText.toUpperCase()) {
-        form.setValue(`blocks.${i}.text`, capitalizeEachLine(blockText));
+      if (blockText.length > 0) {
+        form.setValue(`blocks.${i}.text`, capitalizeText(blockText));
       }
     }
 

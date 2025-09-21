@@ -23,10 +23,14 @@
         "add": "Add"
       }
     },
+    "configuration": {
+      "autoAdvanceScheduleItem": "Advance schedule item when advancing slide at the end of a song"
+    },
     "tabs": {
       "searchSongs": "Search songs",
       "text": "Text",
-      "comment": "Comment"
+      "comment": "Comment",
+      "configuration": "Configuration"
     }
   },
   "schedule": {
