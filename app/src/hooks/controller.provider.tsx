@@ -127,8 +127,10 @@ export default function ControllerProvider({
     if (scheduleItemIx !== undefined) {
       if (ix == scheduleItemIx) {
         setScheduleItemIx(undefined);
+        setLatestScheduleItemIx(latestScheduleItemIx - 1);
       } else if (ix < scheduleItemIx) {
         setScheduleItemIx(scheduleItemIx - 1);
+        setLatestScheduleItemIx(latestScheduleItemIx - 1);
       }
     }
 
@@ -150,13 +152,17 @@ export default function ControllerProvider({
     if (scheduleItemIx === undefined) return;
     if (scheduleItemIx === fromIx) {
       setScheduleItemIx(toIx);
+      setLatestScheduleItemIx(toIx);
       return;
     }
 
     let scheduleItemDelta = 0;
     if (fromIx < scheduleItemIx) { scheduleItemDelta -= 1; }
     if (toIx <= scheduleItemIx) { scheduleItemDelta += 1; }
-    if (scheduleItemDelta !== 0) { setScheduleItemIx(scheduleItemIx + scheduleItemDelta); }
+    if (scheduleItemDelta !== 0) {
+      setScheduleItemIx(scheduleItemIx + scheduleItemDelta);
+      setLatestScheduleItemIx(scheduleItemIx + scheduleItemDelta);
+    }
   };
   const removeAllFromSchedule = () => {
     saveAndSetSchedule([]);
@@ -285,10 +291,12 @@ export default function ControllerProvider({
       setPartIx((newSlide?.content?.length ?? 1) - 1);
     } else if (config.autoAdvanceScheduleItem && scheduleItemIx !== undefined && scheduleItemIx > 0) {
       setScheduleItemIx(scheduleItemIx - 1);
+      setLatestScheduleItemIx(scheduleItemIx - 1);
       setSlideIx((schedule[scheduleItemIx - 1]?.slides.length ?? 1) - 1);
       setPartIx(-1);
     } else if (config.autoAdvanceScheduleItem && scheduleItemIx === undefined && latestScheduleItemIx > 0) {
       setScheduleItemIx(latestScheduleItemIx - 1);
+      setLatestScheduleItemIx(latestScheduleItemIx - 1);
       setSlideIx((schedule[latestScheduleItemIx - 1]?.slides.length ?? 1) - 1);
       setPartIx(-1);
     }
@@ -305,10 +313,12 @@ export default function ControllerProvider({
       setPartIx(0);
     } else if (config.autoAdvanceScheduleItem && scheduleItemIx !== undefined && scheduleItemIx + 1 < schedule.length) {
       setScheduleItemIx(scheduleItemIx + 1);
+      setLatestScheduleItemIx(scheduleItemIx + 1);
       setSlideIx(0);
       setPartIx(0);
     } else if (config.autoAdvanceScheduleItem && scheduleItemIx === undefined && latestScheduleItemIx + 1 < schedule.length) {
       setScheduleItemIx(latestScheduleItemIx + 1);
+      setLatestScheduleItemIx(latestScheduleItemIx + 1);
       setSlideIx(0);
       setPartIx(0);
     }
