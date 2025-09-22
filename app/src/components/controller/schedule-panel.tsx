@@ -53,7 +53,7 @@ export function SchedulePanel() {
   return (
     <div
       id="schedule"
-      className="w-1/3 bg-background rounded flex flex-col justify-start items-stretch">
+      className="flex flex-col justify-start items-stretch h-full">
       <div className="p-3 pb-0 flex gap-2 flex-0 justify-between items-center">
         {schedule.length > 1 && <Button className="flex-1" variant={sorting ? "default" : "secondary"} onClick={toggleSorting} title={t('schedule.actions.sort')}>
           <ArrowsUpDownIcon className="size-4" />

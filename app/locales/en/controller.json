@@ -1,5 +1,10 @@
 {
   "title": "Controller",
+  "tabs": {
+    "plan": "Plan",
+    "schedule": "Schedule",
+    "live": "Live"
+  },
   "plan": {
     "search": {
       "basic": "Basic",

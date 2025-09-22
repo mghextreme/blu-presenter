@@ -1,5 +1,10 @@
 {
   "title": "Painel de Controle",
+  "tabs": {
+    "plan": "Planejar",
+    "schedule": "Programação",
+    "live": "Ao vivo"
+  },
   "plan": {
     "search": {
       "basic": "Básico",

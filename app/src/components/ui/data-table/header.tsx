@@ -24,7 +24,7 @@ export function DataTableHeader<TData>({
   }
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-2">
       <div>
         <Input
           placeholder={t("filter") + '...'}

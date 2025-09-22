@@ -16,8 +16,8 @@ export function PlanPanel() {
   return (
     <div
       id="plan"
-      className="w-1/3 bg-background rounded flex flex-col justify-start items-stretch overflow-hidden p-3">
-      <Tabs defaultValue="search">
+      className="flex flex-col justify-start items-stretch p-3 h-full">
+      <Tabs defaultValue="search" className="flex flex-col h-full">
         <TabsList className="w-full">
           <TabsTrigger value="search" title={t('plan.tabs.searchSongs')}><MusicalNoteIcon className="size-4" /></TabsTrigger>
           <TabsTrigger value="text" title={t('plan.tabs.text')}><Bars3BottomLeftIcon className="size-4" /></TabsTrigger>
@@ -25,18 +25,20 @@ export function PlanPanel() {
           <TabsTrigger value="configuration" title={t('plan.tabs.configuration')}><Cog6ToothIcon className="size-4" /></TabsTrigger>
         </TabsList>
         <hr className="border-t border-[1px]" />
-        <TabsContent value="search">
-          <PlanSearch />
-        </TabsContent>
-        <TabsContent value="text">
-          <PlanText />
-        </TabsContent>
-        <TabsContent value="comment">
-          <PlanComment />
-        </TabsContent>
-        <TabsContent value="configuration">
-          <PlanConfiguration />
-        </TabsContent>
+        <div className="h-full">
+          <TabsContent value="search" className="flex flex-col justify-stretch h-full">
+            <PlanSearch />
+          </TabsContent>
+          <TabsContent value="text" className="h-full">
+            <PlanText />
+          </TabsContent>
+          <TabsContent value="comment" className="h-full">
+            <PlanComment />
+          </TabsContent>
+          <TabsContent value="configuration" className="h-full">
+            <PlanConfiguration />
+          </TabsContent>
+        </div>
       </Tabs>
     </div>
   );

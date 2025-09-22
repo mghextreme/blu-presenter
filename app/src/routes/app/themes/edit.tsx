@@ -105,16 +105,16 @@ export default function EditTheme({
   return (
     <>
       <title>{(edit ? t('title.edit', { name: data.name }) : t('title.add')) + ' - ' + orgName + ' - BluPresenter'}</title>
-      <div className="flex items-center px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
+      <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
       </div>
-      <div className="p-8">
+      <div className="p-2 sm:p-8">
         <h1 className="text-3xl mb-4">{edit ? t('edit.title') : t('add.title')}</h1>
         <ControllerProvider>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-row-reverse flex-wrap gap-3 justify-end">
               <div className="flex-1 min-w-sm max-w-lg">
-                <div className="relative w-full bg-[url(/src/images/sample-wallpaper.svg)] bg-cover bg-center rounded">
+                <div className="relative w-full bg-[url(/images/sample-wallpaper.svg)] bg-cover bg-center rounded">
                   <PreviewWindow theme={form.watch()} attachControllerMode={true} showThemeSelector={false} />
                 </div>
                 <Controls showBlank={false} className="px-0" />

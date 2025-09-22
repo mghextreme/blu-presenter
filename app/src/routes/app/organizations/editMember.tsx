@@ -78,7 +78,7 @@ export default function EditMember() {
   const canEdit = data.role !== 'owner' && data.email != user?.email; // TODO: Use internal users ID to compare instead of email
 
   return (
-    <div className="p-8">
+    <div className="p-2 sm:p-8">
       <title>{t('title.member', {member: data.name || data.email, organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
       <h1 className="text-3xl mb-4">{t('editMember.title')}</h1>
       <Form {...form}>

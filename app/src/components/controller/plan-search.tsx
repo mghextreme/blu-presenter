@@ -62,10 +62,11 @@ export function PlanSearch() {
           <AdvancedSearchForm includeBlocks={true} />
         </TabsContent>
       </Tabs>
-      <div
-        className="mt-3 flex-1 overflow-y-auto flex flex-col justify-start items-stretch overflow-y-auto gap-3">
-        <hr className="border-t border-[1px]" />
-        <SearchResultsList getActions={getButtonActions} getColorIndex={getButtonOrgIndex} />
+      <hr className="border-t border-[1px] my-3" />
+      <div className="flex-1 overflow-y-auto">
+        <div className="flex flex-col gap-3">
+          <SearchResultsList getActions={getButtonActions} getColorIndex={getButtonOrgIndex} />
+        </div>
       </div>
     </>
   )

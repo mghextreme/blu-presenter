@@ -66,7 +66,7 @@ export default function Discover() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-2 sm:p-8">
       <title>{t('title') + ' - BluPresenter'}</title>
       <h1 className="text-3xl mb-4">{t('title')}</h1>
       <SearchProvider songsService={songsService}>

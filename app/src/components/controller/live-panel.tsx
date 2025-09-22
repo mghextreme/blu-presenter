@@ -42,8 +42,8 @@ export function LivePanel() {
   const closePreview = () => { setPreviewOpen(false); }
 
   return (
-    <div id="live" className="w-1/3 bg-background rounded flex flex-col items-stretch overflow-hidden">
-      <div id="preview" className="relative m-3 mb-0 flex justify-stretch flex-0">
+    <div id="live" className="flex flex-col items-stretch h-full">
+      <div id="preview" className="m-3 mb-0 flex justify-stretch flex-0">
         {!previewOpen && <Button onClick={() => setPreviewOpen(true)} title={t('preview.openTitle')} className="flex-1">
           {t('preview.open')}
         </Button>}

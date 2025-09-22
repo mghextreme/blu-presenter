@@ -69,7 +69,7 @@ export default function ViewSong() {
   return (
     <>
       <title>{t('title.view', { title: data.title, artist: data.artist }) + ' - BluPresenter'}</title>
-      <div className="flex items-center px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
+      <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
         <div className="buttons flex-1 flex justify-end gap-x-2">
           {isLoggedIn && <CopySongToOrganization songId={data.id} title={data.title} artist={data.artist} variant="default" />}
@@ -115,7 +115,7 @@ export default function ViewSong() {
           </ControllerProvider>}
         </div>
       </div>
-      <div className="p-8">
+      <div className="p-2 sm:p-8">
         <h1 className="text-3xl mb-2">{data.title}</h1>
         <h2 className="text-lg mb-2 opacity-50">{data.artist}</h2>
         <Toggle variant="outline" pressed={viewMode == 'chords'} onPressedChange={changeViewMode} className="mb-3">{t('input.viewChords')}</Toggle>

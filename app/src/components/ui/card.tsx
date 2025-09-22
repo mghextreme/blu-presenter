@@ -11,7 +11,7 @@ const cardVariants = cva(
         default:
           "bg-card text-card-foreground border",
         secondary:
-          "bg-gray-900 text-foreground",
+          "bg-gray-200 text-gray-800 dark:bg-gray-900 dark:text-foreground",
       },
     },
     defaultVariants: {
@@ -39,7 +39,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-header"
       className={cn(
-        "@container/card-header flex flex-row justify-between items-center space-x-1.5 p-4",
+        "@container/card-header flex flex-col sm:flex-row justify-between items-center gap-1.5 p-4",
         className
       )}
       {...props}
@@ -51,7 +51,7 @@ function CardHeaderText({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-header-text"
-      className={cn("flex flex-col space-y-1.5", className)}
+      className={cn("flex flex-col gap-1.5 w-full", className)}
       {...props}
     />
   )
@@ -61,7 +61,7 @@ function CardHeaderActions({ className, ...props }: React.ComponentProps<"div">)
   return (
     <div
       data-slot="card-header-text"
-      className={cn("flex justify-end space-x-1.5", className)}
+      className={cn("flex justify-end gap-1.5 w-full sm:w-auto", className)}
       {...props}
     />
   )

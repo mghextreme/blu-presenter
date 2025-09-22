@@ -80,7 +80,7 @@ export default function InviteOrganizationMember() {
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);
 
   return (
-    <div className="p-8">
+    <div className="p-2 sm:p-8">
       <title>{t('title.invite', {organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
       <h1 className="text-3xl mb-2">{t('invite.title')}</h1>
       <h2 className="text mb-4 opacity-50">{data.name || t('defaultName')}</h2>

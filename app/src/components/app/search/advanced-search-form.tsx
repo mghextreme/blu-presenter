@@ -65,7 +65,7 @@ export function AdvancedSearchForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex w-full flex-wrap flex-row space-x-2 space-y-2 items-stretch">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex w-full flex-wrap flex-col sm:flex-row space-x-2 space-y-2 items-stretch">
         <FormField
           control={form.control}
           name="query"
@@ -93,7 +93,7 @@ export function AdvancedSearchForm({
                   placeholder={t('input.languagesPlaceholder')}
                   searchText={t('input.languagesSearch')}
                   emptyText={t('input.languagesEmpty')}
-                  className="w-32"
+                  className="min-w-32"
                   summaryRenderFunction={(options, placeholder) => {
                     if (options.length === 0) {
                       return <span className="truncate">{placeholder}</span>;
@@ -141,7 +141,7 @@ export function AdvancedSearchForm({
                   placeholder={t('input.organizationsPlaceholder')}
                   searchText={t('input.organizationsSearch')}
                   emptyText={t('input.organizationsEmpty')}
-                  className="w-48"
+                  className="min-w-48"
                 />
               </FormControl>
               <FormMessage />
@@ -152,9 +152,9 @@ export function AdvancedSearchForm({
           control={form.control}
           name="searchPublicArchive"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex-row items-center sm:items-start sm:flex-col mt-2 sm:mt-0 justify-between">
               <FormLabel>{t('input.searchPublicArchive')}</FormLabel>
-              <FormControl className="ms-3 mt-3">
+              <FormControl className="ms-3 sm:mt-3">
                 <Switch
                   checked={field.value}
                   onCheckedChange={field.onChange}

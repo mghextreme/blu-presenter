@@ -45,19 +45,14 @@ export function ScheduleItem({
   const text = item as IScheduleText;
 
   return (
-    <Card variant={item.type === 'comment' ? 'secondary' : 'default'} className={cn(
-      'mt-3',
-      item.type === 'song' && 'min-h-19',
-      item.type === 'text' && 'min-h-16',
-      item.type === 'comment' && 'min-h-12',
-    )}>
+    <Card variant={item.type === 'comment' ? 'secondary' : 'default'} className="mt-3">
       <Collapsible
         open={isExpanded}
         onOpenChange={setExpanded}
         className="w-full">
         <CardHeader className={cn(
           item.type === 'comment' && 'py-2',
-          selected && (item.type === 'comment' ? 'bg-gray-700' : 'bg-selected'),
+          selected && (item.type === 'comment' ? 'bg-gray-300 dark:bg-gray-700' : 'bg-selected'),
         )}>
           <CardHeaderText>
             <CardTitle className={cn(
