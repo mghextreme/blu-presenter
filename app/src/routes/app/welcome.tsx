@@ -105,7 +105,7 @@ export default function Welcome() {
   const columns = buildColumns(t, acceptInvitation, rejectInvitation);
 
   return (
-    <div className="p-8">
+    <div className="p-2 sm:p-8">
       <title>{t('welcome.message') + ' - BluPresenter'}</title>
       <h1 className="text-3xl">{t('welcome.message')}</h1>
       {data.length > 0 && (

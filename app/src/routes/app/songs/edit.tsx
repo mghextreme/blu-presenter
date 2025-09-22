@@ -80,7 +80,7 @@ export default function EditSong({
   return (
     <>
       <title>{(edit ? t('title.edit', { title: data.title, artist: data.artist }) : t('title.add')) + ' - BluPresenter'}</title>
-      <div className="flex items-center px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
+      <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
         <div className="buttons flex-1 flex justify-end gap-x-2">
           {edit && <>
@@ -106,7 +106,7 @@ export default function EditSong({
           </ControllerProvider>
         </div>
       </div>
-      <div className="p-8">
+      <div className="p-2 sm:p-8">
         <h1 className="text-3xl mb-4">{edit ? t('edit.title') : t('add.title')}</h1>
         <EditSongForm edit={edit} formValues={formValues} ref={formRef} />
       </div>

@@ -8,12 +8,9 @@ import AppNavbar from "@/components/app/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { useServices } from "@/hooks/services.provider";
 import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
 
 export default function AppLayout() {
   const { authService } = useServices();
-
-  const { t } = useTranslation('app');
 
   useEffect(() => {
     authService.refreshOrganizations();
@@ -21,13 +18,15 @@ export default function AppLayout() {
 
   return (
     <ProtectedRoute>
-      <div className="flex h-screen overflow-hidden">
-        <AppSidebar></AppSidebar>
-        <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-          <AppNavbar>{t('welcome.message')}</AppNavbar>
-          <Outlet />
-          <Toaster />
+      <div className="flex flex-col min-h-screen overflow-hidden items-stretch justify-stretch">
+        <AppNavbar />
+        <div className="h-full relative flex flex-1 flex">
+          <AppSidebar></AppSidebar>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden pb-12 sm:pb-0">
+            <Outlet />
+          </div>
         </div>
+        <Toaster />
       </div>
     </ProtectedRoute>
   );

@@ -296,7 +296,7 @@ export default function EditOrganization({
   }, [loadedData]);
 
   return (
-    <div className="p-8">
+    <div className="p-2 sm:p-8">
       <title>{t('title.edit', {organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
       {isPersonalSpace ? (
         <Alert>

@@ -1,6 +1,5 @@
 import ThemeToggler from "@/components/ui/theme-toggler";
 import ModeToggler from "@/components/ui/mode-toggler";
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useController } from "@/hooks/controller.provider";
 import { v4 } from "uuid";
@@ -10,6 +9,7 @@ import XMarkIcon from "@heroicons/react/24/solid/XMarkIcon";
 import LanguageToggler from "@/components/ui/language-toggler";
 import { useTranslation } from "react-i18next";
 import Clock from "./clock";
+import { BluPresenterLogo } from "@/components/app/logo";
 
 export default function ControllerNavbar() {
 
@@ -23,14 +23,12 @@ export default function ControllerNavbar() {
 
   return (
     <header className="flex flex-0 w-full drop-shadow-1 bg-background">
-      <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-2 xl:px-6">
+      <div className="flex flex-col md:flex-row flex-grow items-center justify-between px-2 py-4 shadow-2 md:px-6 gap-2">
         <div className="flex flex-row items-center">
-          <Link to="/app">
-            <span className="text-2xl">BluPresenter</span>
-          </Link>
+          <BluPresenterLogo linkTo="/app" />
         </div>
-        <div className="flex-0 flex flex-row items-center space-x-2">
-          <Button variant="outline" disabled>
+        <div className="flex-1 flex flex-row flex-wrap justify-center md:justify-end items-center gap-2">
+          <Button variant="outline" disabled className="hidden lg:flex">
             <Clock />
           </Button>
           <LanguageToggler></LanguageToggler>

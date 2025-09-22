@@ -1,3 +1,4 @@
+import { BluPresenterLogo } from "@/components/app/logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import LanguageToggler from "@/components/ui/language-toggler";
@@ -14,7 +15,9 @@ export default function Welcome() {
   return (
     <div className="min-h-screen">
       <nav className="flex flex-col space-y-0 items-center justify-between px-8 py-4 shadow-sm md:flex-row">
-        <div className="text-2xl"><Link to="/">BluPresenter</Link></div>
+        <div className="text-2xl">
+          <BluPresenterLogo linkTo="/" />
+        </div>
         <div className="space-x-2 mt-4 md:mt-0">
           <LanguageToggler></LanguageToggler>
           <ThemeToggler></ThemeToggler>

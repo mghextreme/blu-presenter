@@ -129,9 +129,9 @@ export function PreviewWindow({
   }, []);
 
   return (
-    <>
-      <div className="absolute left-0 top-0 right-0 bottom-0 opacity-0 hover:opacity-100 transition-opacity z-20">
-        <div className="p-3 flex justify-stretch max-w-full space-x-2">
+    <div className="flex-1 relative">
+      <div className="sm:absolute sm:left-0 sm:top-0 sm:right-0 sm:bottom-0 sm:opacity-0 sm:hover:opacity-100 transition-opacity z-20">
+        <div className="pb-3 sm:p-3 flex justify-stretch max-w-full space-x-2">
           {showThemeSelector && (
             <Popover open={openPreviewThemeSelector} onOpenChange={setOpenPreviewThemeSelector}>
               <PopoverTrigger asChild>
@@ -250,6 +250,6 @@ export function PreviewWindow({
       <div className={"flex-1 rounded overflow-hidden"} style={{aspectRatio: previewRatio}}>
         <SlideVisualizer theme={previewTheme}></SlideVisualizer>
       </div>
-    </>
+    </div>
   );
 }

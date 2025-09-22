@@ -57,7 +57,7 @@ export default function TransferOrganization() {
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);
 
   return (
-    <div className="p-8">
+    <div className="p-2 sm:p-8">
       <title>{t('title.transfer', {organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
       <h1 className="text-3xl mb-4">{t('transfer.title')}</h1>
       <div className="max-w-lg space-y-3">
