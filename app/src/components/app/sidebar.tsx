@@ -6,21 +6,21 @@ import { Button } from "@/components/ui/button";
 import ChevronDoubleLeftIcon from "@heroicons/react/24/solid/ChevronDoubleLeftIcon";
 import ChevronDoubleRightIcon from "@heroicons/react/24/solid/ChevronDoubleRightIcon";
 
-function SidebarMenuItem({ to, content, setExpanded }: { to: string, content: string, setExpanded: (expanded: boolean) => void }) {
-  return (
-    <li>
-      <Link to={to} onClick={() => setExpanded(false)} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background" title={content}>
-        {content}
-      </Link>
-    </li>
-  )
-}
-
 export default function AppSidebar() {
 
   const { t } = useTranslation("app");
 
   const [expanded, setExpanded] = useState(false);
+
+  function SidebarMenuItem({ to, content }: { to: string, content: string }) {
+    return (
+      <li>
+        <Link to={to} onClick={() => setExpanded(false)} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background" title={content}>
+          {content}
+        </Link>
+      </li>
+    )
+  }
 
   return (
     <>
@@ -32,17 +32,17 @@ export default function AppSidebar() {
           <ul className="flex flex-col gap-1.5">
             <h3 className="mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.menu')}</h3>
             <hr />
-            <SidebarMenuItem to="/app" content={t('menu.home')} setExpanded={setExpanded} />
-            <SidebarMenuItem to="/app/controller" content={t('menu.controller')} setExpanded={setExpanded} />
-            <SidebarMenuItem to="/app/discover" content={t('menu.discover')} setExpanded={setExpanded} />
+            <SidebarMenuItem to="/app" content={t('menu.home')} />
+            <SidebarMenuItem to="/app/controller" content={t('menu.controller')} />
+            <SidebarMenuItem to="/app/discover" content={t('menu.discover')} />
             <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.organization')}</h3>
             <hr />
-            <SidebarMenuItem to="/app/organization" content={t('menu.organization')} setExpanded={setExpanded} />
-            <SidebarMenuItem to="/app/songs" content={t('menu.songs')} setExpanded={setExpanded} />
-            <SidebarMenuItem to="/app/themes" content={t('menu.themes')} setExpanded={setExpanded} />
+            <SidebarMenuItem to="/app/organization" content={t('menu.organization')} />
+            <SidebarMenuItem to="/app/songs" content={t('menu.songs')} />
+            <SidebarMenuItem to="/app/themes" content={t('menu.themes')} />
             <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.account')}</h3>
             <hr />
-            <SidebarMenuItem to="/app/profile" content={t('menu.profile')} setExpanded={setExpanded} />
+            <SidebarMenuItem to="/app/profile" content={t('menu.profile')} />
           </ul>
           <Button variant="outline" className="fixed bottom-2 right-2 lg:hidden" onClick={() => setExpanded(false)}>
             <ChevronDoubleLeftIcon className="size-3" />
