@@ -29,19 +29,18 @@ import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 import { generateRandomSecret } from 'src/utils/secret';
 
-@Injectable({ scope: Scope.REQUEST })
-export class OrganizationsService {
+@Injectable()
+export class OrganizationsBaseService {
   constructor(
-    private readonly dataSource: DataSource,
+    protected readonly dataSource: DataSource,
     @InjectRepository(Organization)
-    private readonly organizationsRepository: Repository<Organization>,
+    protected readonly organizationsRepository: Repository<Organization>,
     @InjectRepository(OrganizationUser)
-    private readonly organizationUsersRepository: Repository<OrganizationUser>,
+    protected readonly organizationUsersRepository: Repository<OrganizationUser>,
     @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
+    protected readonly usersRepository: Repository<User>,
     @InjectRepository(OrganizationInvitation)
-    private readonly organizationInvitationsRepository: Repository<OrganizationInvitation>,
-    @Inject(REQUEST) private readonly request: ExpRequest,
+    protected readonly organizationInvitationsRepository: Repository<OrganizationInvitation>,
   ) {}
 
   async userRole(
@@ -56,6 +55,24 @@ export class OrganizationsService {
     if (!orgUserRecord) return null;
 
     return orgUserRecord.role;
+  }
+}
+
+@Injectable({ scope: Scope.REQUEST })
+export class OrganizationsService extends OrganizationsBaseService {
+  constructor(
+    protected readonly dataSource: DataSource,
+    @InjectRepository(Organization)
+    protected readonly organizationsRepository: Repository<Organization>,
+    @InjectRepository(OrganizationUser)
+    protected readonly organizationUsersRepository: Repository<OrganizationUser>,
+    @InjectRepository(User)
+    protected readonly usersRepository: Repository<User>,
+    @InjectRepository(OrganizationInvitation)
+    protected readonly organizationInvitationsRepository: Repository<OrganizationInvitation>,
+    @Inject(REQUEST) private readonly request: ExpRequest,
+  ) {
+    super(dataSource, organizationsRepository, organizationUsersRepository, usersRepository, organizationInvitationsRepository);
   }
 
   async findOne(id: number): Promise<Organization | null> {

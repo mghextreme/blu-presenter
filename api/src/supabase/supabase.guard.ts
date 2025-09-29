@@ -2,8 +2,8 @@ import { CanActivate, ExecutionContext, Injectable, Scope } from '@nestjs/common
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from './public.decorator';
-import { UsersService } from '../users/users.service';
-import { OrganizationsService } from '../organizations/organizations.service';
+import { UsersService, UsersBaseService } from '../users/users.service';
+import { OrganizationsService, OrganizationsBaseService } from '../organizations/organizations.service';
 import { ORGANIZATION_ROLE_KEY } from '../auth/organization-role.decorator';
 import { AuthenticatedSocket, isRoleHigherOrEqualThan } from 'src/types';
 import { SessionsService } from 'src/sessions/sessions.service';
@@ -69,11 +69,12 @@ export class SupabaseGuard extends AuthGuard('jwt') {
   }
 }
 
+@Injectable()
 export class WebsocketGuard implements CanActivate {
   constructor(
     protected readonly jwtService: JwtService,
-    protected readonly userService: UsersService,
-    protected readonly organizationService: OrganizationsService,
+    protected readonly userService: UsersBaseService,
+    protected readonly organizationService: OrganizationsBaseService,
     protected readonly sessionService: SessionsService,
   ) {}
 
@@ -121,6 +122,7 @@ export class WebsocketGuard implements CanActivate {
   }
 }
 
+@Injectable()
 export class OptionalWebsocketGuard extends WebsocketGuard {
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
