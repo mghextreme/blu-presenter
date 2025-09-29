@@ -4,7 +4,7 @@ interface ClockProps {
   format?: "24withSeconds" | "24" | "12withSeconds" | "12";
 }
 
-export default function Clock({
+export function Clock({
   format = "24withSeconds"
 }: ClockProps) {
 

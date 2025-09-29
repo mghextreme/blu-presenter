@@ -29,7 +29,11 @@
       }
     },
     "configuration": {
-      "autoAdvanceScheduleItem": "Advance schedule item when advancing slide at the end of a song"
+      "autoAdvanceScheduleItem": "Advance schedule item when advancing slide at the end of a song",
+      "broadcastSession": {
+        "label": "Broadcast session",
+        "description": "Use this so a different device can get a live view"
+      }
     },
     "tabs": {
       "searchSongs": "Search songs",
@@ -114,5 +118,13 @@
   "organizations": {
     "blupresenter": "BluPresenter",
     "defaultName": "Personal space"
+  },
+  "session": {
+    "dontBroadcast": "Don't broadcast",
+    "defaultName": "Main",
+    "search": "Search sessions",
+    "notFound": "Session not found",
+    "active": "Broadcasting LIVE",
+    "inactive": "Not broadcasting"
   }
 }

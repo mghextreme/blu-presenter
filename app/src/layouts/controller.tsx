@@ -5,6 +5,7 @@ import {
 import ProtectedRoute from "@/components/protected-route";
 import ControllerNavbar from "@/components/controller/navbar";
 import ControllerProvider from "@/hooks/controller.provider";
+import BroadcastProvider from "@/hooks/broadcast.provider";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function ControllerLayout() {
@@ -12,9 +13,11 @@ export default function ControllerLayout() {
     <ProtectedRoute>
       <div className="min-h-screen h-screen bg-card flex flex-col justify-stretch">
         <ControllerProvider>
-          <ControllerNavbar></ControllerNavbar>
-          <Outlet />
-          <Toaster />
+          <BroadcastProvider>
+            <ControllerNavbar></ControllerNavbar>
+            <Outlet />
+            <Toaster />
+          </BroadcastProvider>
         </ControllerProvider>
       </div>
     </ProtectedRoute>

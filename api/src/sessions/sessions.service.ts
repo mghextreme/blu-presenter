@@ -150,6 +150,7 @@ export class SessionsServiceWithRequest extends SessionsService {
       select: {
         id: true,
         name: true,
+        secret: true,
         organization: {
           id: true,
           name: true,

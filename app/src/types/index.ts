@@ -1,5 +1,6 @@
 export * from './api.error';
 
+export * from './broadcast-session.interface';
 export * from './controller-mode.type';
 export * from './controller-selection.interface';
 export * from './organization.interface';
@@ -10,6 +11,7 @@ export * from './schedule-item.interface';
 export * from './schedule-item.type';
 export * from './schedule-song.interface';
 export * from './schedule-text.interface';
+export * from './session.interface';
 export * from './slide-content.interface';
 export * from './slide-content-type.type';
 export * from './slide-image-content.interface';

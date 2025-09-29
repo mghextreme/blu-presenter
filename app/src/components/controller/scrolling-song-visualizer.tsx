@@ -4,7 +4,7 @@ import { IScheduleSong, ITeleprompterThemeConfig, ITheme, TeleprompterTheme } fr
 import { useController } from "@/hooks/controller.provider";
 import { useWindow } from "@/hooks/window.provider";
 import { IPositionableElement } from "@/types/browser";
-import Clock from "./clock";
+import { Clock } from "./clock";
 import { alternateLyricsAndChords } from "@/lib/songs";
 import { buildFontStyle } from "@/lib/style";
 import { cn } from "@/lib/utils";

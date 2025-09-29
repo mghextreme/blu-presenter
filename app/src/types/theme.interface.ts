@@ -47,7 +47,7 @@ export interface ITheme {
   extends: BaseTheme
   config?: ILyricsThemeConfig | ISubtitlesThemeConfig | ITeleprompterThemeConfig
   organization?: {
-    id: string
+    id: number
     name: string
   }
 }

@@ -14,7 +14,7 @@ export class ThemesService extends ApiService {
     });
   }
 
-  public async getAllForUser() {
+  public async getAllForUser(): Promise<ITheme[]> {
     return await this.getOrFetch({
       queryKey: ['themes', 'allForUser'],
       queryFn: async () => await this.getRequest('/themes/user/all') as ITheme[],

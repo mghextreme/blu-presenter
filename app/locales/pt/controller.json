@@ -29,7 +29,11 @@
       }
     },
     "configuration": {
-      "autoAdvanceScheduleItem": "Avançar programação ao avançar slide no final de uma música"
+      "autoAdvanceScheduleItem": "Avançar programação ao avançar slide no final de uma música",
+      "broadcastSession": {
+        "label": "Transmitir sessão",
+        "description": "Use esta opção para que outros dispositivos possam visualizar ao vivo"
+      }
     },
     "tabs": {
       "searchSongs": "Buscar músicas",
@@ -114,5 +118,13 @@
   "organizations": {
     "blupresenter": "BluPresenter",
     "defaultName": "Espaço pessoal"
+  },
+  "session": {
+    "dontBroadcast": "Não transmitir",
+    "defaultName": "Principal",
+    "search": "Buscar sessões",
+    "notFound": "Sessão não encontrada",
+    "active": "Transmissão AO VIVO",
+    "inactive": "Transmissão desligada"
   }
 }
