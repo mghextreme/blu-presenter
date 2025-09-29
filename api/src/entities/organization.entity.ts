@@ -11,6 +11,7 @@ import { Song } from './song.entity';
 import { Theme } from './theme.entity';
 import { OrganizationUser } from './organization-user.entity';
 import { OrganizationInvitation } from './organization-invitation.entity';
+import { Session } from './session.entity';
 
 @Entity({ name: 'organizations' })
 export class Organization {
@@ -39,6 +40,9 @@ export class Organization {
 
   @OneToMany(() => Song, (theme) => theme.organization)
   themes: Theme[];
+
+  @OneToMany(() => Session, (session) => session.organization)
+  sessions: Session[];
 
   @OneToMany(
     () => OrganizationInvitation,

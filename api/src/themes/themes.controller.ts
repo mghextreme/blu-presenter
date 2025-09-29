@@ -40,9 +40,9 @@ export class ThemesController {
   @OrganizationRole('owner', 'admin', 'member')
   async create(
     @Headers('Organization') orgId: number,
-    @Body() createSongDto: CreateThemeDto,
+    @Body() createThemeDto: CreateThemeDto,
   ): Promise<Theme> {
-    return await this.themesService.create(orgId, createSongDto);
+    return await this.themesService.create(orgId, createThemeDto);
   }
 
   @Post('copyToOrganization')

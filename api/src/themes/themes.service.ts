@@ -135,9 +135,9 @@ export class ThemesService {
       config: createThemeDto.config,
       orgId,
     });
-    const songId = result.raw[0].id;
+    const themeId = result.raw[0].id;
 
-    return this.findOne(orgId, songId);
+    return this.findOne(orgId, themeId);
   }
 
   async update(
