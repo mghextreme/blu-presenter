@@ -9,7 +9,7 @@ import {
 import { Organization } from './organization.entity';
 import { ISelection } from 'src/types';
 
-@Entity({ name: 'session' })
+@Entity({ name: 'sessions' })
 export class Session {
   @PrimaryGeneratedColumn()
   id: number;

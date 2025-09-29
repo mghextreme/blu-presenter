@@ -1,4 +1,4 @@
-import { UseGuards } from '@nestjs/common';
+import { Injectable, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -38,13 +38,14 @@ interface SetSelectionDto {
   selection: ISelection;
 }
 
+@Injectable()
 @WebSocketGateway({
   cors: {
     origin: '*',
     methods: ['GET', 'POST'],
     credentials: true,
   },
-  namespace: '/socket/sessions',
+  path: '/socket/sessions',
 })
 export class SessionsGateway implements OnGatewayConnection {
   @WebSocketServer()
@@ -167,7 +168,7 @@ export class SessionsGateway implements OnGatewayConnection {
   }
 
   @UseGuards(WebsocketGuard)
-  @SubscribeMessage('setScheduleItem')
+  @SubscribeMessage('setSelection')
   async handleSelection(
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: SetSelectionDto,

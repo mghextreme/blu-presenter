@@ -9,11 +9,10 @@ import { OrganizationsService } from 'src/organizations/organizations.service';
 import { CreateSessionDto, UpdateSessionDto } from 'src/types';
 
 
+@Injectable()
 export class SessionsService {
   constructor(
     @InjectRepository(Session) protected readonly sessionsRepository: Repository<Session>,
-    @Inject(OrganizationsService) protected readonly organizationsService: OrganizationsService,
-    @Inject(UsersService) protected readonly usersService: UsersService,
   ) {}
 
   async findOne(orgId: number, id: number): Promise<Session | null> {
@@ -132,7 +131,7 @@ export class SessionsServiceWithRequest extends SessionsService {
     @Inject(UsersService) protected readonly usersService: UsersService,
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {
-    super(sessionsRepository, organizationsService, usersService);
+    super(sessionsRepository);
   }
 
   async findAllForUserOrgs(): Promise<Session[] | null> {
