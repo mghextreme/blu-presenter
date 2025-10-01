@@ -7,6 +7,7 @@ import * as config from '@/lib/config';
 import { IControllerSelection, IScheduleItem, ISession, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { useController } from "@/hooks/controller.provider";
 import SelectorScreen from "@/components/controller/selector-screen";
+import i18next from "i18next";
 
 export default function Receiver() {
 
@@ -172,13 +173,18 @@ export default function Receiver() {
     };
   }, []);
 
-  console.log('themes', themes);
+  useEffect(() => {
+    if (!session || !session.language) return;
+    i18next.changeLanguage(session.language);
+  }, [session]);
 
   const [selectedTheme, setSelectedTheme] = useState<ITheme | undefined>(undefined);
   useEffect(() => {
-    if (!params.theme) return;
+    if (!session?.theme && !params.theme) return;
 
-    switch (params.theme) {
+    const toTheme = session?.theme ?? params.theme;
+
+    switch (toTheme) {
       case 'lyrics':
         setSelectedTheme(LyricsTheme);
         break;
@@ -190,7 +196,7 @@ export default function Receiver() {
         break;
       default:
         try {
-          const themeId = Number(params.theme);
+          const themeId = Number(toTheme);
           const curTheme = themes.find((theme) => theme.id === themeId);
           if (curTheme) {
             setSelectedTheme(curTheme);
@@ -200,7 +206,7 @@ export default function Receiver() {
         }
         break;
     }
-  }, [themes]);
+  }, [themes, session]);
 
   return (
     <>

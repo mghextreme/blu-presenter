@@ -5,6 +5,11 @@ export interface ISession {
   id: number
   name: string
   secret?: string
+
+  language?: string
+  theme?: string
+  default?: boolean
+
   organization?: {
     id: number
     name: string

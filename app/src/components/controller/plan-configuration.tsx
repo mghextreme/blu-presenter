@@ -24,7 +24,7 @@ const controllerConfigurationSchema = z.object({
   broadcastSession: z.number().optional(),
   broadcastSessionUrlTheme: z.object({
     label: z.string(),
-    value: z.string(),
+    value: z.union([z.string(), z.number()]),
   }).optional(),
 });
 
@@ -119,6 +119,11 @@ export function PlanConfiguration() {
         ]);
       });
   }, [session]);
+  
+  useEffect(() => {
+    const theUrlTheme = consolidatedOptions.find((theme) => theme.value == form.getValues('broadcastSessionUrlTheme')?.value);
+    setSelectedUrlTheme(theUrlTheme);
+  }, [urlTheme, consolidatedOptions, session]);
 
   const nameFromTheme = (item?: {label: string; value: string | number}) => {
     if (!item) return t('session.urlTheme.letUserPick');
@@ -264,89 +269,89 @@ export function PlanConfiguration() {
               <QRCode value={sessionQrCodeUrl} className="max-h-full max-w-full" />
             </div>
             <div className="flex flex-1 flex-col gap-2">
-              <FormField
-                control={form.control}
-                name="broadcastSessionUrlTheme"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('plan.configuration.broadcastSessionUrlTheme.label')}</FormLabel>
-                    <FormDescription>{t('plan.configuration.broadcastSessionUrlTheme.description')}</FormDescription>
-                    <Popover open={openSessionUrlThemeSelector} onOpenChange={setOpenSessionUrlThemeSelector}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "justify-start",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {nameFromTheme(selectedUrlTheme)}
-                            <ChevronDownIcon className="opacity-50 ms-auto me-0" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="p-0">
-                        <Command>
-                          <CommandInput
-                            placeholder={t('session.urlTheme.search')}
-                            className="h-9"
-                          />
-                          <CommandList>
-                            <CommandEmpty>{t('session.urlTheme.notFound')}</CommandEmpty>
-                            <CommandGroup>
-                              <CommandItem
-                                  value={t('session.urlTheme.letUserPick')}
-                                  key={'none'}
-                                  onSelect={() => {
-                                    setSelectedUrlTheme(undefined);
-                                    setUrlTheme(undefined);
-                                    form.setValue("broadcastSessionUrlTheme", undefined);
-                                    setOpenSessionUrlThemeSelector(false);
-                                  }}
-                                >
-                                  <span className="opacity-50">{t('session.urlTheme.letUserPick')}</span>
-                                  <CheckIcon
-                                    className={cn(
-                                      "ml-auto",
-                                      !session?.id
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                </CommandItem>
-                              {consolidatedOptions?.map((option) => (
+              {!selectedSession.theme && (
+                <FormField
+                  control={form.control}
+                  name="broadcastSessionUrlTheme"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('plan.configuration.broadcastSessionUrlTheme.label')}</FormLabel>
+                      <FormDescription>{t('plan.configuration.broadcastSessionUrlTheme.description')}</FormDescription>
+                      <Popover open={openSessionUrlThemeSelector} onOpenChange={setOpenSessionUrlThemeSelector}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "justify-start",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {nameFromTheme(selectedUrlTheme)}
+                              <ChevronDownIcon className="opacity-50 ms-auto me-0" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="p-0">
+                          <Command>
+                            <CommandInput
+                              placeholder={t('session.urlTheme.search')}
+                              className="h-9"
+                            />
+                            <CommandList>
+                              <CommandEmpty>{t('session.urlTheme.notFound')}</CommandEmpty>
+                              <CommandGroup>
                                 <CommandItem
-                                  value={nameFromTheme(option)}
-                                  key={option.value}
-                                  onSelect={() => {
-                                    setSelectedUrlTheme(option);
-                                    setUrlTheme(option.value);
-                                    form.setValue("broadcastSessionUrlTheme", option.value);
-                                    setOpenSessionUrlThemeSelector(false);
-                                  }}
-                                >
-                                  {nameFromTheme(option)}
-                                  <CheckIcon
-                                    className={cn(
-                                      "ml-auto",
-                                      option.value === selectedUrlTheme?.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                                    value={t('session.urlTheme.letUserPick')}
+                                    key={'none'}
+                                    onSelect={() => {
+                                      setUrlTheme(undefined);
+                                      form.setValue("broadcastSessionUrlTheme", undefined);
+                                      setOpenSessionUrlThemeSelector(false);
+                                    }}
+                                  >
+                                    <span className="opacity-50">{t('session.urlTheme.letUserPick')}</span>
+                                    <CheckIcon
+                                      className={cn(
+                                        "ml-auto",
+                                        !session?.id
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                  </CommandItem>
+                                {consolidatedOptions?.map((option) => (
+                                  <CommandItem
+                                    value={nameFromTheme(option)}
+                                    key={option.value}
+                                    onSelect={() => {
+                                      setUrlTheme(option);
+                                      form.setValue("broadcastSessionUrlTheme", option);
+                                      setOpenSessionUrlThemeSelector(false);
+                                    }}
+                                  >
+                                    {nameFromTheme(option)}
+                                    <CheckIcon
+                                      className={cn(
+                                        "ml-auto",
+                                        option.value === selectedUrlTheme?.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormLabel className="mt-3">{t('plan.configuration.broadcastSession.url')}</FormLabel>
               <Input value={sessionQrCodeUrl} disabled />
               <Button onClick={copyShareableUrlToClipboard} type="button" className="w-auto me-auto">{t('plan.configuration.broadcastSession.copyUrl')}</Button>

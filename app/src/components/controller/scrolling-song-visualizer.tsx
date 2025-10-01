@@ -118,6 +118,16 @@ export const ScrollingSongVisualizer = forwardRef(({
     return selectedSlide?.isEmpty === true && theme.config?.invisibleOnEmptyItems === true;
   }, [selectedSlide, theme.config?.invisibleOnEmptyItems]);
 
+  const [nextUpTitle, setNextUpTitle] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    if (!schedule || !scheduleItem || scheduleItem.index === undefined || scheduleItem.index >= schedule.length - 1) {
+      setNextUpTitle(undefined);
+      return;
+    }
+
+    setNextUpTitle(schedule[scheduleItem.index + 1]?.title);
+  }, [schedule, scheduleItem]);
+
   return (
     <div
       className="relative w-full h-full overflow-hidden"
@@ -180,16 +190,18 @@ export const ScrollingSongVisualizer = forwardRef(({
             </div>
           </div>
         ))}
-        {(schedule && scheduleItem && scheduleItem.index != undefined && scheduleItem.index < schedule.length - 1) && (
+        {nextUpTitle && (
           <div
             //@ts-expect-error // TODO look into ref usage here
             ref={(el: HTMLDivElement) => blocksDivs.current[-1] = el}
-            className={'flex mb-[.6em]' + ((scheduleSong?.blocks?.length ?? 0) === selectedBlock ? '' : ' opacity-75 transform-[scale(0.95)]')}>
+            className={'flex mb-[.6em]' + ((scheduleSong?.blocks?.length ?? 0) + 1 === selectedBlock ? '' : ' opacity-75 transform-[scale(0.95)]')}
+            key="nextUp"
+          >
             <div className="w-[3em] flex flex-col justify-start items-center pr-[.5em] border-r-1 mr-[.5em]"></div>
             <div className="px-[.5em] leading-[1.3em]">
               {t('nextUp')}<br />
               <span className="font-bold">
-                {schedule[scheduleItem.index + 1]?.title}
+                {nextUpTitle}
               </span>
             </div>
           </div>

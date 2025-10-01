@@ -21,6 +21,9 @@ export class SessionsService {
         id: true,
         orgId: true,
         name: true,
+        language: true,
+        theme: true,
+        default: true,
         schedule: true,
         scheduleItem: true,
         selection: true,
@@ -60,11 +63,15 @@ export class SessionsService {
         id: true,
         name: true,
         secret: true,
+        language: true,
+        theme: true,
+        default: true,
       },
       where: {
         orgId,
       },
       order: {
+        default: 'desc',
         name: 'asc',
       },
     });
@@ -75,6 +82,9 @@ export class SessionsService {
       select: {
         id: true,
         name: true,
+        language: true,
+        theme: true,
+        default: true,
         schedule: true,
         scheduleItem: true,
         selection: true,
@@ -152,6 +162,9 @@ export class SessionsServiceWithRequest extends SessionsService {
         id: true,
         name: true,
         secret: true,
+        language: true,
+        theme: true,
+        default: true,
         organization: {
           id: true,
           name: true,

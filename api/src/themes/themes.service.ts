@@ -103,10 +103,14 @@ export class ThemesService {
     });
   }
 
-  async findAllForSession(orgId: number, sessionId: number, secret: string, theme: number): Promise<Theme[]> {
+  async findAllForSession(orgId: number, sessionId: number, secret: string, theme?: number): Promise<Theme[]> {
     const session = await this.sessionsService.findOneBySecret(orgId, sessionId, secret);
     if (!session) {
       return [];
+    }
+
+    if (!theme && session.theme && !['lyrics', 'subtitles', 'teleprompter'].includes(session.theme)) {
+      theme = Number(session.theme);
     }
 
     return await this.themesRepository.find({

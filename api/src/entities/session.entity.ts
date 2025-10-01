@@ -20,6 +20,15 @@ export class Session {
   @Column()
   name: string;
 
+  @Column()
+  language: string;
+
+  @Column()
+  theme: string;
+
+  @Column()
+  default: boolean;
+
   @Column({ nullable: true })
   secret: string;
 

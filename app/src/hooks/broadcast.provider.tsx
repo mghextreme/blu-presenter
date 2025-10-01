@@ -13,8 +13,8 @@ type BroadcastProviderState = {
   session?: IBroadcastSession,
   setSession: (session?: IBroadcastSession) => void,
 
-  urlTheme?: {label: string; value: string},
-  setUrlTheme: (theme?: {label: string; value: string}) => void,
+  urlTheme?: {label: string; value: string | number},
+  setUrlTheme: (theme?: {label: string; value: string | number}) => void,
 }
 
 const initialState: BroadcastProviderState = {

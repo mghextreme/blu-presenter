@@ -92,7 +92,7 @@ export class ThemesController {
     @Param('orgId') orgId: number,
     @Param('sessionId') sessionId: number,
     @Query('secret') secret: string,
-    @Query('theme') theme: number,
+    @Query('theme') theme?: number,
   ): Promise<Theme[]> {
     return await this.themesService.findAllForSession(
       orgId,

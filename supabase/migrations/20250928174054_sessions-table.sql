@@ -1,6 +1,9 @@
 CREATE TABLE IF NOT EXISTS public.sessions (
   "id" serial PRIMARY KEY,
   "name" varchar(255) null default null,
+  "language" char(2) null default null,
+  "theme" varchar(16) null default null,
+  "default" boolean not null default false,
   "secret" varchar(255) null default null,
   "orgId" integer not null references public.organizations (id),
   "schedule" json not null default '[]',
@@ -21,8 +24,8 @@ language plpgsql
 security definer set search_path = ''
 as $$
 begin
-  insert into public.sessions ("orgId", "secret")
-  values (new.id, substr(md5(random()::text), 0, 17));
+  insert into public.sessions ("orgId", "secret", "default")
+  values (new.id, substr(md5(random()::text), 0, 17), 1);
 
   return new;
 end;
@@ -32,6 +35,6 @@ create trigger on_public_organization_created
   after insert on public.organizations
   for each row execute procedure public.handle_new_organization();
 
-insert into public.sessions ("orgId", "secret")
-select org.id, substr(md5(random()::text), 0, 17)
+insert into public.sessions ("orgId", "secret", "default")
+select org.id, substr(md5(random()::text), 0, 17), 1
 from public.organizations org;
