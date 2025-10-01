@@ -11,12 +11,13 @@ import { Server } from 'socket.io';
 import { SessionsService } from './sessions.service';
 import { AuthenticatedSocket, ISelection } from 'src/types';
 import { OptionalWebsocketGuard, WebsocketGuard } from 'src/supabase/supabase.guard';
+import { sanitizeSchedule, sanitizeScheduleItem, sanitizeSelection } from 'src/utils/sanitizer';
 
 interface JoinSessionDto {
+  orgId: number;
   sessionId: number;
   secret: string;
   token?: string;
-  orgId?: string;
 }
 
 interface LeaveSessionDto {
@@ -68,13 +69,18 @@ export class SessionsGateway implements OnGatewayConnection {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: JoinSessionDto,
   ) {
+    if (!data.orgId) {
+      client.emit('error', { code: 'missing.orgId', message: 'Organization id is required' });
+      return;
+    }
+
     if (!data.sessionId) {
       client.emit('error', { code: 'missing.sessionId', message: 'Session id is required' });
       return;
     }
 
     try {
-      const session = await this.sessionsService.findOneBySecret(data.sessionId, data.secret);
+      const session = await this.sessionsService.findOneBySecret(data.orgId, data.sessionId, data.secret);
       if (!session) {
         client.emit('error', { code: 'session.notFound', message: 'Session not found' });
         return;
@@ -124,7 +130,7 @@ export class SessionsGateway implements OnGatewayConnection {
 
       let schedule = [];
       if (data.schedule && data.schedule.length > 0) {
-        schedule = data.schedule;
+        schedule = sanitizeSchedule(data.schedule);
       }
 
       const sessionRoom = `session:${data.sessionId}`;
@@ -159,8 +165,9 @@ export class SessionsGateway implements OnGatewayConnection {
         return;
       }
 
-      this.server.to(sessionRoom).emit('scheduleItem', data.scheduleItem);
-      await this.sessionsService.setScheduleItem(client.orgId, data.sessionId, data.scheduleItem);
+      const scheduleItem = sanitizeScheduleItem(data.scheduleItem);
+      this.server.to(sessionRoom).emit('scheduleItem', scheduleItem);
+      await this.sessionsService.setScheduleItem(client.orgId, data.sessionId, scheduleItem);
 
     } catch (error) {
       client.emit('error', { code: 'data.failed', message: 'Failed to set schedule item' });
@@ -185,8 +192,9 @@ export class SessionsGateway implements OnGatewayConnection {
         return;
       }
 
-      this.server.to(sessionRoom).emit('selection', data.selection);
-      await this.sessionsService.setSelection(client.orgId, data.sessionId, data.selection);
+      const selection = sanitizeSelection(data.selection);
+      this.server.to(sessionRoom).emit('selection', selection);
+      await this.sessionsService.setSelection(client.orgId, data.sessionId, selection);
 
     } catch (error) {
       client.emit('error', { code: 'data.failed', message: 'Failed to set selection' });

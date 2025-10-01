@@ -13,12 +13,19 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { useServices } from "@/hooks/services.provider";
-import { ISession } from "@/types";
+import { ISession, ITheme } from "@/types";
 import { useBroadcast } from "@/hooks/broadcast.provider";
+import QRCode from "react-qr-code";
+import { Input } from "../ui/input";
+import { toast } from "sonner";
 
 const controllerConfigurationSchema = z.object({
   autoAdvanceScheduleItem: z.boolean(),
   broadcastSession: z.number().optional(),
+  broadcastSessionUrlTheme: z.object({
+    label: z.string(),
+    value: z.string(),
+  }).optional(),
 });
 
 export function PlanConfiguration() {
@@ -32,17 +39,22 @@ export function PlanConfiguration() {
 
   const {
     sessionsService,
+    themesService,
   } = useServices();
 
   const {
     session,
     setSession,
+    urlTheme,
+    setUrlTheme,
   } = useBroadcast();
 
   const form = useForm<z.infer<typeof controllerConfigurationSchema>>({
     resolver: zodResolver(controllerConfigurationSchema),
     defaultValues: {
       autoAdvanceScheduleItem: config.autoAdvanceScheduleItem ?? false,
+      broadcastSession: session?.id ?? undefined,
+      broadcastSessionUrlTheme: urlTheme,
     },
   });
 
@@ -71,6 +83,75 @@ export function PlanConfiguration() {
   }
 
   const [openSessionSelector, setOpenSessionSelector] = useState<boolean>(false);
+  const [openSessionUrlThemeSelector, setOpenSessionUrlThemeSelector] = useState<boolean>(false);
+
+  const defaultThemeOptions = [
+    {
+      value: "lyrics",
+      label: t('theme.lyrics'),
+    },
+    {
+      value: "subtitles",
+      label: t('theme.subtitles'),
+    },
+    {
+      value: "teleprompter",
+      label: t('theme.teleprompter'),
+    },
+  ];
+
+  const [consolidatedOptions, setConsolidatedOptions] = useState<{label: string; value: string | number}[]>(defaultThemeOptions);
+  const [selectedUrlTheme, setSelectedUrlTheme] = useState<{label: string; value: string | number} | undefined>(undefined);
+  useEffect(() => {
+    if (!session) {
+      setConsolidatedOptions(defaultThemeOptions);
+      return;
+    }
+
+    themesService.getAll(session.orgId)
+      .then((customThemes: ITheme[]) => {
+        setConsolidatedOptions([
+          ...customThemes.map((theme: ITheme) => ({
+            value: theme.id,
+            label: theme.name,
+          })),
+          ...defaultThemeOptions,
+        ]);
+      });
+  }, [session]);
+
+  const nameFromTheme = (item?: {label: string; value: string | number}) => {
+    if (!item) return t('session.urlTheme.letUserPick');
+
+    return item.label;
+  }
+
+  const [sessionQrCodeUrl, setSessionQrCodeUrl] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    if (!selectedSession) {
+      setSessionQrCodeUrl(undefined);
+      return;
+    }
+
+    const currentUrl = new URL(window.location.href);
+    const theme = selectedUrlTheme?.value ? `/${selectedUrlTheme.value}` : '';
+    const completeUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/session/${selectedSession.organization?.id}/${selectedSession.id}/${selectedSession.secret ?? ''}${theme}`
+    setSessionQrCodeUrl(completeUrl);
+  }, [selectedSession, selectedUrlTheme]);
+
+  const copyShareableUrlToClipboard = async () => {
+    if (!sessionQrCodeUrl) return;
+
+    const clipboard = navigator.clipboard;
+    if (!!clipboard) {
+      await navigator.clipboard.writeText(sessionQrCodeUrl);
+      toast.success(t('message.share.title'), {
+        description: t('message.share.description'),
+      });
+    } else {
+      window.open(sessionQrCodeUrl, '_blank');
+    }
+  }
 
   return (
     <Form {...form}>
@@ -95,7 +176,7 @@ export function PlanConfiguration() {
           control={form.control}
           name="broadcastSession"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
+            <FormItem>
               <FormLabel>{t('plan.configuration.broadcastSession.label')}</FormLabel>
               <FormDescription>{t('plan.configuration.broadcastSession.description')}</FormDescription>
               <Popover open={openSessionSelector} onOpenChange={setOpenSessionSelector}>
@@ -176,6 +257,102 @@ export function PlanConfiguration() {
             </FormItem>
           )}
         />
+
+        {selectedSession && sessionQrCodeUrl && (
+          <div className="flex items-stretch gap-3 mt-2">
+            <div className="max-h-[8em] aspect-square bg-white p-2 rounded-md">
+              <QRCode value={sessionQrCodeUrl} className="max-h-full max-w-full" />
+            </div>
+            <div className="flex flex-1 flex-col gap-2">
+              <FormField
+                control={form.control}
+                name="broadcastSessionUrlTheme"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('plan.configuration.broadcastSessionUrlTheme.label')}</FormLabel>
+                    <FormDescription>{t('plan.configuration.broadcastSessionUrlTheme.description')}</FormDescription>
+                    <Popover open={openSessionUrlThemeSelector} onOpenChange={setOpenSessionUrlThemeSelector}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              "justify-start",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {nameFromTheme(selectedUrlTheme)}
+                            <ChevronDownIcon className="opacity-50 ms-auto me-0" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0">
+                        <Command>
+                          <CommandInput
+                            placeholder={t('session.urlTheme.search')}
+                            className="h-9"
+                          />
+                          <CommandList>
+                            <CommandEmpty>{t('session.urlTheme.notFound')}</CommandEmpty>
+                            <CommandGroup>
+                              <CommandItem
+                                  value={t('session.urlTheme.letUserPick')}
+                                  key={'none'}
+                                  onSelect={() => {
+                                    setSelectedUrlTheme(undefined);
+                                    setUrlTheme(undefined);
+                                    form.setValue("broadcastSessionUrlTheme", undefined);
+                                    setOpenSessionUrlThemeSelector(false);
+                                  }}
+                                >
+                                  <span className="opacity-50">{t('session.urlTheme.letUserPick')}</span>
+                                  <CheckIcon
+                                    className={cn(
+                                      "ml-auto",
+                                      !session?.id
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                </CommandItem>
+                              {consolidatedOptions?.map((option) => (
+                                <CommandItem
+                                  value={nameFromTheme(option)}
+                                  key={option.value}
+                                  onSelect={() => {
+                                    setSelectedUrlTheme(option);
+                                    setUrlTheme(option.value);
+                                    form.setValue("broadcastSessionUrlTheme", option.value);
+                                    setOpenSessionUrlThemeSelector(false);
+                                  }}
+                                >
+                                  {nameFromTheme(option)}
+                                  <CheckIcon
+                                    className={cn(
+                                      "ml-auto",
+                                      option.value === selectedUrlTheme?.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormLabel className="mt-3">{t('plan.configuration.broadcastSession.url')}</FormLabel>
+              <Input value={sessionQrCodeUrl} disabled />
+              <Button onClick={copyShareableUrlToClipboard} type="button" className="w-auto me-auto">{t('plan.configuration.broadcastSession.copyUrl')}</Button>
+            </div>
+          </div>
+        )}
       </form>
     </Form>
   )

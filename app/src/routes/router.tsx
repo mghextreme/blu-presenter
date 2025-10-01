@@ -7,11 +7,13 @@ import {
 } from "react-router-dom";
 
 import AuthLayout from "@/layouts/auth";
-import { loader as authLoader } from "@/layouts/auth.loader"
+import { loader as authLoader } from "@/layouts/auth.loader";
 import AppLayout from "@/layouts/app";
 import AppSharedLayout from "@/layouts/app-shared";
 import ErrorLayout from "@/layouts/error";
 import ControllerLayout from "@/layouts/controller";
+import ControllerSharedLayout from "@/layouts/controller-shared";
+import { loader as publicSessionLoader } from "./app/public-session.loader";
 import PrintLayout from "@/layouts/print";
 import { useServices, ServicesProviderState } from "@/hooks/services.provider";
 
@@ -23,6 +25,7 @@ import OAuthCallback from "./auth/oauth-callback";
 import Welcome from "./app/welcome";
 import { loader as welcomeLoader } from "./app/welcome.loader";
 import Controller from "./app/controller";
+import Receiver from "./app/receiver";
 import Discover from "./app/discover";
 import Profile from "./app/profile";
 import { loader as profileLoader } from "./app/profile.loader";
@@ -94,13 +97,19 @@ export const buildRouter = (services: ServicesProviderState) => {
         <Route path="/shared" element={<PrintLayout />} errorElement={<ErrorLayout />}>
           <Route path="print/:id">
             <Route index={true} element={<PrintSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
-            <Route path=":secret" element={<PrintSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.code })} />
+            <Route path=":secret" element={<PrintSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.secret })} />
           </Route>
         </Route>
         <Route path="/shared" element={<AppSharedLayout />} errorElement={<ErrorLayout />}>
           <Route path="view/:id">
             <Route index={true} element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
-            <Route path=":secret" element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.code })} />
+            <Route path=":secret" element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.secret })} />
+          </Route>
+        </Route>
+        <Route path="/shared" element={<ControllerSharedLayout />} errorElement={<ErrorLayout />}>
+          <Route path="session/:orgId/:sessionId/:secret">
+            <Route index={true} element={<Receiver />} loader={(loader: LoaderFunctionArgs) => publicSessionLoader({ params: loader.params, sessionsService: services.sessionsService, themesService: services.themesService })} />
+            <Route path=":theme" element={<Receiver />} loader={(loader: LoaderFunctionArgs) => publicSessionLoader({ params: loader.params, sessionsService: services.sessionsService, themesService: services.themesService })} />
           </Route>
         </Route>
       </>

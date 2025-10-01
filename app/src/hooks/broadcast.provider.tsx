@@ -12,11 +12,17 @@ type BroadcastProviderProps = {
 type BroadcastProviderState = {
   session?: IBroadcastSession,
   setSession: (session?: IBroadcastSession) => void,
+
+  urlTheme?: {label: string; value: string},
+  setUrlTheme: (theme?: {label: string; value: string}) => void,
 }
 
 const initialState: BroadcastProviderState = {
   session: undefined,
   setSession: () => null,
+
+  urlTheme: undefined,
+  setUrlTheme: () => null,
 }
 
 const BroadcastProviderContext = createContext<BroadcastProviderState>(initialState);
@@ -62,6 +68,7 @@ export default function BroadcastProvider({
       switch (data.code) {
         case 'unauthorized':
           disconnect();
+          setConnectedSessionId(null);
           break;
 
         case 'notInSession':
@@ -73,20 +80,19 @@ export default function BroadcastProvider({
     curSocket?.on('joinedSession', (data) => {
       setConnectedSessionId(data.id);
 
-      const latestSocket = socket;
-      latestSocket?.emit('setSchedule', {
-        sessionId: connectedSessionId,
-        schedule,
+      curSocket?.emit('setSchedule', {
+        sessionId: data.id,
+        schedule: schedule ?? [],
       });
 
-      latestSocket?.emit('setScheduleItem', {
-        sessionId: connectedSessionId,
-        scheduleItem
+      curSocket?.emit('setScheduleItem', {
+        sessionId: data.id,
+        scheduleItem: scheduleItem ?? {},
       });
 
-      latestSocket?.emit('setSelection', {
-        sessionId: connectedSessionId,
-        selection,
+      curSocket?.emit('setSelection', {
+        sessionId: data.id,
+        selection: selection ?? {},
       });
     });
 
@@ -118,7 +124,7 @@ export default function BroadcastProvider({
       toSession = session;
     }
 
-    if (!connectedSessionId && toSession && !!toSession?.id) {
+    if (!connectedSessionId && !!toSession && !!toSession?.id) {
       curSocket.emit('joinSession', {
         sessionId: toSession.id,
         secret: toSession.secret,
@@ -133,14 +139,14 @@ export default function BroadcastProvider({
   const updateConnectedSession = (toSession?: IBroadcastSession) => {
     if (toSession?.id === connectedSessionId) return;
 
-    if (connectedSessionId) {
-      socket?.emit('leaveSession', {
+    if (!!connectedSessionId) {
+      ensureSocket()?.emit('leaveSession', {
         sessionId: connectedSessionId,
       });
     }
 
     if (toSession?.id) {
-      ensureConnection(toSession).emit('joinSession', {
+      ensureConnection(toSession)?.emit('joinSession', {
         sessionId: toSession?.id,
         secret: toSession?.secret,
         orgId: toSession?.orgId,
@@ -221,13 +227,18 @@ export default function BroadcastProvider({
     });
   }, [selection]);
 
+  const [urlTheme, setUrlTheme] = useState<string | number | undefined>(undefined);
+
   const value = useMemo(() => {
     return {
-      session: session,
+      session,
       setSession: externalSetSession,
+
+      urlTheme,
+      setUrlTheme,
     } as BroadcastProviderState;
   }, [
-    session,
+    session, urlTheme,
   ]);
 
   return (

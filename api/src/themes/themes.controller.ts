@@ -87,6 +87,22 @@ export class ThemesController {
   }
 
   @Public()
+  @Get('session/:orgId/:sessionId')
+  async findAllForSession(
+    @Param('orgId') orgId: number,
+    @Param('sessionId') sessionId: number,
+    @Query('secret') secret: string,
+    @Query('theme') theme: number,
+  ): Promise<Theme[]> {
+    return await this.themesService.findAllForSession(
+      orgId,
+      sessionId,
+      secret,
+      theme,
+    );
+  }
+
+  @Public()
   @Get('organization/:orgId/:themeId')
   async findOneInOrg(
     @Param('orgId') orgId: number,

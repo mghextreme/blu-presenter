@@ -32,7 +32,13 @@
       "autoAdvanceScheduleItem": "Advance schedule item when advancing slide at the end of a song",
       "broadcastSession": {
         "label": "Broadcast session",
-        "description": "Use this so a different device can get a live view"
+        "description": "Use this so a different device can get a live view",
+        "url": "Public URL",
+        "copyUrl": "Copy URL"
+      },
+      "broadcastSessionUrlTheme": {
+        "label": "Theme for URL",
+        "description": "Setting a value here will open the URL with the selected theme"
       }
     },
     "tabs": {
@@ -125,6 +131,17 @@
     "search": "Search sessions",
     "notFound": "Session not found",
     "active": "Broadcasting LIVE",
-    "inactive": "Not broadcasting"
+    "inactive": "Not broadcasting",
+    "urlTheme": {
+      "search": "Search themes",
+      "notFound": "Theme not found",
+      "letUserPick": "Let user pick the theme"
+    }
+  },
+  "message": {
+    "share": {
+      "title": "Link copied",
+      "description": "A shareable link to the session has been copied to the clipboard."
+    }
   }
 }

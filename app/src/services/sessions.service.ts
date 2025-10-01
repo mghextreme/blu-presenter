@@ -21,6 +21,22 @@ export class SessionsService extends ApiService {
     });
   }
 
+  public async getBySecret(
+    orgId: number,
+    sessionId: number,
+    secret?: string,
+  ) {
+    const params = new URLSearchParams();
+    if (secret && secret.length > 0) {
+      params.append('secret', secret);
+    }
+
+    return await this.getOrFetch({
+      queryKey: ['sessions', sessionId],
+      queryFn: async () => await this.getRequest(`/sessions/org/${orgId}/${sessionId}?${params.toString()}`) as ISession,
+    });
+  }
+
   public async add(value: ISession): Promise<ISession | null> {
     const response = await this.postRequest('/sessions', JSON.stringify(value), {
       'content-type': 'application/json',

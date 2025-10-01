@@ -70,7 +70,7 @@ export class SessionsService {
     });
   }
 
-  async findOneBySecret(id: number, secret: string) {
+  async findOneBySecret(orgId: number, id: number, secret: string) {
     return this.sessionsRepository.findOne({
       select: {
         id: true,
@@ -82,6 +82,7 @@ export class SessionsService {
       },
       where: {
         id,
+        orgId,
         secret,
       }
     });

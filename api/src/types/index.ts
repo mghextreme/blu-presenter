@@ -9,6 +9,7 @@ export * from './update-theme.dto';
 export * from './copy-theme-to-organization.dto';
 
 export * from './selection.interface';
+export * from './schedule-item.interface';
 export * from './create-session.dto';
 export * from './update-session.dto';
 

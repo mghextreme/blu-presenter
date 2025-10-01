@@ -12,9 +12,9 @@ export default function ControllerLayout() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen h-screen bg-card flex flex-col justify-stretch">
-        <ControllerProvider>
+        <ControllerProvider storeState={true}>
           <BroadcastProvider>
-            <ControllerNavbar></ControllerNavbar>
+            <ControllerNavbar />
             <Outlet />
             <Toaster />
           </BroadcastProvider>

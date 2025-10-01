@@ -80,7 +80,7 @@ export class WebsocketGuard implements CanActivate {
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
     const client: AuthenticatedSocket = context.switchToWs().getClient();
-    if (client.userId) {
+    if (!!client.userId && !!client.orgId && !!client.sessionId) {
       return true;
     }
 

@@ -34,8 +34,8 @@ export const alternateLyricsAndChords = (lyrics?: string, chords?: string, optio
   return (
     <>
       {Array.from(Array(maxLines)).map((_, i) => {
-        const lyricsLine = lyricsLines[i].trimEnd() ?? '';
-        const chordsLine = chordsLines[i].trimEnd() ?? '';
+        const lyricsLine = i < lyricsLines.length ? lyricsLines[i].trimEnd() : '';
+        const chordsLine = i < chordsLines.length ? chordsLines[i].trimEnd() : '';
 
         if (lyricsLine.length === 0 && chordsLine.length === 0) {
           return null;

@@ -47,7 +47,7 @@ export class SongsService {
     let userOrgs: Partial<OrganizationUser>[] = [];
     let userOrgIds: number[] = [];
 
-    if (this.request.user !== undefined) {
+    if (!!this.request.user) {
       const user = this.request.user['internal'];
       userOrgs = await this.usersService.findUserOrganizations(user.id);
       userOrgIds = userOrgs.map((org) => org.organization.id);
@@ -58,7 +58,7 @@ export class SongsService {
         whereClause = [whereClause, { id, secret }];
       }
     } else {
-      whereClause.secret = secret ?? null;
+      whereClause.secret = secret ?? IsNull();
     }
 
     const song = await this.songsRepository.findOne({

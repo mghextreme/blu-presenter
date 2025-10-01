@@ -11,6 +11,7 @@ export interface IControllerConfig {
 }
 
 type ControllerProviderProps = {
+  storeState?: boolean
   children: React.ReactNode
 }
 
@@ -19,6 +20,7 @@ type ControllerProviderState = {
   setMode: (mode: ControllerMode) => void,
 
   schedule: IScheduleItem[],
+  replaceSchedule: (items: IScheduleItem[]) => void,
   addToSchedule: (item: IScheduleItem | IScheduleItem[]) => void,
   moveItemInSchedule: (fromIx: number, toIx: number) => void,
   removeFromSchedule: (ix: number) => void,
@@ -54,6 +56,7 @@ const initialState: ControllerProviderState = {
 
   schedule: [],
   addToSchedule: () => null,
+  replaceSchedule: () => null,
   moveItemInSchedule: () => null,
   removeFromSchedule: () => null,
   removeAllFromSchedule: () => null,
@@ -87,6 +90,7 @@ const initialState: ControllerProviderState = {
 const ControllerProviderContext = createContext<ControllerProviderState>(initialState);
 
 export default function ControllerProvider({
+  storeState = false,
   children,
   ...props
 }: ControllerProviderProps) {
@@ -108,7 +112,9 @@ export default function ControllerProvider({
 
   const saveAndSetSchedule = (newSchedule: IScheduleItem[]) => {
     sessionStorage.setItem('controllerSchedule', JSON.stringify(newSchedule));
-    localStorage.setItem('controllerSchedule', JSON.stringify(newSchedule));
+    if (storeState) {
+      localStorage.setItem('controllerSchedule', JSON.stringify(newSchedule));
+    }
     setSchedule(newSchedule);
   };
 
@@ -120,6 +126,13 @@ export default function ControllerProvider({
     const newValue = [
       ...schedule,
       ...items.map((item, ix) => ({ ...item, index: startingIx + ix, uniqueId: uniqueIdBase + ix })),
+    ];
+    saveAndSetSchedule(newValue);
+  };
+  const replaceSchedule = (items: IScheduleItem[]) => {
+    const uniqueIdBase = Date.now();
+    const newValue = [
+      ...items.map((item, ix) => ({ ...item, index: ix, uniqueId: uniqueIdBase + ix })),
     ];
     saveAndSetSchedule(newValue);
   };
@@ -225,7 +238,7 @@ export default function ControllerProvider({
   useEffect(() => {
     if (slideIx === undefined || scheduleItem === undefined) {
       setSelectedSlide(undefined);
-    } else if (slideIx >= 0 && slideIx < scheduleItem.slides.length) {
+    } else if (slideIx >= 0 && slideIx < (scheduleItem.slides?.length ?? 0)) {
       setSelectedSlide(scheduleItem.slides[slideIx]);
     }
   }, [slideIx, scheduleItem]);
@@ -250,20 +263,20 @@ export default function ControllerProvider({
     if (to.scheduleItem !== undefined) {
       setLatestScheduleItemIx(to.scheduleItem);
     }
-    const curScheduleItem = to.scheduleItem !== undefined ? schedule[to.scheduleItem] : scheduleItem;
+    const curScheduleItem = to.scheduleItem !== undefined && to.scheduleItem < schedule.length ? schedule[to.scheduleItem] : scheduleItem;
 
     if (curScheduleItem === undefined) return;
 
-    if (to.slide !== undefined && to.slide >= 0 && to.slide < curScheduleItem.slides.length) {
+    if (to.slide !== undefined && to.slide >= 0 && to.slide < (curScheduleItem.slides?.length ?? 0)) {
       setSlideIx(to.slide);
     } else {
       to.slide = slideIx || 0;
     }
 
     clearOverrideSlide();
-    const curSlide = curScheduleItem.slides[to.slide];
+    const curSlide = curScheduleItem.slides && to.slide < (curScheduleItem.slides?.length ?? 0) ? curScheduleItem.slides[to.slide] : undefined;
 
-    if (to.part !== undefined) {
+    if (!!curSlide && to.part !== undefined) {
       if (curSlide.content === undefined || to.part >= curSlide.content?.length) {
         setPartIx(0);
       } else {
@@ -392,19 +405,23 @@ export default function ControllerProvider({
     setWindows([]);
   }
 
-  try {
-    const savedControllerConfig = localStorage.getItem('controllerConfig');
-    if (savedControllerConfig) {
-      initialState.config = (JSON.parse(savedControllerConfig) as IControllerConfig) || initialState.config;
+  if (storeState) {
+    try {
+      const savedControllerConfig = localStorage.getItem('controllerConfig');
+      if (savedControllerConfig) {
+        initialState.config = (JSON.parse(savedControllerConfig) as IControllerConfig) || initialState.config;
+      }
     }
-  }
-  catch (e) {
-    // Ignore error
+    catch (e) {
+      // Ignore error
+    }
   }
   const [config, setConfig] = useState<IControllerConfig>(initialState.config);
 
   const setAndSaveConfig = (newConfig: IControllerConfig) => {
-    localStorage.setItem('controllerConfig', JSON.stringify(newConfig));
+    if (storeState) {
+      localStorage.setItem('controllerConfig', JSON.stringify(newConfig));
+    }
     setConfig(newConfig);
   }
 
@@ -415,6 +432,7 @@ export default function ControllerProvider({
 
       schedule,
       addToSchedule,
+      replaceSchedule,
       moveItemInSchedule,
       removeFromSchedule,
       removeAllFromSchedule,

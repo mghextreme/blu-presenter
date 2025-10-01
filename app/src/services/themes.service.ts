@@ -7,10 +7,12 @@ export class ThemesService extends ApiService {
     this.queryClient.removeQueries({ queryKey: ['themes'] });
   }
 
-  public async getAll(): Promise<ITheme[]> {
+  public async getAll(orgId?: number): Promise<ITheme[]> {
     return await this.getOrFetch({
-      queryKey: ['themes', 'all'],
-      queryFn: async () => await this.getRequest('/themes') as ITheme[],
+      queryKey: ['themes', 'all', orgId ?? null],
+      queryFn: async () => await this.getRequest('/themes', {
+        'Organization': orgId ? orgId.toString() : '',
+      }) as ITheme[],
     });
   }
 
@@ -18,6 +20,26 @@ export class ThemesService extends ApiService {
     return await this.getOrFetch({
       queryKey: ['themes', 'allForUser'],
       queryFn: async () => await this.getRequest('/themes/user/all') as ITheme[],
+    });
+  }
+
+  public async getBySessionSecret(
+    orgId: number,
+    sessionId: number,
+    secret?: string,
+    theme?: number,
+  ) {
+    const params = new URLSearchParams();
+    if (secret && secret.length > 0) {
+      params.append('secret', secret);
+    }
+    if (theme && theme > 0) {
+      params.append('theme', theme.toString());
+    }
+
+    return await this.getOrFetch({
+      queryKey: ['themes', 'session', sessionId, theme ?? null],
+      queryFn: async () => await this.getRequest(`/themes/session/${orgId}/${sessionId}?${params.toString()}`) as ITheme[],
     });
   }
 

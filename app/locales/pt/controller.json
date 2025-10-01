@@ -32,7 +32,13 @@
       "autoAdvanceScheduleItem": "Avançar programação ao avançar slide no final de uma música",
       "broadcastSession": {
         "label": "Transmitir sessão",
-        "description": "Use esta opção para que outros dispositivos possam visualizar ao vivo"
+        "description": "Use esta opção para que outros dispositivos possam visualizar ao vivo",
+        "url": "URL pública",
+        "copyUrl": "Copiar URL"
+      },
+      "broadcastSessionUrlTheme": {
+        "label": "Tema para a URL",
+        "description": "Definindo este campo abrirá a URL com o tema selecionado"
       }
     },
     "tabs": {
@@ -125,6 +131,17 @@
     "search": "Buscar sessões",
     "notFound": "Sessão não encontrada",
     "active": "Transmissão AO VIVO",
-    "inactive": "Transmissão desligada"
+    "inactive": "Transmissão desligada",
+    "urlTheme": {
+      "search": "Buscar temas",
+      "notFound": "Tema não encontrado",
+      "letUserPick": "Deixar usuário escolher o tema"
+    }
+  },
+  "message": {
+    "share": {
+      "title": "Link copiado",
+      "description": "O link público da sessão foi copiado para a área de transferência."
+    }
   }
 }
