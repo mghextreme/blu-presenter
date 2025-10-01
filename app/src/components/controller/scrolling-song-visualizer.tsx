@@ -67,6 +67,7 @@ export const ScrollingSongVisualizer = forwardRef(({
 
   const [yPxOffset, setYPxOffset] = useState<number>(0);
   const [yPartsOffset, setYPartsOffset] = useState<number>(0);
+  const [yPartsPxOffset, setYPartsPxOffset] = useState<number>(0);
   const [selectedBlock, setSelectedBlock] = useState<number>(0);
   const updatePosition = () => {
     const wrapper: IPositionableElement | undefined = wrapperDiv.current as IPositionableElement;
@@ -84,7 +85,8 @@ export const ScrollingSongVisualizer = forwardRef(({
       }
     }
     setSelectedBlock(blockNumber);
-    const block: IPositionableElement | undefined = blocksDivs.current[blockNumber] as IPositionableElement;
+    const blockDiv = blocksDivs.current[blockNumber] as HTMLDivElement;
+    const block: IPositionableElement | undefined = blockDiv as IPositionableElement;
 
     if (!wrapper || !block) return;
 
@@ -98,6 +100,22 @@ export const ScrollingSongVisualizer = forwardRef(({
       }
     }
     setYPartsOffset(selectedPart);
+    if (selectedPart === 0) {
+      setYPartsPxOffset(0);
+      return;
+    }
+
+    let lyricsCounter = 0;
+    for (const child of blockDiv.children.item(1)?.children ?? []) {
+      if (child.classList.contains('lyrics')) {
+        lyricsCounter += 1;
+        if (lyricsCounter === 2 * selectedPart) {
+          const pChild = child as HTMLParagraphElement;
+          setYPartsPxOffset(pChild.offsetTop + pChild.offsetHeight - block.offsetTop);
+          return;
+        }
+      }
+    }
   }
   useEffect(updatePosition, [selection, scheduleSong]);
 
@@ -140,7 +158,7 @@ export const ScrollingSongVisualizer = forwardRef(({
         ref={wrapperDiv as React.Ref<HTMLDivElement>}
         className="w-full leading-[1.15em] px-[.5em] flex flex-col items-start text-left pointer-events-none transition-transform duration-150 ease-out"
         style={{
-          transform: `translateY(calc(.5em - ${yPxOffset}px - ${yPartsOffset * 6}em))`,
+          transform: `translateY(calc(1em - ${yPxOffset}px - ${yPartsPxOffset}px))`,
         }}>
         <div
           //@ts-expect-error // TODO look into ref usage here
@@ -168,7 +186,10 @@ export const ScrollingSongVisualizer = forwardRef(({
             key={blockIndex}
             className={'flex mb-[.6em]' + (blockIndex === selectedBlock - 1 ? '' : ' opacity-75 transform-[scale(0.95)]')}>
             <div className="w-[3em] flex flex-col justify-start items-center pr-[.5em] border-r-1 mr-[.5em]">
-              <span className={'font-bold' + (blockIndex === selectedBlock - 1 ? ' text-yellow-500' : '')}>{blockIndex + 1}</span>
+              <span className={cn(
+                'font-bold',
+                blockIndex === selectedBlock - 1 && 'text-yellow-500',
+              )}>{blockIndex + 1}</span>
               <span className="w-full pb-[.2em] border-b-1 mb-[.2em]"></span>
               <span className="text-[0.85em] text-muted">{scheduleSong.blocks?.length}</span>
             </div>
@@ -194,15 +215,28 @@ export const ScrollingSongVisualizer = forwardRef(({
           <div
             //@ts-expect-error // TODO look into ref usage here
             ref={(el: HTMLDivElement) => blocksDivs.current[-1] = el}
-            className={'flex mb-[.6em]' + ((scheduleSong?.blocks?.length ?? 0) + 1 === selectedBlock ? '' : ' opacity-75 transform-[scale(0.95)]')}
+            className={cn(
+              'flex mb-[.6em] mt-[2em]',
+              (scheduleSong?.blocks?.length ?? 0) + 1 !== selectedBlock && 'opacity-75 transform-[scale(0.95)]',
+            )}
             key="nextUp"
           >
             <div className="w-[3em] flex flex-col justify-start items-center pr-[.5em] border-r-1 mr-[.5em]"></div>
             <div className="px-[.5em] leading-[1.3em]">
-              {t('nextUp')}<br />
-              <span className="font-bold">
-                {nextUpTitle}
-              </span>
+              <div style={
+                buildFontStyle(config?.artist, {
+                  fontSize: 110,
+                  fontWeight: 700,
+                  color: config?.foregroundColor,
+                })
+              }>{t('nextUp')}</div>
+              <div style={
+                buildFontStyle(config?.title, {
+                  fontSize: 110,
+                  fontWeight: 700,
+                  color: config?.foregroundColor,
+                })
+              }>{nextUpTitle}</div>
             </div>
           </div>
         )}
