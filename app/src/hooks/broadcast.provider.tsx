@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { io, Socket } from "socket.io-client"
 import * as config from '@/lib/config';
-import { IBroadcastSession } from "@/types"
+import { BaseTheme, IBroadcastSession } from "@/types"
 import { useAuth } from "./useAuth"
 import { useController } from "./controller.provider"
 
@@ -13,8 +13,8 @@ type BroadcastProviderState = {
   session?: IBroadcastSession,
   setSession: (session?: IBroadcastSession) => void,
 
-  urlTheme?: {label: string; value: string | number},
-  setUrlTheme: (theme?: {label: string; value: string | number}) => void,
+  urlTheme?: {label: string; value: BaseTheme | number},
+  setUrlTheme: (theme?: {label: string; value: BaseTheme | number}) => void,
 }
 
 const initialState: BroadcastProviderState = {
@@ -227,7 +227,7 @@ export default function BroadcastProvider({
     });
   }, [selection]);
 
-  const [urlTheme, setUrlTheme] = useState<string | number | undefined>(undefined);
+  const [urlTheme, setUrlTheme] = useState<BaseTheme | number | undefined>(undefined);
 
   const value = useMemo(() => {
     return {

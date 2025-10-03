@@ -2,7 +2,7 @@ import { Link, useLoaderData, useRevalidator } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table"
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import { IOrganization, isRoleHigherOrEqualThan, ITheme } from "@/types";
+import { IOrganization, ISession, isRoleHigherOrEqualThan } from "@/types";
 import { Button } from "@/components/ui/button";
 import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
@@ -13,13 +13,18 @@ import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { CopyThemeToOrganization } from "@/components/app/themes/copy-theme-to-organization";
 
-const buildColumns = (t: TFunction, organization: IOrganization | null, onDeleteTheme: (themeId: number) => void) => {
-  const canDelete = isRoleHigherOrEqualThan(organization?.role, 'admin');
-  const canEdit = isRoleHigherOrEqualThan(organization?.role, 'member');
+const buildColumns = (t: TFunction, organization: IOrganization | null, onDeleteSession: (themeId: number) => void) => {
+  const canManage = isRoleHigherOrEqualThan(organization?.role, 'admin');
 
-  const columns: ColumnDef<ITheme>[] = [
+  const getSessionName = (session: ISession) => {
+    if (session.default) {
+      return t('session.defaultName');
+    }
+    return session.name;
+  }
+
+  const columns: ColumnDef<ISession>[] = [
     {
       accessorKey: "name",
       header: ({ column }) => (
@@ -27,16 +32,8 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
       ),
       filterFn: fuzzyFilter,
       sortingFn: fuzzySort,
-    },
-    {
-      accessorKey: "extends",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.baseTheme')} />
-      ),
-      filterFn: fuzzyFilter,
-      sortingFn: fuzzySort,
       cell: ({ row }) => {
-        return <>{t(`theme.${row.original.extends}`)}</>;
+        return getSessionName(row.original);
       }
     },
     {
@@ -48,27 +45,26 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
               type="button"
               size="sm"
               title={t('actions.edit')}
-              disabled={!canEdit}
+              disabled={!canManage}
               asChild>
-              <Link to={`/app/themes/${row.original.id}/edit`}>
+              <Link to={`/app/sessions/${row.original.id}/edit`}>
                 <PencilIcon className="size-3" />
               </Link>
             </Button>
-            <CopyThemeToOrganization themeId={row.original.id} name={row.original.name} />
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button size="sm" className="flex-0" variant="destructive" disabled={!canDelete} title={t('actions.delete')}>
+                <Button size="sm" className="flex-0" variant="destructive" disabled={!canManage || row.original.default} title={t('actions.delete')}>
                   <TrashIcon className="size-3" />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>{t('message.deleteTheme.title')}</AlertDialogTitle>
-                  <AlertDialogDescription>{t('message.deleteTheme.description', {name: row.original.name})}</AlertDialogDescription>
+                  <AlertDialogTitle>{t('message.deleteSession.title')}</AlertDialogTitle>
+                  <AlertDialogDescription>{t('message.deleteSession.description', {name: getSessionName(row.original)})}</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" onClick={() => onDeleteTheme(row.original.id)}>{t('button.confirm')}</AlertDialogAction>
+                  <AlertDialogAction variant="destructive" onClick={() => onDeleteSession(row.original.id)}>{t('button.confirm')}</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -81,31 +77,31 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
   return columns;
 }
 
-export default function Themes() {
+export default function Sessions() {
 
-  const { t } = useTranslation("themes");
+  const { t } = useTranslation("sessions");
   const { organization } = useAuth();
 
-  const data = useLoaderData() as ITheme[];
+  const data = useLoaderData() as ISession[];
   const { revalidate } = useRevalidator();
-  const { themesService } = useServices();
+  const { sessionsService } = useServices();
 
-  const onDeleteTheme = async (themeId: number) => {
+  const onDeleteSession = async (sessionId: number) => {
     try {
-      await themesService.delete(themeId);
-      themesService.clearCache();
+      await sessionsService.delete(sessionId);
+      sessionsService.clearCache();
       revalidate();
     } catch (e: any) {
       toast.error(
-        t('error.deleteTheme'),
+        t('error.deleteSession'),
       );
     }
   }
 
-  const columns = buildColumns(t, organization, onDeleteTheme);
+  const columns = buildColumns(t, organization, onDeleteSession);
 
   useEffect(() => {
-    themesService.clearCache();
+    sessionsService.clearCache();
     revalidate();
   }, [organization]);
 
@@ -116,7 +112,7 @@ export default function Themes() {
       <h2 className="text-lg mb-4 opacity-50">{organization?.name || t('organizations.defaultName')}</h2>
       <DataTable columns={columns} data={data ?? []} addButton={(
         <>
-          <Button asChild><Link to="/app/themes/add">{t('actions.create')}</Link></Button>
+          <Button asChild><Link to="/app/sessions/add">{t('actions.create')}</Link></Button>
         </>
       )}></DataTable>
     </div>

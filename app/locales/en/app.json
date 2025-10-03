@@ -14,7 +14,8 @@
     "organization": "Edit",
     "songs": "Songs",
     "profile": "Profile",
-    "themes": "Themes"
+    "themes": "Themes",
+    "sessions": "Sessions"
   },
   "invitations": {
     "title": "Pending invitations"

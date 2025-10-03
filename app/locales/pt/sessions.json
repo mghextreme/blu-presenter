@@ -1,0 +1,66 @@
+{
+  "title": {
+    "list": "Sessões - {{organization}}",
+    "add": "Adicionar - Sessões",
+    "edit": "{{name}} - Sessões"
+  },
+  "actions": {
+    "create": "Adicionar sessão",
+    "edit": "Editar sessão",
+    "delete": "Remover sessão"
+  },
+  "button": {
+    "add": "Adicionar",
+    "update": "Atualizar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "copyUrl": "Copiar URL"
+  },
+  "input": {
+    "organization": "Organization",
+    "name": "Name",
+    "language": "Idioma",
+    "theme": "Tema",
+    "publicUrl": "URL pública"
+  },
+  "list": {
+    "title": "Sessões"
+  },
+  "add": {
+    "title": "Adicionar sessão"
+  },
+  "edit": {
+    "title": "Editar sessão"
+  },
+  "theme": {
+    "search": "Buscar temas...",
+    "notFound": "Tema não encontrado",
+    "letUserPick": "Deixar usuário escolher o tema",
+    "lyrics": "Letra",
+    "subtitles": "Legendas",
+    "teleprompter": "Teleprompter"
+  },
+  "session": {
+    "defaultName": "Principal"
+  },
+  "organizations": {
+    "defaultName": "Espaço pessoal"
+  },
+  "error": {
+    "deleteTheme": "Erro ao remover sessão",
+    "noPermission": "Você não tem permissão para acessar esta sessão"
+  },
+  "language": {
+    "search": "Buscar idiomas...",
+    "notFound": "Idioma não encontrado",
+    "user": "Usar idioma padrão do navegador (quando suportado)",
+    "english": "Inglês",
+    "portuguese": "Português"
+  },
+  "message": {
+    "share": {
+      "title": "Link copiado",
+      "description": "Um link compartilhável para a música foi copiado para a área de transferência."
+    }
+  }
+}

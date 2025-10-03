@@ -46,7 +46,6 @@ export default function EditSongReferencesItem({
     await form.trigger(`references.${ix}.url`);
     const fieldError = form.control.getFieldState(`references.${ix}.url`).error;
     if (fieldError) {
-      console.log(url, fieldError);
       setError(fieldError.message);
     } else {
       setError(undefined);

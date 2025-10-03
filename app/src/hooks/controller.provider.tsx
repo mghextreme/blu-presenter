@@ -27,7 +27,7 @@ type ControllerProviderState = {
   removeAllFromSchedule: () => void,
 
   scheduleItem?: IScheduleItem,
-  setScheduleItem: (item: number | IScheduleItem) => void,
+  setScheduleItem: (item: number | IScheduleItem, selection?: IControllerSelection) => void,
 
   selectedSlide?: ISlide,
   overrideSlide?: ISlide,
@@ -180,13 +180,22 @@ export default function ControllerProvider({
   const removeAllFromSchedule = () => {
     saveAndSetSchedule([]);
   };
-  const externalSetScheduleItem = (item: number | IScheduleItem) => {
+  const externalSetScheduleItem = (item?: number | IScheduleItem, selection?: IControllerSelection) => {
+    if (item === undefined) return;
+
     if (typeof item === 'number') {
-      externalSetSelection({ scheduleItem: item as number, slide: 0, part: 0 });
+      if (item < 0 || item >= schedule.length) {
+        item = 0;
+      }
+      setScheduleItem(schedule[item as number]);
+      setScheduleItemIx(item as number);
+      setSlideIx(selection?.slide ?? 0);
+      setPartIx(selection?.part ?? 0);
     } else {
       setScheduleItem(item as IScheduleItem);
       setScheduleItemIx(undefined);
-      externalSetSelection({ slide: 0, part: 0 });
+      setSlideIx(selection?.slide ?? 0);
+      setPartIx(selection?.part ?? 0);
     }
   }
 
@@ -225,15 +234,6 @@ export default function ControllerProvider({
   const [slideIx, setSlideIx] = useState<number | undefined>(undefined);
   const [latestScheduleItemIx, setLatestScheduleItemIx] = useState<number>(-1);
   const [scheduleItemIx, setScheduleItemIx] = useState<number | undefined>(undefined);
-  const [selection, setSelection] = useState<IControllerSelection>(initialState.selection);
-
-  useEffect(() => {
-    setSelection({
-      part: partIx,
-      slide: slideIx,
-      scheduleItem: scheduleItemIx,
-    } as IControllerSelection);
-  }, [partIx, slideIx, scheduleItemIx]);
 
   useEffect(() => {
     if (slideIx === undefined || scheduleItem === undefined) {
@@ -243,26 +243,21 @@ export default function ControllerProvider({
     }
   }, [slideIx, scheduleItem]);
 
-  useEffect(() => {
-    if (scheduleItemIx === undefined) {
-      setScheduleItem(undefined);
-    } else if (scheduleItemIx >= 0 && scheduleItemIx < schedule.length) {
-      setScheduleItem(schedule[scheduleItemIx]);
-    }
-  }, [scheduleItemIx]);
-
   const externalSetSelection = (to: IControllerSelection) => {
     if (to.scheduleItem === undefined && scheduleItemIx === undefined && scheduleItem === undefined) return;
     to.scheduleItem = to.scheduleItem ?? scheduleItemIx;
 
-    if (to.scheduleItem !== undefined && (to.scheduleItem < 0 || to.scheduleItem > schedule.length)) {
+    if (to.scheduleItem !== undefined && (to.scheduleItem < 0 || to.scheduleItem >= schedule.length)) {
       to.scheduleItem = 0;
     }
 
-    setScheduleItemIx(to.scheduleItem);
     if (to.scheduleItem !== undefined) {
+      if (scheduleItemIx !== to.scheduleItem) {
+        setScheduleItem(schedule[to.scheduleItem]);
+      }
       setLatestScheduleItemIx(to.scheduleItem);
     }
+    setScheduleItemIx(to.scheduleItem);
     const curScheduleItem = to.scheduleItem !== undefined && to.scheduleItem < schedule.length ? schedule[to.scheduleItem] : scheduleItem;
 
     if (curScheduleItem === undefined) return;
@@ -425,6 +420,14 @@ export default function ControllerProvider({
     setConfig(newConfig);
   }
 
+  const selection = useMemo(() => {
+    return {
+      scheduleItem: scheduleItemIx,
+      slide: slideIx,
+      part: partIx,
+    } as IControllerSelection;
+  }, [scheduleItemIx, slideIx, partIx]);
+
   const value = useMemo(() => {
     return {
       mode,
@@ -468,6 +471,7 @@ export default function ControllerProvider({
     overrideSlide,
     selection,
     windows,
+    config,
   ]);
 
   useHotkeys(Key.ArrowLeft, previous);

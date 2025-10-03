@@ -1,6 +1,7 @@
 import { FlagBr, FlagDe, FlagEs, FlagFr, FlagGb, FlagIt } from "@/components/logos/flags";
 
 export type SupportedLanguage = 'en' | 'pt' | 'es' | 'fr' | 'de' | 'it';
+export type SupportedUILanguage = 'en' | 'pt';
 
 export interface ILanguage {
   value: SupportedLanguage;

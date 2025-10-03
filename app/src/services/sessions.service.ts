@@ -1,5 +1,5 @@
 import { ApiService } from "./api.service";
-import { ISession, ITheme } from "@/types"
+import { ISession } from "@/types"
 
 export class SessionsService extends ApiService {
 
@@ -10,7 +10,7 @@ export class SessionsService extends ApiService {
   public async getAll(): Promise<ISession[]> {
     return await this.getOrFetch({
       queryKey: ['sessions', 'all'],
-      queryFn: async () => await this.getRequest('/sessions') as ITheme[],
+      queryFn: async () => await this.getRequest('/sessions') as ISession[],
     });
   }
 
@@ -37,6 +37,13 @@ export class SessionsService extends ApiService {
     });
   }
 
+  public async getById(sessionId: number): Promise<ISession | null> {
+    return await this.getOrFetch({
+      queryKey: ['sessions', 'id', sessionId],
+      queryFn: async () => await this.getRequest(`/sessions/${sessionId}`) as ISession,
+    });
+  }
+
   public async add(value: ISession): Promise<ISession | null> {
     const response = await this.postRequest('/sessions', JSON.stringify(value), {
       'content-type': 'application/json',
@@ -45,7 +52,7 @@ export class SessionsService extends ApiService {
     return response;
   }
 
-  public async update(id: number, value: ITheme): Promise<ISession | null> {
+  public async update(id: number, value: ISession): Promise<ISession | null> {
     const response = await this.putRequest(`/sessions/${id}`, JSON.stringify(value), {
       'content-type': 'application/json',
     }) as ISession;

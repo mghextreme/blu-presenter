@@ -23,11 +23,19 @@ export class SessionsService {
         name: true,
         language: true,
         theme: true,
+        secret: true,
         default: true,
         schedule: true,
         scheduleItem: true,
         selection: true,
         updatedAt: true,
+        organization: {
+          id: true,
+          name: true,
+        },
+      },
+      relations: {
+        organization: true,
       },
       where: {
         id,
@@ -118,7 +126,11 @@ export class SessionsService {
       throw new NotFoundException();
     }
 
-    session.name = updateSessionDto.name;
+    if (!session.default) {
+      session.name = updateSessionDto.name;
+    }
+    session.language = updateSessionDto.language;
+    session.theme = updateSessionDto.theme;
 
     const result = await this.sessionsRepository.save(session);
     return result as Session;

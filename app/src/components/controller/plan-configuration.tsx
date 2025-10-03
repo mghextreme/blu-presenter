@@ -13,7 +13,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { useServices } from "@/hooks/services.provider";
-import { ISession, ITheme } from "@/types";
+import { BaseTheme, ISession, ITheme } from "@/types";
 import { useBroadcast } from "@/hooks/broadcast.provider";
 import QRCode from "react-qr-code";
 import { Input } from "../ui/input";
@@ -24,7 +24,7 @@ const controllerConfigurationSchema = z.object({
   broadcastSession: z.number().optional(),
   broadcastSessionUrlTheme: z.object({
     label: z.string(),
-    value: z.union([z.string(), z.number()]),
+    value: z.union([z.enum(['lyrics', 'subtitles', 'teleprompter']), z.number()]),
   }).optional(),
 });
 
@@ -74,7 +74,7 @@ export function PlanConfiguration() {
 
   useEffect(() => {
     setConfig(form.getValues() as IControllerConfig);
-  }, [form.watch()]);
+  }, [form.watch('autoAdvanceScheduleItem')]);
 
   const nameFromSession = (item?: ISession) => {
     if (!item) return t('session.dontBroadcast');
@@ -85,7 +85,7 @@ export function PlanConfiguration() {
   const [openSessionSelector, setOpenSessionSelector] = useState<boolean>(false);
   const [openSessionUrlThemeSelector, setOpenSessionUrlThemeSelector] = useState<boolean>(false);
 
-  const defaultThemeOptions = [
+  const defaultThemeOptions: {label: string; value: BaseTheme | number}[] = [
     {
       value: "lyrics",
       label: t('theme.lyrics'),
@@ -100,8 +100,8 @@ export function PlanConfiguration() {
     },
   ];
 
-  const [consolidatedOptions, setConsolidatedOptions] = useState<{label: string; value: string | number}[]>(defaultThemeOptions);
-  const [selectedUrlTheme, setSelectedUrlTheme] = useState<{label: string; value: string | number} | undefined>(undefined);
+  const [consolidatedOptions, setConsolidatedOptions] = useState<{label: string; value: BaseTheme | number}[]>(defaultThemeOptions);
+  const [selectedUrlTheme, setSelectedUrlTheme] = useState<{label: string; value: BaseTheme | number} | undefined>(undefined);
   useEffect(() => {
     if (!session) {
       setConsolidatedOptions(defaultThemeOptions);

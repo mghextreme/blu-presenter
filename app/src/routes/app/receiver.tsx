@@ -35,7 +35,6 @@ export default function Receiver() {
   }, []);
 
   const socketRef = useRef<Socket | null>(null);
-  const connectionSubscribed = useRef<boolean>(false);
   const connectedSessionId = useRef<number | null>(null);
 
   const ensureSocket = () => {
@@ -51,11 +50,24 @@ export default function Receiver() {
       path: '/socket/sessions',
     });
 
+    subscribe(newSocket);
+
     return newSocket;
   };
 
   const subscribe = (curSocket: Socket) => {
-    if (connectionSubscribed.current) return;
+
+    curSocket?.on('connected', (data) => {
+      curSocket.emit('joinSession', {
+        sessionId: session.id,
+        secret: session.secret,
+        orgId: params.orgId,
+      });
+    });
+
+    curSocket?.on('disconnected', (data) => {
+      // No action
+    });
 
     curSocket?.on('error', (data) => {
       console.error('socketError', data);
@@ -94,14 +106,6 @@ export default function Receiver() {
       }
     });
 
-    curSocket?.on('connected', (data) => {
-      // No action
-    });
-
-    curSocket?.on('disconnected', (data) => {
-      // No action
-    });
-
     curSocket?.on('schedule', (data) => {
       try {
         replaceSchedule(data as IScheduleItem[]);
@@ -120,13 +124,15 @@ export default function Receiver() {
 
     curSocket?.on('selection', (data) => {
       try {
-        setSelection(data as IControllerSelection);
+        setSelection({
+          scheduleItem: data.scheduleItem,
+          slide: data.slide,
+          part: data.part,
+        } as IControllerSelection);
       } catch (e) {
         console.error(e);
       }
     });
-
-    connectionSubscribed.current = true;
   };
 
   const ensureConnection = () => {
@@ -137,15 +143,6 @@ export default function Receiver() {
       subscribe(curSocket);
       socketRef.current = curSocket;
     }
-
-    if (!connectedSessionId.current && !!session && !!session?.id) {
-      curSocket.emit('joinSession', {
-        sessionId: session.id,
-        secret: session.secret,
-        orgId: params.orgId,
-      });
-    }
-
     return curSocket;
   }
 

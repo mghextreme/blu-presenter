@@ -1,0 +1,66 @@
+{
+  "title": {
+    "list": "Sessions - {{organization}}",
+    "add": "Add - Sessions",
+    "edit": "{{name}} - Sessions"
+  },
+  "actions": {
+    "create": "Add session",
+    "edit": "Edit session",
+    "delete": "Delete session"
+  },
+  "button": {
+    "add": "Add",
+    "update": "Update",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "copyUrl": "Copy URL"
+  },
+  "input": {
+    "organization": "Organization",
+    "name": "Name",
+    "language": "Language",
+    "theme": "Theme",
+    "publicUrl": "Public URL"
+  },
+  "list": {
+    "title": "Sessions"
+  },
+  "add": {
+    "title": "Add session"
+  },
+  "edit": {
+    "title": "Edit session"
+  },
+  "theme": {
+    "search": "Search themes...",
+    "notFound": "Theme not found",
+    "letUserPick": "Let user pick the theme",
+    "lyrics": "Lyrics",
+    "subtitles": "Subtitles",
+    "teleprompter": "Teleprompter"
+  },
+  "session": {
+    "defaultName": "Main"
+  },
+  "organizations": {
+    "defaultName": "Personal space"
+  },
+  "error": {
+    "deleteTheme": "Error deleting session",
+    "noPermission": "You don't have permission to access this session"
+  },
+  "language": {
+    "search": "Search languages...",
+    "notFound": "Language not found",
+    "user": "Default to user's browser language (if supported)",
+    "english": "English",
+    "portuguese": "Portuguese"
+  },
+  "message": {
+    "share": {
+      "title": "Link copied",
+      "description": "A shareable link to the session has been copied to the clipboard."
+    }
+  }
+}

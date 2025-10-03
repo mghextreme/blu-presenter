@@ -31,7 +31,6 @@ export const ScrollingSongVisualizer = forwardRef(({
 
   const containerDiv = useRef<HTMLDivElement>(null);
   const wrapperDiv = useRef<HTMLDivElement>(null);
-  const blocksDivs = useRef<HTMLDivElement[]>([]);
 
   const [fontSize, setFontSize] = useState<string>('8vh');
   const updateFontSize = () => {
@@ -48,8 +47,9 @@ export const ScrollingSongVisualizer = forwardRef(({
   const [scheduleSong, setScheduleSong] = useState<IScheduleSong | undefined>(undefined);
   const updateSong = () => {
     const scheduleItemAsSong = scheduleItem as IScheduleSong;
+    if (!scheduleItemAsSong) return;
+
     setScheduleSong(scheduleItemAsSong);
-    blocksDivs.current = blocksDivs.current.slice(0, (scheduleItemAsSong?.blocks?.length ?? 0) + 2);
     updatePosition();
   }
   useEffect(updateSong, [scheduleItem]);
@@ -66,7 +66,6 @@ export const ScrollingSongVisualizer = forwardRef(({
   }, [childWindow]);
 
   const [yPxOffset, setYPxOffset] = useState<number>(0);
-  const [yPartsOffset, setYPartsOffset] = useState<number>(0);
   const [yPartsPxOffset, setYPartsPxOffset] = useState<number>(0);
   const [selectedBlock, setSelectedBlock] = useState<number>(0);
   const updatePosition = () => {
@@ -84,8 +83,9 @@ export const ScrollingSongVisualizer = forwardRef(({
         blockNumber = blocksLength + 2;
       }
     }
+
     setSelectedBlock(blockNumber);
-    const blockDiv = blocksDivs.current[blockNumber] as HTMLDivElement;
+    const blockDiv = wrapperDiv.current?.children.item(blockNumber) as HTMLDivElement;
     const block: IPositionableElement | undefined = blockDiv as IPositionableElement;
 
     if (!wrapper || !block) return;
@@ -99,7 +99,7 @@ export const ScrollingSongVisualizer = forwardRef(({
         selectedPart -= 1; // Adjust for title part
       }
     }
-    setYPartsOffset(selectedPart);
+
     if (selectedPart === 0) {
       setYPartsPxOffset(0);
       return;
@@ -144,7 +144,7 @@ export const ScrollingSongVisualizer = forwardRef(({
     }
 
     setNextUpTitle(schedule[scheduleItem.index + 1]?.title);
-  }, [schedule, scheduleItem]);
+  }, [scheduleSong]);
 
   return (
     <div
@@ -160,10 +160,7 @@ export const ScrollingSongVisualizer = forwardRef(({
         style={{
           transform: `translateY(calc(1em - ${yPxOffset}px - ${yPartsPxOffset}px))`,
         }}>
-        <div
-          //@ts-expect-error // TODO look into ref usage here
-          ref={(el: HTMLDivElement) => blocksDivs.current[0] = el}
-          className="mb-[.6em]">
+        <div className="mb-[.6em]" key="title">
           <pre className={cn(config?.title?.fontFamily ?? 'font-source-code-pro')} style={
             buildFontStyle(config?.title, {
               fontSize: 110,
@@ -181,9 +178,7 @@ export const ScrollingSongVisualizer = forwardRef(({
         </div>
         {scheduleSong && scheduleSong.blocks?.map((block, blockIndex) => (
           <div
-            //@ts-expect-error // TODO look into ref usage here
-            ref={(el: HTMLDivElement) => blocksDivs.current[blockIndex + 1] = el}
-            key={blockIndex}
+            key={`block-${blockIndex}`}
             className={'flex mb-[.6em]' + (blockIndex === selectedBlock - 1 ? '' : ' opacity-75 transform-[scale(0.95)]')}>
             <div className="w-[3em] flex flex-col justify-start items-center pr-[.5em] border-r-1 mr-[.5em]">
               <span className={cn(
@@ -213,8 +208,6 @@ export const ScrollingSongVisualizer = forwardRef(({
         ))}
         {nextUpTitle && (
           <div
-            //@ts-expect-error // TODO look into ref usage here
-            ref={(el: HTMLDivElement) => blocksDivs.current[-1] = el}
             className={cn(
               'flex mb-[.6em] mt-[2em]',
               (scheduleSong?.blocks?.length ?? 0) + 1 !== selectedBlock && 'opacity-75 transform-[scale(0.95)]',

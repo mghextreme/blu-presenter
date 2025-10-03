@@ -42,6 +42,11 @@ import EditTheme from "./app/themes/edit";
 import { loader as singleThemeLoader } from "./app/themes/single.loader";
 import { loader as allThemesLoader } from "./app/themes/all.loader";
 
+import SessionsIndex from "./app/sessions/index";
+import EditSession from "./app/sessions/edit";
+import { loader as singleSessionLoader } from "./app/sessions/single.loader";
+import { loader as allSessionsLoader } from "./app/sessions/all.loader";
+
 import EditOrganization from "./app/organizations/index";
 import { loader as editOrganizationLoader } from "./app/organizations/index.loader"
 import InviteOrganizationMember, { loader as inviteOrganizationMemberLoader } from "./app/organizations/invite";
@@ -49,9 +54,11 @@ import EditMember, { loader as editMemberLoader } from "./app/organizations/edit
 import TransferOrganization from "./app/organizations/transfer";
 import ImportSong from "./app/songs/import";
 
-export const buildRouter = (services: ServicesProviderState) => {
+export default function AppRouter() {
 
-  return createBrowserRouter(
+  const services = useServices();
+
+  const router = createBrowserRouter(
     createRoutesFromElements(
       <>
         <Route path="/" errorElement={<ErrorLayout />}>
@@ -87,6 +94,11 @@ export const buildRouter = (services: ServicesProviderState) => {
             <Route path="add" element={<EditTheme edit={false} />} />
             <Route path=":id/edit" element={<EditTheme />} loader={(loader: LoaderFunctionArgs) => singleThemeLoader({ params: loader.params, themesService: services.themesService })} />
           </Route>
+          <Route path="sessions">
+            <Route index={true} element={<SessionsIndex />} loader={() => allSessionsLoader({ sessionsService: services.sessionsService })} />
+            <Route path="add" element={<EditSession edit={false} />} />
+            <Route path=":id/edit" element={<EditSession />} loader={(loader: LoaderFunctionArgs) => singleSessionLoader({ params: loader.params, sessionsService: services.sessionsService })} />
+          </Route>
         </Route>
         <Route path="/app" element={<PrintLayout />} errorElement={<ErrorLayout />}>
           <Route path="songs/:id/print" element={<PrintSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
@@ -115,13 +127,8 @@ export const buildRouter = (services: ServicesProviderState) => {
       </>
     )
   );
-}
-
-export default function AppRouter() {
-
-  const services = useServices();
 
   return (
-    <RouterProvider router={buildRouter(services)} />
+    <RouterProvider router={router} />
   )
 }
