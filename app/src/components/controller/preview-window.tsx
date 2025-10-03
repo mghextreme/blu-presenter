@@ -60,6 +60,7 @@ export function PreviewWindow({
   const [ratioOptions, setRatioOptions] = useState<{ value: string, label: string }[]>(defaultRatioOptions);
 
   const {
+    mode,
     setMode,
   } = useController();
 
@@ -70,9 +71,9 @@ export function PreviewWindow({
   const updatePreviewTheme = (theme: ITheme) => {
     setPreviewTheme(theme);
 
-    if (attachControllerMode) {
-      const mode = theme.extends === 'subtitles' ? 'part': 'slide';
-      setMode(mode);
+    if (attachControllerMode && mode !== 'part') {
+      const newMode = theme.extends === 'subtitles' ? 'part': 'slide';
+      setMode(newMode);
     }
   }
   const updatePreviewRatio = (ratio: string) => {
