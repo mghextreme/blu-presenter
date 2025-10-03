@@ -187,13 +187,11 @@ export default function ControllerProvider({
       if (item < 0 || item >= schedule.length) {
         item = 0;
       }
-      console.log('setting schedule item - not good', item as IScheduleItem);
       setScheduleItem(schedule[item as number]);
       setScheduleItemIx(item as number);
       setSlideIx(selection?.slide ?? 0);
       setPartIx(selection?.part ?? 0);
     } else {
-      console.log('setting schedule item - good', item as IScheduleItem);
       setScheduleItem(item as IScheduleItem);
       setScheduleItemIx(undefined);
       setSlideIx(selection?.slide ?? 0);
@@ -246,7 +244,6 @@ export default function ControllerProvider({
   }, [slideIx, scheduleItem]);
 
   const externalSetSelection = (to: IControllerSelection) => {
-    console.log('externalSetSelection', to, !!scheduleItemIx, !!scheduleItem);
     if (to.scheduleItem === undefined && scheduleItemIx === undefined && scheduleItem === undefined) return;
     to.scheduleItem = to.scheduleItem ?? scheduleItemIx;
 
@@ -258,18 +255,16 @@ export default function ControllerProvider({
     if (to.scheduleItem !== undefined) {
       if (scheduleItemIx !== to.scheduleItem && to.scheduleItem < schedule.length) {
         curScheduleItem = schedule[to.scheduleItem];
-        console.log('setting schedule item - bad', curScheduleItem);
         setScheduleItem(curScheduleItem);
       }
       setLatestScheduleItemIx(to.scheduleItem);
+      setScheduleItemIx(to.scheduleItem);
     }
-    setScheduleItemIx(to.scheduleItem);
 
     if (!curScheduleItem) {
       curScheduleItem = scheduleItem;
     }
 
-    console.log('curScheduleItem', curScheduleItem);
     if (curScheduleItem === undefined) return;
 
     if (to.slide !== undefined && to.slide >= 0 && to.slide < (curScheduleItem.slides?.length ?? 0)) {
