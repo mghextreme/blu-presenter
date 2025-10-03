@@ -6,6 +6,7 @@ import i18next from "i18next";
 import { useTranslation } from "react-i18next";
 import { ISongPart, SupportedLanguage } from "@/types";
 import { SongSchema } from "@/types/schemas/song.schema";
+import { ImportSongSchema } from "@/types/schemas/import-song.schema";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useAuth } from "@/hooks/useAuth";
 import ControllerProvider from "@/hooks/controller.provider";
@@ -16,17 +17,6 @@ import { EditSongForm } from "@/components/app/songs/edit-form";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { ImportSongForm } from "@/components/app/songs/import-song-form";
 import PreviewIcon from "@/components/icons/preview";
-
-export const ImportSongSchema = z.object({
-  fullText: z.string().min(2),
-  blocks: z.array(
-    z.object({
-      id: z.number().optional(),
-      text: z.string().optional(),
-      chords: z.string().optional(),
-    }),
-  ),
-});
 
 export default function ImportSong() {
 

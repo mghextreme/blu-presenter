@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { ISongWithRole } from "@/types";
 import { useServices } from "@/hooks/services.provider";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BasicSearchForm } from "@/components/app/search/basic-search-form";

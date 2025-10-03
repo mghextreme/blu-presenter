@@ -1,4 +1,4 @@
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import ArrowLeftIcon from "@heroicons/react/24/outline/ArrowLeftIcon";

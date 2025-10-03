@@ -1,5 +1,5 @@
 import { ISlideContent, ISlideImageContent, ISlideTextContent, ISlideTitleContent, ITheme, LyricsTheme } from "@/types";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { useWindow } from "@/hooks/window.provider";
 import { cn } from "@/lib/utils";

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod"
-import { IControllerConfig, useController } from "@/hooks/controller.provider";
+import { IControllerConfig } from "@/hooks/controller.provider";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -14,7 +14,8 @@ import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { useServices } from "@/hooks/services.provider";
 import { BaseTheme, ISession, ITheme } from "@/types";
-import { useBroadcast } from "@/hooks/broadcast.provider";
+import { useBroadcast } from "@/hooks/useBroadcast";
+import { useController } from "@/hooks/useController";
 import QRCode from "react-qr-code";
 import { Input } from "../ui/input";
 import { toast } from "sonner";

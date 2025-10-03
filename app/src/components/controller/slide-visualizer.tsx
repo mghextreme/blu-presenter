@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { ITheme, LyricsTheme } from "@/types";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { SingleSlideVisualizer } from "./single-slide-visualizer";
 import { ScrollingSongVisualizer } from "./scrolling-song-visualizer";
 

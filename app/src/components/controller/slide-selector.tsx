@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import ContentSelector from "./content-selector";
 import { ISlide } from "@/types";
 

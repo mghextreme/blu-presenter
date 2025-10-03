@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
-import { useBroadcast } from "@/hooks/broadcast.provider";
+import { useBroadcast } from "@/hooks/useBroadcast";
 import SignalIcon from "@heroicons/react/24/solid/SignalIcon";
 import SignalSlashIcon from "@heroicons/react/24/solid/SignalSlashIcon";
 

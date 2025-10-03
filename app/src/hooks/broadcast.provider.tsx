@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { createContext, useEffect, useMemo, useState } from "react"
 import { BaseTheme, IBroadcastSession } from "@/types"
 import { useAuth } from "./useAuth"
-import { useController } from "./controller.provider"
+import { useController } from "./useController"
 import { useSessionSocket } from "./useSessionSocket"
 
 type BroadcastProviderProps = {
@@ -24,7 +24,7 @@ const initialState: BroadcastProviderState = {
   setUrlTheme: () => null,
 }
 
-const BroadcastProviderContext = createContext<BroadcastProviderState>(initialState);
+export const BroadcastProviderContext = createContext<BroadcastProviderState>(initialState);
 
 export default function BroadcastProvider({
   children,
@@ -182,13 +182,4 @@ export default function BroadcastProvider({
       {children}
     </BroadcastProviderContext.Provider>
   )
-}
-
-export const useBroadcast = () => {
-  const context = useContext(BroadcastProviderContext)
-
-  if (context === undefined)
-    throw new Error("useBroadcast must be used within a BroadcastProvider")
-
-  return context
 }

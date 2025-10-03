@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { cn } from "@/lib/utils";
 import { BaseTheme, IControllerSelection, IScheduleSong, ISlide, ISlideTextContent, ISlideTitleContent } from "@/types";
 import { useEffect, useState } from "react";

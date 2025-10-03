@@ -1,7 +1,7 @@
 import ThemeToggler from "@/components/ui/theme-toggler";
 import ModeToggler from "@/components/ui/mode-toggler";
 import { Button } from "@/components/ui/button";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { v4 } from "uuid";
 import { IWindow } from "@/types";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";

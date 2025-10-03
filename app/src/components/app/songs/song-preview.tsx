@@ -5,7 +5,7 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogTitle, DialogTr
 import { Button } from "@/components/ui/button";
 import { PreviewWindow } from "@/components/controller/preview-window";
 import { Controls } from "@/components/controller/controls";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { useServices } from "@/hooks/services.provider";
 
 interface SongPreviewProps {

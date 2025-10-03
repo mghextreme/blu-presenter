@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IScheduleSong, ITeleprompterThemeConfig, ITheme, TeleprompterTheme } from "@/types";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { useWindow } from "@/hooks/window.provider";
 import { IPositionableElement } from "@/types/browser";
 import { Clock } from "./clock";

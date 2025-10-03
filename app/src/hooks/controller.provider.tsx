@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { createContext, useEffect, useMemo, useState } from "react"
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
 
@@ -87,7 +87,7 @@ const initialState: ControllerProviderState = {
   setConfig: () => null,
 }
 
-const ControllerProviderContext = createContext<ControllerProviderState>(initialState);
+export const ControllerProviderContext = createContext<ControllerProviderState>(initialState);
 
 export default function ControllerProvider({
   storeState = false,
@@ -492,13 +492,4 @@ export default function ControllerProvider({
       ))}
     </ControllerProviderContext.Provider>
   )
-}
-
-export const useController = () => {
-  const context = useContext(ControllerProviderContext)
-
-  if (context === undefined)
-    throw new Error("useController must be used within a ControllerProvider")
-
-  return context
 }

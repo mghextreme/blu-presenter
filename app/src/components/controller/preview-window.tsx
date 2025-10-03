@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { IBrowserWindow, IScreenDetails } from "@/types/browser";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { useServices } from "@/hooks/services.provider";
 
 const defaultThemeOptions = [
