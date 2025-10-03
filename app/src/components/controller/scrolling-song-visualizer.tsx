@@ -90,7 +90,8 @@ export const ScrollingSongVisualizer = forwardRef(({
 
     if (!wrapper || !block) return;
 
-    setYPxOffset(block.offsetTop - wrapper.offsetTop);
+    const deltaFromWrapper = block.offsetTop - wrapper.offsetTop;
+    setYPxOffset(deltaFromWrapper);
 
     let selectedPart = 0;
     if (mode === 'part') {
@@ -111,7 +112,7 @@ export const ScrollingSongVisualizer = forwardRef(({
         lyricsCounter += 1;
         if (lyricsCounter === 2 * selectedPart) {
           const pChild = child as HTMLParagraphElement;
-          setYPartsPxOffset(pChild.offsetTop + pChild.offsetHeight - block.offsetTop);
+          setYPartsPxOffset(pChild.offsetTop + pChild.offsetHeight);
           return;
         }
       }
@@ -179,7 +180,7 @@ export const ScrollingSongVisualizer = forwardRef(({
         {scheduleSong && scheduleSong.blocks?.map((block, blockIndex) => (
           <div
             key={`block-${blockIndex}`}
-            className={'flex mb-[.6em]' + (blockIndex === selectedBlock - 1 ? '' : ' opacity-75 transform-[scale(0.95)]')}>
+            className={'relative flex mb-[.6em]' + (blockIndex === selectedBlock - 1 ? '' : ' opacity-75 transform-[scale(0.95)]')}>
             <div className="w-[3em] flex flex-col justify-start items-center pr-[.5em] border-r-1 mr-[.5em]">
               <span className={cn(
                 'font-bold',

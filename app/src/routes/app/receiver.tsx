@@ -1,11 +1,10 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useLoaderData, useParams } from "react-router-dom";
-import { io, Socket } from "socket.io-client";
-import * as config from '@/lib/config';
 import { IControllerSelection, IScheduleItem, ISession, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { useController } from "@/hooks/controller.provider";
+import { useSessionSocket } from "@/hooks/useSessionSocket";
 import SelectorScreen from "@/components/controller/selector-screen";
 import i18next from "i18next";
 
@@ -34,59 +33,13 @@ export default function Receiver() {
     setSelection(session?.selection ?? {} as IControllerSelection);
   }, []);
 
-  const socketRef = useRef<Socket | null>(null);
-  const connectedSessionId = useRef<number | null>(null);
-
-  const ensureSocket = () => {
-    if (socketRef.current) return socketRef.current;
-
-    const newSocket = io(config.api.url, {
-      autoConnect: true,
-      auth: {
-        orgId: Number(params.orgId),
-        sessionId: Number(params.sessionId),
-        secret: params.secret,
-      },
-      path: '/socket/sessions',
-    });
-
-    subscribe(newSocket);
-
-    return newSocket;
-  };
-
-  const subscribe = (curSocket: Socket) => {
-
-    curSocket?.on('connected', (data) => {
-      curSocket.emit('joinSession', {
-        sessionId: session.id,
-        secret: session.secret,
-        orgId: params.orgId,
-      });
-    });
-
-    curSocket?.on('disconnected', (data) => {
-      // No action
-    });
-
-    curSocket?.on('error', (data) => {
-      console.error('socketError', data);
-
-      switch (data.code) {
-        case 'unauthorized':
-          disconnect();
-          connectedSessionId.current = null;
-          break;
-
-        case 'notInSession':
-          connectedSessionId.current = null;
-          break
-      }
-    });
-
-    curSocket?.on('joinedSession', (data) => {
-      connectedSessionId.current = Number(data.id);
-
+  const { connect, socket, isConnected, joinSession } = useSessionSocket({
+    auth: {
+      orgId: Number(params.orgId),
+      sessionId: Number(params.sessionId),
+      secret: params.secret,
+    },
+    onJoinedSession: (data) => {
       if (data.schedule) {
         replaceSchedule(data.schedule as IScheduleItem[]);
       }
@@ -98,77 +51,68 @@ export default function Receiver() {
       if (data.selection) {
         setSelection(data.selection as IControllerSelection);
       }
-    });
+    },
+    additionalEvents: [
+      {
+        eventName: 'schedule',
+        handler: (data) => {
+          try {
+            replaceSchedule(data as IScheduleItem[]);
+          } catch (e) {
+            console.error(e);
+          }
+        },
+      },
+      {
+        eventName: 'scheduleItem',
+        handler: (data) => {
+          try {
+            setScheduleItem(data as IScheduleItem);
+          } catch (e) {
+            console.error(e);
+          }
+        },
+      },
+      {
+        eventName: 'selection',
+        handler: (data) => {
+          try {
+            setSelection({
+              scheduleItem: data.scheduleItem,
+              slide: data.slide,
+              part: data.part,
+            } as IControllerSelection);
+          } catch (e) {
+            console.error(e);
+          }
+        },
+      },
+    ],
+  });
 
-    curSocket?.on('leftSession', (data) => {
-      if (connectedSessionId.current === data.id) {
-        connectedSessionId.current = null;
-      }
-    });
-
-    curSocket?.on('schedule', (data) => {
-      try {
-        replaceSchedule(data as IScheduleItem[]);
-      } catch (e) {
-        console.error(e);
-      }
-    });
-
-    curSocket?.on('scheduleItem', (data) => {
-      try {
-        setScheduleItem(data as IScheduleItem);
-      } catch (e) {
-        console.error(e);
-      }
-    });
-
-    curSocket?.on('selection', (data) => {
-      try {
-        setSelection({
-          scheduleItem: data.scheduleItem,
-          slide: data.slide,
-          part: data.part,
-        } as IControllerSelection);
-      } catch (e) {
-        console.error(e);
-      }
-    });
-  };
-
-  const ensureConnection = () => {
-    const curSocket = ensureSocket();
-
-    if (!curSocket.connected) {
-      curSocket.connect();
-      subscribe(curSocket);
-      socketRef.current = curSocket;
-    }
-    return curSocket;
-  }
-
-  const disconnect = () => {
-    if (!socketRef.current) return;
-
-    if (!!connectedSessionId.current) {
-      socketRef.current.emit('leaveSession', {
-        sessionId: connectedSessionId.current,
-      });
-      connectedSessionId.current = null;
-    }
-
-    socketRef.current.disconnect();
-  }
-
+  // Connect on mount
   useEffect(() => {
-    ensureConnection();
+    connect();
+  }, [connect]);
 
-    const healthCheckInterval = setInterval(ensureConnection, 10000);
+  // Join session when connected or when session changes
+  useEffect(() => {
+    if (!isConnected) {
+      return;
+    }
 
-    return () => {
-      clearInterval(healthCheckInterval);
-      disconnect();
-    };
-  }, []);
+    if (!socket) {
+      return;
+    }
+
+    if (session?.id && params.secret && params.orgId) {
+      joinSession({
+        sessionId: session.id,
+        secret: params.secret,
+        orgId: params.orgId,
+      });
+    }
+  }, [isConnected, socket, session, params.orgId, joinSession]);
 
   useEffect(() => {
     if (!session || !session.language) return;

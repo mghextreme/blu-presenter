@@ -1,9 +1,8 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
-import { io, Socket } from "socket.io-client"
-import * as config from '@/lib/config';
 import { BaseTheme, IBroadcastSession } from "@/types"
 import { useAuth } from "./useAuth"
 import { useController } from "./controller.provider"
+import { useSessionSocket } from "./useSessionSocket"
 
 type BroadcastProviderProps = {
   children: React.ReactNode
@@ -42,139 +41,79 @@ export default function BroadcastProvider({
     selection,
   } = useController();
 
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [connectedSessionId, setConnectedSessionId] = useState<number | null>(null);
   const [session, setSession] = useState<IBroadcastSession | undefined>(initialState.session);
 
-  const ensureSocket = () => {
-    if (socket) return socket;
-
-    const newSocket = io(config.api.url, {
-      autoConnect: false,
-      auth: {
-        token: authSession?.access_token,
-      },
-      path: '/socket/sessions',
-    });
-
-    setSocket(newSocket);
-    return newSocket;
-  };
-
-  const subscribe = (curSocket: Socket) => {
-    curSocket?.on('error', (data) => {
-      console.error('socketError', data);
-
-      switch (data.code) {
-        case 'unauthorized':
-          disconnect();
-          setConnectedSessionId(null);
-          break;
-
-        case 'notInSession':
-          setConnectedSessionId(null);
-          break
+  const {
+    connectedSessionId,
+    connect,
+    disconnect,
+    joinSession,
+    leaveSession,
+    emit
+  } = useSessionSocket({
+    auth: {
+      token: authSession?.access_token,
+    },
+    onConnect: () => {
+      if (session?.id && session.secret && session.orgId) {
+        joinSession({
+          sessionId: session.id,
+          secret: session.secret,
+          orgId: session.orgId,
+          token: authSession?.access_token,
+        });
       }
-    });
-
-    curSocket?.on('joinedSession', (data) => {
-      setConnectedSessionId(data.id);
-
-      curSocket?.emit('setSchedule', {
+    },
+    onJoinedSession: (data) => {
+      emit('setSchedule', {
         sessionId: data.id,
         schedule: schedule ?? [],
       });
 
-      curSocket?.emit('setScheduleItem', {
+      emit('setScheduleItem', {
         sessionId: data.id,
         scheduleItem: scheduleItem ?? {},
       });
 
-      curSocket?.emit('setSelection', {
+      emit('setSelection', {
         sessionId: data.id,
         selection: selection ?? {},
       });
-    });
-
-    curSocket?.on('leftSession', (data) => {
-      if (connectedSessionId === data.id) {
-        setConnectedSessionId(null);
+    },
+    onError: (data) => {
+      if (data.code === 'notInSession' && session?.id && session.secret && session.orgId) {
+        joinSession({
+          sessionId: session.id,
+          secret: session.secret,
+          orgId: session.orgId,
+          token: authSession?.access_token,
+        });
       }
-    });
+    },
+  });
 
-    curSocket?.on('connected', (data) => {
-      // No action
-    });
-
-    curSocket?.on('disconnected', (data) => {
-      // No action
-    });
-  };
-
-  const ensureConnection = (toSession?: IBroadcastSession) => {
-    const curSocket = ensureSocket();
-
-    if (!curSocket.connected) {
-      curSocket.connect();
-      subscribe(curSocket);
-      setSocket(curSocket);
+  const updateConnectedSession = (toSession?: IBroadcastSession) => {
+    if (!toSession?.id) {
+      disconnect();
+      return;
     }
 
-    if (!toSession) {
-      toSession = session;
+    if (toSession.id === connectedSessionId) return;
+
+    if (connectedSessionId) {
+      leaveSession(connectedSessionId);
     }
 
-    if (!connectedSessionId && !!toSession && !!toSession?.id) {
-      curSocket.emit('joinSession', {
+    if (toSession.secret && toSession.orgId) {
+      connect();
+      joinSession({
         sessionId: toSession.id,
         secret: toSession.secret,
         orgId: toSession.orgId,
         token: authSession?.access_token,
       });
     }
-
-    return curSocket;
-  }
-
-  const updateConnectedSession = (toSession?: IBroadcastSession) => {
-    if (toSession?.id === connectedSessionId) return;
-
-    if (!!connectedSessionId) {
-      ensureSocket()?.emit('leaveSession', {
-        sessionId: connectedSessionId,
-      });
-    }
-
-    if (toSession?.id) {
-      ensureConnection(toSession)?.emit('joinSession', {
-        sessionId: toSession?.id,
-        secret: toSession?.secret,
-        orgId: toSession?.orgId,
-        token: authSession?.access_token,
-      });
-    }
-  }
-
-  const disconnect = () => {
-    if (!socket) return;
-
-    if (connectedSessionId) {
-      socket.emit('leaveSession', {
-        sessionId: connectedSessionId,
-      });
-      setConnectedSessionId(null);
-    }
-
-    socket.disconnect();
-  }
-
-  useEffect(() => {
-    ensureSocket();
-
-    return () => {
-      disconnect();
-    };
-  }, []);
+  };
 
   try {
     const savedBroadcastSession = sessionStorage.getItem('broadcastSession');
@@ -198,30 +137,27 @@ export default function BroadcastProvider({
   }
 
   useEffect(() => {
-    if (!session) return;
+    if (!session || !connectedSessionId) return;
 
-    const curSocket = ensureConnection();
-    curSocket.emit('setSchedule', {
+    emit('setSchedule', {
       sessionId: connectedSessionId,
       schedule,
     });
   }, [schedule]);
 
   useEffect(() => {
-    if (!session) return;
+    if (!session || !connectedSessionId) return;
 
-    const curSocket = ensureConnection();
-    curSocket.emit('setScheduleItem', {
+    emit('setScheduleItem', {
       sessionId: connectedSessionId,
       scheduleItem
     });
   }, [scheduleItem]);
 
   useEffect(() => {
-    if (!session) return;
+    if (!session || !connectedSessionId) return;
 
-    const curSocket = ensureConnection();
-    curSocket.emit('setSelection', {
+    emit('setSelection', {
       sessionId: connectedSessionId,
       selection,
     });
