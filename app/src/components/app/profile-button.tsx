@@ -4,7 +4,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuSep
 import { Button } from "@/components/ui/button";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { useNavigate } from "react-router-dom";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { useQuery } from "@tanstack/react-query";
 
 export default function ProfileButton() {

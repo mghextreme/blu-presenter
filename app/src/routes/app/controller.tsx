@@ -4,7 +4,7 @@ import { PlanPanel } from "@/components/controller/plan-panel";
 import { SchedulePanel } from "@/components/controller/schedule-panel";
 import { LivePanel } from "@/components/controller/live-panel";
 import { SearchProvider } from "@/hooks/search.provider";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";

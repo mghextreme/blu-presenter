@@ -9,7 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { BaseTheme, ILanguage, ISession, isRoleHigherOrEqualThan, ITheme, supportedLanguagesMap, SupportedUILanguage } from "@/types";
 import { SessionSchema } from "@/types/schemas/session.schema";
 import { useAuth } from "@/hooks/useAuth";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import ControllerProvider from "@/hooks/controller.provider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

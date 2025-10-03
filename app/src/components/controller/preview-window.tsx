@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { IBrowserWindow, IScreenDetails } from "@/types/browser";
 import { useController } from "@/hooks/useController";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 
 const defaultThemeOptions = [
   {

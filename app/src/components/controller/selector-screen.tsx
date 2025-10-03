@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { IBrowserWindow, IScreenDetails } from "@/types/browser";
 import { ControllerMode, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import SlideVisualizer from "./slide-visualizer";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 
 interface SelectorScreenProps {
   setMode: (mode: ControllerMode) => void,

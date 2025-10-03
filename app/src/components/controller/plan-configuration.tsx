@@ -12,7 +12,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { BaseTheme, ISession, ITheme } from "@/types";
 import { useBroadcast } from "@/hooks/useBroadcast";
 import { useController } from "@/hooks/useController";

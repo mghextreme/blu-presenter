@@ -8,7 +8,7 @@ import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-orga
 import { Button } from "@/components/ui/button";
 import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { useTranslation } from "react-i18next";
 import { TFunction } from "i18next";
 import { useEffect } from "react";

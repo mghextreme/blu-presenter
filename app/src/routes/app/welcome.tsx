@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { IOrganizationInvitation } from "@/types";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";

@@ -15,7 +15,7 @@ import ControllerLayout from "@/layouts/controller";
 import ControllerSharedLayout from "@/layouts/controller-shared";
 import { loader as publicSessionLoader } from "./app/public-session.loader";
 import PrintLayout from "@/layouts/print";
-import { useServices, ServicesProviderState } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 
 import Home from "./home";
 import SignUp from "./auth/signup";

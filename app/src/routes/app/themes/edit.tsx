@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { BaseTheme, isRoleHigherOrEqualThan, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { Button } from "@/components/ui/button";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import { useForm } from "react-hook-form";

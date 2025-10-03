@@ -5,7 +5,7 @@ import {
 
 import AppNavbar from "@/components/app/navbar";
 import { Toaster } from "@/components/ui/sonner";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";

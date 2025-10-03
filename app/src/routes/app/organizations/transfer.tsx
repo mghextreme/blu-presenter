@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Link, useLoaderData, useNavigate } from "react-router-dom";

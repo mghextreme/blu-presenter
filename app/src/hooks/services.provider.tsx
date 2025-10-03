@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useMemo } from "react";
 import { AuthService, OrganizationsService, SessionsService, SongsService, ThemesService, UsersService } from "@/services";
 import * as config from "@/lib/config";
 import { QueryClient } from "@tanstack/react-query";
@@ -26,7 +26,7 @@ const initialState: ServicesProviderState = {
   sessionsService: {} as SessionsService,
 }
 
-const ServicesContext = createContext<ServicesProviderState>(initialState);
+export const ServicesContext = createContext<ServicesProviderState>(initialState);
 
 export const ServicesProvider = ({ queryClient, children }: ServicesProviderProps) => {
 
@@ -46,8 +46,4 @@ export const ServicesProvider = ({ queryClient, children }: ServicesProviderProp
     sessionsService,
   };
   return <ServicesContext.Provider value={value}>{children}</ServicesContext.Provider>;
-};
-
-export const useServices = () => {
-  return useContext(ServicesContext);
 };
