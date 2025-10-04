@@ -8,6 +8,11 @@ export * from './create-theme.dto';
 export * from './update-theme.dto';
 export * from './copy-theme-to-organization.dto';
 
+export * from './selection.interface';
+export * from './schedule-item.interface';
+export * from './create-session.dto';
+export * from './update-session.dto';
+
 export * from './organization-role.type';
 export * from './create-organization.dto';
 export * from './update-organization.dto';
@@ -27,3 +32,5 @@ export * from './exchange-code.dto';
 export * from './access-token.dto';
 export * from './oauth-redirect.dto';
 export * from './auth-invitation-data.dto';
+
+export * from './authenticated-socket.interface';

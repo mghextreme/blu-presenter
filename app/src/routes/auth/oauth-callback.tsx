@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { useEffect } from "react";
 import { IAuthInvitationData, IExchangeCodeData } from "@/types/auth";
 import { useNavigate, useSearchParams } from "react-router-dom";

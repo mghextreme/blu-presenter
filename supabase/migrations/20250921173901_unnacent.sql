@@ -1,4 +1,4 @@
-CREATE EXTENSION unaccent;
+CREATE EXTENSION IF NOT EXISTS unaccent;
 
 CREATE OR REPLACE FUNCTION get_combined_tsvector(content TEXT, language_name TEXT)
 RETURNS tsvector AS $$

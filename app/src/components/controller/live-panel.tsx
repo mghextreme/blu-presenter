@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { IPositionableElement } from "@/types/browser";
 import { SlideSelector } from "./slide-selector";
 import { PreviewWindow } from "./preview-window";

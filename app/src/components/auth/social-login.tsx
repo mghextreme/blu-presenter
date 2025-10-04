@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 
 import GoogleIcon from "@/components/logos/google";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { ApiError } from "@/types";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";

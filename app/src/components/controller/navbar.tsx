@@ -1,15 +1,16 @@
 import ThemeToggler from "@/components/ui/theme-toggler";
 import ModeToggler from "@/components/ui/mode-toggler";
 import { Button } from "@/components/ui/button";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { v4 } from "uuid";
 import { IWindow } from "@/types";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 import XMarkIcon from "@heroicons/react/24/solid/XMarkIcon";
 import LanguageToggler from "@/components/ui/language-toggler";
 import { useTranslation } from "react-i18next";
-import Clock from "./clock";
+import { Clock } from "./clock";
 import { BluPresenterLogo } from "@/components/app/logo";
+import { BroadcastBadge } from "./broadcast-badge";
 
 export default function ControllerNavbar() {
 
@@ -31,15 +32,16 @@ export default function ControllerNavbar() {
           <Button variant="outline" disabled className="hidden lg:flex">
             <Clock />
           </Button>
-          <LanguageToggler></LanguageToggler>
-          <ThemeToggler></ThemeToggler>
-          <ModeToggler></ModeToggler>
+          <LanguageToggler />
+          <ThemeToggler />
+          <ModeToggler />
+          <BroadcastBadge />
           <Button onClick={() => addWindow({id: v4()} as IWindow)}>
             {t('controls.windows.open')}
-            <PlayIcon className="ms-2 size-4"></PlayIcon>
+            <PlayIcon className="ms-2 size-4" />
           </Button>
           {windows.length > 0 && <Button title={t('controls.windows.closeAll')} onClick={() => closeAllWindows()}>
-            <XMarkIcon className="size-4"></XMarkIcon>
+            <XMarkIcon className="size-4" />
           </Button>}
         </div>
       </div>

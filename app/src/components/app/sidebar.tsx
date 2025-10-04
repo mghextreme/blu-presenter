@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import ChevronDoubleLeftIcon from "@heroicons/react/24/solid/ChevronDoubleLeftIcon";
 import ChevronDoubleRightIcon from "@heroicons/react/24/solid/ChevronDoubleRightIcon";
+import { useAuth } from "@/hooks/useAuth";
+import { isRoleHigherOrEqualThan } from "@/types";
 
 export default function AppSidebar() {
 
@@ -12,10 +14,22 @@ export default function AppSidebar() {
 
   const [expanded, setExpanded] = useState(false);
 
-  function SidebarMenuItem({ to, content }: { to: string, content: string }) {
+  const {
+    organization,
+  } = useAuth();
+
+  function SidebarMenuItem({ to, content, disabled = false }: { to: string, content: string, disabled?: boolean }) {
     return (
       <li>
-        <Link to={to} onClick={() => setExpanded(false)} className="group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background" title={content}>
+        <Link
+          to={to}
+          onClick={() => setExpanded(false)}
+          title={content}
+          className={cn(
+            'group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background',
+            disabled && 'opacity-50 pointer-events-none',
+          )}
+        >
           {content}
         </Link>
       </li>
@@ -40,6 +54,7 @@ export default function AppSidebar() {
             <SidebarMenuItem to="/app/organization" content={t('menu.organization')} />
             <SidebarMenuItem to="/app/songs" content={t('menu.songs')} />
             <SidebarMenuItem to="/app/themes" content={t('menu.themes')} />
+            <SidebarMenuItem to="/app/sessions" content={t('menu.sessions')} disabled={!isRoleHigherOrEqualThan(organization?.role, 'admin')} />
             <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.account')}</h3>
             <hr />
             <SidebarMenuItem to="/app/profile" content={t('menu.profile')} />

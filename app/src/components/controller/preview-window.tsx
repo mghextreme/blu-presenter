@@ -8,8 +8,8 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { IBrowserWindow, IScreenDetails } from "@/types/browser";
-import { useController } from "@/hooks/controller.provider";
-import { useServices } from "@/hooks/services.provider";
+import { useController } from "@/hooks/useController";
+import { useServices } from "@/hooks/useServices";
 
 const defaultThemeOptions = [
   {
@@ -60,6 +60,7 @@ export function PreviewWindow({
   const [ratioOptions, setRatioOptions] = useState<{ value: string, label: string }[]>(defaultRatioOptions);
 
   const {
+    mode,
     setMode,
   } = useController();
 
@@ -70,9 +71,9 @@ export function PreviewWindow({
   const updatePreviewTheme = (theme: ITheme) => {
     setPreviewTheme(theme);
 
-    if (attachControllerMode) {
-      const mode = theme.extends === 'subtitles' ? 'part': 'slide';
-      setMode(mode);
+    if (attachControllerMode && mode !== 'part') {
+      const newMode = theme.extends === 'subtitles' ? 'part': 'slide';
+      setMode(newMode);
     }
   }
   const updatePreviewRatio = (ratio: string) => {

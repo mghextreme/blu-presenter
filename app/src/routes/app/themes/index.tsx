@@ -6,7 +6,7 @@ import { IOrganization, isRoleHigherOrEqualThan, ITheme } from "@/types";
 import { Button } from "@/components/ui/button";
 import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { useTranslation } from "react-i18next";
 import { TFunction } from "i18next";
 import { useEffect } from "react";
@@ -16,6 +16,9 @@ import { toast } from "sonner";
 import { CopyThemeToOrganization } from "@/components/app/themes/copy-theme-to-organization";
 
 const buildColumns = (t: TFunction, organization: IOrganization | null, onDeleteTheme: (themeId: number) => void) => {
+  const canDelete = isRoleHigherOrEqualThan(organization?.role, 'admin');
+  const canEdit = isRoleHigherOrEqualThan(organization?.role, 'member');
+
   const columns: ColumnDef<ITheme>[] = [
     {
       accessorKey: "name",
@@ -39,8 +42,6 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
     {
       id: "actions",
       cell: ({ row }) => {
-        const canDelete = isRoleHigherOrEqualThan(organization?.role, 'admin');
-        const canEdit = isRoleHigherOrEqualThan(organization?.role, 'member');
         return (
           <div className="flex justify-end space-x-2 -m-1">
             <Button
@@ -89,9 +90,9 @@ export default function Themes() {
   const { revalidate } = useRevalidator();
   const { themesService } = useServices();
 
-  const onDeleteTheme = async (songId: number) => {
+  const onDeleteTheme = async (themeId: number) => {
     try {
-      await themesService.delete(songId);
+      await themesService.delete(themeId);
       themesService.clearCache();
       revalidate();
     } catch (e: any) {

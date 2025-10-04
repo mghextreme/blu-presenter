@@ -13,6 +13,7 @@ import { SupabaseModule } from './supabase/supabase.module';
 import { PassportModule } from '@nestjs/passport';
 import { AuthModule } from './auth/auth.module';
 import { ThemesModule } from './themes/themes.module';
+import { SessionsModule } from './sessions/sessions.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ThemesModule } from './themes/themes.module';
     ThemesModule,
     OrganizationsModule,
     AuthModule,
+    SessionsModule,
   ],
   exports: [TypeOrmModule],
   controllers: [AppController],

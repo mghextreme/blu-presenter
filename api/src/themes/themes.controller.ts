@@ -40,9 +40,9 @@ export class ThemesController {
   @OrganizationRole('owner', 'admin', 'member')
   async create(
     @Headers('Organization') orgId: number,
-    @Body() createSongDto: CreateThemeDto,
+    @Body() createThemeDto: CreateThemeDto,
   ): Promise<Theme> {
-    return await this.themesService.create(orgId, createSongDto);
+    return await this.themesService.create(orgId, createThemeDto);
   }
 
   @Post('copyToOrganization')
@@ -84,6 +84,22 @@ export class ThemesController {
     @Query('secret') secret: string,
   ): Promise<Theme[]> {
     return await this.themesService.findAllInOrgBySecret(orgId, secret);
+  }
+
+  @Public()
+  @Get('session/:orgId/:sessionId')
+  async findAllForSession(
+    @Param('orgId') orgId: number,
+    @Param('sessionId') sessionId: number,
+    @Query('secret') secret: string,
+    @Query('theme') theme?: number,
+  ): Promise<Theme[]> {
+    return await this.themesService.findAllForSession(
+      orgId,
+      sessionId,
+      secret,
+      theme,
+    );
   }
 
   @Public()

@@ -4,8 +4,8 @@ import { ConfigModule } from '@nestjs/config';
 import { SupabaseStrategy } from './supabase.strategy';
 import { SupabaseGuard } from './supabase.guard';
 import { Supabase } from './supabase';
-import { UsersService } from '../users/users.service';
-import { OrganizationsService } from '../organizations/organizations.service';
+import { UsersService, UsersBaseService } from '../users/users.service';
+import { OrganizationsService, OrganizationsBaseService } from '../organizations/organizations.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   Organization,
@@ -30,14 +30,18 @@ import {
     SupabaseStrategy,
     SupabaseGuard,
     UsersService,
+    UsersBaseService,
     OrganizationsService,
+    OrganizationsBaseService,
   ],
   exports: [
     Supabase,
     SupabaseStrategy,
     SupabaseGuard,
     UsersService,
+    UsersBaseService,
     OrganizationsService,
+    OrganizationsBaseService,
   ],
 })
 export class SupabaseModule {}

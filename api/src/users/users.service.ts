@@ -7,20 +7,14 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { Supabase } from 'src/supabase/supabase';
 
 @Injectable()
-export class UsersService {
-  private supabaseClient: SupabaseClient;
-
+export class UsersBaseService {
   constructor(
-    private dataSource: DataSource,
+    protected readonly dataSource: DataSource,
     @InjectRepository(User)
-    private usersRepository: Repository<User>,
+    protected readonly usersRepository: Repository<User>,
     @InjectRepository(OrganizationUser)
-    private organizationUsersRepository: Repository<OrganizationUser>,
-    @Inject(Supabase)
-    supabase: Supabase,
-  ) {
-    this.supabaseClient = supabase.getClient();
-  }
+    protected readonly organizationUsersRepository: Repository<OrganizationUser>,
+  ) {}
 
   async findOne(id: number): Promise<User | null> {
     return this.usersRepository.findOneByOrFail({
@@ -32,27 +26,6 @@ export class UsersService {
     return this.usersRepository.findOne({
       where: { authId },
     });
-  }
-
-  async update(id: number, profileDto: UpdateProfileDto): Promise<User | null> {
-    let result;
-    await this.dataSource.transaction(async (manager) => {
-      const usersRepository = manager.getRepository(User);
-      const song = await usersRepository.findOneBy({ id });
-      song.nickname = profileDto.nickname;
-      song.name = profileDto.name;
-
-      this.supabaseClient.auth.updateUser({
-        data: {
-          nickname: profileDto.nickname,
-          name: profileDto.name,
-        },
-      });
-
-      result = await usersRepository.save(song);
-    });
-
-    return result as User;
   }
 
   async findUserOrganizations(
@@ -83,5 +56,44 @@ export class UsersService {
     });
 
     return orgs;
+  }
+}
+
+@Injectable()
+export class UsersService extends UsersBaseService {
+  private supabaseClient: SupabaseClient;
+
+  constructor(
+    protected readonly dataSource: DataSource,
+    @InjectRepository(User)
+    protected readonly usersRepository: Repository<User>,
+    @InjectRepository(OrganizationUser)
+    protected readonly organizationUsersRepository: Repository<OrganizationUser>,
+    @Inject(Supabase)
+    supabase: Supabase,
+  ) {
+    super(dataSource, usersRepository, organizationUsersRepository);
+    this.supabaseClient = supabase.getClient();
+  }
+
+  async update(id: number, profileDto: UpdateProfileDto): Promise<User | null> {
+    let result: User;
+    await this.dataSource.transaction(async (manager) => {
+      const usersRepository = manager.getRepository(User);
+      const song = await usersRepository.findOneBy({ id });
+      song.nickname = profileDto.nickname;
+      song.name = profileDto.name;
+
+      this.supabaseClient.auth.updateUser({
+        data: {
+          nickname: profileDto.nickname,
+          name: profileDto.name,
+        },
+      });
+
+      result = await usersRepository.save(song);
+    });
+
+    return result;
   }
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { Button } from "@/components/ui/button";
 import { Sortable, SortableContent, SortableItem, SortableItemHandle } from "@/components/ui/sortable";
 import { ScheduleItem } from "./schedule-item";

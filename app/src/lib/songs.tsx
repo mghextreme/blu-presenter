@@ -15,27 +15,34 @@ export const alternateLyricsAndChords = (lyrics?: string, chords?: string, optio
     return null;
   }
 
-  if (!hasChords) {
-    return (
-      <p className={options?.lyricsClassName} style={options?.lyricsStyle}>{lyrics}</p>
-    );
-  }
-
   if (!hasLyrics) {
     return (
-      <p className={cn('font-bold', options?.chordsClassName)} style={options?.chordsStyle}>{chords}</p>
+      <p className={cn('chords', options?.chordsClassName)} style={options?.chordsStyle}>{chords}</p>
     );
   }
 
+  const resolvedLyricsClassName = cn('lyrics', options?.lyricsClassName);
+
   const lyricsLines = (lyrics ?? '').split(/\n/);
+  if (!hasChords) {
+    return (
+      <>
+        {lyricsLines.map((line, ix) => (
+          <p key={`lyrics-${ix}`} className={resolvedLyricsClassName} style={options?.lyricsStyle}>{line}</p>
+        ))}
+      </>
+    );
+  }
+
   const chordsLines = (chords ?? '').split(/\n/);
   const maxLines = Math.max(lyricsLines.length, chordsLines.length);
+  const resolvedChordsClassName = cn('chords', options?.lyricsClassName);
 
   return (
     <>
       {Array.from(Array(maxLines)).map((_, i) => {
-        const lyricsLine = lyricsLines[i].trimEnd() ?? '';
-        const chordsLine = chordsLines[i].trimEnd() ?? '';
+        const lyricsLine = i < lyricsLines.length ? lyricsLines[i].trimEnd() : '';
+        const chordsLine = i < chordsLines.length ? chordsLines[i].trimEnd() : '';
 
         if (lyricsLine.length === 0 && chordsLine.length === 0) {
           return null;
@@ -43,8 +50,8 @@ export const alternateLyricsAndChords = (lyrics?: string, chords?: string, optio
 
         return (
           <>
-            <p className={cn('font-bold', options?.chordsClassName)} style={options?.chordsStyle}>{chordsLine}</p>
-            <p className={options?.lyricsClassName} style={options?.lyricsStyle}>{lyricsLine}</p>
+            <p key={`chords-${i}`} className={resolvedChordsClassName} style={options?.chordsStyle}>{chordsLine}</p>
+            <p key={`lyrics-${i}`} className={resolvedLyricsClassName} style={options?.lyricsStyle}>{lyricsLine}</p>
           </>
         );
       })}

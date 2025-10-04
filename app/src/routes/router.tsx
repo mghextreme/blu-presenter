@@ -7,13 +7,15 @@ import {
 } from "react-router-dom";
 
 import AuthLayout from "@/layouts/auth";
-import { loader as authLoader } from "@/layouts/auth.loader"
+import { loader as authLoader } from "@/layouts/auth.loader";
 import AppLayout from "@/layouts/app";
 import AppSharedLayout from "@/layouts/app-shared";
 import ErrorLayout from "@/layouts/error";
 import ControllerLayout from "@/layouts/controller";
+import ControllerSharedLayout from "@/layouts/controller-shared";
+import { loader as publicSessionLoader } from "./app/public-session.loader";
 import PrintLayout from "@/layouts/print";
-import { useServices, ServicesProviderState } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 
 import Home from "./home";
 import SignUp from "./auth/signup";
@@ -23,6 +25,7 @@ import OAuthCallback from "./auth/oauth-callback";
 import Welcome from "./app/welcome";
 import { loader as welcomeLoader } from "./app/welcome.loader";
 import Controller from "./app/controller";
+import Receiver from "./app/receiver";
 import Discover from "./app/discover";
 import Profile from "./app/profile";
 import { loader as profileLoader } from "./app/profile.loader";
@@ -39,6 +42,11 @@ import EditTheme from "./app/themes/edit";
 import { loader as singleThemeLoader } from "./app/themes/single.loader";
 import { loader as allThemesLoader } from "./app/themes/all.loader";
 
+import SessionsIndex from "./app/sessions/index";
+import EditSession from "./app/sessions/edit";
+import { loader as singleSessionLoader } from "./app/sessions/single.loader";
+import { loader as allSessionsLoader } from "./app/sessions/all.loader";
+
 import EditOrganization from "./app/organizations/index";
 import { loader as editOrganizationLoader } from "./app/organizations/index.loader"
 import InviteOrganizationMember, { loader as inviteOrganizationMemberLoader } from "./app/organizations/invite";
@@ -46,9 +54,11 @@ import EditMember, { loader as editMemberLoader } from "./app/organizations/edit
 import TransferOrganization from "./app/organizations/transfer";
 import ImportSong from "./app/songs/import";
 
-export const buildRouter = (services: ServicesProviderState) => {
+export default function AppRouter() {
 
-  return createBrowserRouter(
+  const services = useServices();
+
+  const router = createBrowserRouter(
     createRoutesFromElements(
       <>
         <Route path="/" errorElement={<ErrorLayout />}>
@@ -84,6 +94,11 @@ export const buildRouter = (services: ServicesProviderState) => {
             <Route path="add" element={<EditTheme edit={false} />} />
             <Route path=":id/edit" element={<EditTheme />} loader={(loader: LoaderFunctionArgs) => singleThemeLoader({ params: loader.params, themesService: services.themesService })} />
           </Route>
+          <Route path="sessions">
+            <Route index={true} element={<SessionsIndex />} loader={() => allSessionsLoader({ sessionsService: services.sessionsService })} />
+            <Route path="add" element={<EditSession edit={false} />} />
+            <Route path=":id/edit" element={<EditSession />} loader={(loader: LoaderFunctionArgs) => singleSessionLoader({ params: loader.params, sessionsService: services.sessionsService })} />
+          </Route>
         </Route>
         <Route path="/app" element={<PrintLayout />} errorElement={<ErrorLayout />}>
           <Route path="songs/:id/print" element={<PrintSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
@@ -94,25 +109,26 @@ export const buildRouter = (services: ServicesProviderState) => {
         <Route path="/shared" element={<PrintLayout />} errorElement={<ErrorLayout />}>
           <Route path="print/:id">
             <Route index={true} element={<PrintSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
-            <Route path=":secret" element={<PrintSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.code })} />
+            <Route path=":secret" element={<PrintSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.secret })} />
           </Route>
         </Route>
         <Route path="/shared" element={<AppSharedLayout />} errorElement={<ErrorLayout />}>
           <Route path="view/:id">
             <Route index={true} element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
-            <Route path=":secret" element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.code })} />
+            <Route path=":secret" element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.secret })} />
+          </Route>
+        </Route>
+        <Route path="/shared" element={<ControllerSharedLayout />} errorElement={<ErrorLayout />}>
+          <Route path="session/:orgId/:sessionId/:secret">
+            <Route index={true} element={<Receiver />} loader={(loader: LoaderFunctionArgs) => publicSessionLoader({ params: loader.params, sessionsService: services.sessionsService, themesService: services.themesService })} />
+            <Route path=":theme" element={<Receiver />} loader={(loader: LoaderFunctionArgs) => publicSessionLoader({ params: loader.params, sessionsService: services.sessionsService, themesService: services.themesService })} />
           </Route>
         </Route>
       </>
     )
   );
-}
-
-export default function AppRouter() {
-
-  const services = useServices();
 
   return (
-    <RouterProvider router={buildRouter(services)} />
+    <RouterProvider router={router} />
   )
 }

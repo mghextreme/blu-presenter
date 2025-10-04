@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { CaretSortIcon } from "@radix-ui/react-icons";
 import DocumentDuplicateIcon from "@heroicons/react/24/solid/DocumentDuplicateIcon";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { toast } from "sonner";
 import { isRoleHigherOrEqualThan } from "@/types";
 

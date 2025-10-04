@@ -6,7 +6,7 @@ import ProtectedRoute from "@/components/protected-route";
 import AppSidebar from "@/components/app/sidebar";
 import AppNavbar from "@/components/app/navbar";
 import { Toaster } from "@/components/ui/sonner";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { useEffect } from "react";
 
 export default function AppLayout() {

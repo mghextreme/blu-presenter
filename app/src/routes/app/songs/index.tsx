@@ -8,7 +8,7 @@ import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-orga
 import { Button } from "@/components/ui/button";
 import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { useTranslation } from "react-i18next";
 import { TFunction } from "i18next";
 import { useEffect } from "react";
@@ -17,6 +17,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from "sonner";
 
 const buildColumns = (t: TFunction, organization: IOrganization | null, onDeleteSong: (songId: number) => void) => {
+  const canDelete = isRoleHigherOrEqualThan(organization?.role, 'admin');
+  const canEdit = isRoleHigherOrEqualThan(organization?.role, 'member');
+
   const columns: ColumnDef<ISong>[] = [
     {
       accessorKey: "title",
@@ -37,8 +40,6 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
     {
       id: "actions",
       cell: ({ row }) => {
-        const canDelete = isRoleHigherOrEqualThan(organization?.role, 'admin');
-        const canEdit = isRoleHigherOrEqualThan(organization?.role, 'member');
         return (
           <div className="flex justify-end space-x-2 -m-1">
             {canEdit ? (

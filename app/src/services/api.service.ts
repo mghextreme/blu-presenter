@@ -70,7 +70,8 @@ export abstract class ApiService {
       result['Authorization'] = 'Bearer ' + session.access_token;
     }
 
-    const orgId = this.organization;
+    let orgId: number | string | undefined = baseHeaders['Organization'];
+    orgId = orgId && orgId.length > 0 ? orgId : this.organization;
     if (orgId) {
       result['Organization'] = orgId.toString();
     }

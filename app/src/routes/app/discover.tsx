@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ISongWithRole, isRoleHigherOrEqualThan } from "@/types";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { SearchProvider } from "@/hooks/search.provider";
 import { AdvancedSearchForm } from "@/components/app/search/advanced-search-form";
 import { SearchResultsList } from "@/components/app/search/search-results-list";

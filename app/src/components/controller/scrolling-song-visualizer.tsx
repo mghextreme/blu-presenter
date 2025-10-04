@@ -1,10 +1,10 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IScheduleSong, ITeleprompterThemeConfig, ITheme, TeleprompterTheme } from "@/types";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { useWindow } from "@/hooks/window.provider";
 import { IPositionableElement } from "@/types/browser";
-import Clock from "./clock";
+import { Clock } from "./clock";
 import { alternateLyricsAndChords } from "@/lib/songs";
 import { buildFontStyle } from "@/lib/style";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,6 @@ export const ScrollingSongVisualizer = forwardRef(({
 
   const containerDiv = useRef<HTMLDivElement>(null);
   const wrapperDiv = useRef<HTMLDivElement>(null);
-  const blocksDivs = useRef<HTMLDivElement[]>([]);
 
   const [fontSize, setFontSize] = useState<string>('8vh');
   const updateFontSize = () => {
@@ -48,8 +47,9 @@ export const ScrollingSongVisualizer = forwardRef(({
   const [scheduleSong, setScheduleSong] = useState<IScheduleSong | undefined>(undefined);
   const updateSong = () => {
     const scheduleItemAsSong = scheduleItem as IScheduleSong;
+    if (!scheduleItemAsSong) return;
+
     setScheduleSong(scheduleItemAsSong);
-    blocksDivs.current = blocksDivs.current.slice(0, (scheduleItemAsSong?.blocks?.length ?? 0) + 2);
     updatePosition();
   }
   useEffect(updateSong, [scheduleItem]);
@@ -66,7 +66,7 @@ export const ScrollingSongVisualizer = forwardRef(({
   }, [childWindow]);
 
   const [yPxOffset, setYPxOffset] = useState<number>(0);
-  const [yPartsOffset, setYPartsOffset] = useState<number>(0);
+  const [yPartsPxOffset, setYPartsPxOffset] = useState<number>(0);
   const [selectedBlock, setSelectedBlock] = useState<number>(0);
   const updatePosition = () => {
     const wrapper: IPositionableElement | undefined = wrapperDiv.current as IPositionableElement;
@@ -83,12 +83,15 @@ export const ScrollingSongVisualizer = forwardRef(({
         blockNumber = blocksLength + 2;
       }
     }
+
     setSelectedBlock(blockNumber);
-    const block: IPositionableElement | undefined = blocksDivs.current[blockNumber] as IPositionableElement;
+    const blockDiv = wrapperDiv.current?.children.item(blockNumber) as HTMLDivElement;
+    const block: IPositionableElement | undefined = blockDiv as IPositionableElement;
 
     if (!wrapper || !block) return;
 
-    setYPxOffset(block.offsetTop - wrapper.offsetTop);
+    const deltaFromWrapper = block.offsetTop - wrapper.offsetTop;
+    setYPxOffset(deltaFromWrapper);
 
     let selectedPart = 0;
     if (mode === 'part') {
@@ -97,7 +100,23 @@ export const ScrollingSongVisualizer = forwardRef(({
         selectedPart -= 1; // Adjust for title part
       }
     }
-    setYPartsOffset(selectedPart);
+
+    if (selectedPart === 0) {
+      setYPartsPxOffset(0);
+      return;
+    }
+
+    let lyricsCounter = 0;
+    for (const child of blockDiv.children.item(1)?.children ?? []) {
+      if (child.classList.contains('lyrics')) {
+        lyricsCounter += 1;
+        if (lyricsCounter === 2 * selectedPart) {
+          const pChild = child as HTMLParagraphElement;
+          setYPartsPxOffset(pChild.offsetTop + pChild.offsetHeight);
+          return;
+        }
+      }
+    }
   }
   useEffect(updatePosition, [selection, scheduleSong]);
 
@@ -118,6 +137,16 @@ export const ScrollingSongVisualizer = forwardRef(({
     return selectedSlide?.isEmpty === true && theme.config?.invisibleOnEmptyItems === true;
   }, [selectedSlide, theme.config?.invisibleOnEmptyItems]);
 
+  const [nextUpTitle, setNextUpTitle] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    if (!schedule || !scheduleItem || scheduleItem.index === undefined || scheduleItem.index >= schedule.length - 1) {
+      setNextUpTitle(undefined);
+      return;
+    }
+
+    setNextUpTitle(schedule[scheduleItem.index + 1]?.title);
+  }, [scheduleSong]);
+
   return (
     <div
       className="relative w-full h-full overflow-hidden"
@@ -130,12 +159,9 @@ export const ScrollingSongVisualizer = forwardRef(({
         ref={wrapperDiv as React.Ref<HTMLDivElement>}
         className="w-full leading-[1.15em] px-[.5em] flex flex-col items-start text-left pointer-events-none transition-transform duration-150 ease-out"
         style={{
-          transform: `translateY(calc(.5em - ${yPxOffset}px - ${yPartsOffset * 6}em))`,
+          transform: `translateY(calc(1em - ${yPxOffset}px - ${yPartsPxOffset}px))`,
         }}>
-        <div
-          //@ts-expect-error // TODO look into ref usage here
-          ref={(el: HTMLDivElement) => blocksDivs.current[0] = el}
-          className="mb-[.6em]">
+        <div className="mb-[.6em]" key="title">
           <pre className={cn(config?.title?.fontFamily ?? 'font-source-code-pro')} style={
             buildFontStyle(config?.title, {
               fontSize: 110,
@@ -153,12 +179,13 @@ export const ScrollingSongVisualizer = forwardRef(({
         </div>
         {scheduleSong && scheduleSong.blocks?.map((block, blockIndex) => (
           <div
-            //@ts-expect-error // TODO look into ref usage here
-            ref={(el: HTMLDivElement) => blocksDivs.current[blockIndex + 1] = el}
-            key={blockIndex}
-            className={'flex mb-[.6em]' + (blockIndex === selectedBlock - 1 ? '' : ' opacity-75 transform-[scale(0.95)]')}>
+            key={`block-${blockIndex}`}
+            className={'relative flex mb-[.6em]' + (blockIndex === selectedBlock - 1 ? '' : ' opacity-75 transform-[scale(0.95)]')}>
             <div className="w-[3em] flex flex-col justify-start items-center pr-[.5em] border-r-1 mr-[.5em]">
-              <span className={'font-bold' + (blockIndex === selectedBlock - 1 ? ' text-yellow-500' : '')}>{blockIndex + 1}</span>
+              <span className={cn(
+                'font-bold',
+                blockIndex === selectedBlock - 1 && 'text-yellow-500',
+              )}>{blockIndex + 1}</span>
               <span className="w-full pb-[.2em] border-b-1 mb-[.2em]"></span>
               <span className="text-[0.85em] text-muted">{scheduleSong.blocks?.length}</span>
             </div>
@@ -180,17 +207,30 @@ export const ScrollingSongVisualizer = forwardRef(({
             </div>
           </div>
         ))}
-        {(schedule && scheduleItem && scheduleItem.index != undefined && scheduleItem.index < schedule.length - 1) && (
+        {nextUpTitle && (
           <div
-            //@ts-expect-error // TODO look into ref usage here
-            ref={(el: HTMLDivElement) => blocksDivs.current[-1] = el}
-            className={'flex mb-[.6em]' + ((scheduleSong?.blocks?.length ?? 0) === selectedBlock ? '' : ' opacity-75 transform-[scale(0.95)]')}>
+            className={cn(
+              'flex mb-[.6em] mt-[2em]',
+              (scheduleSong?.blocks?.length ?? 0) + 1 !== selectedBlock && 'opacity-75 transform-[scale(0.95)]',
+            )}
+            key="nextUp"
+          >
             <div className="w-[3em] flex flex-col justify-start items-center pr-[.5em] border-r-1 mr-[.5em]"></div>
             <div className="px-[.5em] leading-[1.3em]">
-              {t('nextUp')}<br />
-              <span className="font-bold">
-                {schedule[scheduleItem.index + 1]?.title}
-              </span>
+              <div style={
+                buildFontStyle(config?.artist, {
+                  fontSize: 110,
+                  fontWeight: 700,
+                  color: config?.foregroundColor,
+                })
+              }>{t('nextUp')}</div>
+              <div style={
+                buildFontStyle(config?.title, {
+                  fontSize: 110,
+                  fontWeight: 700,
+                  color: config?.foregroundColor,
+                })
+              }>{nextUpTitle}</div>
             </div>
           </div>
         )}

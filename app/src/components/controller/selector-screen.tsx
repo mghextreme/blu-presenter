@@ -6,17 +6,28 @@ import { useTranslation } from "react-i18next";
 import { IBrowserWindow, IScreenDetails } from "@/types/browser";
 import { ControllerMode, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import SlideVisualizer from "./slide-visualizer";
-import { useServices } from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
+
+interface SelectorScreenProps {
+  setMode: (mode: ControllerMode) => void,
+  defaultTheme?: ITheme,
+  themeOptions?: ITheme[],
+}
 
 export default function SelectorScreen({
   setMode,
-}: {
-  setMode: (mode: ControllerMode) => void
-}) {
+  defaultTheme,
+  themeOptions,
+}: SelectorScreenProps) {
 
   const { t } = useTranslation("controller");
 
-  const [selectedTheme, setSelectedTheme] = useState<ITheme | undefined>(undefined);
+  const [selectedTheme, setSelectedTheme] = useState<ITheme | undefined>(defaultTheme);
+  useEffect(() => {
+    if (!!selectedTheme) return;
+
+    setSelectedTheme(defaultTheme);
+  }, [defaultTheme]);
 
   const [selectedScreen, setSelectedScreen] = useState(false);
   const [displayOptions, setDisplayOptions] = useState<IScreenDetails[]>([]);
@@ -77,13 +88,21 @@ export default function SelectorScreen({
     themesService,
   } = useServices();
 
-  const [customThemeOptions, setCustomThemeOptions] = useState<ITheme[]>([]);
+  const [customThemeOptions, setCustomThemeOptions] = useState<ITheme[]>(themeOptions ?? []);
   useEffect(() => {
+    if (selectedTheme || themeOptions) return;
+
     themesService.getAllForUser()
       .then((customThemes: ITheme[]) => {
         setCustomThemeOptions(customThemes);
       });
   }, []);
+
+  useEffect(() => {
+    if (!themeOptions) return;
+
+    setCustomThemeOptions(themeOptions);
+  }, [themeOptions]);
 
   return (
     <>
@@ -115,11 +134,6 @@ export default function SelectorScreen({
               <Button key="teleprompter" onClick={() => setThemeAndMode(TeleprompterTheme)}>{t('theme.teleprompter')} - {t('theme.description.teleprompter')} <span className="text-sm opacity-60">({t('organizations.blupresenter')})</span></Button>
             </>
           )}
-        </div>
-      )}
-      {!selectedTheme && !selectedScreen && (
-        <div className="min-h-screen w-full p-4 flex flex-col justify-center items-stretch text-center bg-black text-white text-[8vh]">
-          <h3 className="mb-4">{t('watch.selectTheme')}</h3>
         </div>
       )}
     </>

@@ -1,1 +1,1 @@
-create extension pg_jsonschema with schema extensions;
+create extension IF NOT EXISTS pg_jsonschema with schema extensions;

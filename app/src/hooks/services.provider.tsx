@@ -1,5 +1,5 @@
-import { createContext, useContext, useMemo } from "react";
-import { AuthService, OrganizationsService, SongsService, ThemesService, UsersService } from "@/services";
+import { createContext, useMemo } from "react";
+import { AuthService, OrganizationsService, SessionsService, SongsService, ThemesService, UsersService } from "@/services";
 import * as config from "@/lib/config";
 import { QueryClient } from "@tanstack/react-query";
 
@@ -14,6 +14,7 @@ export type ServicesProviderState = {
   usersService: UsersService,
   organizationsService: OrganizationsService,
   themesService: ThemesService,
+  sessionsService: SessionsService,
 }
 
 const initialState: ServicesProviderState = {
@@ -22,9 +23,10 @@ const initialState: ServicesProviderState = {
   usersService: {} as UsersService,
   organizationsService: {} as OrganizationsService,
   themesService: {} as ThemesService,
+  sessionsService: {} as SessionsService,
 }
 
-const ServicesContext = createContext<ServicesProviderState>(initialState);
+export const ServicesContext = createContext<ServicesProviderState>(initialState);
 
 export const ServicesProvider = ({ queryClient, children }: ServicesProviderProps) => {
 
@@ -33,6 +35,7 @@ export const ServicesProvider = ({ queryClient, children }: ServicesProviderProp
   const organizationsService = useMemo(() => new OrganizationsService(queryClient, config.api), [queryClient, config]);
   const authService = useMemo(() => new AuthService(queryClient, config.api, organizationsService), [queryClient, config, organizationsService]);
   const themesService = useMemo(() => new ThemesService(queryClient, config.api), [queryClient, config]);
+  const sessionsService = useMemo(() => new SessionsService(queryClient, config.api), [queryClient, config]);
 
   const value = {
     authService,
@@ -40,10 +43,7 @@ export const ServicesProvider = ({ queryClient, children }: ServicesProviderProp
     usersService,
     organizationsService,
     themesService,
+    sessionsService,
   };
   return <ServicesContext.Provider value={value}>{children}</ServicesContext.Provider>;
-};
-
-export const useServices = () => {
-  return useContext(ServicesContext);
 };

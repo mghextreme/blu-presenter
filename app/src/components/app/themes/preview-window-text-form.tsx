@@ -2,9 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useController } from "@/hooks/controller.provider";
+import { useController } from "@/hooks/useController";
 import { cn } from "@/lib/utils";
-import { BaseTheme, IScheduleSong, ISlide, ISlideTextContent, ISlideTitleContent } from "@/types";
+import { BaseTheme, IControllerSelection, IScheduleSong, ISlide, ISlideTextContent, ISlideTitleContent } from "@/types";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -20,7 +20,6 @@ export function PreviewWindowTextForm({
 
   const {
     setScheduleItem,
-    setSelection,
     setMode,
     selection,
   } = useController();
@@ -92,11 +91,10 @@ export function PreviewWindowTextForm({
       ],
     } as IScheduleSong;
 
-    setScheduleItem(scheduleItem);
-    setSelection({
+    setScheduleItem(scheduleItem, {
       slide: selection.slide ?? 0,
       part: selection.part ?? 0,
-    });
+    } as IControllerSelection);
     setMode(baseTheme === 'subtitles' ? 'part' : 'slide');
   }
 

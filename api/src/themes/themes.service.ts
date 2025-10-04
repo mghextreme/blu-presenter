@@ -7,6 +7,7 @@ import { UsersService } from 'src/users/users.service';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 import { OrganizationsService } from 'src/organizations/organizations.service';
+import { SessionsService } from 'src/sessions/sessions.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class ThemesService {
@@ -14,6 +15,7 @@ export class ThemesService {
     @InjectRepository(Theme) private readonly themesRepository: Repository<Theme>,
     @Inject(OrganizationsService) private readonly organizationsService: OrganizationsService,
     @Inject(UsersService) private readonly usersService: UsersService,
+    @Inject(SessionsService) private readonly sessionsService: SessionsService,
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {}
 
@@ -101,6 +103,33 @@ export class ThemesService {
     });
   }
 
+  async findAllForSession(orgId: number, sessionId: number, secret: string, theme?: number): Promise<Theme[]> {
+    const session = await this.sessionsService.findOneBySecret(orgId, sessionId, secret);
+    if (!session) {
+      return [];
+    }
+
+    if (!theme && session.theme && !['lyrics', 'subtitles', 'teleprompter'].includes(session.theme)) {
+      theme = Number(session.theme);
+    }
+
+    return await this.themesRepository.find({
+      select: {
+        id: true,
+        name: true,
+        extends: true,
+        config: true,
+      },
+      where: {
+        orgId,
+        id: theme,
+      },
+      order: {
+        name: 'asc',
+      },
+    });
+  }
+
   async findOneInOrgBySecret(orgId: number, id: number, secret: string): Promise<Theme> {
     const theme = await this.themesRepository.findOne({
       select: {
@@ -135,9 +164,9 @@ export class ThemesService {
       config: createThemeDto.config,
       orgId,
     });
-    const songId = result.raw[0].id;
+    const themeId = result.raw[0].id;
 
-    return this.findOne(orgId, songId);
+    return this.findOne(orgId, themeId);
   }
 
   async update(

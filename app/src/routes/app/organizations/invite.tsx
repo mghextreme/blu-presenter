@@ -3,7 +3,7 @@ import {zodResolver} from "@hookform/resolvers/zod"
 import {useForm} from "react-hook-form";
 import {z} from "zod";
 
-import {useServices} from "@/hooks/services.provider";
+import { useServices } from "@/hooks/useServices";
 import { useAuth } from "@/hooks/useAuth";
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Button} from "@/components/ui/button";
