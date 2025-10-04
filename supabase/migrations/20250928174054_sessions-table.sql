@@ -25,7 +25,7 @@ security definer set search_path = ''
 as $$
 begin
   insert into public.sessions ("orgId", "secret", "default")
-  values (new.id, substr(md5(random()::text), 0, 17), 1);
+  values (new.id, substr(md5(random()::text), 0, 17), true);
 
   return new;
 end;
@@ -36,5 +36,5 @@ create trigger on_public_organization_created
   for each row execute procedure public.handle_new_organization();
 
 insert into public.sessions ("orgId", "secret", "default")
-select org.id, substr(md5(random()::text), 0, 17), 1
+select org.id, substr(md5(random()::text), 0, 17), true
 from public.organizations org;
