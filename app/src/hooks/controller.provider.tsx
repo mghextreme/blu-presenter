@@ -202,6 +202,13 @@ export default function ControllerProvider({
   const [selectedSlide, setSelectedSlide] = useState<ISlide | undefined>(initialState.selectedSlide);
   const [overrideSlide, setOverrideSlide] = useState<ISlide | undefined>(initialState.overrideSlide);
 
+  const toggleBlank = () => {
+    if (overrideSlide && overrideSlide.id == 'blank') {
+      clearOverrideSlide();
+    } else {
+      setBlank();
+    }
+  }
   const setBlank = () => {
     setOverrideSlide({
       id: 'blank',
@@ -288,6 +295,47 @@ export default function ControllerProvider({
     }
   };
 
+  const previousItem = (goToEnd: boolean = false) => {
+    let curScheduleItemIx = scheduleItemIx;
+    if (curScheduleItemIx === undefined) {
+      curScheduleItemIx = latestScheduleItemIx;
+    }
+
+    if (curScheduleItemIx === undefined || curScheduleItemIx < 1) return;
+
+    const newScheduleItemIx = curScheduleItemIx - 1;
+    setScheduleItem(schedule[newScheduleItemIx]);
+    setScheduleItemIx(newScheduleItemIx);
+    setLatestScheduleItemIx(newScheduleItemIx);
+
+    if (!goToEnd) {
+      setSlideIx(0);
+      setPartIx(0);
+      return;
+    }
+
+    const newSlides = schedule[newScheduleItemIx]?.slides;
+    setSlideIx(newSlides ? newSlides.length - 1 : 0);
+
+    const newContent = newSlides && newSlides[newSlides.length - 1]?.content;
+    setPartIx(newContent ? newContent.length - 1 : 0);
+  };
+  const nextItem = () => {
+    let curScheduleItemIx = scheduleItemIx;
+    if (curScheduleItemIx === undefined) {
+      curScheduleItemIx = latestScheduleItemIx;
+    }
+
+    if (curScheduleItemIx === undefined || curScheduleItemIx >= schedule.length - 1) return;
+
+    const newScheduleItemIx = curScheduleItemIx + 1;
+    setScheduleItem(schedule[newScheduleItemIx]);
+    setScheduleItemIx(newScheduleItemIx);
+    setLatestScheduleItemIx(newScheduleItemIx);
+    setSlideIx(0);
+    setPartIx(0);
+  };
+
   const previousSlide = () => {
     if (!scheduleItem) return;
 
@@ -303,15 +351,27 @@ export default function ControllerProvider({
       const newSlide = scheduleItem?.slides[newIndex];
       setPartIx((newSlide?.content?.length ?? 1) - 1);
     } else if (config.autoAdvanceScheduleItem && scheduleItemIx !== undefined && scheduleItemIx > 0) {
-      setScheduleItemIx(scheduleItemIx - 1);
-      setLatestScheduleItemIx(scheduleItemIx - 1);
-      setSlideIx((schedule[scheduleItemIx - 1]?.slides.length ?? 1) - 1);
-      setPartIx(-1);
+      const newScheduleItemIx = scheduleItemIx - 1;
+      setScheduleItem(schedule[newScheduleItemIx]);
+      setScheduleItemIx(newScheduleItemIx);
+      setLatestScheduleItemIx(newScheduleItemIx);
+
+      const newSlides = schedule[newScheduleItemIx]?.slides;
+      setSlideIx(newSlides ? newSlides.length - 1 : 0);
+
+      const newContent = newSlides && newSlides[newSlides.length - 1]?.content;
+      setPartIx(newContent ? newContent.length - 1 : 0);
     } else if (config.autoAdvanceScheduleItem && scheduleItemIx === undefined && latestScheduleItemIx > 0) {
-      setScheduleItemIx(latestScheduleItemIx - 1);
-      setLatestScheduleItemIx(latestScheduleItemIx - 1);
-      setSlideIx((schedule[latestScheduleItemIx - 1]?.slides.length ?? 1) - 1);
-      setPartIx(-1);
+      const newScheduleItemIx = latestScheduleItemIx - 1;
+      setScheduleItem(schedule[newScheduleItemIx]);
+      setScheduleItemIx(newScheduleItemIx);
+      setLatestScheduleItemIx(newScheduleItemIx);
+
+      const newSlides = schedule[newScheduleItemIx]?.slides;
+      setSlideIx(newSlides ? newSlides.length - 1 : 0);
+
+      const newContent = newSlides && newSlides[newSlides.length - 1]?.content;
+      setPartIx(newContent ? newContent.length - 1 : 0);
     }
   };
   const nextSlide = () => {
@@ -324,16 +384,8 @@ export default function ControllerProvider({
       const newIndex = slideIx + 1;
       setSlideIx(newIndex);
       setPartIx(0);
-    } else if (config.autoAdvanceScheduleItem && scheduleItemIx !== undefined && scheduleItemIx + 1 < schedule.length) {
-      setScheduleItemIx(scheduleItemIx + 1);
-      setLatestScheduleItemIx(scheduleItemIx + 1);
-      setSlideIx(0);
-      setPartIx(0);
-    } else if (config.autoAdvanceScheduleItem && scheduleItemIx === undefined && latestScheduleItemIx + 1 < schedule.length) {
-      setScheduleItemIx(latestScheduleItemIx + 1);
-      setLatestScheduleItemIx(latestScheduleItemIx + 1);
-      setSlideIx(0);
-      setPartIx(0);
+    } else if (config.autoAdvanceScheduleItem) {
+      nextItem();
     }
   };
 
@@ -480,7 +532,18 @@ export default function ControllerProvider({
   ]);
 
   useHotkeys(Key.ArrowLeft, previous);
+  useHotkeys(Key.PageUp, previous);
+
   useHotkeys(Key.ArrowRight, next);
+  useHotkeys(Key.PageDown, next);
+
+  useHotkeys(`${Key.Control}+${Key.ArrowLeft}`, () => previousItem());
+  useHotkeys(`${Key.Control}+${Key.PageUp}`, () => previousItem());
+
+  useHotkeys(`${Key.Control}+${Key.ArrowRight}`, nextItem);
+  useHotkeys(`${Key.Control}+${Key.PageDown}`, nextItem);
+
+  useHotkeys(`${Key.Control}+B`, toggleBlank);
 
   return (
     <ControllerProviderContext.Provider {...props} value={value}>

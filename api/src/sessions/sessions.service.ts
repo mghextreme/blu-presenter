@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, Scope, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, Scope, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { OrganizationUser, Session } from 'src/entities';
@@ -140,6 +140,10 @@ export class SessionsService {
     const theme = await this.sessionsRepository.findOneBy({ id, orgId });
     if (!theme) {
       throw new NotFoundException();
+    }
+
+    if (theme.default) {
+      throw new BadRequestException('Cannot delete default session');
     }
 
     await this.sessionsRepository.delete(id);
