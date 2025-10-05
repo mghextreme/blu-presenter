@@ -31,6 +31,10 @@ jobs:
       working-directory: ./api
       run: pnpm install
 
+    - name: Run tests
+      working-directory: ./api
+      run: pnpm test
+
     - name: Build API
       working-directory: ./api
       run: pnpm build
@@ -57,6 +61,10 @@ jobs:
     - name: Install dependencies
       working-directory: ./app
       run: pnpm install
+
+    - name: Run tests
+      working-directory: ./app
+      run: pnpm test run
 
     - name: Build App
       working-directory: ./app
