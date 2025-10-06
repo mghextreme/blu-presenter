@@ -42,7 +42,7 @@ describe('ControllerProvider', () => {
 
   describe('Initialization', () => {
     it('should initialize with default state', () => {
-      const { result } = renderHook(() => ControllerProviderContext, {
+      renderHook(() => ControllerProviderContext, {
         wrapper: createWrapper(),
       })
 
@@ -65,7 +65,6 @@ describe('ControllerProvider', () => {
       )
 
       const TestComponent = () => {
-        const context = ControllerProviderContext
         return null
       }
 
