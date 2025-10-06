@@ -2,6 +2,7 @@
   "name": "blu-presenter-api",
   "private": true,
   "version": "0.1.0",
+  "license": "GPL-3.0-or-later",
   "packageManager": "pnpm@10.11.0",
   "scripts": {
     "build": "nest build",
@@ -81,6 +82,9 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
+    }
   }
 }
