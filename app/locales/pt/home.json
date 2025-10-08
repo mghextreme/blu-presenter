@@ -1,12 +1,18 @@
 {
   "button": {
+    "home": "Página Principal",
     "login": "Entrar",
     "signUp": "Cadastrar",
-    "openDashboard": "Abrir Painel"
+    "openDashboard": "Abrir Painel",
+    "openSource": "Open Source (código aberto)",
+    "privacyPolicy": "Política de Privacidade",
+    "termsAndConditions": "Termos e Condições",
+    "documentation": "Documentação",
+    "support": "Suporte"
   },
   "hero": {
     "title": "Bem-vindo ao BluPresenter",
-    "description": "Apresente letras de músicas com facilidade. Em qualquer lugar. A qualquer hora."
+    "description": "Apresente letras de músicas, compartilhe cifras... Em qualquer lugar. A qualquer hora."
   },
   "features": {
     "title": "Por que BluPresenter?",
@@ -16,7 +22,7 @@
     },
     "openSource": {
       "title": "Open source",
-      "description": "Estamos construindo o projeto de forma Open Source desde o início, disponível no GitHub (em breve)"
+      "description": "Estamos construindo o projeto de forma Open Source desde o início, disponível no <1>GitHub</1>. <3>Saiba mais</3>"
     },
     "noInstallation": {
       "title": "Não precisa instalar",
@@ -26,5 +32,8 @@
       "title": "Use de qualquer lugar",
       "description": "Você só precisa de uma conexão com a internet eeee... tá dentro :)"
     }
+  },
+  "footer": {
+    "supportMessage": "Este projeto está disponível sob a licença <1>GNU GPL v3.0</1> e é mantido por doações.<3></3>Considere apoiar-nos <5>Comprando-nos um Café</5>"
   }
 }

@@ -1,10 +1,10 @@
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
-import { Button } from "./button";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Button } from "../ui/button";
 import { useState } from "react";
 import { FlagBr, FlagGb } from "@/components/logos/flags";
 import i18next from "i18next";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
-import { Command, CommandGroup, CommandItem } from "./command";
+import { Command, CommandGroup, CommandItem } from "../ui/command";
 import { useTranslation } from "react-i18next";
 
 type LanguageTogglerProps = {

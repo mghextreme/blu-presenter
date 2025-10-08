@@ -7,14 +7,14 @@ import {
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
-import ThemeToggler from "@/components/ui/theme-toggler";
+import ThemeToggler from "@/components/shared/theme-toggler";
 import { useEffect, useState } from "react";
-import LanguageToggler from "@/components/ui/language-toggler";
+import LanguageToggler from "@/components/shared/language-toggler";
 import { useTranslation } from "react-i18next";
 import { Toaster } from "@/components/ui/sonner";
 import { InvitationProvider } from "@/hooks/invitation.provider";
 import { IOrganizationInvitation } from "@/types";
-import { BluPresenterLogo } from "@/components/app/logo";
+import { BluPresenterLogo } from "@/components/shared/logo";
 
 export default function AuthLayout() {
 

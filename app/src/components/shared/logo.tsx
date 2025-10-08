@@ -45,3 +45,24 @@ export function BluPresenterLogo({
     </Link>
   );
 }
+
+export function BluPresenterSlashIcon({
+  className,
+}: {
+  className?: string;
+}) {
+  return (
+    <svg viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" className={cn('py-1 h-7 w-auto', className)}>
+      <g transform="matrix(1,0,0,1,-15420.2,-6130)">
+        <g transform="matrix(0.0419608,0,0,0.0421875,14815.4,5850.44)">
+          <g transform="matrix(124.323,0,-33.3122,123.655,13820.7,-374333)">
+            <rect x="836.551" y="3081.24" width="1.008" height="8.4" fill="currentColor"/>
+          </g>
+          <g transform="matrix(124.323,0,-33.3122,123.655,13586.8,-374333)">
+            <rect x="836.551" y="3081.24" width="1.008" height="8.4" fill="currentColor"/>
+          </g>
+        </g>
+      </g>
+    </svg>
+  );
+}

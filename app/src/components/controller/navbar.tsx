@@ -1,15 +1,15 @@
-import ThemeToggler from "@/components/ui/theme-toggler";
-import ModeToggler from "@/components/ui/mode-toggler";
+import ThemeToggler from "@/components/shared/theme-toggler";
+import ModeToggler from "@/components/app/mode-toggler";
 import { Button } from "@/components/ui/button";
 import { useController } from "@/hooks/useController";
 import { v4 } from "uuid";
 import { IWindow } from "@/types";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 import XMarkIcon from "@heroicons/react/24/solid/XMarkIcon";
-import LanguageToggler from "@/components/ui/language-toggler";
+import LanguageToggler from "@/components/shared/language-toggler";
 import { useTranslation } from "react-i18next";
 import { Clock } from "./clock";
-import { BluPresenterLogo } from "@/components/app/logo";
+import { BluPresenterLogo } from "@/components/shared/logo";
 import { BroadcastBadge } from "./broadcast-badge";
 
 export default function ControllerNavbar() {

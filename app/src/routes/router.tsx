@@ -10,6 +10,7 @@ import AuthLayout from "@/layouts/auth";
 import { loader as authLoader } from "@/layouts/auth.loader";
 import AppLayout from "@/layouts/app";
 import AppSharedLayout from "@/layouts/app-shared";
+import PublicPagesLayout from "@/layouts/public-pages";
 import ErrorLayout from "@/layouts/error";
 import ControllerLayout from "@/layouts/controller";
 import ControllerSharedLayout from "@/layouts/controller-shared";
@@ -18,6 +19,10 @@ import PrintLayout from "@/layouts/print";
 import { useServices } from "@/hooks/useServices";
 
 import Home from "./home";
+import OpenSource from "./open-source";
+import PrivacyPolicy from "./privacy-policy";
+import TermsAndConditions from "./terms-and-conditions";
+
 import SignUp from "./auth/signup";
 import Login from "./auth/login";
 import OAuthCallback from "./auth/oauth-callback";
@@ -61,13 +66,16 @@ export default function AppRouter() {
   const router = createBrowserRouter(
     createRoutesFromElements(
       <>
-        <Route path="/" errorElement={<ErrorLayout />}>
+        <Route path="/" element={<PublicPagesLayout />} errorElement={<ErrorLayout />}>
           <Route index={true} element={<Home />} />
-          <Route element={<AuthLayout />} loader={(loader: LoaderFunctionArgs) => authLoader({ request: loader.request, organizationsService: services.organizationsService })}>
-            <Route path="login" element={<Login />} />
-            <Route path="signup" element={<SignUp />} />
-            <Route path="oauth/callback" element={<OAuthCallback />} />
-          </Route>
+          <Route path="open-source" element={<OpenSource />} />
+          <Route path="privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="terms-and-conditions" element={<TermsAndConditions />} />
+        </Route>
+        <Route element={<AuthLayout />} errorElement={<ErrorLayout />} loader={(loader: LoaderFunctionArgs) => authLoader({ request: loader.request, organizationsService: services.organizationsService })}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/oauth/callback" element={<OAuthCallback />} />
         </Route>
         <Route path="/app" element={<AppLayout />} errorElement={<ErrorLayout />}>
           <Route index={true} element={<Welcome />} loader={() => welcomeLoader({ organizationsService: services.organizationsService })} />

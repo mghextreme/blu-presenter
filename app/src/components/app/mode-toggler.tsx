@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useController } from "@/hooks/useController";
-import { Button } from "./button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./dialog";
+import { Button } from "../ui/button";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { useTranslation } from "react-i18next";
 
 export default function ModeToggler() {

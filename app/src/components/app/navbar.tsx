@@ -1,9 +1,9 @@
-import ThemeToggler from "@/components/ui/theme-toggler";
-import LanguageToggler from "@/components/ui/language-toggler";
+import ThemeToggler from "@/components/shared/theme-toggler";
+import LanguageToggler from "@/components/shared/language-toggler";
 import ProfileButton from "./profile-button";
 import OrganizationsButton from "./organizations-button";
 import { useAuth } from "@/hooks/useAuth";
-import { BluPresenterLogo } from "./logo";
+import { BluPresenterLogo } from "../shared/logo";
 
 export default function AppNavbar({ children }: { children?: React.ReactNode }) {
 
