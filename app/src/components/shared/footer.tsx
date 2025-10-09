@@ -31,7 +31,7 @@ export function SharedFooter() {
   return (
     <>
       <Divider />
-      <footer className="py-16">
+      <footer className="pt-16 pb-12">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-4 space-y-8 lg:space-x-8 px-4 md:px-8">
           <div className="flex flex-col text-2xl items-center lg:items-start">
             <BluPresenterLogo linkTo="/" />

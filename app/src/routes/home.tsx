@@ -47,7 +47,7 @@ export default function Home() {
             <CardContent>
               <Trans t={t} i18nKey="features.openSource.description">
                 We are building it from scratch as an Open Source platform available in
-                <Link to={"https://github.com/mghextreme/blu-presenter"} target="_blank" className="text-blue-500 hover:underline">GitHub</Link>.
+                <Link to="https://github.com/mghextreme/blu-presenter" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">GitHub</Link>.
                 <Link to="/open-source" className="text-blue-500 hover:underline">Learn more</Link>.
               </Trans>
             </CardContent>
