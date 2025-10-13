@@ -1,0 +1,102 @@
+{
+  "title": "Política de Privacidade",
+  "hero": {
+    "title": "Política de Privacidade",
+    "description": "Descubra como coletamos, usamos e protegemos suas informações pessoais"
+  },
+  "lastUpdated": "Última Atualização:",
+  "intro": {
+    "title": "1. Introdução",
+    "p1": "Bem-vindo ao BluPresenter. Esta Política de Privacidade explica como coletamos, usamos e protegemos suas informações pessoais quando você usa nosso serviço.",
+    "p2": "O BluPresenter é um projeto de código aberto disponível no <1>GitHub</1>. Estamos comprometidos com a transparência e a proteção da sua privacidade. Este serviço é fornecido como está, sem uma estrutura empresarial formal."
+  },
+  "informationWeCollect": {
+    "title": "2. Informações que Coletamos",
+    "p1": "Quando você cria uma conta e usa o BluPresenter, coletamos as seguintes informações pessoais:",
+    "list": [
+      "<0>Informações da Conta:</0> Endereço de e-mail, nome e apelido",
+      "<0>Dados de Autenticação:</0> Credenciais de login e informações de sessão gerenciadas pelo nosso provedor de autenticação"
+    ],
+    "p2": "Nós <1>não</1> usamos ferramentas de análise ou serviços de rastreamento. Coletamos apenas os dados mínimos necessários para fornecer o serviço."
+  },
+  "howWeUseYourInformation": {
+    "title": "3. Como Usamos Suas Informações",
+    "p1": "Usamos suas informações exclusivamente para:",
+    "list": [
+      "Fornecer e manter o serviço BluPresenter",
+      "Autenticar sua conta e gerenciar suas sessões",
+      "Habilitar recursos de colaboração dentro das organizações",
+      "Comunicar com você sobre sua conta ou o serviço"
+    ],
+    "p2": "Nós <1>não</1> vendemos, alugamos ou compartilhamos suas informações pessoais com terceiros - nem para marketing, nem para qualquer outro propósito."
+  },
+  "thirdPartyServices": {
+    "title": "4. Serviços de Terceiros",
+    "p1": "O BluPresenter depende dos seguintes serviços de terceiros:",
+    "supabase": {
+      "title": "Supabase",
+      "p1": "Usamos o <1>Supabase</1> para serviços de autenticação e banco de dados. Os dados da sua conta e os dados da aplicação são armazenados em servidores Supabase localizados na <3>região US East (Ohio) (us-east-2)</3>.",
+      "p2": "As práticas de privacidade do Supabase são regidas pela <1>Política de Privacidade</1> deles."
+    },
+    "googleAuthentication": {
+      "title": "Autenticação Google",
+      "p1": "Se você optar por fazer login com o Google, usamos o serviço OAuth do Google para autenticação. O Google pode coletar informações de acordo com sua <1>Política de Privacidade</1>."
+    }
+  },
+  "cookiesAndLocalStorage": {
+    "title": "5. Cookies e Armazenamento Local",
+    "p1": "O BluPresenter usa cookies e armazenamento do navegador de forma mínima:",
+    "list": [
+      "<0>Cookies de Autenticação:</0> Usados para manter sua sessão de login",
+      "<0>Armazenamento Local e de Sessão:</0> Usados para armazenar suas preferências e tokens de sessão"
+    ],
+    "p2": "Estes são essenciais para o funcionamento adequado do serviço. Não usamos cookies de rastreamento ou publicidade."
+  },
+  "dataSecurity": {
+    "title": "6. Segurança de Dados",
+    "p1": "Tomamos medidas razoáveis para proteger suas informações contra acesso não autorizado, alteração ou destruição. No entanto, nenhum método de transmissão pela Internet é 100% seguro, e não podemos garantir segurança absoluta.",
+    "p2": "Seus dados são armazenados com segurança pelo <1>Supabase</1>, que implementa práticas de segurança padrão na indústria."
+  },
+  "dataRetentionAndDeletion": {
+    "title": "7. Retenção e Exclusão de Dados",
+    "p1": "Atualmente, não temos uma política automatizada de retenção ou exclusão de dados. Seus dados permanecem em nosso sistema enquanto sua conta estiver ativa.",
+    "p2": "Se você deseja excluir sua conta ou ter seus dados removidos, envie uma solicitação através da nossa <1>página de Issues do GitHub</1>. Processaremos sua solicitação o mais rápido possível."
+  },
+  "yourRights": {
+    "title": "8. Seus Direitos",
+    "p1": "Dependendo da sua localização, você pode ter certos direitos em relação aos seus dados pessoais, incluindo:",
+    "list": [
+      "O direito de acessar suas informações pessoais",
+      "O direito de corrigir informações imprecisas",
+      "O direito de solicitar a exclusão de seus dados",
+      "O direito de exportar seus dados"
+    ],
+    "p2": "Para exercer esses direitos, envie uma solicitação através da nossa <1>página de Issues do GitHub</1>."
+  },
+  "internationalUsers": {
+    "title": "9. Usuários Internacionais",
+    "p1": "O BluPresenter é operado a partir do Brasil e usa serviços hospedados nos Estados Unidos (Supabase - região us-east-2). Ao usar nosso serviço, você reconhece que suas informações podem ser transferidas e processadas nos Estados Unidos.",
+    "p2": "Recebemos usuários de todo o mundo, mas esteja ciente de que as leis de proteção de dados podem variar de acordo com o país."
+  },
+  "childrensPrivacy": {
+    "title": "10. Privacidade para Crianças",
+    "p1": "O BluPresenter não possui um requisito de idade mínima. No entanto, se você tiver menos de 13 anos (ou a idade mínima em sua jurisdição), obtenha o consentimento dos pais antes de usar nosso serviço."
+  },
+  "openSourceNature": {
+    "title": "11. Natureza de Código Aberto",
+    "p1": "O BluPresenter é um projeto de código aberto. O código-fonte está disponível publicamente no <1>GitHub</1>, e você pode revisar exatamente como seus dados são tratados no código.",
+    "p2": "Se você optar por auto-hospedar o BluPresenter, você é responsável por suas próprias práticas de tratamento de dados e privacidade."
+  },
+  "changesToThisPrivacyPolicy": {
+    "title": "12. Alterações a Esta Política de Privacidade",
+    "p1": "Podemos atualizar esta Política de Privacidade de tempos em tempos. Quando o fizermos, atualizaremos a data de \"Última Atualização\" no topo desta página. Encorajamos você a revisar esta Política de Privacidade periodicamente.",
+    "p2": "Alterações significativas serão anunciadas através do serviço ou em nosso repositório do GitHub."
+  },
+  "contactUs": {
+    "title": "13. Entre em Contato",
+    "p1": "Se você tiver alguma dúvida, preocupação ou solicitação em relação a esta Política de Privacidade ou seus dados pessoais, entre em contato conosco através de:",
+    "githubIssues": "<0>GitHub Issues:</0> <2>https://github.com/mghextreme/blu-presenter/issues</2>",
+    "githubRepository": "<0>Repositório GitHub:</0> <2>https://github.com/mghextreme/blu-presenter</2>"
+  },
+  "warrantyNote": "<0>Nota:</0> O BluPresenter é fornecido como um projeto de código aberto sem garantias. Embora nos esforcemos para proteger sua privacidade e dados, este serviço é oferecido \"como está\" sem garantias legais formais. Ao usar o BluPresenter, você reconhece e aceita estes termos."
+}

@@ -1,0 +1,19 @@
+{
+  "title": "Open Source",
+  "hero": {
+    "title": "Open Source ou Código Aberto",
+    "description": "Projeto Open Source, construído pela comunidade, para a comunidade"
+  },
+  "reasoning": {
+    "title": "Por que Open Source?",
+    "description": "Construir uma boa plataforma para gerenciar músicas, cifras e apresentações é algo muito complexo para que uma pessoa lide sozinha. Ao abrir o código do BluPresenter, evitamos o risco e gargalo de ter um único desenvolvedor e, em vez disso, permitimos colaboração comunitária. Esta abordagem acelera o desenvolvimento com contribuições de desenvolvedores de todo o mundo, trazendo novos recursos e melhorias mais rápido do que qualquer indivíduo é capaz. Além disso, a visibilidade e transparência do código torna a plataforma mais segura, pois a comunidade pode identificar e corrigir vulnerabilidades que podem passar despercebidas por um indivíduo."
+  },
+  "license": {
+    "title": "GNU GPL v3.0",
+    "description": "BluPresenter está disponível sob a licença <1>GNU GPL v3.0</1>. Isto significa que o código-fonte está livremente disponível e pode ser modificado e distribuído por qualquer um. Você pode encontrar o código-fonte no <3>GitHub</3>."
+  },
+  "selfHosting": {
+    "title": "Auto-hospedagem",
+    "description": "Apesar de recomendarmos o uso da versão hospedada do BluPresenter, o projeto tem suporte a auto-hospedagem. O projeto pode ser clonado do <1>GitHub</1>, construído e executado localmente ou por meio de contêineres, dependendo apenas de uma instância do Supabase - que também pode ser auto-hospedada."
+  }
+}

@@ -2,7 +2,7 @@ import { useTheme } from "@/hooks/useTheme";
 import SunIcon from "@heroicons/react/24/solid/SunIcon";
 import MoonIcon from "@heroicons/react/24/solid/MoonIcon";
 import ComputerIcon from "@heroicons/react/24/solid/ComputerDesktopIcon";
-import { Button } from "./button";
+import { Button } from "../ui/button";
 import { useTranslation } from "react-i18next";
 
 type ThemeTogglerProps = {

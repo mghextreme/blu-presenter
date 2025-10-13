@@ -1,0 +1,19 @@
+{
+  "title": "Open Source",
+  "hero": {
+    "title": "Open Source",
+    "description": "Open Source project, built by the community, for the community"
+  },
+  "reasoning": {
+    "title": "Why Open Source?",
+    "description": "Building a good platform for sheets and presentations is too complex for one person to tackle alone. By making BluPresenter Open Source, we avoid the risks of relying on a single developer and instead allow community collaboration. This approach accelerates development with contributions from developers anywhere, bringing new features and improvements faster than any individual could achieve. Additionally, having many eyes on the code makes it more secure, as the community can quickly identify and fix vulnerabilities that might otherwise go unnoticed."
+  },
+  "license": {
+    "title": "GNU GPL v3.0",
+    "description": "BluPresenter is released under the <1>GNU GPL v3.0 license</1>. This means that the source code is freely available and can be modified and distributed by anyone. You can find the source code on <3>GitHub</3>."
+  },
+  "selfHosting": {
+    "title": "Self-hosting",
+    "description": "While we encourage you to use the hosted version of BluPresenter, it supports self-hosting. The project can be cloned from <1>GitHub</1>, built, and run either locally or through containers, dependending only on a Supabase instance - which can also be self-hosted."
+  }
+}

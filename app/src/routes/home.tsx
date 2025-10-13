@@ -1,50 +1,24 @@
-import { BluPresenterLogo } from "@/components/app/logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import LanguageToggler from "@/components/ui/language-toggler";
-import ThemeToggler from "@/components/ui/theme-toggler";
 import { useAuth } from "@/hooks/useAuth";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
-export default function Welcome() {
+export default function Home() {
   const { t } = useTranslation("home");
 
   const { isLoggedIn } = useAuth();
 
   return (
-    <div className="min-h-screen">
-      <nav className="flex flex-col space-y-0 items-center justify-between px-8 py-4 shadow-sm md:flex-row">
-        <div className="text-2xl">
-          <BluPresenterLogo linkTo="/" />
-        </div>
-        <div className="space-x-2 mt-4 md:mt-0">
-          <LanguageToggler></LanguageToggler>
-          <ThemeToggler></ThemeToggler>
-          {isLoggedIn ? (
-            <Button asChild>
-              <Link to="/app">{t('button.openDashboard')}</Link>
-            </Button>
-          ) : (
-            <>
-              <Button variant="outline" asChild>
-                <Link to="/login">{t('button.login')}</Link>
-              </Button>
-              <Button asChild>
-                <Link to="/signup">{t('button.signUp')}</Link>
-              </Button>
-            </>
-          )}
-        </div>
-      </nav>
+    <>
       <div className="flex flex-col items-center justify-center py-48 px-4 bg-gray-200 dark:bg-gray-900">
         <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
           {t('hero.title')}
         </h1>
-        <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 max-w-xl text-center">
+        <p className="text-lg text-gray-500 dark:text-gray-400 max-w-xl text-center">
           {t('hero.description')}
         </p>
-        <div className="space-x-4">
+        <div className="space-x-4 mt-8">
           {isLoggedIn ? (
             <Button size="lg" asChild>
               <Link to="/app">{t('button.openDashboard')}</Link>
@@ -70,7 +44,13 @@ export default function Welcome() {
           </Card>
           <Card className="bg-transparent border-none gap-0 shadow-none">
             <CardHeader className="text-xl font-medium justify-center">{t('features.openSource.title')}</CardHeader>
-            <CardContent>{t('features.openSource.description')}</CardContent>
+            <CardContent>
+              <Trans t={t} i18nKey="features.openSource.description">
+                We are building it from scratch as an Open Source platform available in
+                <Link to="https://github.com/mghextreme/blu-presenter" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">GitHub</Link>.
+                <Link to="/open-source" className="text-blue-500 hover:underline">Learn more</Link>.
+              </Trans>
+            </CardContent>
           </Card>
           <Card className="bg-transparent border-none gap-0 shadow-none">
             <CardHeader className="text-xl font-medium justify-center">{t('features.noInstallation.title')}</CardHeader>
@@ -82,6 +62,6 @@ export default function Welcome() {
           </Card>
         </div>
       </div>
-    </div>
+    </>
   );
 }
