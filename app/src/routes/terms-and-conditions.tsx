@@ -1,4 +1,5 @@
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 export default function TermsAndConditions() {
   const { t } = useTranslation("terms-and-conditions");
@@ -17,299 +18,312 @@ export default function TermsAndConditions() {
       <div className="flex flex-col items-center py-16 text-left gap-y-12">
         <div className="w-full max-w-4xl px-2 sm:px-4 prose prose-gray dark:prose-invert">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            <strong>Last Updated:</strong> {new Date('2025-10-08T22:00:00-03:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+            <strong>{t('lastUpdated')}</strong> {new Date('2025-10-08T22:00:00-03:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">1. Acceptance of Terms</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('acceptanceTerms.title')}</h2>
             <p>
-              Welcome to BluPresenter. By accessing or using our service, you agree to be bound by these Terms and Conditions.
-              If you do not agree with any part of these terms, you may not use our service.
+              {t('acceptanceTerms.p1')}
             </p>
             <p className="mt-4">
-              BluPresenter is an open-source project provided free of charge. These terms govern your use of the hosted service
-              available at <a href="https://www.blupresenter.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">blupresenter.com</a>.
+              <Trans t={t} i18nKey="acceptanceTerms.p2">
+                BluPresenter is an open-source project provided free of charge. These terms govern your use of the hosted service
+                available at <Link to="/" className="text-blue-500 hover:underline">blupresenter.com</Link>.
+              </Trans>
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">2. Description of Service</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('descriptionOfService.title')}</h2>
             <p>
-              BluPresenter is a web-based lyrics and chords archive and presentation tool that allows you to create, manage, and display lyrics and chords online.
-              The service includes features such as:
+              {t('descriptionOfService.p1')}
             </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Creating and editing songs</li>
-              <li>Organizing content within organizations</li>
-              <li>Displaying presentations through a controller interface</li>
-              <li>Collaborating with other users</li>
+            <ul className="list-disc pl-6 space-y-2 pt-2">
+              {(t('descriptionOfService.list', { returnObjects: true }) as string[]).map((_, index) => (
+                <li key={index}>
+                  {t(`descriptionOfService.list.${index}`)}
+                </li>
+              ))}
             </ul>
             <p className="mt-4">
-              The service is provided "as-is" without any guarantees of availability, uptime, or performance.
+              {t('descriptionOfService.p2')}
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">3. User Accounts</h2>
-            <p>To use BluPresenter, you must create an account. When creating an account, you agree to:</p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Provide accurate personal information</li>
-              <li>Not impersonate any person or entity without explicit permission</li>
-              <li>Maintain the security of your account credentials</li>
-              <li>Accept responsibility for all activities that occur under your account</li>
-              <li>Notify us immediately of any unauthorized use of your account</li>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('userAccounts.title')}</h2>
+            <p>{t('userAccounts.p1')}</p>
+            <ul className="list-disc pl-6 space-y-2 pt-2">
+              {(t('userAccounts.list', { returnObjects: true }) as string[]).map((_, index) => (
+                <li key={index}>
+                  {t(`userAccounts.list.${index}`)}
+                </li>
+              ))}
             </ul>
             <p className="mt-4">
-              You may create an account using email and password, or through third-party authentication providers such as Google.
+              {t('userAccounts.p2')}
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">4. User Content and Ownership</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('userContentAndOwnership.title')}</h2>
             <p>
-              You retain <strong>full ownership</strong> of all content you create, upload, or share through BluPresenter,
-              including presentations, lyrics, chords, and other materials ("User Content").
+              <Trans t={t} i18nKey="userContentAndOwnership.p1">
+                You retain <strong>full ownership</strong> of all content you create, upload, or share through BluPresenter,
+                including presentations, lyrics, chords, and other materials ("User Content").
+              </Trans>
             </p>
             <p className="mt-4">
-              By using our service, you grant BluPresenter a limited, non-exclusive license to store, display, and transmit
-              your User Content solely for the purpose of providing the service to you.
+              {t('userContentAndOwnership.p2')}
             </p>
             <p className="mt-4">
-              You are solely responsible for your User Content and the consequences of posting or publishing it.
-              You represent and warrant that you own or have the necessary rights to use and authorize the use of your User Content.
+              {t('userContentAndOwnership.p3')}
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">5. Prohibited Uses</h2>
-            <p>You agree not to use BluPresenter for any of the following purposes:</p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Any illegal or unauthorized purpose</li>
-              <li>Violating any laws in your jurisdiction or the jurisdiction where the service is hosted</li>
-              <li>Transmitting spam, unsolicited messages, or bulk communications</li>
-              <li>Using automated systems (bots, scripts, scrapers) without explicit permission</li>
-              <li>Attempting to gain unauthorized access to the service or related systems</li>
-              <li>Interfering with or disrupting the service or servers</li>
-              <li>Uploading or transmitting viruses, malware, or other malicious code</li>
-              <li>Harassing, threatening, or abusing other users</li>
-              <li>Impersonating any person or entity</li>
-              <li>Collecting or storing personal data of other users without consent</li>
-              <li>Any activity that may harm, damage, or impair the service or its infrastructure</li>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('prohibitedUses.title')}</h2>
+            <p>{t('prohibitedUses.p1')}</p>
+            <ul className="list-disc pl-6 space-y-2 pt-2">
+              {(t('prohibitedUses.list', { returnObjects: true }) as string[]).map((_, index) => (
+                <li key={index}>
+                  {t(`prohibitedUses.list.${index}`)}
+                </li>
+              ))}
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">6. Account Suspension and Termination</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('accountSuspensionAndTermination.title')}</h2>
             <p>
-              We reserve the right to suspend or terminate your account and access to BluPresenter at any time,
-              without prior notice, for any reason, including but not limited to:
+              {t('accountSuspensionAndTermination.p1')}
             </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Violation of these Terms and Conditions</li>
-              <li>Engaging in prohibited uses as outlined in Section 5</li>
-              <li>Any activity deemed malicious or harmful to the service or other users</li>
-              <li>At the sole discretion of the service author</li>
+            <ul className="list-disc pl-6 space-y-2 pt-2">
+              {(t('accountSuspensionAndTermination.list', { returnObjects: true }) as string[]).map((_, index) => (
+                <li key={index}>
+                  {t(`accountSuspensionAndTermination.list.${index}`)}
+                </li>
+              ))}
             </ul>
             <p className="mt-4">
-              The determination of what constitutes a violation or malicious activity is at the sole discretion of the service author.
+              {t('accountSuspensionAndTermination.p2')}
             </p>
             <p className="mt-4">
-              You may also terminate your account at any time by submitting a request through our
-              <a href="https://github.com/mghextreme/blu-presenter/issues" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline"> GitHub Issues page</a>.
+              <Trans t={t} i18nKey="accountSuspensionAndTermination.p3">
+                You may also terminate your account at any time by submitting a request through our
+                <Link to="https://github.com/mghextreme/blu-presenter/issues" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline"> GitHub Issues page</Link>.
+              </Trans>
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">7. Service Availability and Modifications</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('serviceAvailabilityAndModifications.title')}</h2>
             <p>
-              BluPresenter is provided free of charge with <strong>no guarantees of uptime, availability, or performance</strong>.
-              The service may experience downtime, interruptions, or errors at any time.
+              <Trans t={t} i18nKey="serviceAvailabilityAndModifications.p1">
+                BluPresenter is provided free of charge with <strong>no guarantees of uptime, availability, or performance</strong>.
+                The service may experience downtime, interruptions, or errors at any time.
+              </Trans>
             </p>
             <p className="mt-4">
-              We reserve the right to:
+              {t('serviceAvailabilityAndModifications.p2')}
             </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Modify, suspend, or discontinue the service (or any part thereof) at any time without notice</li>
-              <li>Change features, functionality, or content of the service</li>
-              <li>Impose limits on certain features or restrict access to parts of the service</li>
+            <ul className="list-disc pl-6 space-y-2 pt-2">
+              {(t('serviceAvailabilityAndModifications.list', { returnObjects: true }) as string[]).map((_, index) => (
+                <li key={index}>
+                  {t(`serviceAvailabilityAndModifications.list.${index}`)}
+                </li>
+              ))}
             </ul>
             <p className="mt-4">
-              While our intention is to provide the service for free to as many people as possible,
-              if continuing to operate the service becomes impossible — particularly for financial reasons — the service may be terminated.
+              {t('serviceAvailabilityAndModifications.p3')}
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">8. Open Source Software</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('openSourceSoftware.title')}</h2>
             <p>
-              BluPresenter is an open-source project licensed under the <strong>GNU General Public License v3.0 (GPL-3.0)</strong>.
-              The source code is available on <a href="https://github.com/mghextreme/blu-presenter" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">GitHub</a>.
+              <Trans t={t} i18nKey="openSourceSoftware.p1">
+                BluPresenter is an open-source project licensed under the <strong>GNU General Public License v3.0 (GPL-3.0)</strong>.
+                The source code is available on <Link to="https://github.com/mghextreme/blu-presenter" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">GitHub</Link>.
+              </Trans>
             </p>
             <p className="mt-4">
-              You are free to:
+              {t('openSourceSoftware.p2')}
             </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>View, study, and modify the source code</li>
-              <li>Self-host your own instance of BluPresenter</li>
-              <li>Contribute to the project</li>
+            <ul className="list-disc pl-6 space-y-2 pt-2">
+              {(t('openSourceSoftware.list', { returnObjects: true }) as string[]).map((_, index) => (
+                <li key={index}>
+                  {t(`openSourceSoftware.list.${index}`)}
+                </li>
+              ))}
             </ul>
             <p className="mt-4">
-              If you choose to self-host BluPresenter, you are responsible for your own instance,
-              including data handling, privacy practices, and compliance with applicable laws.
-              These Terms and Conditions apply only to the hosted service at <a href="https://blupresenter.com" className="text-blue-500 hover:underline">blupresenter.com</a>.
+              <Trans t={t} i18nKey="openSourceSoftware.p3">
+                If you choose to self-host BluPresenter, you are responsible for your own instance,
+                including data handling, privacy practices, and compliance with applicable laws.
+                These Terms and Conditions apply only to the hosted service at <Link to="https://blupresenter.com" className="text-blue-500 hover:underline">blupresenter.com</Link>.
+              </Trans>
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">9. Disclaimer of Warranties</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('disclaimerOfWarranties.title')}</h2>
             <p>
-              BluPresenter is provided <strong>"AS IS"</strong> and <strong>"AS AVAILABLE"</strong> without warranties of any kind,
-              either express or implied, including but not limited to:
+              <Trans t={t} i18nKey="disclaimerOfWarranties.p1">
+                BluPresenter is provided <strong>"AS IS"</strong> and <strong>"AS AVAILABLE"</strong> without warranties of any kind,
+                either express or implied, including but not limited to:
+              </Trans>
             </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Warranties of merchantability</li>
-              <li>Fitness for a particular purpose</li>
-              <li>Non-infringement</li>
-              <li>Accuracy, reliability, or availability of the service</li>
-              <li>That the service will be uninterrupted, secure, or error-free</li>
+            <ul className="list-disc pl-6 space-y-2 pt-2">
+              {(t('disclaimerOfWarranties.list', { returnObjects: true }) as string[]).map((_, index) => (
+                <li key={index}>
+                  {t(`disclaimerOfWarranties.list.${index}`)}
+                </li>
+              ))}
             </ul>
             <p className="mt-4">
-              You use the service at your own risk. We do not warrant that the service will meet your requirements or expectations.
+              {t('disclaimerOfWarranties.p2')}
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">10. Limitation of Liability</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('limitationOfLiability.title')}</h2>
             <p>
-              To the maximum extent permitted by applicable law, BluPresenter, its creator, contributors, and service providers
-              shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:
+              {t('limitationOfLiability.p1')}
             </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Loss of data or content</li>
-              <li>Loss of profits or revenue</li>
-              <li>Business interruption</li>
-              <li>Loss of use or goodwill</li>
-              <li>Any other intangible losses</li>
+            <ul className="list-disc pl-6 space-y-2 pt-2">
+              {(t('limitationOfLiability.list', { returnObjects: true }) as string[]).map((_, index) => (
+                <li key={index}>
+                  {t(`limitationOfLiability.list.${index}`)}
+                </li>
+              ))}
             </ul>
             <p className="mt-4">
-              This limitation applies whether the claim is based on warranty, contract, tort, or any other legal theory,
-              even if we have been advised of the possibility of such damages.
+              {t('limitationOfLiability.p2')}
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">11. Indemnification</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('indemnification.title')}</h2>
             <p>
-              You agree to indemnify, defend, and hold harmless BluPresenter, its creator, contributors, and service providers
-              from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from:
+              {t('indemnification.p1')}
             </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Your use of the service</li>
-              <li>Your User Content</li>
-              <li>Your violation of these Terms and Conditions</li>
-              <li>Your violation of any rights of another party</li>
+            <ul className="list-disc pl-6 space-y-2 pt-2">
+              {(t('indemnification.list', { returnObjects: true }) as string[]).map((_, index) => (
+                <li key={index}>
+                  {t(`indemnification.list.${index}`)}
+                </li>
+              ))}
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">12. Third-Party Services</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('thirdPartyServices.title')}</h2>
             <p>
-              BluPresenter relies on third-party services, including:
+              {t('thirdPartyServices.p1')}
             </p>
-            <ul className="list-disc pl-6 space-y-2">
-              <li><strong>Supabase</strong> for authentication and database services</li>
-              <li><strong>Google</strong> for optional OAuth authentication</li>
+            <ul className="list-disc pl-6 space-y-2 pt-2">
+              {(t('thirdPartyServices.list', { returnObjects: true }) as string[]).map((_, index) => (
+                <li key={index}>
+                  <Trans t={t} i18nKey={`thirdPartyServices.list.${index}`}>
+                    <strong>Supabase</strong> for authentication and database services
+                  </Trans>
+                </li>
+              ))}
             </ul>
             <p className="mt-4">
-              Your use of these third-party services is subject to their respective terms of service and privacy policies.
-              We are not responsible for the practices or policies of these third-party services.
+              {t('thirdPartyServices.p2')}
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">13. Privacy</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('privacy.title')}</h2>
             <p>
-              Your use of BluPresenter is also governed by our <a href="/privacy-policy" className="text-blue-500 hover:underline">Privacy Policy</a>,
-              which explains how we collect, use, and protect your personal information.
-              By using the service, you consent to the practices described in the Privacy Policy.
+              <Trans t={t} i18nKey="privacy.p1">
+                Your use of BluPresenter is also governed by our <Link to="/privacy-policy" className="text-blue-500 hover:underline">Privacy Policy</Link>,
+                which explains how we collect, use, and protect your personal information.
+                By using the service, you consent to the practices described in the Privacy Policy.
+              </Trans>
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">14. Intellectual Property</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('intellectualProperty.title')}</h2>
             <p>
-              The BluPresenter software is licensed under GPL-3.0. However, the BluPresenter name, logo, and branding
-              remain the property of the project creator.
+              {t('intellectualProperty.p1')}
             </p>
             <p className="mt-4">
-              All User Content remains the property of the respective users who created it.
+              {t('intellectualProperty.p2')}
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">15. Governing Law and Jurisdiction</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('governingLawAndJurisdiction.title')}</h2>
             <p>
-              These Terms and Conditions shall be governed by and construed in accordance with the laws of Brazil,
-              without regard to its conflict of law provisions.
+              {t('governingLawAndJurisdiction.p1')}
             </p>
             <p className="mt-4">
-              Any disputes arising from or relating to these terms or your use of BluPresenter shall be subject to
-              the exclusive jurisdiction of the courts of Brazil.
+              {t('governingLawAndJurisdiction.p2')}
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">16. Changes to Terms</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('changesToTerms.title')}</h2>
             <p>
-              We reserve the right to modify these Terms and Conditions at any time. When we make changes,
-              we will update the "Last Updated" date at the top of this page.
+              {t('changesToTerms.p1')}
             </p>
             <p className="mt-4">
-              Your continued use of BluPresenter after any changes constitutes your acceptance of the new terms.
-              We encourage you to review these terms periodically.
+              {t('changesToTerms.p2')}
             </p>
             <p className="mt-4">
-              Significant changes will be announced through the service or on our 
-              <a href="https://github.com/mghextreme/blu-presenter" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">GitHub repository</a>.
+              <Trans t={t} i18nKey="changesToTerms.p3">
+                Significant changes will be announced through the service or on our 
+                <Link to="https://github.com/mghextreme/blu-presenter" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">GitHub repository</Link>.
+              </Trans>
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">17. Severability</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('severability.title')}</h2>
             <p>
-              If any provision of these Terms and Conditions is found to be invalid or unenforceable,
-              the remaining provisions shall continue in full force and effect.
+              {t('severability.p1')}
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">18. Entire Agreement</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('entireAgreement.title')}</h2>
             <p>
-              These Terms and Conditions, together with our Privacy Policy, constitute the entire agreement between you and BluPresenter
-              regarding your use of the service and supersede any prior agreements.
+              {t('entireAgreement.p1')}
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold mt-8 mb-4">19. Contact Information</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">{t('contactInformation.title')}</h2>
             <p>
-              If you have any questions, concerns, or feedback regarding these Terms and Conditions, please contact us through:
+              {t('contactInformation.p1')}
             </p>
             <ul className="list-disc pl-6 space-y-2 mt-4">
               <li>
-                <strong>GitHub Issues:</strong> <a href="https://github.com/mghextreme/blu-presenter/issues" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">https://github.com/mghextreme/blu-presenter/issues</a>
+                <Trans t={t} i18nKey="contactInformation.githubIssues">
+                  <strong>GitHub Issues:</strong> <Link to="https://github.com/mghextreme/blu-presenter/issues" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">https://github.com/mghextreme/blu-presenter/issues</Link>
+                </Trans>
               </li>
               <li>
-                <strong>GitHub Repository:</strong> <a href="https://github.com/mghextreme/blu-presenter" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">https://github.com/mghextreme/blu-presenter</a>
+                <Trans t={t} i18nKey="contactInformation.githubRepository">
+                  <strong>GitHub Repository:</strong> <Link to="https://github.com/mghextreme/blu-presenter" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">https://github.com/mghextreme/blu-presenter</Link>
+                </Trans>
               </li>
             </ul>
           </section>
 
           <section className="mt-12 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <p className="text-sm">
-              <strong>Important Notice:</strong> BluPresenter is an open-source project provided free of charge without formal legal guarantees.
-              By using this service, you acknowledge that it is offered "as-is" and that you use it at your own risk.
-              The service creator reserves the right to make all final decisions regarding account management, service availability, and interpretation of these terms.
+              <Trans t={t} i18nKey="warrantyNote">
+                <strong>Important Notice:</strong> BluPresenter is an open-source project provided free of charge without formal legal guarantees.
+                By using this service, you acknowledge that it is offered "as-is" and that you use it at your own risk.
+                The service creator reserves the right to make all final decisions regarding account management, service availability, and interpretation of these terms.
+              </Trans>
             </p>
           </section>
         </div>

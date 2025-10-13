@@ -3,5 +3,169 @@
   "hero": {
     "title": "Terms and Conditions",
     "description": "Please read these terms carefully before using BluPresenter"
-  }
+  },
+  "lastUpdated": "Last Updated:",
+  "acceptanceTerms": {
+    "title": "1. Acceptance of Terms",
+    "p1": "Welcome to BluPresenter. By accessing or using our service, you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you may not use our service.",
+    "p2": "BluPresenter is an open-source project provided free of charge. These terms govern your use of the hosted service available at <1>blupresenter.com</1>."
+  },
+  "descriptionOfService": {
+    "title": "2. Description of Service",
+    "p1": "BluPresenter is a web-based lyrics and chords archive and presentation tool that allows you to create, manage, and display lyrics and chords online. The service includes features such as:",
+    "list": [
+      "Creating and editing songs",
+      "Organizing content within organizations",
+      "Displaying presentations through a controller interface",
+      "Collaborating with other users"
+    ],
+    "p2": "The service is provided \"as-is\" without any guarantees of availability, uptime, or performance."
+  },
+  "userAccounts": {
+    "title": "3. User Accounts",
+    "p1": "To use BluPresenter, you must create an account. When creating an account, you agree to:",
+    "list": [
+      "Provide accurate personal information",
+      "Not impersonate any person or entity",
+      "Maintain the security of your account credentials",
+      "Accept responsibility for all activities that occur under your account",
+      "Notify us immediately of any unauthorized use of your account"
+    ],
+    "p2": "You may create an account using email and password, or through third-party authentication providers such as Google."
+  },
+  "userContentAndOwnership": {
+    "title": "4. User Content and Ownership",
+    "p1": "You retain <1>full ownership</1> of all content you create, upload, or share through BluPresenter, including presentations, lyrics, chords, and other materials (\"User Content\").",
+    "p2": "By using our service, you grant BluPresenter a limited, non-exclusive license to store, display, and transmit your User Content solely for the purpose of providing the service to you.",
+    "p3": "You are solely responsible for your User Content and the consequences of posting or publishing it. You represent and warrant that you own or have the necessary rights to use and authorize the use of your User Content."
+  },
+  "prohibitedUses": {
+    "title": "5. Prohibited Uses",
+    "p1": "You agree not to use BluPresenter for any of the following purposes:",
+    "list": [
+      "Any illegal or unauthorized purpose",
+      "Violating any laws in your jurisdiction or the jurisdiction where the service is hosted",
+      "Transmitting spam, unsolicited messages, or bulk communications",
+      "Using automated systems (bots, scripts, scrapers) without explicit permission",
+      "Attempting to gain unauthorized access to the service or related systems",
+      "Interfering with or disrupting the service or servers",
+      "Uploading or transmitting viruses, malware, or other malicious code",
+      "Harassing, threatening, or abusing other users",
+      "Impersonating any person or entity",
+      "Collecting or storing personal data of other users without consent",
+      "Any activity that may harm, damage, or impair the service or its infrastructure"
+    ]
+  },
+  "accountSuspensionAndTermination": {
+    "title": "6. Account Suspension and Termination",
+    "p1": "We reserve the right to suspend or terminate your account and access to BluPresenter at any time, without prior notice, for any reason, including but not limited to:",
+    "list": [
+      "Violation of these Terms and Conditions",
+      "Engaging in prohibited uses as outlined in Section 5",
+      "Any activity deemed malicious or harmful to the service or other users",
+      "At the sole discretion of the service author"
+    ],
+    "p2": "The determination of what constitutes a violation or malicious activity is at the sole discretion of the service author.",
+    "p3": "You may also terminate your account at any time by submitting a request through our <1>GitHub Issues page</1>."
+  },
+  "serviceAvailabilityAndModifications": {
+    "title": "7. Service Availability and Modifications",
+    "p1": "BluPresenter is provided free of charge with <1>no guarantees of uptime, availability, or performance</1>. The service may experience downtime, interruptions, or errors at any time.",
+    "p2": "We reserve the right to:",
+    "list": [
+      "Modify, suspend, or discontinue the service (or any part thereof) at any time without notice",
+      "Change features, functionality, or content of the service",
+      "Impose limits on certain features or restrict access to parts of the service"
+    ],
+    "p3": "While our intention is to provide the service for free to as many people as possible, if continuing to operate the service becomes impossible — particularly for financial reasons — the service may be terminated."
+  },
+  "openSourceSoftware": {
+    "title": "8. Open Source Software",
+    "p1": "BluPresenter is an open-source project licensed under the <1>GNU General Public License v3.0 (GPL-3.0)</1>. The source code is available on <3>GitHub</3>.",
+    "p2": "You are free to:",
+    "list": [
+      "View, study, and modify the source code",
+      "Self-host your own instance of BluPresenter",
+      "Contribute to the project"
+    ],
+    "p3": "If you choose to self-host BluPresenter, you are responsible for your own instance, including data handling, privacy practices, and compliance with applicable laws. These Terms and Conditions apply only to the hosted service at <1>blupresenter.com</1>."
+  },
+  "disclaimerOfWarranties": {
+    "title": "9. Disclaimer of Warranties",
+    "p1": "BluPresenter is provided <1>\"AS IS\"</1> and <3>\"AS AVAILABLE\"</3> without warranties of any kind, either express or implied, including but not limited to:",
+    "list": [
+      "Warranties of merchantability",
+      "Fitness for a particular purpose",
+      "Non-infringement",
+      "Accuracy, reliability, or availability of the service",
+      "That the service will be uninterrupted, secure, or error-free"
+    ],
+    "p2": "You use the service at your own risk. We do not warrant that the service will meet your requirements or expectations."
+  },
+  "limitationOfLiability": {
+    "title": "10. Limitation of Liability",
+    "p1": "To the maximum extent permitted by applicable law, BluPresenter, its creator, contributors, and service providers shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:",
+    "list": [
+      "Loss of data or content",
+      "Loss of profits or revenue",
+      "Business interruption",
+      "Loss of use or goodwill",
+      "Any other intangible losses"
+    ],
+    "p2": "This limitation applies whether the claim is based on warranty, contract, tort, or any other legal theory, even if we have been advised of the possibility of such damages."
+  },
+  "indemnification": {
+    "title": "11. Indemnification",
+    "p1": "You agree to indemnify, defend, and hold harmless BluPresenter, its creator, contributors, and service providers from any claims, damages, losses, liabilities, and expenses (including legal fees) arising from:",
+    "list": [
+      "Your use of the service",
+      "Your User Content",
+      "Your violation of these Terms and Conditions",
+      "Your violation of any rights of another party"
+    ]
+  },
+  "thirdPartyServices": {
+    "title": "12. Third-Party Services",
+    "p1": "BluPresenter relies on third-party services, including:",
+    "list": [
+      "<0>Supabase</0> for authentication and database services",
+      "<0>Google</0> for optional OAuth authentication"
+    ],
+    "p2": "Your use of these third-party services is subject to their respective terms of service and privacy policies. We are not responsible for the practices or policies of these third-party services."
+  },
+  "privacy": {
+    "title": "13. Privacy",
+    "p1": "Your use of BluPresenter is also governed by our <1>Privacy Policy</1>, which explains how we collect, use, and protect your personal information. By using the service, you consent to the practices described in the Privacy Policy."
+  },
+  "intellectualProperty": {
+    "title": "14. Intellectual Property",
+    "p1": "The BluPresenter software is licensed under GPL-3.0. However, the BluPresenter name, logo, and branding remain the property of the project creator.",
+    "p2": "All User Content remains the property of the respective users who created it."
+  },
+  "governingLawAndJurisdiction": {
+    "title": "15. Governing Law and Jurisdiction",
+    "p1": "These Terms and Conditions shall be governed by and construed in accordance with the laws of Brazil, without regard to its conflict of law provisions.",
+    "p2": "Any disputes arising from or relating to these terms or your use of BluPresenter shall be subject to the exclusive jurisdiction of the courts of Brazil."
+  },
+  "changesToTerms": {
+    "title": "16. Changes to Terms",
+    "p1": "We reserve the right to modify these Terms and Conditions at any time. When we make changes, we will update the \"Last Updated\" date at the top of this page.",
+    "p2": "Your continued use of BluPresenter after any changes constitutes your acceptance of the new terms. We encourage you to review these terms periodically.",
+    "p3": "Significant changes will be announced through the service or on our <1>GitHub repository</1>."
+  },
+  "severability": {
+    "title": "17. Severability",
+    "p1": "If any provision of these Terms and Conditions is found to be invalid or unenforceable, the remaining provisions shall continue in full force and effect."
+  },
+  "entireAgreement": {
+    "title": "18. Entire Agreement",
+    "p1": "These Terms and Conditions, together with our Privacy Policy, constitute the entire agreement between you and BluPresenter regarding your use of the service and supersede any prior agreements."
+  },
+  "contactInformation": {
+    "title": "19. Contact Information",
+    "p1": "If you have any questions, concerns, or feedback regarding these Terms and Conditions, please contact us through:",
+    "githubIssues": "<0>GitHub Issues:</0> <2>https://github.com/mghextreme/blu-presenter/issues</2>",
+    "githubRepository": "<0>GitHub Repository:</0> <2>https://github.com/mghextreme/blu-presenter</2>"
+  },
+  "warrantyNote": "<0>Important Notice:</0> BluPresenter is an open-source project provided free of charge without formal legal guarantees. By using this service, you acknowledge that it is offered \"as-is\" and that you use it at your own risk. The service creator reserves the right to make all final decisions regarding account management, service availability, and interpretation of these terms."
 }
