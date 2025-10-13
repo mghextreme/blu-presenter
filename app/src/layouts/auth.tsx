@@ -10,7 +10,7 @@ import { buttonVariants } from "@/components/ui/button"
 import ThemeToggler from "@/components/shared/theme-toggler";
 import { useEffect, useState } from "react";
 import LanguageToggler from "@/components/shared/language-toggler";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { Toaster } from "@/components/ui/sonner";
 import { InvitationProvider } from "@/hooks/invitation.provider";
 import { IOrganizationInvitation } from "@/types";
@@ -86,6 +86,15 @@ export default function AuthLayout() {
           <InvitationProvider id={inviteData?.id} secret={inviteData?.secret} email={inviteData?.email} organization={inviteData?.organization?.name}>
             <Outlet />
           </InvitationProvider>
+          <div className="mt-4">
+            <p className="text-muted-foreground text-sm text-center">
+              <Trans t={t} i18nKey="legalNotice">
+                By using this service, you agree to our
+                <Link to="/terms-and-conditions" target="_blank" className="text-blue-500 hover:underline">Terms and Conditions</Link> and
+                <Link to="/privacy-policy" target="_blank" className="text-blue-500 hover:underline">Privacy Policy</Link>.
+              </Trans>
+            </p>
+          </div>
           <Toaster />
         </div>
       </div>
