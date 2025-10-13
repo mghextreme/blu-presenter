@@ -3,5 +3,169 @@
   "hero": {
     "title": "Termos e Condições",
     "description": "Por favor, leia atentamente estes termos antes de usar o BluPresenter"
-  }
+  },
+  "lastUpdated": "Última Atualização:",
+  "acceptanceTerms": {
+    "title": "1. Aceitação dos Termos",
+    "p1": "Bem-vindo ao BluPresenter. Ao acessar ou usar nosso serviço, você concorda em estar vinculado a estes Termos e Condições. Se você não concordar com qualquer parte destes termos, não poderá usar nosso serviço.",
+    "p2": "O BluPresenter é um projeto de código aberto fornecido gratuitamente. Estes termos regem o uso do serviço hospedado disponível em <1>blupresenter.com</1>."
+  },
+  "descriptionOfService": {
+    "title": "2. Descrição do Serviço",
+    "p1": "O BluPresenter é uma ferramenta baseada na web para arquivo e apresentação de letras e cifras que permite criar, gerenciar e exibir letras e cifras online. O serviço inclui recursos como:",
+    "list": [
+      "Criar e editar músicas",
+      "Organizar conteúdo dentro de organizações",
+      "Apresentar letras (e cifras) através de um painel de controle",
+      "Colaborar com outros usuários"
+    ],
+    "p2": "O serviço é fornecido \"como está\" sem quaisquer garantias de disponibilidade, tempo de atividade ou desempenho."
+  },
+  "userAccounts": {
+    "title": "3. Contas de Usuário",
+    "p1": "Para usar o BluPresenter, você deve criar uma conta. Ao criar uma conta, você concorda em:",
+    "list": [
+      "Fornecer informações pessoais precisas",
+      "Não se passar por qualquer pessoa ou entidade",
+      "Manter a segurança das credenciais da sua conta",
+      "Aceitar responsabilidade por todas as atividades que ocorrem em sua conta",
+      "Nos notificar imediatamente sobre qualquer uso não autorizado de sua conta"
+    ],
+    "p2": "Você pode criar uma conta usando e-mail e senha, ou através de provedores de autenticação de terceiros, como o Google."
+  },
+  "userContentAndOwnership": {
+    "title": "4. Conteúdo do Usuário e Propriedade",
+    "p1": "Você mantém <1>propriedade total</1> de todo o conteúdo que criar, carregar ou compartilhar através do BluPresenter, incluindo apresentações, letras, cifras e outros materiais (\"Conteúdo do Usuário\").",
+    "p2": "Ao usar nosso serviço, você concede ao BluPresenter uma licença limitada e não exclusiva para armazenar, exibir e transmitir seu Conteúdo do Usuário exclusivamente com o propósito de fornecer o serviço a você.",
+    "p3": "Você é o único responsável pelo seu Conteúdo do Usuário e pelas consequências de publicá-lo. Você declara e garante que possui ou tem os direitos necessários para usar e autorizar o uso do seu Conteúdo do Usuário."
+  },
+  "prohibitedUses": {
+    "title": "5. Usos Proibidos",
+    "p1": "Você concorda em não usar o BluPresenter para qualquer um dos seguintes propósitos:",
+    "list": [
+      "Qualquer propósito ilegal ou não autorizado",
+      "Violar quaisquer leis em sua jurisdição ou na jurisdição onde o serviço está hospedado",
+      "Transmitir spam, mensagens não solicitadas ou comunicações em massa",
+      "Usar sistemas automatizados (bots, scripts, scrapers) sem permissão explícita",
+      "Tentar obter acesso não autorizado ao serviço ou sistemas relacionados",
+      "Interferir ou interromper o serviço ou servidores",
+      "Carregar ou transmitir vírus, malware ou outro código malicioso",
+      "Assediar, ameaçar ou abusar outros usuários",
+      "Se passar por qualquer pessoa ou entidade",
+      "Coletar ou armazenar dados pessoais de outros usuários sem consentimento",
+      "Qualquer atividade que possa prejudicar, danificar ou comprometer o serviço ou sua infraestrutura"
+    ]
+  },
+  "accountSuspensionAndTermination": {
+    "title": "6. Suspensão e Encerramento de Conta",
+    "p1": "Reservamo-nos o direito de suspender ou encerrar sua conta e acesso ao BluPresenter a qualquer momento, sem aviso prévio, por qualquer motivo, incluindo, mas não se limitando a:",
+    "list": [
+      "Violação destes Termos e Condições",
+      "Envolvimento em usos proibidos conforme descrito na Seção 5",
+      "Qualquer atividade considerada maliciosa ou prejudicial ao serviço ou outros usuários",
+      "A critério exclusivo do autor do serviço"
+    ],
+    "p2": "A determinação do que constitui uma violação ou atividade maliciosa fica a critério exclusivo do autor do serviço.",
+    "p3": "Você também pode encerrar sua conta a qualquer momento enviando uma solicitação através da nossa <1>página de Issues do GitHub</1>."
+  },
+  "serviceAvailabilityAndModifications": {
+    "title": "7. Disponibilidade e Modificações do Serviço",
+    "p1": "O BluPresenter é fornecido gratuitamente <1>sem garantias de tempo de atividade, disponibilidade ou desempenho</1>. O serviço pode experimentar tempo de inatividade, interrupções ou erros a qualquer momento.",
+    "p2": "Reservamo-nos o direito de:",
+    "list": [
+      "Modificar, suspender ou descontinuar o serviço (ou qualquer parte dele) a qualquer momento sem aviso",
+      "Alterar recursos, funcionalidades ou conteúdo do serviço",
+      "Impor limites em certos recursos ou restringir o acesso a partes do serviço"
+    ],
+    "p3": "Embora nossa intenção seja fornecer o serviço gratuitamente para o maior número possível de pessoas, se continuar a operar o serviço se tornar impossível — particularmente por razões financeiras — o serviço pode ser encerrado."
+  },
+  "openSourceSoftware": {
+    "title": "8. Software de Código Aberto",
+    "p1": "O BluPresenter é um projeto de código aberto licenciado sob a <1>GNU General Public License v3.0 (GPL-3.0)</1>. O código-fonte está disponível no <3>GitHub</3>.",
+    "p2": "Você é livre para:",
+    "list": [
+      "Visualizar, estudar e modificar o código-fonte",
+      "Auto-hospedar sua própria instância do BluPresenter",
+      "Contribuir para o projeto"
+    ],
+    "p3": "Se você optar por auto-hospedar o BluPresenter, você é responsável por sua própria instância, incluindo tratamento de dados, práticas de privacidade e conformidade com as leis aplicáveis. Estes Termos e Condições se aplicam apenas ao serviço hospedado em <1>blupresenter.com</1>."
+  },
+  "disclaimerOfWarranties": {
+    "title": "9. Isenção de Garantias",
+    "p1": "O BluPresenter é fornecido <1>\"COMO ESTÁ\"</1> e <3>\"CONFORME DISPONÍVEL\"</3> sem garantias de qualquer tipo, expressas ou implícitas, incluindo, mas não se limitando a:",
+    "list": [
+      "Garantias de comercialização",
+      "Adequação a um propósito específico",
+      "Não violação",
+      "Precisão, confiabilidade ou disponibilidade do serviço",
+      "Que o serviço será ininterrupto, seguro ou livre de erros"
+    ],
+    "p2": "Você usa o serviço por sua própria conta e risco. Não garantimos que o serviço atenderá aos seus requisitos ou expectativas."
+  },
+  "limitationOfLiability": {
+    "title": "10. Limitação de Responsabilidade",
+    "p1": "Na máxima extensão permitida pela lei aplicável, o BluPresenter, seu criador, colaboradores e provedores de serviços não serão responsáveis por quaisquer danos indiretos, incidentais, especiais, consequenciais ou punitivos, incluindo, mas não se limitando a:",
+    "list": [
+      "Perda de dados ou conteúdo",
+      "Perda de lucros ou receita",
+      "Interrupção de negócios",
+      "Perda de uso ou boa vontade",
+      "Quaisquer outras perdas intangíveis"
+    ],
+    "p2": "Esta limitação se aplica independentemente de a reclamação ser baseada em garantia, contrato, responsabilidade civil ou qualquer outra teoria legal, mesmo que tenhamos sido avisados da possibilidade de tais danos."
+  },
+  "indemnification": {
+    "title": "11. Indenização",
+    "p1": "Você concorda em indenizar, defender e isentar o BluPresenter, seu criador, colaboradores e provedores de serviços de quaisquer reclamações, danos, perdas, responsabilidades e despesas (incluindo honorários advocatícios) decorrentes de:",
+    "list": [
+      "Seu uso do serviço",
+      "Seu Conteúdo do Usuário",
+      "Sua violação destes Termos e Condições",
+      "Sua violação de quaisquer direitos de terceiros"
+    ]
+  },
+  "thirdPartyServices": {
+    "title": "12. Serviços de Terceiros",
+    "p1": "O BluPresenter depende de serviços de terceiros, incluindo:",
+    "list": [
+      "<0>Supabase</0> para serviços de autenticação e banco de dados",
+      "<0>Google</0> para autenticação OAuth opcional"
+    ],
+    "p2": "Seu uso desses serviços de terceiros está sujeito aos respectivos termos de serviço e políticas de privacidade. Não somos responsáveis pelas práticas ou políticas desses serviços de terceiros."
+  },
+  "privacy": {
+    "title": "13. Privacidade",
+    "p1": "Seu uso do BluPresenter também é regido por nossa <1>Política de Privacidade</1>, que explica como coletamos, usamos e protegemos suas informações pessoais. Ao usar o serviço, você consente com as práticas descritas na Política de Privacidade."
+  },
+  "intellectualProperty": {
+    "title": "14. Propriedade Intelectual",
+    "p1": "O software BluPresenter é licenciado sob GPL-3.0. No entanto, o nome BluPresenter, logotipo e marca permanecem propriedade do criador do projeto.",
+    "p2": "Todo o Conteúdo do Usuário permanece propriedade dos respectivos usuários que o criaram."
+  },
+  "governingLawAndJurisdiction": {
+    "title": "15. Lei Aplicável e Jurisdição",
+    "p1": "Estes Termos e Condições serão regidos e interpretados de acordo com as leis do Brasil, sem considerar suas disposições sobre conflito de leis.",
+    "p2": "Quaisquer disputas decorrentes ou relacionadas a estes termos ou ao seu uso do BluPresenter estarão sujeitas à jurisdição exclusiva dos tribunais do Brasil."
+  },
+  "changesToTerms": {
+    "title": "16. Alterações aos Termos",
+    "p1": "Reservamo-nos o direito de modificar estes Termos e Condições a qualquer momento. Quando fizermos alterações, atualizaremos a data de \"Última Atualização\" no topo desta página.",
+    "p2": "Seu uso contínuo do BluPresenter após quaisquer alterações constitui sua aceitação dos novos termos. Encorajamos você a revisar estes termos periodicamente.",
+    "p3": "Alterações significativas serão anunciadas através do serviço ou em nosso <1>repositório do GitHub</1>."
+  },
+  "severability": {
+    "title": "17. Divisibilidade",
+    "p1": "Se qualquer disposição destes Termos e Condições for considerada inválida ou inexequível, as disposições restantes continuarão em pleno vigor e efeito."
+  },
+  "entireAgreement": {
+    "title": "18. Acordo Integral",
+    "p1": "Estes Termos e Condições, juntamente com nossa Política de Privacidade, constituem o acordo integral entre você e o BluPresenter em relação ao seu uso do serviço e substituem quaisquer acordos anteriores."
+  },
+  "contactInformation": {
+    "title": "19. Informações de Contato",
+    "p1": "Se você tiver alguma dúvida, preocupação ou feedback em relação a estes Termos e Condições, entre em contato conosco através de:",
+    "githubIssues": "<0>GitHub Issues:</0> <2>https://github.com/mghextreme/blu-presenter/issues</2>",
+    "githubRepository": "<0>Repositório GitHub:</0> <2>https://github.com/mghextreme/blu-presenter</2>"
+  },
+  "warrantyNote": "<0>Aviso Importante:</0> O BluPresenter é um projeto de código aberto fornecido gratuitamente sem garantias legais formais. Ao usar este serviço, você reconhece que ele é oferecido \"como está\" e que você o usa por sua própria conta e risco. O criador do serviço reserva-se o direito de tomar todas as decisões finais em relação ao gerenciamento de contas, disponibilidade do serviço e interpretação destes termos."
 }

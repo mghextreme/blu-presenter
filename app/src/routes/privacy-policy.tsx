@@ -18,7 +18,7 @@ export default function PrivacyPolicy() {
       <div className="flex flex-col items-center py-16 text-left gap-y-12">
         <div className="w-full max-w-4xl px-2 sm:px-4 prose prose-gray dark:prose-invert">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            <strong>{t('lastUpdated')}</strong> {new Date('2025-10-08T22:00:00-03:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+            <strong>{t('lastUpdated')}</strong> {new Date('2025-10-13T15:00:00-03:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
 
           <section>
@@ -92,8 +92,10 @@ export default function PrivacyPolicy() {
             <div className="ml-4 mt-4">
               <h3 className="text-lg font-medium mb-2">{t('thirdPartyServices.googleAuthentication.title')}</h3>
               <p>
-                If you choose to sign in with Google, we use Google's OAuth service for authentication.
-                Google may collect information according to their <Link to="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Privacy Policy</Link>.
+                <Trans t={t} i18nKey="thirdPartyServices.googleAuthentication.p1">
+                  If you choose to sign in with Google, we use Google's OAuth service for authentication.
+                  Google may collect information according to their <Link to="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Privacy Policy</Link>.
+                </Trans>
               </p>
             </div>
           </section>
@@ -102,8 +104,13 @@ export default function PrivacyPolicy() {
             <h2 className="text-xl font-semibold mt-8 mb-4">{t('cookiesAndLocalStorage.title')}</h2>
             <p>{t('cookiesAndLocalStorage.p1')}</p>
             <ul className="list-disc pl-6 space-y-2 pt-2">
-              <li><strong>Authentication Cookies:</strong> Used to maintain your login session</li>
-              <li><strong>Local and Session Storage:</strong> Used to store your preferences and session tokens</li>
+              {(t('cookiesAndLocalStorage.list', { returnObjects: true }) as string[]).map((_, index) => (
+                <li key={index}>
+                  <Trans t={t} i18nKey={`cookiesAndLocalStorage.list.${index}`}>
+                    <strong>Authentication Cookies:</strong> Used to maintain your login session
+                  </Trans>
+                </li>
+              ))}
             </ul>
             <p className="mt-4">
               {t('cookiesAndLocalStorage.p2')}

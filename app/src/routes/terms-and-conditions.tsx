@@ -18,7 +18,7 @@ export default function TermsAndConditions() {
       <div className="flex flex-col items-center py-16 text-left gap-y-12">
         <div className="w-full max-w-4xl px-2 sm:px-4 prose prose-gray dark:prose-invert">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            <strong>{t('lastUpdated')}</strong> {new Date('2025-10-08T22:00:00-03:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+            <strong>{t('lastUpdated')}</strong> {new Date('2025-10-13T15:00:00-03:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
 
           <section>

@@ -16,7 +16,7 @@
     "list": [
       "Creating and editing songs",
       "Organizing content within organizations",
-      "Displaying presentations through a controller interface",
+      "Present lyrics (and chords) through a controller interface",
       "Collaborating with other users"
     ],
     "p2": "The service is provided \"as-is\" without any guarantees of availability, uptime, or performance."
