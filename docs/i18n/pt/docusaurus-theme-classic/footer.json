@@ -1,0 +1,10 @@
+{
+  "copyright": {
+    "message": "Copyright © BluPresenter. Construído com Docusaurus.",
+    "description": "A mensagem de direitos autorais no rodapé"
+  },
+  "link.item.label.Home": {
+    "message": "Página Principal",
+    "description": "Link de Rodapé para o BluPresenter"
+  }
+}

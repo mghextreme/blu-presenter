@@ -3,7 +3,8 @@ module.exports = function tailwindPlugin(context, options) {
     name: "tailwind-plugin",
     configurePostCss(postcssOptions) {
       postcssOptions.plugins = [
-        require("@tailwindcss/postcss")
+        require("tailwindcss"),
+        require("autoprefixer"),
       ];
       return postcssOptions;
     },

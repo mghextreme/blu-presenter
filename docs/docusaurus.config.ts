@@ -25,6 +25,11 @@ const config: Config = {
   i18n: {
     defaultLocale: 'en',
     locales: ['en', 'pt'],
+    localeConfigs: {
+      pt: {
+        htmlLang: 'pt-BR',
+      },
+    }
   },
 
   presets: [
@@ -41,6 +46,8 @@ const config: Config = {
     ],
   ],
 
+  plugins: [tailwindPlugin],
+
   themeConfig: {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
@@ -48,17 +55,22 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'My Site',
+      // title: 'BluPresenter',
       logo: {
-        alt: 'My Site Logo',
-        src: 'img/logo.svg',
+        alt: 'BluPresenter',
+        src: 'img/blupresenter-logo.svg',
+        srcDark: 'img/blupresenter-logo-dark.svg',
       },
       items: [
         {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
           position: 'left',
-          label: 'Learn',
+          label: 'Intro',
+        },
+        {
+          type: 'localeDropdown',
+          position: 'right',
         },
         {
           href: 'https://github.com/mghextreme/blu-presenter',
@@ -83,7 +95,7 @@ const config: Config = {
           title: 'Docs',
           items: [
             {
-              label: 'Learn',
+              label: 'Intro',
               to: '/docs/intro',
             },
           ],
@@ -102,13 +114,12 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} BluPresenter. Built with Docusaurus.`,
+      copyright: `Copyright © BluPresenter. Built with Docusaurus.`,
     },
-    // prism: {
-    //   theme: prismThemes.github,
-    //   darkTheme: prismThemes.dracula,
-    // },
-    plugins: [tailwindPlugin],
+    prism: {
+      theme: prismThemes.github,
+      darkTheme: prismThemes.dracula,
+    },
   } satisfies Preset.ThemeConfig,
 };
 
