@@ -49,7 +49,7 @@ const config: Config = {
   plugins: [tailwindPlugin],
 
   themeConfig: {
-    // Replace with your project's social card
+    // TODO: Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     colorMode: {
       respectPrefersColorScheme: true,
@@ -64,9 +64,9 @@ const config: Config = {
       items: [
         {
           type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
+          sidebarId: 'documentationSidebar',
           position: 'left',
-          label: 'Intro',
+          label: 'Documentation',
         },
         {
           type: 'localeDropdown',
@@ -95,7 +95,7 @@ const config: Config = {
           title: 'Docs',
           items: [
             {
-              label: 'Intro',
+              label: 'Documentation',
               to: '/docs/intro',
             },
           ],

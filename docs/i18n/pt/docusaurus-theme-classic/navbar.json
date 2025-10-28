@@ -1,6 +1,6 @@
 {
-    "item.label.Intro": {
-        "message": "Introdução",
-        "description": "Título da página de introdução"
+    "item.label.Documentation": {
+        "message": "Documentação",
+        "description": "Título da página de Documentação"
     }
 }
