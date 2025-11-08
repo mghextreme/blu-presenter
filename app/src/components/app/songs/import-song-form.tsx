@@ -1,7 +1,7 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
-import { getChordsData, isRepetitionCandidate as analyzeRepetitionCandidate } from "@/lib/songs";
+import { getChordsData } from "@/lib/songs";
 import { ISongPart } from "@/types";
 import { Toggle } from "@/components/ui/toggle";
 import { Button } from "@/components/ui/button";
