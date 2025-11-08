@@ -39,6 +39,7 @@ export default function PrintSong() {
     toggleChords,
     showNumbers,
     toggleNumbers,
+    columns,
     compactMode,
     toggleCompactMode,
     showSpotifyCode,
