@@ -3,3 +3,8 @@ export interface ISongPart {
   text?: string
   chords?: string
 }
+
+export interface INumberedSongPart extends ISongPart {
+  sequence: number
+  isFirstAppearance?: boolean
+}

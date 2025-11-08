@@ -7,7 +7,8 @@
   "actions": {
     "create": "Adicionar tema",
     "edit": "Editar tema",
-    "delete": "Remover tema"
+    "delete": "Remover tema",
+    "copyToOrganization": "Copiar para outra organização"
   },
   "button": {
     "add": "Adicionar",
