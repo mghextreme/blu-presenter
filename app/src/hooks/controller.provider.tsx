@@ -199,7 +199,6 @@ export default function ControllerProvider({
     }
   }
 
-  const [selectedSlide, setSelectedSlide] = useState<ISlide | undefined>(initialState.selectedSlide);
   const [overrideSlide, setOverrideSlide] = useState<ISlide | undefined>(initialState.overrideSlide);
 
   const toggleBlank = () => {
@@ -242,11 +241,11 @@ export default function ControllerProvider({
   const [latestScheduleItemIx, setLatestScheduleItemIx] = useState<number>(-1);
   const [scheduleItemIx, setScheduleItemIx] = useState<number | undefined>(undefined);
 
-  useEffect(() => {
+  const selectedSlide = useMemo(() => {
     if (slideIx === undefined || scheduleItem === undefined) {
-      setSelectedSlide(undefined);
+      return undefined;
     } else if (slideIx >= 0 && slideIx < (scheduleItem.slides?.length ?? 0)) {
-      setSelectedSlide(scheduleItem.slides[slideIx]);
+      return scheduleItem.slides[slideIx];
     }
   }, [slideIx, scheduleItem]);
 
