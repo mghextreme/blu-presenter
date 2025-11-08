@@ -6,6 +6,7 @@ export const alternateLyricsAndChords = (lyrics?: string, chords?: string, optio
   lyricsStyle?: any;
   chordsClassName?: string;
   chordsStyle?: any;
+  firstLineCompactMode?: boolean;
 }): ReactNode => {
 
   const hasLyrics = (lyrics?.trim() ?? '').length > 0;
@@ -21,9 +22,17 @@ export const alternateLyricsAndChords = (lyrics?: string, chords?: string, optio
     );
   }
 
-  const resolvedLyricsClassName = cn('lyrics', options?.lyricsClassName);
+  const resolvedLyricsClassName = cn(
+    'lyrics',
+    options?.lyricsClassName,
+    options?.firstLineCompactMode && 'opacity-60 italic',
+  );
 
   const lyricsLines = (lyrics ?? '').split(/\n/);
+  if (options?.firstLineCompactMode) {
+    return <p key={`lyrics-firstLine`} className={resolvedLyricsClassName} style={options?.lyricsStyle}>{lyricsLines[0]}...</p>
+  }
+
   if (!hasChords) {
     return (
       <>
@@ -36,7 +45,7 @@ export const alternateLyricsAndChords = (lyrics?: string, chords?: string, optio
 
   const chordsLines = (chords ?? '').split(/\n/);
   const maxLines = Math.max(lyricsLines.length, chordsLines.length);
-  const resolvedChordsClassName = cn('chords', options?.lyricsClassName);
+  const resolvedChordsClassName = cn('chords', options?.chordsClassName);
 
   return (
     <>
@@ -59,7 +68,7 @@ export const alternateLyricsAndChords = (lyrics?: string, chords?: string, optio
   );
 }
 
-const chordsRegex = /\s[A-G](#{1,2}|b{1,2})?\d*(M|maj|m|min|sus|º|\+)?\d*(\(\d*[+-]?\))?([\\\/][A-G](#{1,2}|b{1,2})?)?\s/gi;
+const chordsRegex = /\s[A-G](#{1,2}|b{1,2})?\(?\d*(M|maj|m|min|sus|º|\+)?\d*(\(\d*[+-]?\))?([\\\/][A-G](#{1,2}|b{1,2})?)?\)?\s/gi;
 export const getChordsData = (text: string) => {
   const words = text.replace(/[\[\]\(\)]+/gi, '').replace(/\s+/gi, ' ').trim().split(/\s/gi);
   const chordsIter = (` ${text} `).matchAll(chordsRegex);

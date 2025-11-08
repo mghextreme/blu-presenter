@@ -10,9 +10,11 @@ interface PrintConfigState {
   toggleChords: () => void
   showNumbers: boolean
   toggleNumbers: () => void
+  columns: number
+  toggleColumns: () => void
   showSpotifyCode: boolean
   toggleSpotifyCode: () => void
-  compactMode: boolean
+  compactMode?: 'compact' | 'firstLine'
   toggleCompactMode: () => void
 }
 
@@ -40,9 +42,25 @@ export const usePrintConfig = create<PrintConfigState>()(
       toggleNumbers: () => {
         return set({ showNumbers: !get().showNumbers });
       },
-      compactMode: true,
+      columns: 1,
+      toggleColumns: () => {
+        const cur = get().columns;
+        if (cur == 1) {
+          return set({ columns: 2 });
+        } else {
+          return set({ columns: 1 });
+        }
+      },
+      compactMode: 'compact',
       toggleCompactMode: () => {
-        return set({ compactMode: !get().compactMode });
+        const cur = get().compactMode;
+        if (cur === 'compact') {
+          return set({ compactMode: 'firstLine' });
+        } else if (cur === 'firstLine') {
+          return set({ compactMode: undefined });
+        } else {
+          return set({ compactMode: 'compact' });
+        }
       },
       showSpotifyCode: true,
       toggleSpotifyCode: () => {
@@ -56,6 +74,7 @@ export const usePrintConfig = create<PrintConfigState>()(
         showChords: state.showChords,
         showNumbers: state.showNumbers,
         compactMode: state.compactMode,
+        columns: state.columns,
         showSpotifyCode: state.showSpotifyCode,
       }),
       storage: createJSONStorage(() => localStorage),
