@@ -44,7 +44,11 @@ export class AuthService {
 
   async signIn(signInDto: SignInDto): Promise<AccessTokenDto> {
     const { data, error } =
-      await this.supabaseClient.auth.signInWithPassword(signInDto);
+      await this.supabaseClient.auth.signInWithPassword({
+        email: signInDto.email,
+        password: signInDto.password,
+        options: { captchaToken: signInDto.captchaToken },
+      });
 
     if (error) {
       switch (error.status) {
@@ -135,6 +139,7 @@ export class AuthService {
       ...signUpDto,
       options: {
         emailRedirectTo: this.configService.get('app.baseUrl') + '/app',
+        captchaToken: signUpDto.captchaToken,
       },
     });
 

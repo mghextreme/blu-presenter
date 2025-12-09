@@ -24,6 +24,8 @@ dist-ssr
 *.sw?
 
 *.env
+*.env.*
+!.env.sample
 
 # Ignorar itens gerados pelo wrangler
 app/.wrangler

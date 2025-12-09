@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import * as React from "react";
+import { useState, HTMLAttributes } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { Turnstile } from '@marsidev/react-turnstile'
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button";
@@ -22,13 +23,15 @@ import { toast } from "sonner";
 import { ApiError } from "@/types";
 import { SocialLogin } from "./social-login";
 
-interface SignUpFormProps extends React.HTMLAttributes<HTMLDivElement> {}
+import { captcha } from "@/lib/config";
+
+interface SignUpFormProps extends HTMLAttributes<HTMLDivElement> {}
 
 export function SignUpForm({ className, ...props }: SignUpFormProps) {
 
   const { t } = useTranslation("auth");
 
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { isLoggedIn } = useAuth();
   const { authService } = useServices();
   const { email: invitedEmail, id, secret } = useInvitation();
@@ -56,8 +59,15 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
     },
   });
 
+  const [captchaToken, setCaptchaToken] = useState<string>('');
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      if (captcha.enabled && !captchaToken) {
+        toast.error(t('errors.captcha verification process failed'));
+        return;
+      }
+
       setIsLoading(true);
 
       let inviteValues = {};
@@ -73,6 +83,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
       await authService.signUp({
         ...values,
         ...inviteValues,
+        captchaToken,
       });
     } catch (e: unknown) {
       const error = e as ApiError;
@@ -124,17 +135,26 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
               </FormItem>
             )}></FormField>
 
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input type="password" placeholder={t('input.confirmPassword')} disabled={isLoading} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}></FormField>
+          <FormField
+            control={form.control}
+            name="confirmPassword"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input type="password" placeholder={t('input.confirmPassword')} disabled={isLoading} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}></FormField>
+
+          {captcha.enabled && (
+            <Turnstile
+              siteKey={captcha.siteKey}
+              onSuccess={(token) => {
+                setCaptchaToken(token)
+              }}
+            />
+          )}
 
           <Button type="submit" disabled={isLoading}>
             {isLoading && (
