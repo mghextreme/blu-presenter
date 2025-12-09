@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import * as React from "react";
+import { useState, HTMLAttributes } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { Turnstile } from '@marsidev/react-turnstile'
 
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/useAuth";
@@ -22,7 +23,9 @@ import { toast } from "sonner";
 import { ApiError } from "@/types";
 import { SocialLogin } from "./social-login";
 
-interface LoginFormProps extends React.HTMLAttributes<HTMLDivElement> {}
+import { captcha } from "@/lib/config";
+
+interface LoginFormProps extends HTMLAttributes<HTMLDivElement> {}
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -34,7 +37,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
   const { t } = useTranslation("auth");
   const { email: invitedEmail, id, secret } = useInvitation();
 
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { isLoggedIn } = useAuth();
   const { authService } = useServices();
 
@@ -46,8 +49,15 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
     },
   });
 
+  const [captchaToken, setCaptchaToken] = useState<string>('');
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      if (captcha.enabled && !captchaToken) {
+        toast.error(t('errors.captcha verification process failed'));
+        return;
+      }
+
       setIsLoading(true);
 
       let inviteValues = {};
@@ -63,6 +73,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
       await authService.signIn({
         ...values,
         ...inviteValues,
+        captchaToken,
       });
     } catch (e: unknown) {
       const error = e as ApiError;
@@ -113,6 +124,15 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
                 <FormMessage />
               </FormItem>
             )}></FormField>
+
+          {captcha.enabled && (
+            <Turnstile
+              siteKey={captcha.siteKey}
+              onSuccess={(token) => {
+                setCaptchaToken(token)
+              }}
+            />
+          )}
 
           <Button type="submit" disabled={isLoading}>
             {isLoading && (

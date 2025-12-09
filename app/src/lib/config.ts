@@ -15,3 +15,8 @@ export const api = {
   port,
   url,
 }
+
+export const captcha = {
+  siteKey: metaEnv.VITE_TURNSTILE_SITE_KEY || '',
+  enabled: metaEnv.VITE_DISABLE_CAPTCHA !== 'true',
+}

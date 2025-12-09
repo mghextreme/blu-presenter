@@ -9,12 +9,14 @@ export interface ISignInData {
   email: string;
   password: string;
   invite?: IAuthInvitationData;
+  captchaToken?: string;
 }
 
 export interface ISignUpData {
   email: string;
   password: string;
   invite?: IAuthInvitationData;
+  captchaToken?: string;
 }
 
 export interface IRefreshSessionData {

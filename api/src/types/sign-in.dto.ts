@@ -9,4 +9,6 @@ export class SignInDto extends AuthDto {
   @IsNotEmpty()
   @MinLength(8)
   password: string;
+
+  captchaToken?: string;
 }
