@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 type ValidTab = 'plan' | 'schedule' | 'live';
 
-export default function Controller() {
+export function Controller() {
 
   const { t } = useTranslation("controller");
 

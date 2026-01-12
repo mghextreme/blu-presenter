@@ -1,11 +1,11 @@
-import ThemeToggler from "@/components/shared/theme-toggler";
-import LanguageToggler from "@/components/shared/language-toggler";
-import ProfileButton from "./profile-button";
-import OrganizationsButton from "./organizations-button";
+import { ThemeToggler } from "@/components/shared/theme-toggler";
+import { LanguageToggler } from "@/components/shared/language-toggler";
+import { ProfileButton } from "./profile-button";
+import { OrganizationsButton } from "./organizations-button";
 import { useAuth } from "@/hooks/useAuth";
 import { BluPresenterLogo } from "../shared/logo";
 
-export default function AppNavbar({ children }: { children?: React.ReactNode }) {
+export function AppNavbar({ children }: { children?: React.ReactNode }) {
 
   const { isLoggedIn } = useAuth();
 

@@ -195,7 +195,7 @@ const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, use
   return columns;
 }
 
-export default function EditOrganization({
+export function EditOrganization({
   edit = true
 }: EditOrganizationProps) {
 

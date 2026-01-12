@@ -1,7 +1,7 @@
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
-export default function TermsAndConditions() {
+export function TermsAndConditions() {
   const { t } = useTranslation("terms-and-conditions");
 
   return (

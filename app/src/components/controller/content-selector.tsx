@@ -10,7 +10,7 @@ type ContentSelectorParams = {
   contentIndex: number
 }
 
-export default function ContentSelector({
+export function ContentSelector({
   content,
   selected = false,
   disabled = false,

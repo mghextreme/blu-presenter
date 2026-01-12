@@ -23,7 +23,7 @@ const isBlockEqual = (a: ISongPart, b: ISongPart) => {
   return a.text === b.text && a.chords === b.chords;
 };
 
-export default function PrintSong() {
+export function PrintSong() {
 
   const { t } = useTranslation("songs");
 

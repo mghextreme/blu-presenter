@@ -2,9 +2,9 @@ import { createContext, useMemo, useState } from "react"
 import { useHotkeys } from 'react-hotkeys-hook';
 import { Key } from 'ts-key-enum';
 
-import SelectorScreen from "@/components/controller/selector-screen"
+import { SelectorScreen } from "@/components/controller/selector-screen"
 import { IScheduleItem, IWindow, ISlide, ControllerMode, ISlideTextContent, ISlideImageContent, IControllerSelection } from "@/types"
-import WindowProvider from "./window.provider"
+import { WindowProvider } from "./window.provider"
 
 export interface IControllerConfig {
   autoAdvanceScheduleItem: boolean
@@ -89,7 +89,7 @@ const initialState: ControllerProviderState = {
 
 export const ControllerProviderContext = createContext<ControllerProviderState>(initialState);
 
-export default function ControllerProvider({
+export function ControllerProvider({
   storeState = false,
   children,
   ...props

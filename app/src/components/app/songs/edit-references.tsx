@@ -3,13 +3,13 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { SongSchema } from "@/types/schemas/song.schema";
 import { Button } from "@/components/ui/button";
-import EditSongReferencesItem from "./edit-references-item";
+import { EditSongReferencesItem } from "./edit-references-item";
 
 interface EditSongReferencesProps {
   form: UseFormReturn<z.infer<typeof SongSchema>>,
 }
 
-export default function EditSongReferences({
+export function EditSongReferences({
   form,
 }: EditSongReferencesProps) {
 

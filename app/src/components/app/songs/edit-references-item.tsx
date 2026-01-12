@@ -17,7 +17,7 @@ interface EditSongReferencesItemProps {
   remove: UseFieldArrayRemove,
 }
 
-export default function EditSongReferencesItem({
+export function EditSongReferencesItem({
   form,
   ix,
   remove,

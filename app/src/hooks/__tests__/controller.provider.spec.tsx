@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { ReactNode } from 'react'
-import ControllerProvider, { ControllerProviderContext } from '../controller.provider'
+import { ControllerProvider, ControllerProviderContext } from '../controller.provider'
 import {
   mockScheduleItems,
 } from '@/test/mockData/scheduleItems'
@@ -13,12 +13,12 @@ vi.mock('react-hotkeys-hook', () => ({
 
 // Mock WindowProvider
 vi.mock('../window.provider', () => ({
-  default: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  WindowProvider: ({ children }: { children: ReactNode }) => <div>{children}</div>,
 }))
 
 // Mock SelectorScreen
 vi.mock('@/components/controller/selector-screen', () => ({
-  default: () => <div>SelectorScreen</div>,
+  SelectorScreen: () => <div>SelectorScreen</div>,
 }))
 
 interface WrapperProps {

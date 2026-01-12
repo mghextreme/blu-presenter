@@ -16,7 +16,7 @@ const initialState: WindowProviderState = {
 
 const WindowProviderContext = createContext<WindowProviderState>(initialState);
 
-export default function WindowProvider({
+export function WindowProvider({
   id,
   children,
   ...props

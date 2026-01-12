@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { isRouteErrorResponse, Link, useNavigate, useRouteError } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import LanguageToggler from "@/components/shared/language-toggler";
-import ThemeToggler from "@/components/shared/theme-toggler";
+import { LanguageToggler } from "@/components/shared/language-toggler";
+import { ThemeToggler } from "@/components/shared/theme-toggler";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { ApiError } from "@/types";
@@ -29,7 +29,7 @@ function errorLayout(error: any) {
   }
 }
 
-export default function ErrorLayout() {
+export function ErrorLayout() {
   const error = useRouteError();
 
   const { isLoggedIn, signOut } = useAuth();

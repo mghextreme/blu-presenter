@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 
-import GoogleIcon from "@/components/logos/google";
+import { GoogleIcon } from "@/components/logos/google";
 import { useServices } from "@/hooks/useServices";
 import { ApiError } from "@/types";
 import { toast } from "sonner";

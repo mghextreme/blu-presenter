@@ -14,7 +14,7 @@ import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-export default function Profile() {
+export function Profile() {
 
   const { t } = useTranslation("profile");
   const data = useLoaderData() as IProfile;

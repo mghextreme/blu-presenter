@@ -1,7 +1,7 @@
 import { LoginForm } from "@/components/auth/login-form";
 import { useTranslation } from "react-i18next";
 
-export default function Login() {
+export function Login() {
 
   const { t } = useTranslation("auth");
 

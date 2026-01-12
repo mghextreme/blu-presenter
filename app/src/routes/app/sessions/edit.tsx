@@ -10,7 +10,7 @@ import { BaseTheme, ILanguage, ISession, isRoleHigherOrEqualThan, ITheme, suppor
 import { SessionSchema } from "@/types/schemas/session.schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useServices } from "@/hooks/useServices";
-import ControllerProvider from "@/hooks/controller.provider";
+import { ControllerProvider } from "@/hooks/controller.provider";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -41,7 +41,7 @@ type EditSessionProps = {
   edit?: boolean
 }
 
-export default function EditSession({
+export function EditSession({
   edit = true,
 }: EditSessionProps) {
 

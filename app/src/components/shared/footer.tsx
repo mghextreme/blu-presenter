@@ -3,10 +3,10 @@ import { Trans, useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import GithubIcon from "@/components/logos/github";
+import { GithubIcon } from "@/components/logos/github";
 import { BluPresenterLogo, BluPresenterSlashIcon } from "@/components/shared/logo";
-import LanguageToggler from "./language-toggler";
-import ThemeToggler from "./theme-toggler";
+import { LanguageToggler } from "./language-toggler";
+import { ThemeToggler } from "./theme-toggler";
 
 export function Divider({ className }: { className?: string }) {
   return (

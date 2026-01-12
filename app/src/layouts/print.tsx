@@ -2,7 +2,7 @@ import {
   Outlet,
 } from "react-router-dom";
 
-export default function PrintLayout() {
+export function PrintLayout() {
 
   return (
     <div className="bg-white text-slate-900">

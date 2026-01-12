@@ -8,7 +8,7 @@ type SlideVisualizerProps = {
   theme?: ITheme
 }
 
-export default function SlideVisualizer({
+export function SlideVisualizer({
   theme = LyricsTheme,
 }: SlideVisualizerProps) {
 

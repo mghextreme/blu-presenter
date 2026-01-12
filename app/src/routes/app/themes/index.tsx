@@ -81,7 +81,7 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
   return columns;
 }
 
-export default function Themes() {
+export function Themes() {
 
   const { t } = useTranslation("themes");
   const { organization } = useAuth();

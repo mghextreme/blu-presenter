@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { IAuthInvitationData, IExchangeCodeData } from "@/types/auth";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-export default function OAuthCallback() {
+export function OAuthCallback() {
 
   const { t } = useTranslation("auth");
   const navigate = useNavigate();

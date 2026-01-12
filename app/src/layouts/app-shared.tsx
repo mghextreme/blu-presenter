@@ -3,7 +3,7 @@ import {
   Outlet,
 } from "react-router-dom";
 
-import AppNavbar from "@/components/app/navbar";
+import { AppNavbar } from "@/components/app/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { useServices } from "@/hooks/useServices";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,7 +11,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 
-export default function AppSharedLayout() {
+export function AppSharedLayout() {
   const { authService } = useServices();
 
   const { t } = useTranslation('home');

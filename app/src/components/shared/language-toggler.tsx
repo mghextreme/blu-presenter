@@ -11,7 +11,7 @@ type LanguageTogglerProps = {
   variant?: 'ghost' | 'outline';
 }
 
-export default function LanguageToggler({
+export function LanguageToggler({
   variant = 'outline',
 }: LanguageTogglerProps) {
 

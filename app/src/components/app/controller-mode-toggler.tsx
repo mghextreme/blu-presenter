@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { useTranslation } from "react-i18next";
 
-export default function ModeToggler() {
+export function ControllerModeToggler() {
 
   const { t } = useTranslation("controller");
 

@@ -26,7 +26,7 @@ const initialState: BroadcastProviderState = {
 
 export const BroadcastProviderContext = createContext<BroadcastProviderState>(initialState);
 
-export default function BroadcastProvider({
+export function BroadcastProvider({
   children,
   ...props
 }: BroadcastProviderProps) {

@@ -62,7 +62,7 @@ const buildColumns = (t: TFunction, acceptInvitation: (id: number) => void, reje
   return columns;
 }
 
-export default function Welcome() {
+export function Welcome() {
 
   const { t } = useTranslation('app');
 

@@ -77,7 +77,7 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
   return columns;
 }
 
-export default function Sessions() {
+export function Sessions() {
 
   const { t } = useTranslation("sessions");
   const { organization } = useAuth();

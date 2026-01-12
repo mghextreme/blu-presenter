@@ -6,9 +6,9 @@ import { z } from "zod";
 import { ThemeSchema } from "@/types/schemas/theme.schema";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Toggle } from "@/components/ui/toggle";
-import UppercaseIcon from "@/components/icons/uppercase";
+import { UppercaseIcon } from "@/components/icons/uppercase";
 import ItalicIcon from "@heroicons/react/24/solid/ItalicIcon";
-import TextShadowIcon from "@/components/icons/text-shadow";
+import { TextShadowIcon } from "@/components/icons/text-shadow";
 import { useEffect, useState } from "react";
 import { ColorForm } from "./color-form";
 

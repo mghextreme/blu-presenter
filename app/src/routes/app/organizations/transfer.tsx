@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 
-export default function TransferOrganization() {
+export function TransferOrganization() {
 
   const { t } = useTranslation("organizations");
 

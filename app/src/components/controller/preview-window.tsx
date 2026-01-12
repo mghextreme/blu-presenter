@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import SlideVisualizer from "./slide-visualizer";
+import { SlideVisualizer } from "./slide-visualizer";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
