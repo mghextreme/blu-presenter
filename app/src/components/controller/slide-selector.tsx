@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useController } from "@/hooks/useController";
-import ContentSelector from "./content-selector";
+import { ContentSelector } from "./content-selector";
 import { ISlide } from "@/types";
 
 type SlideSelectorParams = {

@@ -12,7 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import ControllerProvider from "@/hooks/controller.provider";
+import { ControllerProvider } from "@/hooks/controller.provider";
 import { PreviewWindow } from "@/components/controller/preview-window";
 import { Controls } from "@/components/controller/controls";
 import { PreviewWindowTextForm } from "@/components/app/themes/preview-window-text-form";
@@ -23,7 +23,7 @@ type EditThemeProps = {
   edit?: boolean
 }
 
-export default function EditTheme({
+export function EditTheme({
   edit = true,
 }: EditThemeProps) {
 

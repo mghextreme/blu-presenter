@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
-export default function OrganizationsButton() {
+export function OrganizationsButton() {
 
   const { t } = useTranslation("navbar");
   const navigate = useNavigate();

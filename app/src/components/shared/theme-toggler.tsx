@@ -9,7 +9,7 @@ type ThemeTogglerProps = {
   variant?: 'default' | 'ghost' | 'link' | 'outline';
 }
 
-export default function ThemeToggler({
+export function ThemeToggler({
   variant = 'outline',
 }: ThemeTogglerProps) {
 

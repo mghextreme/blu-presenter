@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useContext } from 'react'
-import ControllerProvider, { ControllerProviderContext } from '../controller.provider'
+import { ControllerProvider, ControllerProviderContext } from '../controller.provider'
 import {
   mockScheduleItems,
 } from '@/test/mockData/scheduleItems'
@@ -15,12 +15,12 @@ vi.mock('react-hotkeys-hook', () => ({
 
 // Mock WindowProvider
 vi.mock('../window.provider', () => ({
-  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  WindowProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }))
 
 // Mock SelectorScreen
 vi.mock('@/components/controller/selector-screen', () => ({
-  default: () => <div>SelectorScreen</div>,
+  SelectorScreen: () => <div>SelectorScreen</div>,
 }))
 
 // Test component that uses the controller context

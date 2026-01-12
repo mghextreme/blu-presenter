@@ -8,7 +8,7 @@ import ChevronDoubleRightIcon from "@heroicons/react/24/solid/ChevronDoubleRight
 import { useAuth } from "@/hooks/useAuth";
 import { isRoleHigherOrEqualThan } from "@/types";
 
-export default function AppSidebar() {
+export function AppSidebar() {
 
   const { t } = useTranslation("app");
 

@@ -5,10 +5,10 @@ import { useLoaderData, useParams } from "react-router-dom";
 import { IControllerSelection, IScheduleItem, ISession, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { useController } from "@/hooks/useController";
 import { useSessionSocket } from "@/hooks/useSessionSocket";
-import SelectorScreen from "@/components/controller/selector-screen";
+import { SelectorScreen } from "@/components/controller/selector-screen";
 import i18next from "i18next";
 
-export default function Receiver() {
+export function Receiver() {
 
   const params = useParams();
 

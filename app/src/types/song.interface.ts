@@ -1,6 +1,6 @@
 import { ISongPart } from "./song-part.interface";
 import { ISongReference } from "./song-reference.interface";
-import { SupportedLanguage } from "./supported-language";
+import { SupportedLanguage } from "./supported-language.type";
 
 export interface ISong {
   id: number

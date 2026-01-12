@@ -1,5 +1,5 @@
-import ThemeToggler from "@/components/shared/theme-toggler";
-import LanguageToggler from "@/components/shared/language-toggler";
+import { ThemeToggler } from "@/components/shared/theme-toggler";
+import { LanguageToggler } from "@/components/shared/language-toggler";
 import { useAuth } from "@/hooks/useAuth";
 import { BluPresenterLogo } from "@/components/shared/logo";
 import { Button } from "@/components/ui/button";

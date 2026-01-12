@@ -12,7 +12,7 @@ import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import { useAuth } from "@/hooks/useAuth";
 
-export default function Discover() {
+export function Discover() {
 
   const { t } = useTranslation("discover");
 

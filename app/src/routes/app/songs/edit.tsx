@@ -7,8 +7,8 @@ import i18next from "i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { EditSongForm } from "@/components/app/songs/edit-form";
-import PreviewIcon from "@/components/icons/preview";
-import ControllerProvider from "@/hooks/controller.provider";
+import { PreviewIcon } from "@/components/icons/preview";
+import { ControllerProvider } from "@/hooks/controller.provider";
 import { useRef } from "react";
 
 type EditSongProps = {
@@ -16,7 +16,7 @@ type EditSongProps = {
   startingBlocks?: ISongPart[]
 }
 
-export default function EditSong({
+export function EditSong({
   edit = true,
   startingBlocks,
 }: EditSongProps) {

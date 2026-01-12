@@ -90,7 +90,7 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
   return columns;
 }
 
-export default function Songs() {
+export function Songs() {
 
   const { t } = useTranslation("songs");
   const { organization } = useAuth();

@@ -2,14 +2,14 @@ import {
   Outlet,
 } from "react-router-dom";
 
-import ProtectedRoute from "@/components/protected-route";
-import AppSidebar from "@/components/app/sidebar";
-import AppNavbar from "@/components/app/navbar";
+import { ProtectedRoute } from "@/components/protected-route";
+import { AppSidebar } from "@/components/app/sidebar";
+import { AppNavbar } from "@/components/app/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { useServices } from "@/hooks/useServices";
 import { useEffect } from "react";
 
-export default function AppLayout() {
+export function AppLayout() {
   const { authService } = useServices();
 
   useEffect(() => {

@@ -5,7 +5,7 @@ import { useWindow } from "@/hooks/window.provider";
 import { useTranslation } from "react-i18next";
 import { IBrowserWindow, IScreenDetails } from "@/types/browser";
 import { ControllerMode, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
-import SlideVisualizer from "./slide-visualizer";
+import { SlideVisualizer } from "./slide-visualizer";
 import { useServices } from "@/hooks/useServices";
 
 interface SelectorScreenProps {
@@ -14,7 +14,7 @@ interface SelectorScreenProps {
   themeOptions?: ITheme[],
 }
 
-export default function SelectorScreen({
+export function SelectorScreen({
   setMode,
   defaultTheme,
   themeOptions,

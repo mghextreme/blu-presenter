@@ -8,18 +8,18 @@ import { SpotifyCode } from "@/components/app/songs/spotify-code";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import PrinterIcon from "@heroicons/react/24/solid/PrinterIcon";
 import ShareIcon from "@heroicons/react/24/solid/ShareIcon";
-import ControllerProvider from "@/hooks/controller.provider";
+import { ControllerProvider } from "@/hooks/controller.provider";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { Toggle } from "@/components/ui/toggle";
 import { SongEditMode } from "@/components/app/songs/edit-parts";
-import PreviewIcon from "@/components/icons/preview";
+import { PreviewIcon } from "@/components/icons/preview";
 import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOnSquareIcon";
 import { alternateLyricsAndChords } from "@/lib/songs";
 import { cn } from "@/lib/utils";
 import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
 import { toast } from "sonner";
 
-export default function ViewSong() {
+export function ViewSong() {
 
   const { t } = useTranslation("songs");
 

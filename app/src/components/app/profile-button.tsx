@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useServices } from "@/hooks/useServices";
 import { useQuery } from "@tanstack/react-query";
 
-export default function ProfileButton() {
+export function ProfileButton() {
 
   const { t } = useTranslation("navbar");
   const navigate = useNavigate();

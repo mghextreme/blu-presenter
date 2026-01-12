@@ -9,16 +9,16 @@ import { SongSchema } from "@/types/schemas/song.schema";
 import { ImportSongSchema } from "@/types/schemas/import-song.schema";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useAuth } from "@/hooks/useAuth";
-import ControllerProvider from "@/hooks/controller.provider";
+import { ControllerProvider } from "@/hooks/controller.provider";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { EditSongForm } from "@/components/app/songs/edit-form";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { ImportSongForm } from "@/components/app/songs/import-song-form";
-import PreviewIcon from "@/components/icons/preview";
+import { PreviewIcon } from "@/components/icons/preview";
 
-export default function ImportSong() {
+export function ImportSong() {
 
   const { t } = useTranslation("songs");
   const { organization } = useAuth();

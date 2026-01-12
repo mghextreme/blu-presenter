@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
-import OpenSourceInitiative from "@/components/icons/open-source";
+import { OpenSourceInitiative } from "@/components/icons/open-source";
 import ServerStackIcon from "@heroicons/react/24/outline/ServerStackIcon";
 import { BluPresenterLogo } from "@/components/shared/logo";
 
-export default function OpenSource() {
+export function OpenSource() {
   const { t } = useTranslation("open-source");
 
   return (

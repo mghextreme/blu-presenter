@@ -1,4 +1,4 @@
-export * from './api.error';
+export * from './api-error.class';
 
 export * from './broadcast-session.interface';
 export * from './controller-mode.type';
@@ -22,7 +22,7 @@ export * from './song-part.interface';
 export * from './song-reference.interface';
 export * from './song.interface';
 export * from './song-with-role.interface';
-export * from './supported-language';
+export * from './supported-language.type';
 export * from './theme.interface';
-export * from './user-organization';
+export * from './user-organization.class';
 export * from './window.interface';

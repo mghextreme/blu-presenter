@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
-export default function Home() {
+export function Home() {
   const { t } = useTranslation("home");
 
   const { isLoggedIn } = useAuth();

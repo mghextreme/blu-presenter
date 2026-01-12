@@ -17,7 +17,7 @@ interface EditSongPartsProps {
   mode: SongEditMode
 }
 
-export default function EditSongParts({
+export function EditSongParts({
   form,
   mode = 'lyrics',
 }: EditSongPartsProps) {

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Trans, useTranslation } from "react-i18next";
 
-export default function PrivacyPolicy() {
+export function PrivacyPolicy() {
   const { t } = useTranslation("privacy-policy");
 
   return (

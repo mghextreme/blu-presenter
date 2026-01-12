@@ -29,7 +29,7 @@ const formSchema = z.object({
   role: z.enum(["admin", "member", "guest"]).default("guest"),
 });
 
-export default function InviteOrganizationMember() {
+export function InviteOrganizationMember() {
 
   const { t } = useTranslation("organizations");
 

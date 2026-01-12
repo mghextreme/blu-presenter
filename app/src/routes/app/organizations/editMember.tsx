@@ -24,7 +24,7 @@ export async function loader({ params, organizationsService }: { params: Params,
   return await organizationsService.getMember(Number(params.id));
 }
 
-export default function EditMember() {
+export function EditMember() {
 
   const { t } = useTranslation("organizations");
 

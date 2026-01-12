@@ -6,60 +6,60 @@ import {
   createRoutesFromElements
 } from "react-router-dom";
 
-import AuthLayout from "@/layouts/auth";
+import { AuthLayout } from "@/layouts/auth";
 import { loader as authLoader } from "@/layouts/auth.loader";
-import AppLayout from "@/layouts/app";
-import AppSharedLayout from "@/layouts/app-shared";
-import PublicPagesLayout from "@/layouts/public-pages";
-import ErrorLayout from "@/layouts/error";
-import ControllerLayout from "@/layouts/controller";
-import ControllerSharedLayout from "@/layouts/controller-shared";
+import { AppLayout } from "@/layouts/app";
+import { AppSharedLayout } from "@/layouts/app-shared";
+import { PublicPagesLayout } from "@/layouts/public-pages";
+import { ErrorLayout } from "@/layouts/error";
+import { ControllerLayout } from "@/layouts/controller";
+import { ControllerSharedLayout } from "@/layouts/controller-shared";
 import { loader as publicSessionLoader } from "./app/public-session.loader";
-import PrintLayout from "@/layouts/print";
+import { PrintLayout } from "@/layouts/print";
 import { useServices } from "@/hooks/useServices";
 
-import Home from "./home";
-import OpenSource from "./open-source";
-import PrivacyPolicy from "./privacy-policy";
-import TermsAndConditions from "./terms-and-conditions";
+import { Home } from "./home";
+import { OpenSource } from "./open-source";
+import { PrivacyPolicy } from "./privacy-policy";
+import { TermsAndConditions } from "./terms-and-conditions";
 
-import SignUp from "./auth/signup";
-import Login from "./auth/login";
-import OAuthCallback from "./auth/oauth-callback";
+import { SignUp } from "./auth/signup";
+import { Login } from "./auth/login";
+import { OAuthCallback } from "./auth/oauth-callback";
 
-import Welcome from "./app/welcome";
+import { Welcome } from "./app/welcome";
 import { loader as welcomeLoader } from "./app/welcome.loader";
-import Controller from "./app/controller";
-import Receiver from "./app/receiver";
-import Discover from "./app/discover";
-import Profile from "./app/profile";
+import { Controller } from "./app/controller";
+import { Receiver } from "./app/receiver";
+import { Discover } from "./app/discover";
+import { Profile } from "./app/profile";
 import { loader as profileLoader } from "./app/profile.loader";
 
-import SongsIndex from "./app/songs/index";
-import EditSong from "./app/songs/edit";
-import ViewSong from "./app/songs/view";
-import PrintSong from "./app/songs/print";
+import { Songs as SongsIndex } from "./app/songs/index";
+import { EditSong } from "./app/songs/edit";
+import { ViewSong } from "./app/songs/view";
+import { PrintSong } from "./app/songs/print";
 import { loader as singleSongLoader } from "./app/songs/single.loader";
 import { loader as allSongsLoader } from "./app/songs/all.loader";
 
-import ThemesIndex from "./app/themes/index";
-import EditTheme from "./app/themes/edit";
+import { Themes as ThemesIndex } from "./app/themes/index";
+import { EditTheme } from "./app/themes/edit";
 import { loader as singleThemeLoader } from "./app/themes/single.loader";
 import { loader as allThemesLoader } from "./app/themes/all.loader";
 
-import SessionsIndex from "./app/sessions/index";
-import EditSession from "./app/sessions/edit";
+import { Sessions as SessionsIndex } from "./app/sessions/index";
+import { EditSession } from "./app/sessions/edit";
 import { loader as singleSessionLoader } from "./app/sessions/single.loader";
 import { loader as allSessionsLoader } from "./app/sessions/all.loader";
 
-import EditOrganization from "./app/organizations/index";
+import { EditOrganization } from "./app/organizations/index";
 import { loader as editOrganizationLoader } from "./app/organizations/index.loader"
-import InviteOrganizationMember, { loader as inviteOrganizationMemberLoader } from "./app/organizations/invite";
-import EditMember, { loader as editMemberLoader } from "./app/organizations/editMember";
-import TransferOrganization from "./app/organizations/transfer";
-import ImportSong from "./app/songs/import";
+import { InviteOrganizationMember, loader as inviteOrganizationMemberLoader } from "./app/organizations/invite";
+import { EditMember, loader as editMemberLoader } from "./app/organizations/editMember";
+import { TransferOrganization } from "./app/organizations/transfer";
+import { ImportSong } from "./app/songs/import";
 
-export default function AppRouter() {
+export function AppRouter() {
 
   const services = useServices();
 

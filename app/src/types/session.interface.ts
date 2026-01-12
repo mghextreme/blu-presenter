@@ -1,6 +1,6 @@
 import { IControllerSelection } from "./controller-selection.interface"
 import { ISortableScheduleItem } from "./schedule-item.interface"
-import { SupportedUILanguage } from "./supported-language"
+import { SupportedUILanguage } from "./supported-language.type"
 
 export interface ISession {
   id: number
