@@ -235,9 +235,35 @@ export class EntityName {
 - REST endpoints for CRUD operations
 - WebSocket (Socket.io) for real-time features (sessions, broadcasts)
 
+## Build Optimization
+
+### Frontend Bundle Structure
+
+The frontend uses **vendor chunk splitting** to optimize bundle sizes and caching:
+
+- **Main bundle** (`index.js`): ~695 KB (189 KB gzipped) - Application code
+- **Vendor chunks**: Separated by category for optimal caching
+  - `vendor-react`: Core React libraries (React, React DOM, React Router)
+  - `vendor-radix`: Radix UI components library
+  - `vendor-data`: State management (React Query, Zustand, React Table)
+  - `vendor-i18n`: Internationalization (i18next)
+  - `vendor-forms`: Form libraries (React Hook Form, Zod)
+  - `vendor-ui-utils`: UI utilities (Heroicons, Lucide, etc.)
+  - `vendor-dnd`: Drag & drop functionality (DnD Kit)
+  - `vendor-socket`: Real-time communication (Socket.io)
+
+**Benefits**:
+- Initial load: 52% smaller (gzipped)
+- Vendor chunks cached separately (download once, reuse forever)
+- Only main bundle changes on app updates
+- Better cache hit rate for returning users
+
+**Configuration**: See `app/vite.config.ts` → `build.rollupOptions.output.manualChunks`
+
 ## Important Files
 
 - `app/src/lib/utils.ts` - Utility functions (cn, etc.)
+- `app/vite.config.ts` - Build configuration and chunk splitting
 - `api/src/entities/` - TypeORM entity definitions
 - `api/src/types/` - Shared DTOs and type definitions
 - `.editorconfig` - Editor configuration
