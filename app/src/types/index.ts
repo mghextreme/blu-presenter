@@ -7,6 +7,7 @@ export * from './organization.interface';
 export * from './organization-user.interface';
 export * from './organization-invitation.interface';
 export * from './profile.interface';
+export * from './schedule.interface';
 export * from './schedule-item.interface';
 export * from './schedule-item.type';
 export * from './schedule-song.interface';

@@ -16,6 +16,7 @@ type ScheduleItemParams = {
   selected?: boolean
   index: number
   buttonsOverride?: ReactNode;
+  showOpen?: boolean;
 }
 
 export function ScheduleItem({
@@ -23,6 +24,7 @@ export function ScheduleItem({
   selected = false,
   index,
   buttonsOverride,
+  showOpen = true,
 }: ScheduleItemParams) {
 
   const { t } = useTranslation("controller");
@@ -78,9 +80,11 @@ export function ScheduleItem({
                 <Button size="sm" title={t('schedule.items.removeFromSchedule')} onClick={removeItem} variant={item.type === 'comment' ? 'secondary' : 'default'}>
                   <TrashIcon className="size-3"></TrashIcon>
                 </Button>
-                <Button size="sm" title={t('schedule.items.open')} onClick={loadItem} variant={item.type === 'comment' ? 'secondary' : 'default'}>
-                  <PlayIcon className="size-3"></PlayIcon>
-                </Button>
+                {showOpen && (
+                  <Button size="sm" title={t('schedule.items.open')} onClick={loadItem} variant={item.type === 'comment' ? 'secondary' : 'default'}>
+                    <PlayIcon className="size-3"></PlayIcon>
+                  </Button>
+                )}
               </>
             )}
           </CardHeaderActions>

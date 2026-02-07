@@ -9,7 +9,11 @@ import Bars3BottomLeftIcon from "@heroicons/react/24/solid/Bars3BottomLeftIcon";
 import ChatBubbleLeftEllipsisIcon from "@heroicons/react/24/solid/ChatBubbleLeftEllipsisIcon";
 import Cog6ToothIcon from "@heroicons/react/24/solid/Cog6ToothIcon";
 
-export function PlanPanel() {
+type PlanPanelProps = {
+  showConfiguration?: boolean;
+}
+
+export function PlanPanel({ showConfiguration = true }: PlanPanelProps) {
 
   const { t } = useTranslation("controller");
 
@@ -22,7 +26,9 @@ export function PlanPanel() {
           <TabsTrigger value="search" title={t('plan.tabs.searchSongs')}><MusicalNoteIcon className="size-4" /></TabsTrigger>
           <TabsTrigger value="text" title={t('plan.tabs.text')}><Bars3BottomLeftIcon className="size-4" /></TabsTrigger>
           <TabsTrigger value="comment" title={t('plan.tabs.comment')}><ChatBubbleLeftEllipsisIcon className="size-4" /></TabsTrigger>
-          <TabsTrigger value="configuration" title={t('plan.tabs.configuration')}><Cog6ToothIcon className="size-4" /></TabsTrigger>
+          {showConfiguration && (
+            <TabsTrigger value="configuration" title={t('plan.tabs.configuration')}><Cog6ToothIcon className="size-4" /></TabsTrigger>
+          )}
         </TabsList>
         <hr className="border-t border-[1px]" />
         <div className="h-full">
@@ -35,9 +41,11 @@ export function PlanPanel() {
           <TabsContent value="comment" className="h-full">
             <PlanComment />
           </TabsContent>
-          <TabsContent value="configuration" className="h-full">
-            <PlanConfiguration />
-          </TabsContent>
+          {showConfiguration && (
+            <TabsContent value="configuration" className="h-full">
+              <PlanConfiguration />
+            </TabsContent>
+          )}
         </div>
       </Tabs>
     </div>
