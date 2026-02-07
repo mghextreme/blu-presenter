@@ -42,10 +42,23 @@
       }
     },
     "tabs": {
+      "schedules": "Programações",
       "searchSongs": "Buscar músicas",
       "text": "Texto",
       "comment": "Comentário",
       "configuration": "Configurações"
+    },
+    "schedules": {
+      "search": "Buscar programações...",
+      "today": "Hoje",
+      "load": "Carregar programação",
+      "noResults": "Nenhuma programação encontrada",
+      "confirmReplace": {
+        "title": "Substituir programação atual?",
+        "description": "O painel de controle já tem itens na programação. Carregar esta programação irá substituí-los.",
+        "cancel": "Cancelar",
+        "confirm": "Substituir"
+      }
     }
   },
   "schedule": {

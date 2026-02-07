@@ -42,10 +42,23 @@
       }
     },
     "tabs": {
+      "schedules": "Schedules",
       "searchSongs": "Search songs",
       "text": "Text",
       "comment": "Comment",
       "configuration": "Configuration"
+    },
+    "schedules": {
+      "search": "Search schedules...",
+      "today": "Today",
+      "load": "Load schedule",
+      "noResults": "No schedules found",
+      "confirmReplace": {
+        "title": "Replace current schedule?",
+        "description": "The controller already has items in the schedule. Loading this schedule will replace them.",
+        "cancel": "Cancel",
+        "confirm": "Replace"
+      }
     }
   },
   "schedule": {

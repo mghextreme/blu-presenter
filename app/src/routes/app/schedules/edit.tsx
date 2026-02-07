@@ -190,7 +190,7 @@ function EditScheduleForm({
                   <DialogTitle>{t('actions.addItem')}</DialogTitle>
                 </DialogHeader>
                 <div className="flex-1 overflow-hidden">
-                  <PlanPanel showConfiguration={false} />
+                  <PlanPanel showConfiguration={false} showSchedules={false} showOpen={false} />
                 </div>
               </DialogContent>
             </Dialog>
