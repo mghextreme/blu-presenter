@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, HttpException, HttpStatus, Param, Post } from '@nestjs/common';
 import { Public } from 'src/supabase/public.decorator';
 import {
   AccessTokenDto,
@@ -21,6 +21,10 @@ export class AuthController {
   @Public()
   @Post('signIn')
   async signIn(@Body() signInDto: SignInDto): Promise<AccessTokenDto> {
+    if (!signInDto.captchaToken) {
+      throw new HttpException('captcha verification process failed', HttpStatus.BAD_REQUEST);
+    }
+
     return await this.authService.signIn(signInDto);
   }
 
@@ -67,6 +71,10 @@ export class AuthController {
   @Public()
   @Post('signUp')
   async signUp(@Body() signUpDto: SignUpDto): Promise<AccessTokenDto> {
+    if (!signUpDto.captchaToken) {
+      throw new HttpException('captcha verification process failed', HttpStatus.BAD_REQUEST);
+    }
+
     return await this.authService.signUp(signUpDto);
   }
 
