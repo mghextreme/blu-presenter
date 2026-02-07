@@ -7,6 +7,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+import { SkipThrottle } from '@nestjs/throttler';
 import { Server } from 'socket.io';
 import { SessionsService } from './sessions.service';
 import { AuthenticatedSocket, ISelection } from 'src/types';
@@ -39,6 +40,7 @@ interface SetSelectionDto {
   selection: ISelection;
 }
 
+@SkipThrottle()
 @Injectable()
 @WebSocketGateway({
   cors: {

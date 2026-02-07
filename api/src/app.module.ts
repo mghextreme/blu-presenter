@@ -14,6 +14,7 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthModule } from './auth/auth.module';
 import { ThemesModule } from './themes/themes.module';
 import { SessionsModule } from './sessions/sessions.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -25,6 +26,10 @@ import { SessionsModule } from './sessions/sessions.module';
     TypeOrmModule.forRootAsync({
       useClass: DatabaseConfigService,
     }),
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 60,
+    }]),
     PassportModule,
     SupabaseModule,
     UsersModule,
@@ -40,6 +45,10 @@ import { SessionsModule } from './sessions/sessions.module';
     {
       provide: APP_GUARD,
       useClass: SupabaseGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })

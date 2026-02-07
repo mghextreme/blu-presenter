@@ -1,4 +1,5 @@
 import { Body, Controller, HttpException, HttpStatus, Param, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { Public } from 'src/supabase/public.decorator';
 import {
   AccessTokenDto,
@@ -44,6 +45,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Post('validate')
   async validate(@Body() validateDto: ExchangeCodeDto): Promise<AccessTokenDto> {
     const accessToken = await this.authService.exchangeCodeForSession(
