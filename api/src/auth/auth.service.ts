@@ -47,7 +47,9 @@ export class AuthService {
       await this.supabaseClient.auth.signInWithPassword({
         email: signInDto.email,
         password: signInDto.password,
-        options: { captchaToken: signInDto.captchaToken },
+        options: {
+          ...(signInDto.captchaToken && { captchaToken: signInDto.captchaToken }),
+        },
       });
 
     if (error) {
@@ -139,7 +141,7 @@ export class AuthService {
       ...signUpDto,
       options: {
         emailRedirectTo: this.configService.get('app.baseUrl') + '/app',
-        captchaToken: signUpDto.captchaToken,
+        ...(signUpDto.captchaToken && { captchaToken: signUpDto.captchaToken }),
       },
     });
 
