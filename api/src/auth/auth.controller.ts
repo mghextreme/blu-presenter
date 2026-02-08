@@ -1,4 +1,5 @@
-import { Body, Controller, HttpException, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, HttpException, HttpStatus, Inject, Param, Post } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from 'src/supabase/public.decorator';
 import {
@@ -15,14 +16,20 @@ import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
+  private readonly captchaEnabled: boolean;
+
   constructor(
     private authService: AuthService,
-  ) {}
+    @Inject(ConfigService)
+    configService: ConfigService,
+  ) {
+    this.captchaEnabled = !configService.get('captcha.disabled');
+  }
 
   @Public()
   @Post('signIn')
   async signIn(@Body() signInDto: SignInDto): Promise<AccessTokenDto> {
-    if (!signInDto.captchaToken) {
+    if (!signInDto.captchaToken && this.captchaEnabled) {
       throw new HttpException('captcha verification process failed', HttpStatus.BAD_REQUEST);
     }
 
@@ -73,7 +80,7 @@ export class AuthController {
   @Public()
   @Post('signUp')
   async signUp(@Body() signUpDto: SignUpDto): Promise<AccessTokenDto> {
-    if (!signUpDto.captchaToken) {
+    if (!signUpDto.captchaToken && this.captchaEnabled) {
       throw new HttpException('captcha verification process failed', HttpStatus.BAD_REQUEST);
     }
 
