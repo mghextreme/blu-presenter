@@ -9,6 +9,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { Theme } from 'src/entities';
 import { CreateThemeDto, UpdateThemeDto, CopyThemeToOrganizationDto } from 'src/types';
 import { ThemesService } from './themes.service';
@@ -16,6 +17,13 @@ import { OrganizationRole } from 'src/auth/organization-role.decorator';
 import { Public } from 'src/supabase/public.decorator';
 
 @Controller('themes')
+@ApiTags('themes')
+@ApiBearerAuth('JWT-auth')
+@ApiHeader({
+  name: 'Organization',
+  description: 'Organization ID',
+  required: false,
+})
 export class ThemesController {
   constructor(
     private readonly themesService: ThemesService,

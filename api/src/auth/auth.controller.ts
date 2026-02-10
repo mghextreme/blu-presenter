@@ -1,6 +1,7 @@
 import { Body, Controller, HttpException, HttpStatus, Inject, Param, Post } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
+import { ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/supabase/public.decorator';
 import {
   AccessTokenDto,
@@ -15,6 +16,7 @@ import {
 import { AuthService } from './auth.service';
 
 @Controller('auth')
+@ApiTags('auth')
 export class AuthController {
   private readonly captchaEnabled: boolean;
 

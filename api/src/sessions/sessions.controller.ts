@@ -9,6 +9,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { Session } from 'src/entities';
 import { CreateSessionDto, UpdateSessionDto } from 'src/types';
 import { SessionsServiceWithRequest } from './sessions.service';
@@ -16,6 +17,13 @@ import { OrganizationRole } from 'src/auth/organization-role.decorator';
 import { Public } from 'src/supabase/public.decorator';
 
 @Controller('sessions')
+@ApiTags('sessions')
+@ApiBearerAuth('JWT-auth')
+@ApiHeader({
+  name: 'Organization',
+  description: 'Organization ID',
+  required: false,
+})
 export class SessionsController {
   constructor(
     private readonly sessionsService: SessionsServiceWithRequest,

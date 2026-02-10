@@ -7,6 +7,7 @@ import {
   Put,
   Scope,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { User } from 'src/entities';
 import { UsersService } from './users.service';
 import { REQUEST } from '@nestjs/core';
@@ -15,6 +16,8 @@ import { UpdateProfileDto } from 'src/types';
 import { OrganizationUserViewModel } from 'src/models';
 
 @Controller('users')
+@ApiTags('users')
+@ApiBearerAuth('JWT-auth')
 @Injectable({ scope: Scope.REQUEST })
 export class UsersController {
   constructor(
