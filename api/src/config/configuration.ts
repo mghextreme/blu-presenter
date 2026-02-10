@@ -19,6 +19,6 @@ export default () => ({
     key: process.env.SUPABASE_KEY,
   },
   captcha: {
-    disabled: process.env.DISABLE_CAPTCHA === 'true',
+    enabled: process.env.DISABLE_CAPTCHA !== 'true',
   },
 });
