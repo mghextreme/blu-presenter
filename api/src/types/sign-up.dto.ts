@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, MinLength, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, MinLength, IsString, IsOptional } from 'class-validator';
 import { AuthDto } from './auth.dto';
 
 export class SignUpDto extends AuthDto {
@@ -10,6 +10,7 @@ export class SignUpDto extends AuthDto {
   @MinLength(8)
   password: string;
 
+  @IsOptional()
   @IsString()
   captchaToken?: string;
 }
