@@ -23,14 +23,14 @@ export class AuthController {
     @Inject(ConfigService)
     configService: ConfigService,
   ) {
-    this.captchaEnabled = !configService.get('captcha.disabled');
+    this.captchaEnabled = configService.get('captcha.enabled');
   }
 
   @Public()
   @Post('signIn')
   async signIn(@Body() signInDto: SignInDto): Promise<AccessTokenDto> {
     if (!signInDto.captchaToken && this.captchaEnabled) {
-      throw new HttpException('captcha verification process failed', HttpStatus.BAD_REQUEST);
+      throw new HttpException('required captcha not set', HttpStatus.BAD_REQUEST);
     }
 
     return await this.authService.signIn(signInDto);
@@ -81,7 +81,7 @@ export class AuthController {
   @Post('signUp')
   async signUp(@Body() signUpDto: SignUpDto): Promise<AccessTokenDto> {
     if (!signUpDto.captchaToken && this.captchaEnabled) {
-      throw new HttpException('captcha verification process failed', HttpStatus.BAD_REQUEST);
+      throw new HttpException('required captcha not set', HttpStatus.BAD_REQUEST);
     }
 
     return await this.authService.signUp(signUpDto);

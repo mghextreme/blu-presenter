@@ -33,3 +33,6 @@ app/.wrangler
 # Test coverage
 coverage
 *.lcov
+
+# Supabase
+supabase/snippets
