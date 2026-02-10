@@ -1,4 +1,4 @@
-import { IsArray, IsInt, IsNotEmpty, IsObject, IsString, Length, Min } from 'class-validator';
+import { IsArray, IsInt, IsNotEmpty, IsObject, IsOptional, IsString, Length, Min } from 'class-validator';
 import { SongPartDto } from './song-part.dto';
 import { SongReference } from 'src/entities';
 
@@ -11,9 +11,11 @@ export class UpdateSongDto {
   @Length(2, 255)
   title: string;
 
+  @IsOptional()
   @IsString()
   artist?: string;
 
+  @IsOptional()
   @Length(2, 2)
   language?: string;
 
@@ -21,6 +23,7 @@ export class UpdateSongDto {
   @IsObject({ each: true })
   blocks: SongPartDto[];
 
+  @IsOptional()
   @IsArray()
   @IsObject({ each: true })
   references?: SongReference[];
