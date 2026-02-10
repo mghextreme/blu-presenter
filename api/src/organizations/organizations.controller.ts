@@ -10,6 +10,7 @@ import {
   Query,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import {
   Organization,
   OrganizationInvitation,
@@ -30,6 +31,8 @@ import { Request as ExpRequest } from 'express';
 import { Public } from 'src/supabase/public.decorator';
 
 @Controller('organizations')
+@ApiTags('organizations')
+@ApiBearerAuth('JWT-auth')
 export class OrganizationsController {
   constructor(
     private organizationsService: OrganizationsService,

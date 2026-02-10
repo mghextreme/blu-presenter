@@ -9,6 +9,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { Song } from 'src/entities';
 import { AdvancedSearchDto, CopySongToOrganizationDto, CreateSongDto, UpdateSongDto } from 'src/types';
 import { SongsService } from './songs.service';
@@ -17,6 +18,13 @@ import { SongWithRoleViewModel } from 'src/models/song-with-role.view-model';
 import { Public } from 'src/supabase/public.decorator';
 
 @Controller('songs')
+@ApiTags('songs')
+@ApiBearerAuth('JWT-auth')
+@ApiHeader({
+  name: 'Organization',
+  description: 'Organization ID',
+  required: false,
+})
 export class SongsController {
   constructor(
     private readonly songsService: SongsService,

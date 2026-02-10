@@ -21,4 +21,7 @@ export default () => ({
   captcha: {
     enabled: process.env.DISABLE_CAPTCHA !== 'true',
   },
+  apiDocs: {
+    enabled: process.env.ENABLE_API_DOCS === 'true',
+  },
 });
