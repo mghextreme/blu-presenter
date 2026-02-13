@@ -122,6 +122,12 @@ export function ComponentName({ prop }: Props) {
 - Use `cn()` utility from `@/lib/utils` to merge classes
 - Component library: Radix UI primitives with custom styling
 
+#### UI Components (shadcn/ui)
+- **Always prefer shadcn/ui components** over custom implementations. Before building a custom component, check if shadcn/ui provides one that supports the required functionality (e.g., locale, layout options, accessibility).
+- Install shadcn components via `pnpm dlx shadcn@latest add <component>`. Be careful: the CLI may overwrite customized files (e.g., `button.tsx`). Always verify and restore any overwritten customizations after installation.
+- For composite patterns (e.g., date pickers), follow shadcn's documented composition approach (e.g., Popover + Calendar) rather than creating standalone wrapper components.
+- shadcn configuration is in `app/components.json`.
+
 #### Testing
 - Test framework: Vitest
 - Test files: `*.spec.ts` or `*.test.tsx`

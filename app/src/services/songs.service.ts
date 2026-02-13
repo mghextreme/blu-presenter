@@ -1,5 +1,5 @@
 import { ApiService } from "./api.service";
-import { IScheduleSong, ISlide, ISlideContent, ISlideTextContent, ISlideTitleContent, ISong, ISongWithRole } from "@/types"
+import { IScheduleItem, IScheduleSong, IScheduleText, ISlide, ISlideContent, ISlideTextContent, ISlideTitleContent, ISong, ISongWithRole } from "@/types"
 
 export class SongsService extends ApiService {
 
@@ -109,6 +109,52 @@ export class SongsService extends ApiService {
         {},
       ],
     } as IScheduleSong;
+  }
+
+  public toScheduleText(item: { title?: string; subtitle?: string }): IScheduleText {
+    return {
+      id: Date.now(),
+      type: 'text',
+      title: item.title,
+      subtitle: item.subtitle,
+      slides: [
+        {},
+        {
+          content: [
+            {
+              type: 'title',
+              title: item.title,
+              subtitle: item.subtitle,
+            } as ISlideTitleContent,
+          ],
+        },
+        {},
+      ],
+    } as IScheduleText;
+  }
+
+  public toScheduleComment(item: { title?: string }): IScheduleItem {
+    return {
+      id: Date.now(),
+      type: 'comment',
+      title: item.title,
+      slides: [{ isEmpty: true }],
+    } as IScheduleItem;
+  }
+
+  public resolveScheduleItems(items: IScheduleItem[]): IScheduleItem[] {
+    return items.map((item) => {
+      if (item.type === 'song') {
+        return this.toScheduleSong(item as ISong);
+      }
+      if (item.type === 'text') {
+        return this.toScheduleText(item as IScheduleText);
+      }
+      if (item.type === 'comment') {
+        return this.toScheduleComment(item);
+      }
+      return item;
+    });
   }
 
 }

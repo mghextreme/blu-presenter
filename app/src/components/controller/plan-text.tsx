@@ -10,12 +10,16 @@ import { IScheduleText, ISlideTitleContent } from "@/types";
 import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 
+type PlanTextProps = {
+  showOpen?: boolean;
+}
+
 const textFormSchema = z.object({
   title: z.string().min(2),
   subtitle: z.string().optional(),
 });
 
-export function PlanText() {
+export function PlanText({ showOpen = true }: PlanTextProps) {
 
   const { t } = useTranslation("controller");
 
@@ -64,7 +68,8 @@ export function PlanText() {
     setScheduleItem(scheduleItem);
   }
 
-  const handleAdd = () => {
+  const handleAdd = (e?: React.BaseSyntheticEvent) => {
+    e?.preventDefault();
     form.handleSubmit(add)();
   }
 
@@ -105,9 +110,11 @@ export function PlanText() {
           <Button type="button" title={t('plan.text.actions.add')} onClick={handleAdd}>
             <PlusIcon className="size-3"></PlusIcon>
           </Button>
-          <Button type="button" title={t('plan.text.actions.open')} onClick={handleOpen}>
-            <PlayIcon className="size-3"></PlayIcon>
-          </Button>
+          {showOpen && (
+            <Button type="button" title={t('plan.text.actions.open')} onClick={handleOpen}>
+              <PlayIcon className="size-3"></PlayIcon>
+            </Button>
+          )}
         </div>
       </form>
     </Form>

@@ -14,6 +14,7 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthModule } from './auth/auth.module';
 import { ThemesModule } from './themes/themes.module';
 import { SessionsModule } from './sessions/sessions.module';
+import { SchedulesModule } from './schedules/schedules.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
@@ -38,6 +39,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     OrganizationsModule,
     AuthModule,
     SessionsModule,
+    SchedulesModule,
   ],
   exports: [TypeOrmModule],
   controllers: [AppController],

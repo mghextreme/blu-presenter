@@ -12,6 +12,8 @@ export * from './selection.interface';
 export * from './schedule-item.interface';
 export * from './create-session.dto';
 export * from './update-session.dto';
+export * from './create-schedule.dto';
+export * from './update-schedule.dto';
 
 export * from './organization-role.type';
 export * from './create-organization.dto';

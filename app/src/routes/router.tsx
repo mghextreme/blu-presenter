@@ -52,6 +52,11 @@ import { EditSession } from "./app/sessions/edit";
 import { loader as singleSessionLoader } from "./app/sessions/single.loader";
 import { loader as allSessionsLoader } from "./app/sessions/all.loader";
 
+import { Schedules as SchedulesIndex } from "./app/schedules/index";
+import { EditSchedule } from "./app/schedules/edit";
+import { loader as singleScheduleLoader } from "./app/schedules/single.loader";
+import { loader as allSchedulesLoader } from "./app/schedules/all.loader";
+
 import { EditOrganization } from "./app/organizations/index";
 import { loader as editOrganizationLoader } from "./app/organizations/index.loader"
 import { InviteOrganizationMember, loader as inviteOrganizationMemberLoader } from "./app/organizations/invite";
@@ -106,6 +111,11 @@ export function AppRouter() {
             <Route index={true} element={<SessionsIndex />} loader={() => allSessionsLoader({ sessionsService: services.sessionsService })} />
             <Route path="add" element={<EditSession edit={false} />} />
             <Route path=":id/edit" element={<EditSession />} loader={(loader: LoaderFunctionArgs) => singleSessionLoader({ params: loader.params, sessionsService: services.sessionsService })} />
+          </Route>
+          <Route path="schedules">
+            <Route index={true} element={<SchedulesIndex />} loader={() => allSchedulesLoader({ schedulesService: services.schedulesService })} />
+            <Route path="add" element={<EditSchedule edit={false} />} />
+            <Route path=":id/edit" element={<EditSchedule />} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService })} />
           </Route>
         </Route>
         <Route path="/app" element={<PrintLayout />} errorElement={<ErrorLayout />}>

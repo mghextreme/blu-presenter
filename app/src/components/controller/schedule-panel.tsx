@@ -9,7 +9,12 @@ import InboxArrowDownIcon from "@heroicons/react/24/solid/InboxArrowDownIcon"
 import ArrowsUpDownIcon from "@heroicons/react/20/solid/ArrowsUpDownIcon";
 import { ISortableScheduleItem } from "@/types";
 
-export function SchedulePanel() {
+type SchedulePanelProps = {
+  showRestore?: boolean;
+  showOpen?: boolean;
+}
+
+export function SchedulePanel({ showRestore = true, showOpen = true }: SchedulePanelProps) {
 
   const { t } = useTranslation('controller');
 
@@ -22,16 +27,19 @@ export function SchedulePanel() {
     selection,
   } = useController();
 
-  const lastSessionSchedule = localStorage.getItem("controllerSchedule");
+  let hasLastSession = false;
   let lastSessionScheduleParsed = [];
-  try {
-    if (lastSessionSchedule !== null) {
-      lastSessionScheduleParsed = JSON.parse(lastSessionSchedule);
+  if (showRestore) {
+    const lastSessionSchedule = localStorage.getItem("controllerSchedule");
+    try {
+      if (lastSessionSchedule !== null) {
+        lastSessionScheduleParsed = JSON.parse(lastSessionSchedule);
+      }
+    } catch (e) {
+      localStorage.removeItem("controllerSchedule");
     }
-  } catch (e) {
-    localStorage.removeItem("controllerSchedule");
+    hasLastSession = lastSessionScheduleParsed.length > 0;
   }
-  const hasLastSession = lastSessionScheduleParsed.length > 0;
 
   const loadLastSession = () => {
     addToSchedule(lastSessionScheduleParsed);
@@ -55,7 +63,7 @@ export function SchedulePanel() {
       id="schedule"
       className="flex flex-col justify-start items-stretch h-full">
       <div className="p-3 pb-0 flex gap-2 flex-0 justify-between items-center">
-        {schedule.length > 1 && <Button className="flex-1" variant={sorting ? "default" : "secondary"} onClick={toggleSorting} title={t('schedule.actions.sort')}>
+        {schedule.length > 1 && <Button className="flex-1" variant={sorting ? "default" : "secondary"} onClick={toggleSorting} title={t('schedule.actions.sort')} type="button">
           <ArrowsUpDownIcon className="size-4" />
         </Button>}
         {schedule.length === 0 && hasLastSession && (
@@ -63,7 +71,7 @@ export function SchedulePanel() {
             <InboxArrowDownIcon className="size-4" />
           </Button>
         )}
-        {!sorting && <Button className="flex-1" variant={"secondary"} onClick={removeAllFromSchedule} title={t('schedule.actions.clear')}>
+        {!sorting && <Button className="flex-1" variant={"secondary"} onClick={removeAllFromSchedule} title={t('schedule.actions.clear')} type="button">
           <TrashIcon className="size-4" />
         </Button>}
       </div>
@@ -85,6 +93,7 @@ export function SchedulePanel() {
                     item={item}
                     selected={ix === selection.scheduleItem && scheduleItem?.id === item.id}
                     index={ix}
+                    showOpen={showOpen}
                     buttonsOverride={sorting ? (
                       <SortableItemHandle asChild>
                         <Button

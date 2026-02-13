@@ -1,0 +1,50 @@
+{
+  "title": {
+    "list": "Programações - {{organization}}",
+    "add": "Adicionar - Programações",
+    "edit": "{{name}} - Programações"
+  },
+  "actions": {
+    "create": "Adicionar programação",
+    "edit": "Editar programação",
+    "delete": "Remover programação",
+    "addItem": "Adicionar item"
+  },
+  "button": {
+    "add": "Adicionar",
+    "update": "Atualizar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar"
+  },
+  "input": {
+    "organization": "Organização",
+    "title": "Título",
+    "date": "Data"
+  },
+  "list": {
+    "title": "Programações"
+  },
+  "add": {
+    "title": "Adicionar programação"
+  },
+  "edit": {
+    "title": "Editar programação"
+  },
+  "column": {
+    "title": "Título",
+    "date": "Data"
+  },
+  "organizations": {
+    "defaultName": "Espaço pessoal"
+  },
+  "error": {
+    "deleteSchedule": "Erro ao remover programação",
+    "noPermission": "Você não tem permissão para gerenciar programações"
+  },
+  "message": {
+    "deleteSchedule": {
+      "title": "Remover programação",
+      "description": "Tem certeza que deseja remover a programação \"{{name}}\"? Esta ação não pode ser desfeita."
+    }
+  }
+}

@@ -53,6 +53,7 @@ export function AppSidebar() {
             <hr />
             <SidebarMenuItem to="/app/organization" content={t('menu.organization')} />
             <SidebarMenuItem to="/app/songs" content={t('menu.songs')} />
+            <SidebarMenuItem to="/app/schedules" content={t('menu.schedules')} />
             <SidebarMenuItem to="/app/themes" content={t('menu.themes')} />
             <SidebarMenuItem to="/app/sessions" content={t('menu.sessions')} disabled={!isRoleHigherOrEqualThan(organization?.role, 'admin')} />
             <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.account')}</h3>

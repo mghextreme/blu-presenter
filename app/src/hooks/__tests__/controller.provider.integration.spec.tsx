@@ -318,43 +318,7 @@ describe('ControllerProvider Integration Tests', () => {
   })
 
   describe('State Persistence', () => {
-    it('should persist schedule to sessionStorage', async () => {
-      const user = userEvent.setup()
-      const { getByText } = render(
-        <ControllerProvider storeState={false}>
-          <TestConsumer />
-        </ControllerProvider>
-      )
-
-      await user.click(getByText('Replace Schedule'))
-
-      await waitFor(() => {
-        const saved = sessionStorage.getItem('controllerSchedule')
-        expect(saved).toBeTruthy()
-        const parsed = JSON.parse(saved!)
-        expect(parsed).toHaveLength(mockScheduleItems.length)
-      })
-    })
-
-    it('should persist schedule to localStorage when storeState is true', async () => {
-      const user = userEvent.setup()
-      const { getByText } = render(
-        <ControllerProvider storeState={true}>
-          <TestConsumer />
-        </ControllerProvider>
-      )
-
-      await user.click(getByText('Replace Schedule'))
-
-      await waitFor(() => {
-        const saved = localStorage.getItem('controllerSchedule')
-        expect(saved).toBeTruthy()
-        const parsed = JSON.parse(saved!)
-        expect(parsed).toHaveLength(mockScheduleItems.length)
-      })
-    })
-
-    it('should not persist to localStorage when storeState is false', async () => {
+    it('should not persist schedule to any storage when storeState is false', async () => {
       const user = userEvent.setup()
       const { getByText } = render(
         <ControllerProvider storeState={false}>
@@ -366,10 +330,32 @@ describe('ControllerProvider Integration Tests', () => {
 
       await waitFor(() => {
         const sessionSaved = sessionStorage.getItem('controllerSchedule')
-        expect(sessionSaved).toBeTruthy()
-
+        expect(sessionSaved).toBeNull()
         const localSaved = localStorage.getItem('controllerSchedule')
         expect(localSaved).toBeNull()
+      })
+    })
+
+    it('should persist schedule to both sessionStorage and localStorage when storeState is true', async () => {
+      const user = userEvent.setup()
+      const { getByText } = render(
+        <ControllerProvider storeState={true}>
+          <TestConsumer />
+        </ControllerProvider>
+      )
+
+      await user.click(getByText('Replace Schedule'))
+
+      await waitFor(() => {
+        const sessionSaved = sessionStorage.getItem('controllerSchedule')
+        expect(sessionSaved).toBeTruthy()
+        const sessionParsed = JSON.parse(sessionSaved!)
+        expect(sessionParsed).toHaveLength(mockScheduleItems.length)
+
+        const localSaved = localStorage.getItem('controllerSchedule')
+        expect(localSaved).toBeTruthy()
+        const localParsed = JSON.parse(localSaved!)
+        expect(localParsed).toHaveLength(mockScheduleItems.length)
       })
     })
   })

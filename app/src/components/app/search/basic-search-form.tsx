@@ -39,7 +39,7 @@ export function BasicSearchForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-row w-full justify-stretch space-x-3">
+      <form onSubmit={(e) => { e.stopPropagation(); form.handleSubmit(onSubmit)(e); }} className="flex flex-row w-full justify-stretch space-x-3">
         <FormField
           control={form.control}
           name="query"

@@ -96,23 +96,29 @@ export function ControllerProvider({
 }: ControllerProviderProps) {
   const [mode, setMode] = useState<ControllerMode>(initialState.mode);
 
-  if (!initialState.schedule || initialState.schedule.length < 1) {
+  let storedSchedule: IScheduleItem[] = [];
+  if (storeState) {
     try {
-      const sessionSchedule = sessionStorage.getItem('controllerSchedule');
-      if (sessionSchedule) {
-        initialState.schedule = (JSON.parse(sessionSchedule) as IScheduleItem[]) || null;
+      const localSchedule = localStorage.getItem('controllerSchedule');
+      if (localSchedule) {
+        storedSchedule = (JSON.parse(localSchedule) as IScheduleItem[]) || [];
+      } else {
+        const sessionSchedule = sessionStorage.getItem('controllerSchedule');
+        if (sessionSchedule) {
+          storedSchedule = (JSON.parse(sessionSchedule) as IScheduleItem[]) || [];
+        }
       }
     }
     catch (e) {
       // Ignore error
     }
   }
-  const [schedule, setSchedule] = useState<IScheduleItem[]>(initialState.schedule);
+  const [schedule, setSchedule] = useState<IScheduleItem[]>(storedSchedule);
   const [scheduleItem, setScheduleItem] = useState<IScheduleItem | undefined>(initialState.scheduleItem);
 
   const saveAndSetSchedule = (newSchedule: IScheduleItem[]) => {
-    sessionStorage.setItem('controllerSchedule', JSON.stringify(newSchedule));
     if (storeState) {
+      sessionStorage.setItem('controllerSchedule', JSON.stringify(newSchedule));
       localStorage.setItem('controllerSchedule', JSON.stringify(newSchedule));
     }
     setSchedule(newSchedule);
@@ -456,18 +462,19 @@ export function ControllerProvider({
     setWindows([]);
   }
 
+  let storedConfig: IControllerConfig = initialState.config;
   if (storeState) {
     try {
       const savedControllerConfig = localStorage.getItem('controllerConfig');
       if (savedControllerConfig) {
-        initialState.config = (JSON.parse(savedControllerConfig) as IControllerConfig) || initialState.config;
+        storedConfig = (JSON.parse(savedControllerConfig) as IControllerConfig) || storedConfig;
       }
     }
     catch (e) {
       // Ignore error
     }
   }
-  const [config, setConfig] = useState<IControllerConfig>(initialState.config);
+  const [config, setConfig] = useState<IControllerConfig>(storedConfig);
 
   const setAndSaveConfig = (newConfig: IControllerConfig) => {
     if (storeState) {

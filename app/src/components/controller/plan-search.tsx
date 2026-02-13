@@ -11,7 +11,11 @@ import { AdvancedSearchForm } from "@/components/app/search/advanced-search-form
 import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 
-export function PlanSearch() {
+type PlanSearchProps = {
+  showOpen?: boolean;
+}
+
+export function PlanSearch({ showOpen = true }: PlanSearchProps) {
 
   const { t } = useTranslation("controller");
 
@@ -38,12 +42,14 @@ export function PlanSearch() {
   const getButtonActions = (item: ISongWithRole) => {
     return (
       <>
-        <Button size="sm" title={t('schedule.items.addToSchedule')} onClick={() => addToSchedule(songsService.toScheduleSong(item))}>
+        <Button type="button" size="sm" title={t('schedule.items.addToSchedule')} onClick={() => addToSchedule(songsService.toScheduleSong(item))}>
           <PlusIcon className="size-3"></PlusIcon>
         </Button>
-        <Button size="sm" title={t('schedule.items.open')} onClick={() => setScheduleItem(songsService.toScheduleSong(item))}>
-          <PlayIcon className="size-3"></PlayIcon>
-        </Button>
+        {showOpen && (
+          <Button type="button" size="sm" title={t('schedule.items.open')} onClick={() => setScheduleItem(songsService.toScheduleSong(item))}>
+            <PlayIcon className="size-3"></PlayIcon>
+          </Button>
+        )}
       </>
     );
   }

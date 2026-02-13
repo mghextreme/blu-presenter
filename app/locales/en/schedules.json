@@ -1,0 +1,50 @@
+{
+  "title": {
+    "list": "Schedules - {{organization}}",
+    "add": "Add - Schedules",
+    "edit": "{{name}} - Schedules"
+  },
+  "actions": {
+    "create": "Add schedule",
+    "edit": "Edit schedule",
+    "delete": "Delete schedule",
+    "addItem": "Add item"
+  },
+  "button": {
+    "add": "Add",
+    "update": "Update",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "input": {
+    "organization": "Organization",
+    "title": "Title",
+    "date": "Date"
+  },
+  "list": {
+    "title": "Schedules"
+  },
+  "add": {
+    "title": "Add schedule"
+  },
+  "edit": {
+    "title": "Edit schedule"
+  },
+  "column": {
+    "title": "Title",
+    "date": "Date"
+  },
+  "organizations": {
+    "defaultName": "Personal space"
+  },
+  "error": {
+    "deleteSchedule": "Error deleting schedule",
+    "noPermission": "You don't have permission to manage schedules"
+  },
+  "message": {
+    "deleteSchedule": {
+      "title": "Delete schedule",
+      "description": "Are you sure you want to delete the schedule \"{{name}}\"? This action cannot be undone."
+    }
+  }
+}
