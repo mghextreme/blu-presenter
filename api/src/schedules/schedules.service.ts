@@ -12,6 +12,7 @@ import { CreateScheduleDto, IScheduleItem, UpdateScheduleDto } from 'src/types';
 import { Schedule, Song } from 'src/entities';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
+import { generateRandomSecret } from 'src/utils/secret';
 
 @Injectable({ scope: Scope.REQUEST })
 export class SchedulesService {
@@ -32,6 +33,7 @@ export class SchedulesService {
         items: true,
         createdBy: true,
         updatedBy: true,
+        secret: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -53,6 +55,7 @@ export class SchedulesService {
         items: true,
         createdBy: true,
         updatedBy: true,
+        secret: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -129,6 +132,7 @@ export class SchedulesService {
       title: createScheduleDto.title,
       date: createScheduleDto.date || null,
       items: createScheduleDto.items,
+      secret: generateRandomSecret(10),
       orgId,
       createdBy: user.id,
     });

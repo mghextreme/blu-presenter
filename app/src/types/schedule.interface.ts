@@ -5,4 +5,5 @@ export interface ISchedule {
   title: string;
   date?: string | null;
   items: IScheduleItem[];
+  secret?: string;
 }

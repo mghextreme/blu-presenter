@@ -45,6 +45,14 @@ export class Schedule {
   })
   updatedBy: number | null;
 
+  @Column({
+    nullable: true,
+    default: null,
+    type: 'varchar',
+    length: 32,
+  })
+  secret: string;
+
   @ManyToOne(() => Organization, {
     createForeignKeyConstraints: true,
   })
