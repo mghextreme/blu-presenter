@@ -42,7 +42,8 @@ export function PlanComment() {
     addToSchedule(scheduleItem);
   }
 
-  const handleAdd = () => {
+  const handleAdd = (e?: React.BaseSyntheticEvent) => {
+    e?.preventDefault();
     form.handleSubmit(add)();
   }
 

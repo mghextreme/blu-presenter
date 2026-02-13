@@ -24,7 +24,7 @@ function getTodayString(): string {
 
 export function PlanSchedules() {
   const { t, i18n } = useTranslation("controller");
-  const { schedulesService } = useServices();
+  const { schedulesService, songsService } = useServices();
   const { schedule, replaceSchedule } = useController();
 
   const [allSchedules, setAllSchedules] = useState<ISchedule[]>([]);
@@ -81,8 +81,11 @@ export function PlanSchedules() {
     return { todaySchedules: today, otherSchedules: other };
   }, [filtered, todayString]);
 
-  const handleLoad = (items: ISchedule["items"]) => {
-    replaceSchedule(items);
+  const handleLoad = async (scheduleId: number) => {
+    const fullSchedule = await schedulesService.getById(scheduleId);
+    if (fullSchedule?.items) {
+      replaceSchedule(songsService.resolveScheduleItems(fullSchedule.items));
+    }
   };
 
   const hasControllerItems = schedule.length > 0;
@@ -146,7 +149,7 @@ export function PlanSchedules() {
 type ScheduleListItemProps = {
   schedule: ISchedule;
   formatDate: (date: string | null | undefined) => string;
-  onLoad: (items: ISchedule["items"]) => void;
+  onLoad: (scheduleId: number) => void;
   hasControllerItems: boolean;
   t: ReturnType<typeof useTranslation>["t"];
   highlight?: boolean;
@@ -167,7 +170,7 @@ function ScheduleListItem({
     <Button
       size="sm"
       title={t("plan.schedules.load")}
-      onClick={!hasControllerItems ? () => onLoad(schedule.items) : undefined}
+      onClick={!hasControllerItems ? () => onLoad(schedule.id) : undefined}
     >
       <InboxArrowDownIcon className="size-3" />
     </Button>
@@ -214,7 +217,7 @@ function ScheduleListItem({
                     <AlertDialogCancel>
                       {t("plan.schedules.confirmReplace.cancel")}
                     </AlertDialogCancel>
-                    <AlertDialogAction onClick={() => onLoad(schedule.items)}>
+                    <AlertDialogAction onClick={() => onLoad(schedule.id)}>
                       {t("plan.schedules.confirmReplace.confirm")}
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -227,12 +230,12 @@ function ScheduleListItem({
         </CardHeader>
         {itemCount > 0 && (
           <CollapsibleContent>
-            <CardContent className="bg-background pt-3">
+            <CardContent className="bg-background py-3">
               <ul className="flex flex-col gap-1">
                 {schedule.items.map((item, ix) => (
                   <li key={ix} className="text-sm text-muted-foreground truncate">
                     <span className="text-xs text-muted-foreground/60 me-2">{ix + 1}.</span>
-                    {item.title || "—"}
+                    {item.type === 'song' ? `${item.title} | ${(item as any).artist}` : item.title || "—"}
                   </li>
                 ))}
               </ul>

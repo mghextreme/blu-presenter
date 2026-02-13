@@ -68,7 +68,8 @@ export function PlanText({ showOpen = true }: PlanTextProps) {
     setScheduleItem(scheduleItem);
   }
 
-  const handleAdd = () => {
+  const handleAdd = (e?: React.BaseSyntheticEvent) => {
+    e?.preventDefault();
     form.handleSubmit(add)();
   }
 

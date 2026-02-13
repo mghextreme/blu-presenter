@@ -42,11 +42,11 @@ export function PlanSearch({ showOpen = true }: PlanSearchProps) {
   const getButtonActions = (item: ISongWithRole) => {
     return (
       <>
-        <Button size="sm" title={t('schedule.items.addToSchedule')} onClick={() => addToSchedule(songsService.toScheduleSong(item))}>
+        <Button type="button" size="sm" title={t('schedule.items.addToSchedule')} onClick={() => addToSchedule(songsService.toScheduleSong(item))}>
           <PlusIcon className="size-3"></PlusIcon>
         </Button>
         {showOpen && (
-          <Button size="sm" title={t('schedule.items.open')} onClick={() => setScheduleItem(songsService.toScheduleSong(item))}>
+          <Button type="button" size="sm" title={t('schedule.items.open')} onClick={() => setScheduleItem(songsService.toScheduleSong(item))}>
             <PlayIcon className="size-3"></PlayIcon>
           </Button>
         )}

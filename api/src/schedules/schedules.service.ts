@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateScheduleDto, UpdateScheduleDto } from 'src/types';
-import { Schedule } from 'src/entities';
+import { CreateScheduleDto, IScheduleItem, UpdateScheduleDto } from 'src/types';
+import { Schedule, Song } from 'src/entities';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 
@@ -18,6 +18,8 @@ export class SchedulesService {
   constructor(
     @InjectRepository(Schedule)
     private readonly schedulesRepository: Repository<Schedule>,
+    @InjectRepository(Song)
+    private readonly songsRepository: Repository<Song>,
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {}
 
@@ -43,7 +45,7 @@ export class SchedulesService {
   }
 
   async findOne(orgId: number, id: number): Promise<Schedule | null> {
-    return this.schedulesRepository.findOne({
+    const schedule = await this.schedulesRepository.findOne({
       select: {
         id: true,
         title: true,
@@ -59,6 +61,61 @@ export class SchedulesService {
         orgId,
       },
     });
+
+    if (!schedule || !schedule.items?.length) {
+      return schedule;
+    }
+
+    schedule.items = await this.resolveSongReferences(schedule.items);
+    return schedule;
+  }
+
+  private async resolveSongReferences(items: IScheduleItem[]): Promise<IScheduleItem[]> {
+    const songItems = items.filter((item) => item.type === 'song');
+    if (songItems.length === 0) {
+      return items;
+    }
+
+    const songIds = [...new Set(songItems.map((item) => item.id))];
+
+    const songs = await this.songsRepository
+      .createQueryBuilder('song')
+      .select([
+        'song.id',
+        'song.title',
+        'song.artist',
+        'song.language',
+        'song.blocks',
+        'song.references',
+        'song.secret',
+      ])
+      .where('song.id IN (:...songIds)', { songIds })
+      .getMany();
+
+    const songsMap = new Map(songs.map((song) => [song.id, song]));
+
+    return items
+      .map((item) => {
+        if (item.type !== 'song') {
+          return item;
+        }
+
+        const song = songsMap.get(item.id);
+        if (!song) {
+          return null;
+        }
+
+        return {
+          ...item,
+          title: song.title,
+          artist: song.artist,
+          language: song.language,
+          blocks: song.blocks,
+          references: song.references,
+          secret: song.secret,
+        };
+      })
+      .filter((item) => item !== null);
   }
 
   async create(orgId: number, createScheduleDto: CreateScheduleDto): Promise<Schedule> {
@@ -70,7 +127,7 @@ export class SchedulesService {
 
     const result = await this.schedulesRepository.insert({
       title: createScheduleDto.title,
-      date: createScheduleDto.date ? new Date(createScheduleDto.date) : null,
+      date: createScheduleDto.date || null,
       items: createScheduleDto.items,
       orgId,
       createdBy: user.id,
@@ -101,7 +158,7 @@ export class SchedulesService {
     }
 
     if (updateScheduleDto.date !== undefined) {
-      schedule.date = updateScheduleDto.date ? new Date(updateScheduleDto.date) : null;
+      schedule.date = updateScheduleDto.date || null;
     }
 
     if (updateScheduleDto.items !== undefined) {

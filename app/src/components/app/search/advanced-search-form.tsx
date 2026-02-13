@@ -65,7 +65,7 @@ export function AdvancedSearchForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex w-full flex-wrap flex-col sm:flex-row space-x-2 space-y-2 items-stretch">
+      <form onSubmit={(e) => { e.stopPropagation(); form.handleSubmit(onSubmit)(e); }} className="flex w-full flex-wrap flex-col sm:flex-row space-x-2 space-y-2 items-stretch">
         <FormField
           control={form.control}
           name="query"

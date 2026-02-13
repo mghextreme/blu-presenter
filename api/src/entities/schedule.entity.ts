@@ -26,7 +26,7 @@ export class Schedule {
     nullable: true,
     default: null,
   })
-  date: Date | null;
+  date: string | null;
 
   @Column({
     type: 'json',

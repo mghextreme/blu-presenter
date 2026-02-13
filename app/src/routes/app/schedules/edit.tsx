@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ISchedule, isRoleHigherOrEqualThan } from "@/types";
+import { ISchedule, IScheduleItem, isRoleHigherOrEqualThan } from "@/types";
 import { ScheduleSchema } from "@/types/schemas/schedule.schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useServices } from "@/hooks/useServices";
@@ -76,6 +76,7 @@ export function EditSchedule({
               edit={edit}
               data={data}
               schedulesService={schedulesService}
+              songsService={songsService}
               navigate={navigate}
               t={t}
             />
@@ -91,6 +92,7 @@ function EditScheduleForm({
   edit,
   data,
   schedulesService,
+  songsService,
   navigate,
   t,
 }: {
@@ -98,6 +100,7 @@ function EditScheduleForm({
   edit: boolean,
   data: ISchedule,
   schedulesService: ReturnType<typeof useServices>['schedulesService'],
+  songsService: ReturnType<typeof useServices>['songsService'],
   navigate: ReturnType<typeof useNavigate>,
   t: ReturnType<typeof useTranslation>['t'],
 }) {
@@ -108,7 +111,7 @@ function EditScheduleForm({
 
   useEffect(() => {
     if (!initialized && data.items && data.items.length > 0) {
-      replaceSchedule(data.items);
+      replaceSchedule(songsService.resolveScheduleItems(data.items));
       setInitialized(true);
     }
   }, [data.items]);
@@ -116,10 +119,23 @@ function EditScheduleForm({
   const onSubmit = async (values: z.infer<typeof ScheduleSchema>) => {
     setLoading(true);
 
-    const payload = {
+    const items = schedule.map((item: IScheduleItem) => {
+      if (item.type === 'song') {
+        return { type: item.type, id: item.id, secret: (item as any).secret, title: item.title, artist: (item as any).artist };
+      }
+      if (item.type === 'text') {
+        return { type: item.type, title: item.title, subtitle: (item as any).subtitle };
+      }
+      if (item.type === 'comment') {
+        return { type: item.type, title: item.title };
+      }
+      return item;
+    });
+
+    const payload: Partial<ISchedule> = {
       title: values.title,
       date: values.date || null,
-      items: schedule,
+      items: items as IScheduleItem[],
     };
 
     let action;
