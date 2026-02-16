@@ -9,7 +9,7 @@ import { SelectorScreen } from "@/components/controller/selector-screen";
 import { ConnectionIndicator } from "@/components/receiver/connection-indicator";
 import i18next from "i18next";
 
-const SYNC_INTERVAL_MS = 15_000; // Re-sync state every 60 seconds
+const SYNC_INTERVAL_MS = 60_000; // Re-sync state every 60 seconds
 
 export function Receiver() {
 
