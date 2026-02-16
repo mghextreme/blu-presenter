@@ -169,8 +169,13 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
     });
 
     if (configRef.current.additionalEvents) {
-      configRef.current.additionalEvents.forEach(({ eventName, handler }) => {
-        socket.on(eventName, handler);
+      configRef.current.additionalEvents.forEach(({ eventName }) => {
+        socket.on(eventName, (data: any) => {
+          const currentHandler = configRef.current.additionalEvents?.find(
+            (e) => e.eventName === eventName,
+          )?.handler;
+          currentHandler?.(data);
+        });
       });
     }
 
@@ -237,6 +242,13 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
         socketRef.current.io.off('reconnect');
         socketRef.current.io.off('reconnect_attempt');
         socketRef.current.io.off('error');
+
+        if (configRef.current.additionalEvents) {
+          configRef.current.additionalEvents.forEach(({ eventName }) => {
+            socketRef.current?.off(eventName);
+          });
+        }
+
         isSubscribedRef.current = false;
       }
 
