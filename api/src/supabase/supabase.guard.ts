@@ -7,7 +7,7 @@ import { OrganizationsService, OrganizationsBaseService } from '../organizations
 import { ORGANIZATION_ROLE_KEY } from '../auth/organization-role.decorator';
 import { AuthenticatedSocket, isRoleHigherOrEqualThan } from 'src/types';
 import { SessionsService } from 'src/sessions/sessions.service';
-import { JwtService } from '@nestjs/jwt';
+import { JwtVerificationService } from './jwt-verification.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class SupabaseGuard extends AuthGuard('jwt') {
@@ -72,7 +72,7 @@ export class SupabaseGuard extends AuthGuard('jwt') {
 @Injectable()
 export class WebsocketGuard implements CanActivate {
   constructor(
-    protected readonly jwtService: JwtService,
+    protected readonly jwtVerificationService: JwtVerificationService,
     protected readonly userService: UsersBaseService,
     protected readonly organizationService: OrganizationsBaseService,
     protected readonly sessionService: SessionsService,
@@ -95,7 +95,7 @@ export class WebsocketGuard implements CanActivate {
 
     let authPayload;
     try {
-      authPayload = await this.jwtService.verifyAsync(token);
+      authPayload = await this.jwtVerificationService.verifyToken(token);
     } catch (e) {
       return false;
     }
