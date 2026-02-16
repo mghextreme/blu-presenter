@@ -6,6 +6,9 @@ interface SessionSocketConfig {
   auth?: Record<string, any>;
   onConnect?: (socket: Socket) => void;
   onDisconnect?: (reason: string) => void;
+  onReconnect?: (attemptNumber: number) => void;
+  onReconnectAttempt?: (attemptNumber: number) => void;
+  onConnectError?: (error: Error) => void;
   onError?: (error: any) => void;
   onJoinedSession?: (data: any) => void;
   onLeftSession?: (data: any) => void;
@@ -26,6 +29,7 @@ interface UseSessionSocketReturn {
   socket: Socket | null;
   connectedSessionId: number | null;
   isConnected: boolean;
+  reconnectAttempts: number;
   connect: () => void;
   disconnect: () => void;
   joinSession: (params: JoinSessionParams) => void;
@@ -36,7 +40,9 @@ interface UseSessionSocketReturn {
 export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionSocketReturn {
   const socketRef = useRef<Socket | null>(null);
   const [connectedSessionId, setConnectedSessionId] = useState<number | null>(null);
+  const connectedSessionIdRef = useRef<number | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [reconnectAttempts, setReconnectAttempts] = useState<number>(0);
   const isSubscribedRef = useRef<boolean>(false);
   const configRef = useRef(socketConfig);
 
@@ -44,6 +50,12 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
   useEffect(() => {
     configRef.current = socketConfig;
   }, [socketConfig]);
+
+  // Helper to update connectedSessionId in both state and ref
+  const updateConnectedSessionId = useCallback((id: number | null) => {
+    connectedSessionIdRef.current = id;
+    setConnectedSessionId(id);
+  }, []);
 
   const joinSession = useCallback((params: JoinSessionParams) => {
     if (!socketRef.current) {
@@ -84,6 +96,11 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
     socket.off('joinedSession');
     socket.off('leftSession');
 
+    // Reconnection events (from the Manager)
+    socket.io.off('reconnect');
+    socket.io.off('reconnect_attempt');
+    socket.io.off('error');
+
     if (configRef.current.additionalEvents) {
       configRef.current.additionalEvents.forEach(({ eventName }) => {
         socket.off(eventName);
@@ -98,12 +115,13 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
 
     socket.on('connect', () => {
       setIsConnected(true);
+      setReconnectAttempts(0);
       configRef.current.onConnect?.(socket);
     });
 
     socket.on('disconnect', (reason) => {
       setIsConnected(false);
-      setConnectedSessionId(null);
+      updateConnectedSessionId(null);
       configRef.current.onDisconnect?.(reason);
     });
 
@@ -112,11 +130,11 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
 
       switch (data.code) {
         case 'unauthorized':
-          setConnectedSessionId(null);
+          updateConnectedSessionId(null);
           break;
 
         case 'notInSession':
-          setConnectedSessionId(null);
+          updateConnectedSessionId(null);
           break;
       }
 
@@ -124,15 +142,30 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
     });
 
     socket.on('joinedSession', (data) => {
-      setConnectedSessionId(Number(data.id));
+      updateConnectedSessionId(Number(data.id));
       configRef.current.onJoinedSession?.(data);
     });
 
     socket.on('leftSession', (data) => {
-      if (connectedSessionId === data.id) {
-        setConnectedSessionId(null);
+      if (connectedSessionIdRef.current === data.id) {
+        updateConnectedSessionId(null);
       }
       configRef.current.onLeftSession?.(data);
+    });
+
+    // Reconnection events live on the Manager (socket.io), not the Socket
+    socket.io.on('reconnect', (attemptNumber: number) => {
+      setReconnectAttempts(0);
+      configRef.current.onReconnect?.(attemptNumber);
+    });
+
+    socket.io.on('reconnect_attempt', (attemptNumber: number) => {
+      setReconnectAttempts(attemptNumber);
+      configRef.current.onReconnectAttempt?.(attemptNumber);
+    });
+
+    socket.io.on('error', (error: Error) => {
+      configRef.current.onConnectError?.(error);
     });
 
     if (configRef.current.additionalEvents) {
@@ -173,20 +206,42 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
   const disconnect = useCallback(() => {
     if (!socketRef.current) return;
 
-    if (connectedSessionId) {
-      leaveSession(connectedSessionId);
-      setConnectedSessionId(null);
+    const currentSessionId = connectedSessionIdRef.current;
+    if (currentSessionId) {
+      leaveSession(currentSessionId);
+      updateConnectedSessionId(null);
     }
 
     unsubscribe(socketRef.current);
     socketRef.current.disconnect();
     socketRef.current = null;
     setIsConnected(false);
-  }, [connectedSessionId, leaveSession]);
+  }, [leaveSession, updateConnectedSessionId]);
 
   useEffect(() => {
     return () => {
-      disconnect();
+      // Use ref-based cleanup so it always has the current socket
+      if (!socketRef.current) return;
+
+      const currentSessionId = connectedSessionIdRef.current;
+      if (currentSessionId) {
+        socketRef.current.emit('leaveSession', { sessionId: currentSessionId });
+      }
+
+      if (isSubscribedRef.current) {
+        socketRef.current.off('connect');
+        socketRef.current.off('disconnect');
+        socketRef.current.off('error');
+        socketRef.current.off('joinedSession');
+        socketRef.current.off('leftSession');
+        socketRef.current.io.off('reconnect');
+        socketRef.current.io.off('reconnect_attempt');
+        socketRef.current.io.off('error');
+        isSubscribedRef.current = false;
+      }
+
+      socketRef.current.disconnect();
+      socketRef.current = null;
     };
   }, []);
 
@@ -194,6 +249,7 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
     socket: socketRef.current,
     connectedSessionId,
     isConnected,
+    reconnectAttempts,
     connect,
     disconnect,
     joinSession,
@@ -201,4 +257,3 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
     emit,
   };
 }
-

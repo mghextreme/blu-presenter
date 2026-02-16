@@ -15,7 +15,8 @@ import { AuthModule } from './auth/auth.module';
 import { ThemesModule } from './themes/themes.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { SchedulesModule } from './schedules/schedules.module';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { RestOnlyThrottlerGuard } from './guards/rest-only-throttler.guard';
 
 @Module({
   imports: [
@@ -50,7 +51,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     },
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: RestOnlyThrottlerGuard,
     },
   ],
 })

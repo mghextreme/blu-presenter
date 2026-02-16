@@ -46,5 +46,16 @@
       "title": "Delete schedule",
       "description": "Are you sure you want to delete the schedule \"{{name}}\"? This action cannot be undone."
     }
+  },
+  "schedule": {
+    "actions": {
+      "restoreLastSession": "Restore last session",
+      "clear": "Clear schedule"
+    },
+    "items": {
+      "expand": "Expand",
+      "addToSchedule": "Add to schedule",
+      "removeFromSchedule": "Remove from schedule"
+    }
   }
 }

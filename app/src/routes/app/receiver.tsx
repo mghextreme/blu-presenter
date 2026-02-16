@@ -1,12 +1,15 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useLoaderData, useParams } from "react-router-dom";
 import { IControllerSelection, IScheduleItem, ISession, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { useController } from "@/hooks/useController";
 import { useSessionSocket } from "@/hooks/useSessionSocket";
 import { SelectorScreen } from "@/components/controller/selector-screen";
+import { ConnectionIndicator } from "@/components/receiver/connection-indicator";
 import i18next from "i18next";
+
+const SYNC_INTERVAL_MS = 15_000; // Re-sync state every 60 seconds
 
 export function Receiver() {
 
@@ -33,7 +36,18 @@ export function Receiver() {
     setSelection(session?.selection ?? {} as IControllerSelection);
   }, []);
 
-  const { connect, socket, isConnected, joinSession } = useSessionSocket({
+  const getJoinParams = useCallback(() => {
+    if (session?.id && params.secret && params.orgId) {
+      return {
+        sessionId: session.id,
+        secret: params.secret,
+        orgId: params.orgId,
+      };
+    }
+    return null;
+  }, [session, params.secret, params.orgId]);
+
+  const { connect, socket, isConnected, reconnectAttempts, joinSession } = useSessionSocket({
     auth: {
       orgId: Number(params.orgId),
       sessionId: Number(params.sessionId),
@@ -51,6 +65,18 @@ export function Receiver() {
       if (data.selection) {
         setSelection(data.selection as IControllerSelection);
       }
+    },
+    onError: (data) => {
+      // Re-join session on notInSession error (e.g., server restart while transport survived)
+      if (data.code === 'notInSession') {
+        const joinParams = getJoinParams();
+        if (joinParams) {
+          joinSession(joinParams);
+        }
+      }
+    },
+    onConnectError: (error) => {
+      console.warn('Socket connect error:', error.message);
     },
     additionalEvents: [
       {
@@ -105,14 +131,25 @@ export function Receiver() {
       return;
     }
 
-    if (session?.id && params.secret && params.orgId) {
-      joinSession({
-        sessionId: session.id,
-        secret: params.secret,
-        orgId: params.orgId,
-      });
+    const joinParams = getJoinParams();
+    if (joinParams) {
+      joinSession(joinParams);
     }
-  }, [isConnected, socket, session, params.orgId, joinSession]);
+  }, [isConnected, socket, session, params.orgId, joinSession, getJoinParams]);
+
+  // Periodic state sync: re-join session to get fresh state from server
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const interval = setInterval(() => {
+      const joinParams = getJoinParams();
+      if (joinParams) {
+        joinSession(joinParams);
+      }
+    }, SYNC_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [isConnected, joinSession, getJoinParams]);
 
   useEffect(() => {
     if (!session || !session.language) return;
@@ -158,6 +195,7 @@ export function Receiver() {
           {'}'}
         </style>
         <SelectorScreen setMode={setMode} themeOptions={selectedTheme ? [] : themes} defaultTheme={selectedTheme}></SelectorScreen>
+        <ConnectionIndicator isConnected={isConnected} reconnectAttempts={reconnectAttempts} />
       </div>
     </>
   );

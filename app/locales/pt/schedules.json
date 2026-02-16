@@ -46,5 +46,16 @@
       "title": "Remover programação",
       "description": "Tem certeza que deseja remover a programação \"{{name}}\"? Esta ação não pode ser desfeita."
     }
+  },
+  "schedule": {
+    "actions": {
+      "restoreLastSession": "Restaurar última sessão",
+      "clear": "Limpar programação"
+    },
+    "items": {
+      "expand": "Expandir",
+      "addToSchedule": "Adicionar à programação",
+      "removeFromSchedule": "Remover da pragramação"
+    }
   }
 }
