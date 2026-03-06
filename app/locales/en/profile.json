@@ -24,5 +24,27 @@
     "title": "Change password",
     "failed": "Error changing password",
     "succeeded": "Password updated!"
+  },
+  "setPassword": {
+    "title": "Set password",
+    "failed": "Error setting password",
+    "succeeded": "Password set!"
+  },
+  "connectedAccounts": {
+    "title": "Connected accounts",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "connected": "Connected",
+    "disconnected": "Account disconnected!",
+    "connectFailed": "Error connecting account",
+    "disconnectFailed": "Error disconnecting account",
+    "linking": "Linking account...",
+    "linkError": "Error linking account",
+    "confirmDisconnect": {
+      "title": "Disconnect Google account?",
+      "description": "You will no longer be able to sign in with this Google account. Make sure you have a password set before disconnecting.",
+      "confirm": "Disconnect",
+      "cancel": "Cancel"
+    }
   }
 }

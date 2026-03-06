@@ -1,4 +1,4 @@
-import { Body, Controller, HttpException, HttpStatus, Inject, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Inject, Param, Post } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags } from '@nestjs/swagger';
@@ -9,9 +9,11 @@ import {
   ChangePasswordDto,
   ExchangeCodeDto,
   OAuthRedirectDto,
+  SetPasswordDto,
   SignInDto,
   SignUpDto,
   TokenRefreshDto,
+  UserIdentitiesResponseDto,
 } from 'src/types';
 import { AuthService } from './auth.service';
 
@@ -94,5 +96,31 @@ export class AuthController {
     @Body() changePasswordDto: ChangePasswordDto,
   ): Promise<void> {
     await this.authService.changePassword(changePasswordDto);
+  }
+
+  @Get('identities')
+  async getIdentities(): Promise<UserIdentitiesResponseDto> {
+    return await this.authService.getIdentities();
+  }
+
+  @Post('identities/:provider')
+  async linkIdentity(
+    @Param('provider') provider: string,
+  ): Promise<OAuthRedirectDto> {
+    return await this.authService.linkIdentity(provider);
+  }
+
+  @Delete('identities/:identityId')
+  async unlinkIdentity(
+    @Param('identityId') identityId: string,
+  ): Promise<void> {
+    await this.authService.unlinkIdentity(identityId);
+  }
+
+  @Post('setPassword')
+  async setPassword(
+    @Body() setPasswordDto: SetPasswordDto,
+  ): Promise<void> {
+    await this.authService.setPassword(setPasswordDto);
   }
 }

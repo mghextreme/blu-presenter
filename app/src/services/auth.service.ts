@@ -1,4 +1,4 @@
-import { IAuthInvitationData, IAuthResponse, IChangePasswordData, IExchangeCodeData, IOAuthRedirect, ISignInData, ISignUpData } from "@/types/auth";
+import { IAuthInvitationData, IAuthResponse, IChangePasswordData, IExchangeCodeData, IOAuthRedirect, ISetPasswordData, ISignInData, ISignUpData, IUserIdentitiesResponse } from "@/types/auth";
 import { ApiService } from "./api.service";
 import { useAuth } from "@/hooks/useAuth";
 import { QueryClient } from "@tanstack/react-query";
@@ -64,6 +64,26 @@ export class AuthService extends ApiService {
 
   public async changePassword(value: IChangePasswordData): Promise<void> {
     await this.postRequest('/auth/changePassword', JSON.stringify(value), {
+      'content-type': 'application/json',
+    });
+  }
+
+  public async getIdentities(): Promise<IUserIdentitiesResponse> {
+    return await this.getRequest('/auth/identities') as IUserIdentitiesResponse;
+  }
+
+  public async linkIdentity(provider: string): Promise<IOAuthRedirect> {
+    return await this.postRequest(`/auth/identities/${provider}`, undefined, {
+      'content-type': 'application/json',
+    }) as IOAuthRedirect;
+  }
+
+  public async unlinkIdentity(identityId: string): Promise<void> {
+    await this.deleteRequest(`/auth/identities/${identityId}`);
+  }
+
+  public async setPassword(value: ISetPasswordData): Promise<void> {
+    await this.postRequest('/auth/setPassword', JSON.stringify(value), {
       'content-type': 'application/json',
     });
   }

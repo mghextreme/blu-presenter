@@ -44,3 +44,19 @@ export interface IExchangeCodeData {
   codeVerifier: string;
   invite?: IAuthInvitationData;
 }
+
+export interface IUserIdentity {
+  identityId: string;
+  provider: string;
+  email?: string;
+  createdAt?: string;
+}
+
+export interface IUserIdentitiesResponse {
+  identities: IUserIdentity[];
+  hasPassword: boolean;
+}
+
+export interface ISetPasswordData {
+  newPassword: string;
+}

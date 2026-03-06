@@ -24,5 +24,27 @@
     "title": "Alterar senha",
     "failed": "Erro alterando senha",
     "succeeded": "Senha alterada!"
+  },
+  "setPassword": {
+    "title": "Definir senha",
+    "failed": "Erro definindo senha",
+    "succeeded": "Senha definida!"
+  },
+  "connectedAccounts": {
+    "title": "Contas conectadas",
+    "connect": "Conectar",
+    "disconnect": "Desconectar",
+    "connected": "Conectado",
+    "disconnected": "Conta desconectada!",
+    "connectFailed": "Erro conectando conta",
+    "disconnectFailed": "Erro desconectando conta",
+    "linking": "Conectando conta...",
+    "linkError": "Erro ao conectar conta",
+    "confirmDisconnect": {
+      "title": "Desconectar conta Google?",
+      "description": "Você não poderá mais entrar com esta conta Google. Certifique-se de ter uma senha definida antes de desconectar.",
+      "confirm": "Desconectar",
+      "cancel": "Cancelar"
+    }
   }
 }

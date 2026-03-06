@@ -26,6 +26,7 @@ import { TermsAndConditions } from "./terms-and-conditions";
 import { SignUp } from "./auth/signup";
 import { Login } from "./auth/login";
 import { OAuthCallback } from "./auth/oauth-callback";
+import { OAuthLinkCallback } from "./auth/oauth-link-callback";
 
 import { Welcome } from "./app/welcome";
 import { loader as welcomeLoader } from "./app/welcome.loader";
@@ -81,10 +82,11 @@ export function AppRouter() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
+          <Route path="/oauth/link-callback" element={<OAuthLinkCallback />} />
         </Route>
         <Route path="/app" element={<AppLayout />} errorElement={<ErrorLayout />}>
           <Route index={true} element={<Welcome />} loader={() => welcomeLoader({ organizationsService: services.organizationsService })} />
-          <Route path="profile" element={<Profile />} loader={() => profileLoader({ usersService: services.usersService })} />
+          <Route path="profile" element={<Profile />} loader={() => profileLoader({ usersService: services.usersService, authService: services.authService })} />
           <Route path="songs">
             <Route index={true} element={<SongsIndex />} loader={() => allSongsLoader({ songsService: services.songsService })} />
             <Route path="add" element={<EditSong edit={false} />} />
