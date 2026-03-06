@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { createHash, randomBytes } from 'crypto';
 import { OrganizationsService } from 'src/organizations/organizations.service';
 import { Supabase } from 'src/supabase/supabase';
 import {
@@ -16,9 +17,12 @@ import {
   AuthDto,
   ChangePasswordDto,
   OAuthRedirectDto,
+  SetPasswordDto,
   SignInDto,
   SignUpDto,
   TokenRefreshDto,
+  UserIdentitiesResponseDto,
+  UserIdentityDto,
 } from 'src/types';
 import { User } from 'src/entities';
 import { UsersService } from 'src/users/users.service';
@@ -227,5 +231,184 @@ export class AuthService {
           throw new BadRequestException(error.message);
       }
     }
+  }
+
+  async getIdentities(): Promise<UserIdentitiesResponseDto> {
+    const jwt = this.extractJwt();
+
+    const { data, error } = await this.supabaseClient.auth.getUser(jwt);
+    if (error) {
+      throw new BadRequestException(error.message);
+    }
+
+    const identities: UserIdentityDto[] = (data.user.identities || []).map(
+      (identity) => ({
+        identityId: identity.identity_id,
+        provider: identity.provider,
+        email: identity.identity_data?.email,
+        createdAt: identity.created_at,
+      }),
+    );
+
+    const hasPassword = identities.some(
+      (identity) => identity.provider === 'email',
+    );
+
+    return { identities, hasPassword };
+  }
+
+  async linkIdentity(provider: string): Promise<OAuthRedirectDto> {
+    switch (provider) {
+      case 'google':
+        break;
+      default:
+        throw new BadRequestException(
+          `Provider ${provider} not supported for identity linking`,
+        );
+    }
+
+    const jwt = this.extractJwt();
+    const supabaseUrl = this.configService.get('supabase.url');
+    const supabaseKey = this.configService.get('supabase.key');
+    const redirectTo =
+      this.configService.get('app.baseUrl') + '/oauth/link-callback';
+
+    const codeVerifier = this.generatePKCEVerifier();
+    const codeChallenge = this.generatePKCEChallenge(codeVerifier);
+
+    const params = new URLSearchParams({
+      provider,
+      redirect_to: redirectTo,
+      code_challenge: codeChallenge,
+      code_challenge_method: 's256',
+      skip_http_redirect: 'true',
+    });
+
+    const response = await fetch(
+      `${supabaseUrl}/auth/v1/user/identities/authorize?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          apikey: supabaseKey,
+        },
+        redirect: 'manual',
+      },
+    );
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new BadRequestException(
+        `Failed to initiate identity linking: ${body}`,
+      );
+    }
+
+    const data = await response.json();
+
+    if (!data.url) {
+      throw new BadRequestException(
+        'No redirect URL returned from identity linking',
+      );
+    }
+
+    return {
+      url: data.url,
+      codeVerifier: `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token-code-verifier=${codeVerifier}`,
+    };
+  }
+
+  async unlinkIdentity(identityId: string): Promise<void> {
+    const jwt = this.extractJwt();
+
+    // Verify the user has more than one identity before unlinking
+    const { identities } = await this.getIdentities();
+    if (identities.length <= 1) {
+      throw new BadRequestException(
+        'Cannot unlink the only identity. You must have at least one sign-in method.',
+      );
+    }
+
+    const identity = identities.find((i) => i.identityId === identityId);
+    if (!identity) {
+      throw new BadRequestException('Identity not found');
+    }
+
+    // Ensure user has a password if unlinking an OAuth provider
+    if (identity.provider !== 'email') {
+      const hasPassword = identities.some((i) => i.provider === 'email');
+      if (!hasPassword) {
+        throw new BadRequestException(
+          'You must set a password before disconnecting your OAuth provider.',
+        );
+      }
+    }
+
+    const supabaseUrl = this.configService.get('supabase.url');
+    const supabaseKey = this.configService.get('supabase.key');
+
+    const response = await fetch(
+      `${supabaseUrl}/auth/v1/user/identities/${identityId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          apikey: supabaseKey,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new BadRequestException(
+        `Failed to unlink identity: ${body}`,
+      );
+    }
+  }
+
+  async setPassword(setPasswordDto: SetPasswordDto): Promise<void> {
+    const jwt = this.extractJwt();
+
+    // Verify user doesn't already have a password
+    const { hasPassword } = await this.getIdentities();
+    if (hasPassword) {
+      throw new BadRequestException(
+        'User already has a password. Use changePassword instead.',
+      );
+    }
+
+    const supabaseUrl = this.configService.get('supabase.url');
+    const supabaseKey = this.configService.get('supabase.key');
+
+    const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        apikey: supabaseKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password: setPasswordDto.newPassword }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new BadRequestException(`Failed to set password: ${body}`);
+    }
+  }
+
+  private extractJwt(): string {
+    const authHeader = this.request.headers.authorization;
+    if (!authHeader) {
+      throw new ForbiddenException('No authorization header');
+    }
+    return authHeader.replace('Bearer ', '');
+  }
+
+  private generatePKCEVerifier(): string {
+    return randomBytes(32).toString('hex');
+  }
+
+  private generatePKCEChallenge(verifier: string): string {
+    const hash = createHash('sha256').update(verifier).digest('base64url');
+    return hash;
   }
 }

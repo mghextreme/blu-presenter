@@ -34,5 +34,7 @@ export * from './exchange-code.dto';
 export * from './access-token.dto';
 export * from './oauth-redirect.dto';
 export * from './auth-invitation-data.dto';
+export * from './set-password.dto';
+export * from './user-identity.dto';
 
 export * from './authenticated-socket.interface';
