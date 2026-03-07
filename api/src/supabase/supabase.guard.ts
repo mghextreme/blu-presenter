@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable, Scope } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Scope, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from './public.decorator';
@@ -27,21 +27,22 @@ export class SupabaseGuard extends AuthGuard('jwt') {
       contextClass,
     ]);
 
-    const defaultResponse = isPublic ? true : false;
-
     try {
       const result = (await super.canActivate(context)) as boolean;
       if (!result) {
-        return defaultResponse;
+        if (isPublic) return true;
+        throw new UnauthorizedException();
       }
     } catch (e) {
-      return defaultResponse;
+      if (isPublic) return true;
+      throw new UnauthorizedException();
     }
 
     const request = context.switchToHttp().getRequest();
     const internalUser = await this.userService.findByAuthId(request.user.sub);
     if (!internalUser) {
-      return defaultResponse;
+      if (isPublic) return true;
+      throw new UnauthorizedException();
     }
     internalUser.email = request.user.email;
     request['user']['internal'] = internalUser;
@@ -55,7 +56,7 @@ export class SupabaseGuard extends AuthGuard('jwt') {
     }
 
     if (!request.headers?.organization) {
-      return defaultResponse;
+      return false;
     }
 
     request['user']['organization'] = request.headers?.organization;

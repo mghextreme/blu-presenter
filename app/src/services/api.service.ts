@@ -8,6 +8,7 @@ export abstract class ApiService {
 
   protected queryClient: QueryClient;
   protected url: string;
+  private refreshPromise: Promise<void> | null = null;
 
   constructor(queryClient: QueryClient, config: { url: string }) {
     this.queryClient = queryClient;
@@ -22,7 +23,22 @@ export abstract class ApiService {
     return useAuth.getState().session;
   }
 
-  private refreshSession = async () => {
+  protected refreshSession = async () => {
+    // Deduplicate concurrent refresh attempts: if a refresh is already
+    // in progress, all callers await the same promise.
+    if (this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    this.refreshPromise = this.performRefresh();
+    try {
+      await this.refreshPromise;
+    } finally {
+      this.refreshPromise = null;
+    }
+  }
+
+  private performRefresh = async () => {
     try {
       const { user, session } = await this.postRequest('/auth/refresh', JSON.stringify({
         refreshToken: this.session?.refresh_token,
@@ -110,7 +126,7 @@ export abstract class ApiService {
       catch (e) {
         return null;
       }
-    } else if (refreshAuth && response.status === 401 && headers['Authorization']) {
+    } else if (refreshAuth && (response.status === 401 || response.status === 403) && headers['Authorization']) {
       await this.refreshSession();
       return await this.internalFetch(path, method, body, baseHeaders, false);
     } else {
