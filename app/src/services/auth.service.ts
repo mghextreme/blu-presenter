@@ -107,6 +107,10 @@ export class AuthService extends ApiService {
     this.queryClient.clear();
   }
 
+  public async tryRefreshSession(): Promise<void> {
+    await this.refreshSession();
+  }
+
   public async refreshOrganizations(): Promise<void> {
     await this.getAndSetOrganizations();
   }
