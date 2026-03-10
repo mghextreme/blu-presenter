@@ -159,8 +159,8 @@ function EditScheduleForm({
       action = schedulesService.add(payload);
     }
     action
-      .then(() => {
-        navigate(`/app/schedules`);
+      .then((savedSchedule: ISchedule | null) => {
+        navigate(`/app/schedules/${savedSchedule?.id}/view`);
       })
       .catch((err) => {
         console.error(err);
