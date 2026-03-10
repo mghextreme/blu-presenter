@@ -82,7 +82,7 @@ export function PlanSchedules() {
   }, [filtered, todayString]);
 
   const handleLoad = async (scheduleId: number) => {
-    const fullSchedule = await schedulesService.getById(scheduleId);
+    const fullSchedule = await schedulesService.fetchById(scheduleId);
     if (fullSchedule?.items) {
       replaceSchedule(songsService.resolveScheduleItems(fullSchedule.items));
     }

@@ -11,5 +11,5 @@ export interface IScheduleItem {
 }
 
 export interface ISortableScheduleItem extends IScheduleItem {
-  uniqueId: number;
+  uniqueId: string;
 }

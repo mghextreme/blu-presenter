@@ -165,6 +165,7 @@ export class SchedulesService {
         'song.blocks',
         'song.references',
         'song.secret',
+        'song.updatedAt',
       ])
       .where('song.id IN (:...songIds)', { songIds })
       .getMany();
@@ -190,6 +191,7 @@ export class SchedulesService {
           blocks: song.blocks,
           references: song.references,
           secret: song.secret,
+          updatedAt: song.updatedAt,
         };
       })
       .filter((item) => item !== null);

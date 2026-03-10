@@ -4,6 +4,7 @@ import { Key } from 'ts-key-enum';
 
 import { SelectorScreen } from "@/components/controller/selector-screen"
 import { IScheduleItem, IWindow, ISlide, ControllerMode, ISlideTextContent, ISlideImageContent, IControllerSelection } from "@/types"
+import { generateScheduleItemUniqueId } from "@/lib/utils"
 import { WindowProvider } from "./window.provider"
 
 export interface IControllerConfig {
@@ -127,18 +128,22 @@ export function ControllerProvider({
   const addToSchedule = (item: IScheduleItem | IScheduleItem[]) => {
     const items = Array.isArray(item) ? item : [item];
 
-    const uniqueIdBase = Date.now();
     const startingIx = schedule.length;
     const newValue = [
       ...schedule,
-      ...items.map((item, ix) => ({ ...item, index: startingIx + ix, uniqueId: uniqueIdBase + ix })),
+      ...items.map((item, ix) => {
+        const uniqueId = generateScheduleItemUniqueId(item, startingIx + ix);
+        return { ...item, index: startingIx + ix, uniqueId };
+      }),
     ];
     saveAndSetSchedule(newValue);
   };
   const replaceSchedule = (items: IScheduleItem[]) => {
-    const uniqueIdBase = Date.now();
     const newValue = [
-      ...items.map((item, ix) => ({ ...item, index: ix, uniqueId: uniqueIdBase + ix })),
+      ...items.map((item, ix) => {
+        const uniqueId = generateScheduleItemUniqueId(item, ix);
+        return { ...item, index: ix, uniqueId };
+      }),
     ];
     saveAndSetSchedule(newValue);
   };

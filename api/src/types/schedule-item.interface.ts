@@ -10,4 +10,5 @@ export interface IScheduleItem {
   slides?: any[]
   secret?: string
   uniqueId?: number
+  updatedAt?: Date
 }

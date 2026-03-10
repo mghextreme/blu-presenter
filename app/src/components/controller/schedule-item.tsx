@@ -47,7 +47,7 @@ export function ScheduleItem({
   const text = item as IScheduleText;
 
   return (
-    <Card variant={item.type === 'comment' ? 'secondary' : 'default'} className="mt-3">
+    <Card variant={item.type === 'comment' ? 'secondary' : 'default'} className="mt-3 animate-in fade-in-0 slide-in-from-top-2 duration-300">
       <Collapsible
         open={isExpanded}
         onOpenChange={setExpanded}

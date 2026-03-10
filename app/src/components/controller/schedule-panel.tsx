@@ -85,7 +85,7 @@ export function SchedulePanel({ showRestore = true, showOpen = true }: ScheduleP
             <div id="schedule-items" className="flex-1">
             {(schedule as ISortableScheduleItem[]).map((item, ix) => (
               <SortableItem
-                key={`schedule[${ix}]`}
+                key={item.uniqueId ?? item.id}
                 value={item.uniqueId ?? item.id}
                 asChild>
                 <div key={item.uniqueId ?? item.id}>
