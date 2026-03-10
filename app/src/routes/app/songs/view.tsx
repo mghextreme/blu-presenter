@@ -52,6 +52,8 @@ export function ViewSong() {
     }
   }
 
+  const hasChords = data.blocks?.some(block => block.chords && block.chords.length > 0);
+
   const copyShareableUrlToClipboard = async () => {
     const currentUrl = new URL(window.location.href);
     const shareUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/view/${data.id}/${data.secret ?? ''}`
@@ -118,7 +120,7 @@ export function ViewSong() {
       <div className="p-2 sm:p-8">
         <h1 className="text-3xl mb-2">{data.title}</h1>
         <h2 className="text-lg mb-2 opacity-50">{data.artist}</h2>
-        <Toggle variant="outline" pressed={viewMode == 'chords'} onPressedChange={changeViewMode} className="mb-3">{t('input.viewChords')}</Toggle>
+        {hasChords && <Toggle variant="outline" pressed={viewMode == 'chords'} onPressedChange={changeViewMode} className="mb-3">{t('input.viewChords')}</Toggle>}
         <div className={cn(
           'max-w-lg space-y-3',
           viewMode === 'chords' && 'font-source-code-pro'

@@ -2,10 +2,13 @@
   "title": {
     "list": "Schedules - {{organization}}",
     "add": "Add - Schedules",
-    "edit": "{{name}} - Schedules"
+    "edit": "{{name}} - Schedules",
+    "view": "{{name}} - View - Schedules"
   },
   "actions": {
     "create": "Add schedule",
+    "view": "View schedule",
+    "share": "Share",
     "edit": "Edit schedule",
     "delete": "Delete schedule",
     "addItem": "Add item"
@@ -14,7 +17,8 @@
     "add": "Add",
     "update": "Update",
     "cancel": "Cancel",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "back": "Back"
   },
   "input": {
     "organization": "Organization",
@@ -30,6 +34,18 @@
   "edit": {
     "title": "Edit schedule"
   },
+  "view": {
+    "untitled": "Untitled",
+    "type": {
+      "song": "Song",
+      "text": "Text",
+      "comment": "Comment"
+    },
+    "chords": {
+      "available": "Chords available",
+      "notAvailable": "No chords available"
+    }
+  },
   "column": {
     "title": "Title",
     "date": "Date"
@@ -42,6 +58,10 @@
     "noPermission": "You don't have permission to manage schedules"
   },
   "message": {
+    "share": {
+      "title": "Link copied",
+      "description": "A shareable link to the schedule has been copied to the clipboard."
+    },
     "deleteSchedule": {
       "title": "Delete schedule",
       "description": "Are you sure you want to delete the schedule \"{{name}}\"? This action cannot be undone."

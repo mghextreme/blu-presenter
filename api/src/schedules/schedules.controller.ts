@@ -7,11 +7,13 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { Schedule } from 'src/entities';
 import { CreateScheduleDto, UpdateScheduleDto } from 'src/types';
 import { SchedulesService } from './schedules.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
+import { Public } from 'src/supabase/public.decorator';
 
 @Controller('schedules')
 export class SchedulesController {
@@ -23,13 +25,13 @@ export class SchedulesController {
     return await this.schedulesService.findAll(orgId);
   }
 
+  @Public()
   @Get(':id')
-  @OrganizationRole('owner', 'admin', 'member', 'guest')
   async findOne(
-    @Headers('Organization') orgId: number,
     @Param('id') id: number,
+    @Query('secret') secret?: string,
   ): Promise<Schedule | null> {
-    return await this.schedulesService.findOne(orgId, id);
+    return await this.schedulesService.findOneInAnyOrgOrBySecret(id, secret);
   }
 
   @Post()

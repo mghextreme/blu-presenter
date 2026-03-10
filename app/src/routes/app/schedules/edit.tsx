@@ -20,6 +20,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
+import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
 
 type EditScheduleProps = {
   edit?: boolean
@@ -66,6 +67,19 @@ export function EditSchedule({
       <title>{(edit ? t('title.edit', { name: data.title }) : t('title.add')) + ' - ' + orgName + ' - BluPresenter'}</title>
       <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
+        <div className="buttons flex-1 flex justify-end gap-x-2">
+          {edit && (
+            <Button
+              type="button"
+              size="sm"
+              title={t('actions.view')}
+              asChild>
+              <Link to={`/app/schedules/${data.id}/view`}>
+                <EyeIcon className="size-3" />
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
       <div className="p-2 sm:p-8 flex flex-col flex-1 overflow-hidden">
         <h1 className="text-3xl mb-4">{edit ? t('edit.title') : t('add.title')}</h1>

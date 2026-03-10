@@ -2,10 +2,13 @@
   "title": {
     "list": "Programações - {{organization}}",
     "add": "Adicionar - Programações",
-    "edit": "{{name}} - Programações"
+    "edit": "{{name}} - Programações",
+    "view": "{{name}} - Visualizar - Programações"
   },
   "actions": {
     "create": "Adicionar programação",
+    "view": "Visualizar programação",
+    "share": "Compartilhar",
     "edit": "Editar programação",
     "delete": "Remover programação",
     "addItem": "Adicionar item"
@@ -14,7 +17,8 @@
     "add": "Adicionar",
     "update": "Atualizar",
     "cancel": "Cancelar",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "back": "Voltar"
   },
   "input": {
     "organization": "Organização",
@@ -30,6 +34,18 @@
   "edit": {
     "title": "Editar programação"
   },
+  "view": {
+    "untitled": "Sem título",
+    "type": {
+      "song": "Música",
+      "text": "Texto",
+      "comment": "Comentário"
+    },
+    "chords": {
+      "available": "Cifras disponíveis",
+      "notAvailable": "Sem cifras disponíveis"
+    }
+  },
   "column": {
     "title": "Título",
     "date": "Data"
@@ -42,6 +58,10 @@
     "noPermission": "Você não tem permissão para gerenciar programações"
   },
   "message": {
+    "share": {
+      "title": "Link copiado",
+      "description": "Um link compartilhável para a programação foi copiado para a área de transferência."
+    },
     "deleteSchedule": {
       "title": "Remover programação",
       "description": "Tem certeza que deseja remover a programação \"{{name}}\"? Esta ação não pode ser desfeita."

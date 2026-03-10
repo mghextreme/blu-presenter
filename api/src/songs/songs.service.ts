@@ -77,6 +77,9 @@ export class SongsService {
         },
       },
       where: whereClause,
+      relations: {
+        organization: true,
+      },
     });
 
     if (!song) {

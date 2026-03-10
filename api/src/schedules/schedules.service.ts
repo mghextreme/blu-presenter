@@ -7,12 +7,21 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { CreateScheduleDto, IScheduleItem, UpdateScheduleDto } from 'src/types';
+import { In, IsNull, Or, Repository } from 'typeorm';
+import { CreateScheduleDto, IScheduleItem, OrganizationRoleOptions, UpdateScheduleDto } from 'src/types';
 import { Schedule, Song } from 'src/entities';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 import { generateRandomSecret } from 'src/utils/secret';
+import { UsersService } from 'src/users/users.service';
+
+type ScheduleWithRole = Schedule & {
+  organization?: {
+    id: number;
+    name: string;
+    role?: OrganizationRoleOptions;
+  };
+};
 
 @Injectable({ scope: Scope.REQUEST })
 export class SchedulesService {
@@ -21,6 +30,8 @@ export class SchedulesService {
     private readonly schedulesRepository: Repository<Schedule>,
     @InjectRepository(Song)
     private readonly songsRepository: Repository<Song>,
+    @Inject(UsersService)
+    private readonly usersService: UsersService,
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {}
 
@@ -71,6 +82,69 @@ export class SchedulesService {
 
     schedule.items = await this.resolveSongReferences(schedule.items);
     return schedule;
+  }
+
+  async findOneInAnyOrgOrBySecret(id: number, secret?: string): Promise<ScheduleWithRole | null> {
+    let whereClause: any = { id };
+
+    let userOrgs: any[] = [];
+    let userOrgIds: number[] = [];
+
+    if (!!this.request.user) {
+      const user = this.request.user['internal'];
+      userOrgs = await this.usersService.findUserOrganizations(user.id);
+      userOrgIds = userOrgs.map((org) => org.organization.id);
+
+      whereClause.orgId = Or(In(userOrgIds), IsNull());
+
+      if (secret) {
+        whereClause = [whereClause, { id, secret }];
+      }
+    } else {
+      whereClause.secret = secret ?? IsNull();
+    }
+
+    const schedule = await this.schedulesRepository.findOne({
+      select: {
+        id: true,
+        orgId: true,
+        title: true,
+        date: true,
+        items: true,
+        secret: true,
+        organization: {
+          id: true,
+          name: true,
+        },
+      },
+      where: whereClause,
+      relations: {
+        organization: true,
+      },
+    });
+
+    if (!schedule) {
+      return null;
+    }
+
+    if (schedule.items?.length) {
+      schedule.items = await this.resolveSongReferences(schedule.items);
+    }
+
+    const orgUser = userOrgs.find((org) => org.organization.id === schedule.orgId);
+
+    return {
+      ...schedule,
+      organization: orgUser
+        ? {
+            ...orgUser.organization,
+            role: orgUser.role as OrganizationRoleOptions,
+          }
+        : {
+            ...schedule.organization,
+            role: undefined,
+          },
+    } as ScheduleWithRole;
   }
 
   private async resolveSongReferences(items: IScheduleItem[]): Promise<IScheduleItem[]> {

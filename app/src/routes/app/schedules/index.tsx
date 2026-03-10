@@ -3,6 +3,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { format, parse } from "date-fns";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
+import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
 import { IOrganization, ISchedule, isRoleHigherOrEqualThan } from "@/types";
 import { Button } from "@/components/ui/button";
 import { getLocaleConfig } from "@/components/ui/date-picker";
@@ -48,6 +49,15 @@ const buildColumns = (t: TFunction, lang: string, organization: IOrganization | 
       cell: ({ row }) => {
         return (
           <div className="flex justify-end space-x-2 -m-1">
+            <Button
+              type="button"
+              size="sm"
+              title={t('actions.view')}
+              asChild>
+              <Link to={`/app/schedules/${row.original.id}/view`}>
+                <EyeIcon className="size-3" />
+              </Link>
+            </Button>
             <Button
               type="button"
               size="sm"

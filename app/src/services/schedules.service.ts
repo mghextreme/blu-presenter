@@ -14,10 +14,13 @@ export class SchedulesService extends ApiService {
     });
   }
 
-  public async getById(scheduleId: number): Promise<ISchedule | null> {
+  public async getById(scheduleId: number, secret?: string): Promise<ISchedule | null> {
+    const hasSecret = secret && secret.length > 0;
+    const secretParam = hasSecret ? `?secret=${secret}` : '';
+
     return await this.getOrFetch({
-      queryKey: ['schedules', 'id', scheduleId],
-      queryFn: async () => await this.getRequest(`/schedules/${scheduleId}`) as ISchedule,
+      queryKey: ['schedules', 'id', scheduleId, hasSecret ? secret : null],
+      queryFn: async () => await this.getRequest(`/schedules/${scheduleId}${secretParam}`) as ISchedule,
     });
   }
 
