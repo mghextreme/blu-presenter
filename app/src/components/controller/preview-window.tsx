@@ -10,6 +10,7 @@ import { ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types"
 import { IBrowserWindow, IScreenDetails } from "@/types/browser";
 import { useController } from "@/hooks/useController";
 import { useServices } from "@/hooks/useServices";
+import { usePreviewConfig } from "@/hooks/usePreviewConfig";
 
 const defaultThemeOptions = [
   {
@@ -53,10 +54,17 @@ export function PreviewWindow({
 
   const { t } = useTranslation('controller');
 
+  const {
+    previewTheme: storedTheme,
+    previewRatio: storedRatio,
+    setPreviewTheme: storeSetPreviewTheme,
+    setPreviewRatio: storeSetPreviewRatio,
+  } = usePreviewConfig();
+
   const [openPreviewThemeSelector, setOpenPreviewThemeSelector] = useState<boolean>(false);
-  const [previewTheme, setPreviewTheme] = useState<ITheme>(theme);
+  const [previewTheme, setPreviewTheme] = useState<ITheme>(showThemeSelector ? storedTheme : theme);
   const [openPreviewRatioSelector, setOpenPreviewRatioSelector] = useState<boolean>(false);
-  const [previewRatio, setPreviewRatio] = useState<string>("16/9");
+  const [previewRatio, setPreviewRatio] = useState<string>(storedRatio);
   const [ratioOptions, setRatioOptions] = useState<{ value: string, label: string }[]>(defaultRatioOptions);
 
   const {
@@ -71,6 +79,10 @@ export function PreviewWindow({
   const updatePreviewTheme = (theme: ITheme) => {
     setPreviewTheme(theme);
 
+    if (showThemeSelector) {
+      storeSetPreviewTheme(theme);
+    }
+
     if (attachControllerMode && mode !== 'part') {
       const newMode = theme.extends === 'subtitles' ? 'part': 'slide';
       setMode(newMode);
@@ -80,6 +92,7 @@ export function PreviewWindow({
     if (ratio === previewRatio) return;
 
     setPreviewRatio(ratio);
+    storeSetPreviewRatio(ratio);
   }
 
   useEffect(() => {
