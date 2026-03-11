@@ -7,6 +7,7 @@ export interface ISong {
   language?: SupportedLanguage;
   title: string
   artist?: string
+  updatedAt?: string
   blocks?: ISongPart[]
   references?: ISongReference[]
   secret?: string

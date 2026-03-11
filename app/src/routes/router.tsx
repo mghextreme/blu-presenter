@@ -55,6 +55,7 @@ import { loader as allSessionsLoader } from "./app/sessions/all.loader";
 
 import { Schedules as SchedulesIndex } from "./app/schedules/index";
 import { EditSchedule } from "./app/schedules/edit";
+import { ViewSchedule } from "./app/schedules/view";
 import { loader as singleScheduleLoader } from "./app/schedules/single.loader";
 import { loader as allSchedulesLoader } from "./app/schedules/all.loader";
 
@@ -117,6 +118,7 @@ export function AppRouter() {
           <Route path="schedules">
             <Route index={true} element={<SchedulesIndex />} loader={() => allSchedulesLoader({ schedulesService: services.schedulesService })} />
             <Route path="add" element={<EditSchedule edit={false} />} />
+            <Route path=":id/view" element={<ViewSchedule />} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService })} />
             <Route path=":id/edit" element={<EditSchedule />} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService })} />
           </Route>
         </Route>
@@ -136,6 +138,10 @@ export function AppRouter() {
           <Route path="view/:id">
             <Route index={true} element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
             <Route path=":secret" element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.secret })} />
+          </Route>
+          <Route path="schedules/:id/">
+            <Route index={true} element={<ViewSchedule />} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService })} />
+            <Route path=":secret" element={<ViewSchedule />} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService, secret: loader.params.secret })} />
           </Route>
         </Route>
         <Route path="/shared" element={<ControllerSharedLayout />} errorElement={<ErrorLayout />}>
