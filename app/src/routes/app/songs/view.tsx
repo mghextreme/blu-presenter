@@ -127,7 +127,13 @@ export function ViewSong() {
         )}>
           {data.blocks?.map((block, ix) => (
             <div key={`block-${ix}`} className="border-s-1 ps-[.75em] py-[.2em] min-h-[.75em] whitespace-pre">
-              {alternateLyricsAndChords(block.text, viewMode === 'chords' ? block.chords : undefined)}
+              {alternateLyricsAndChords(
+                block.text,
+                viewMode === 'chords' ? block.chords : undefined,
+                {
+                  chordsClassName: 'font-bold',
+                }
+              )}
             </div>
           ))}
         </div>
