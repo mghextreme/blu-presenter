@@ -125,7 +125,9 @@ export function PreviewWindow({
   }, []);
 
   useEffect(() => {
-    updatePreviewTheme(theme);
+    if (!showThemeSelector) {
+      updatePreviewTheme(theme);
+    }
   }, [theme]);
 
   const [consolidatedOptions, setConsolidatedOptions] = useState<typeof defaultThemeOptions>(defaultThemeOptions);
