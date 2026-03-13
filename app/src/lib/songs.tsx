@@ -102,3 +102,42 @@ export const capitalizeText = (text: string) => {
 
   return text;
 }
+
+export type ReferenceType = 'spotify' | 'youtube' | 'other';
+
+export function getSpotifyTrackId(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    if (!parsed.hostname.includes('spotify.com')) return null;
+    const match = parsed.pathname.match(/\/track\/([a-zA-Z0-9]+)/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+export function getYouTubeVideoId(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.replace('www.', '');
+
+    if (hostname === 'youtube.com' || hostname === 'music.youtube.com') {
+      return parsed.searchParams.get('v');
+    }
+
+    if (hostname === 'youtu.be') {
+      const id = parsed.pathname.slice(1);
+      return id.length > 0 ? id : null;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function getReferenceType(url: string): ReferenceType {
+  if (getSpotifyTrackId(url)) return 'spotify';
+  if (getYouTubeVideoId(url)) return 'youtube';
+  return 'other';
+}

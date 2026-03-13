@@ -16,7 +16,7 @@ import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import { TFunction } from "i18next";
-import { EditSongParts, SongEditMode } from "@/components/app/songs/edit-parts";
+import { EditSongParts } from "@/components/app/songs/edit-parts";
 import { SongSchema } from "@/types/schemas/song.schema";
 import { z } from "zod";
 import { Toggle } from "@/components/ui/toggle";
@@ -25,6 +25,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { capitalizeText } from "@/lib/songs";
+import { useSongViewConfig } from "@/hooks/useSongViewConfig";
 
 function LanguageAndIcon({ t, language }: { t: TFunction, language: ILanguage["value"] }) {
   const lang = supportedLanguagesMap.find((lang) => lang.value === language);
@@ -39,9 +40,11 @@ function LanguageAndIcon({ t, language }: { t: TFunction, language: ILanguage["v
   );
 }
 
+type SongViewMode = 'lyrics' | 'chords';
+
 type EditSongFormProps = {
   edit?: boolean
-  defaultEditMode?: SongEditMode
+  defaultEditMode?: SongViewMode
   formValues?: z.infer<typeof SongSchema>
   additionalSubmitButtons?: ReactNode
 }
@@ -49,7 +52,7 @@ type EditSongFormProps = {
 export const EditSongForm = forwardRef((
   {
     edit = true,
-    defaultEditMode = 'lyrics',
+    defaultEditMode,
     formValues,
     additionalSubmitButtons = null,
   }: EditSongFormProps,
@@ -73,14 +76,13 @@ export const EditSongForm = forwardRef((
     defaultValues: formValues,
   });
 
-  const [editMode, setEditMode] = useState<SongEditMode>(defaultEditMode);
-  const changeEditMode = () => {
-    if (editMode === 'lyrics') {
-      setEditMode('chords');
-    } else {
-      setEditMode('lyrics');
+  const { viewMode: editMode, setViewMode, toggleViewMode: changeEditMode } = useSongViewConfig();
+
+  useEffect(() => {
+    if (defaultEditMode) {
+      setViewMode(defaultEditMode);
     }
-  }
+  }, []);
 
   const onSubmit = async (values: z.infer<typeof SongSchema>) => {
     if (hasUppercaseWarning && !ignoreWarning) return;
