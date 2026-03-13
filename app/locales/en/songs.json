@@ -125,5 +125,9 @@
   },
   "print": {
     "sequence": "Sequence"
+  },
+  "references": {
+    "play": "Play",
+    "stopPlaying": "Stop playing"
   }
 }

@@ -11,7 +11,8 @@
     "share": "Share",
     "edit": "Edit schedule",
     "delete": "Delete schedule",
-    "addItem": "Add item"
+    "addItem": "Add item",
+    "rehearsal": "Rehearse"
   },
   "button": {
     "add": "Add",
@@ -77,5 +78,13 @@
       "addToSchedule": "Add to schedule",
       "removeFromSchedule": "Remove from schedule"
     }
+  },
+  "rehearsal": {
+    "title": "Rehearse",
+    "selectSong": "Select a song",
+    "previous": "Previous song",
+    "next": "Next song",
+    "noSongs": "No songs in this schedule",
+    "print": "Print current song"
   }
 }

@@ -11,7 +11,8 @@
     "share": "Compartilhar",
     "edit": "Editar programação",
     "delete": "Remover programação",
-    "addItem": "Adicionar item"
+    "addItem": "Adicionar item",
+    "rehearsal": "Ensaiar"
   },
   "button": {
     "add": "Adicionar",
@@ -77,5 +78,13 @@
       "addToSchedule": "Adicionar à programação",
       "removeFromSchedule": "Remover da pragramação"
     }
+  },
+  "rehearsal": {
+    "title": "Ensaiar",
+    "selectSong": "Selecione uma música",
+    "previous": "Música anterior",
+    "next": "Próxima música",
+    "noSongs": "Nenhuma música nesta programação",
+    "print": "Imprimir música atual"
   }
 }

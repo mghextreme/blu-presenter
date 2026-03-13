@@ -6,6 +6,7 @@ import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
 import MusicalNoteIcon from "@heroicons/react/24/solid/MusicalNoteIcon";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import ShareIcon from "@heroicons/react/24/solid/ShareIcon";
+import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 import { parse, format } from "date-fns";
 import { Link, useLoaderData, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -50,6 +51,15 @@ export function ViewSchedule() {
     return songUrl;
   };
 
+  const getRehearsalLink = (): string => {
+    if (params.secret) {
+      return `/shared/schedules/${data.id}/${params.secret}/rehearsal`;
+    }
+    return `/app/schedules/${data.id}/rehearsal`;
+  };
+
+  const hasSongs = data.items?.some(item => item.type === 'song');
+
   const copyShareableUrlToClipboard = async () => {
     const currentUrl = new URL(window.location.href);
     const shareUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/schedules/${data.id}/${data.secret ?? ''}`;
@@ -77,6 +87,13 @@ export function ViewSchedule() {
             onClick={copyShareableUrlToClipboard}>
             <ShareIcon className="size-3" />
           </Button>
+          {hasSongs && (
+            <Button type="button" size="sm" title={t("actions.rehearsal")} asChild>
+              <Link to={getRehearsalLink()}>
+                <PlayIcon className="size-3" />
+              </Link>
+            </Button>
+          )}
           {isLoggedIn && (
             <Button type="button" size="sm" title={t("actions.edit")} asChild>
               <Link to={`/app/schedules/${data.id}/edit`}>

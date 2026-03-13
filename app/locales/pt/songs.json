@@ -125,5 +125,9 @@
   },
   "print": {
     "sequence": "Sequência"
+  },
+  "references": {
+    "play": "Reproduzir",
+    "stopPlaying": "Parar"
   }
 }
