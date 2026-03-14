@@ -1,10 +1,13 @@
+
+packages:
+  - api
+  - app
 onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@scarf/scarf'
+  - '@swc/core'
   - core-js
   - core-js-pure
   - esbuild
   - sharp
   - workerd
-
-packages:
-  - api
-  - app
