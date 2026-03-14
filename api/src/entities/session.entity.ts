@@ -6,7 +6,6 @@ import {
   JoinColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Organization } from './organization.entity';
 import { ISelection } from 'src/types';
 
 @Entity({ name: 'sessions' })
@@ -59,11 +58,11 @@ export class Session {
   })
   selection: ISelection;
 
-  @ManyToOne(() => Organization, (organization) => organization.sessions, {
+  @ManyToOne('Organization', 'sessions', {
     createForeignKeyConstraints: true,
   })
   @JoinColumn({ name: 'orgId' })
-  organization: Organization;
+  organization: any;
 
   @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
   updatedAt: Date;

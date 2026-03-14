@@ -6,8 +6,6 @@ import {
   PrimaryColumn,
   Unique,
 } from 'typeorm';
-import { User } from './user.entity';
-import { Organization } from './organization.entity';
 import { OrganizationRoleOptions } from 'src/types';
 
 @Entity({ name: 'organization_invitations' })
@@ -26,21 +24,21 @@ export class OrganizationInvitation {
   @Column()
   inviterId: number;
 
-  @Column()
+  @Column({ type: 'varchar' })
   role: OrganizationRoleOptions;
 
   @Column()
   secret: string;
 
-  @ManyToOne(() => Organization, (organization) => organization.invitations, {
+  @ManyToOne('Organization', 'invitations', {
     createForeignKeyConstraints: true,
   })
   @JoinColumn({ name: 'orgId' })
-  organization: Organization;
+  organization: any;
 
-  @ManyToOne(() => User, (user) => user.invitations, {
+  @ManyToOne('User', 'invitations', {
     createForeignKeyConstraints: true,
   })
   @JoinColumn({ name: 'inviterId' })
-  inviter: User;
+  inviter: any;
 }

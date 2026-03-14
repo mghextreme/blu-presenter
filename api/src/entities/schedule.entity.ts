@@ -7,8 +7,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Organization } from './organization.entity';
-import { User } from './user.entity';
 
 @Entity({ name: 'schedules' })
 export class Schedule {
@@ -53,23 +51,23 @@ export class Schedule {
   })
   secret: string;
 
-  @ManyToOne(() => Organization, {
+  @ManyToOne('Organization', {
     createForeignKeyConstraints: true,
   })
   @JoinColumn({ name: 'orgId' })
-  organization: Organization;
+  organization: any;
 
-  @ManyToOne(() => User, {
+  @ManyToOne('User', {
     createForeignKeyConstraints: true,
   })
   @JoinColumn({ name: 'createdBy' })
-  creator: User;
+  creator: any;
 
-  @ManyToOne(() => User, {
+  @ManyToOne('User', {
     createForeignKeyConstraints: true,
   })
   @JoinColumn({ name: 'updatedBy' })
-  updater: User;
+  updater: any;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP(6)' })
   createdAt: Date;
