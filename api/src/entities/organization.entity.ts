@@ -6,6 +6,12 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
+import { User } from './user.entity';
+import { OrganizationUser } from './organization-user.entity';
+import { OrganizationInvitation } from './organization-invitation.entity';
+import type { Song } from './song.entity';
+import type { Theme } from './theme.entity';
+import type { Session } from './session.entity';
 
 @Entity({ name: 'organizations' })
 export class Organization {
@@ -15,33 +21,37 @@ export class Organization {
   @Column()
   name: string;
 
-  @OneToMany('OrganizationUser', 'organization', {
+  @OneToMany(() => OrganizationUser, (orgUser) => orgUser.organization, {
     createForeignKeyConstraints: true,
   })
-  users: any[];
+  users: OrganizationUser[];
 
   @Column()
   ownerId: number;
 
-  @ManyToOne('User', 'ownedOrganizations', {
+  @ManyToOne(() => User, (user) => user.ownedOrganizations, {
     createForeignKeyConstraints: true,
   })
   @JoinColumn({ name: 'ownerId' })
-  owner: any;
+  owner: User;
 
-  @OneToMany('Song', 'organization')
-  songs: any[];
+  @OneToMany('Song', (song: Song) => song.organization)
+  songs: Song[];
 
-  @OneToMany('Theme', 'organization')
-  themes: any[];
+  @OneToMany('Theme', (theme: Theme) => theme.organization)
+  themes: Theme[];
 
-  @OneToMany('Session', 'organization')
-  sessions: any[];
+  @OneToMany('Session', (session: Session) => session.organization)
+  sessions: Session[];
 
-  @OneToMany('OrganizationInvitation', 'organization', {
-    createForeignKeyConstraints: true,
-  })
-  invitations: any[];
+  @OneToMany(
+    () => OrganizationInvitation,
+    (orgInvitation) => orgInvitation.organization,
+    {
+      createForeignKeyConstraints: true,
+    },
+  )
+  invitations: OrganizationInvitation[];
 
   @Column({
     nullable: true,

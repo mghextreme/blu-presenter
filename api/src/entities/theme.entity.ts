@@ -7,6 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Organization } from './organization.entity';
 
 @Entity({ name: 'themes' })
 export class Theme {
@@ -31,11 +32,11 @@ export class Theme {
   })
   config: any;
 
-  @ManyToOne('Organization', 'themes', {
+  @ManyToOne(() => Organization, (organization) => organization.themes, {
     createForeignKeyConstraints: true,
   })
   @JoinColumn({ name: 'orgId' })
-  organization: any;
+  organization: Organization;
 
   @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)" })
   createdAt: Date;

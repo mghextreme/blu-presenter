@@ -1,4 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Organization } from './organization.entity';
+import { OrganizationUser } from './organization-user.entity';
+import { OrganizationInvitation } from './organization-invitation.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -17,12 +20,18 @@ export class User {
   @Column()
   email: string;
 
-  @OneToMany('OrganizationUser', 'user')
-  organizations: any[];
+  @OneToMany(() => OrganizationUser, (orgUser) => orgUser.user)
+  organizations: OrganizationUser[];
 
-  @OneToMany('Organization', 'owner')
-  ownedOrganizations: any[];
+  @OneToMany(() => Organization, (organization) => organization.owner)
+  ownedOrganizations: User;
 
-  @OneToMany('OrganizationInvitation', 'inviter')
-  invitations: any[];
+  @OneToMany(
+    () => OrganizationInvitation,
+    (orgInvitation) => orgInvitation.organization,
+    {
+      createForeignKeyConstraints: true,
+    },
+  )
+  invitations: OrganizationInvitation[];
 }
