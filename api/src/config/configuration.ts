@@ -16,7 +16,7 @@ export default () => ({
   },
   supabase: {
     url: process.env.SUPABASE_URL,
-    key: process.env.SUPABASE_KEY,
+    key: process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_KEY,
   },
   captcha: {
     enabled: process.env.DISABLE_CAPTCHA !== 'true',
