@@ -7,11 +7,11 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { Song } from './song.entity';
-import { Theme } from './theme.entity';
 import { OrganizationUser } from './organization-user.entity';
 import { OrganizationInvitation } from './organization-invitation.entity';
-import { Session } from './session.entity';
+import type { Song } from './song.entity';
+import type { Theme } from './theme.entity';
+import type { Session } from './session.entity';
 
 @Entity({ name: 'organizations' })
 export class Organization {
@@ -35,13 +35,13 @@ export class Organization {
   @JoinColumn({ name: 'ownerId' })
   owner: User;
 
-  @OneToMany(() => Song, (song) => song.organization)
+  @OneToMany('Song', (song: Song) => song.organization)
   songs: Song[];
 
-  @OneToMany(() => Song, (theme) => theme.organization)
+  @OneToMany('Theme', (theme: Theme) => theme.organization)
   themes: Theme[];
 
-  @OneToMany(() => Session, (session) => session.organization)
+  @OneToMany('Session', (session: Session) => session.organization)
   sessions: Session[];
 
   @OneToMany(

@@ -44,7 +44,7 @@ interface SetSelectionDto {
 @Injectable()
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: process.env.APP_BASE_URL,
     methods: ['GET', 'POST'],
     credentials: true,
   },
