@@ -1,6 +1,4 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
-import { User } from './user.entity';
-import { Organization } from './organization.entity';
 import { OrganizationRoleOptions } from 'src/types';
 
 @Entity({ name: 'organization_users' })
@@ -11,18 +9,18 @@ export class OrganizationUser {
   @PrimaryColumn()
   userId: number;
 
-  @ManyToOne(() => Organization, (organization) => organization.users, {
+  @ManyToOne('Organization', 'users', {
     createForeignKeyConstraints: true,
   })
   @JoinColumn({ name: 'orgId' })
-  organization: Organization;
+  organization: any;
 
-  @ManyToOne(() => User, (user) => user.organizations, {
+  @ManyToOne('User', 'organizations', {
     createForeignKeyConstraints: true,
   })
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user: any;
 
-  @Column()
+  @Column({ type: 'varchar' })
   role: OrganizationRoleOptions;
 }
