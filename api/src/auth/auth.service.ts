@@ -46,6 +46,14 @@ export class AuthService {
     this.supabaseClient = supabase.getClient();
   }
 
+  private get supabaseUrl(): string {
+    return this.configService.get('supabase.url')!;
+  }
+
+  private get supabaseKey(): string {
+    return this.configService.get('supabase.key')!;
+  }
+
   async signIn(signInDto: SignInDto): Promise<AccessTokenDto> {
     const { data, error } =
       await this.supabaseClient.auth.signInWithPassword({
@@ -95,48 +103,65 @@ export class AuthService {
   }
 
   async signInWithProvider(provider: string, authDto?: AuthDto): Promise<OAuthRedirectDto> {
-    let redirectTo = this.configService.get('app.baseUrl') + '/oauth/callback';
-
     switch (provider) {
       case 'google':
-        const { data, error } = await this.supabaseClient.auth.signInWithOAuth({
+        const redirectTo = this.configService.get('app.baseUrl') + '/oauth/callback';
+        const codeVerifier = this.generatePKCEVerifier();
+        const codeChallenge = this.generatePKCEChallenge(codeVerifier);
+
+        const params = new URLSearchParams({
           provider,
-          options: {
-            redirectTo,
-            queryParams: {
-              access_type: 'online',
-              prompt: 'consent',
-            },
-          },
+          redirect_to: redirectTo,
+          code_challenge: codeChallenge,
+          code_challenge_method: 's256',
+          skip_http_redirect: 'true',
         });
 
-        if (error) {
-          throw new BadRequestException(error.message);
+        const response = await fetch(
+          `${this.supabaseUrl}/auth/v1/authorize?${params.toString()}`,
+          { headers: { apikey: this.supabaseKey } },
+        );
+
+        if (!response.ok) {
+          const body = await response.text();
+          throw new BadRequestException(`Failed to initiate OAuth sign-in: ${body}`);
         }
 
-        if (data.url) {
-          return {
-            url: data.url,
-            codeVerifier: this.supabase.cookieValues['auth-token-code-verifier'],
-          };
+        const data = await response.json();
+
+        if (!data.url) {
+          throw new BadRequestException('No redirect URL returned from OAuth sign-in');
         }
+
+        return { url: data.url, codeVerifier };
     }
 
-    throw new BadRequestException(`Provider ${provider} not supported for sign in`)
+    throw new BadRequestException(`Provider ${provider} not supported for sign in`);
   }
 
   async exchangeCodeForSession(code: string, codeVerifier: string): Promise<AccessTokenDto> {
-    const bits = codeVerifier.split('=');
-    this.supabase.cookieValues[bits[0]] = bits[1];
-    const { data, error } = await this.supabaseClient.auth.exchangeCodeForSession(code);
+    const response = await fetch(
+      `${this.supabaseUrl}/auth/v1/token?grant_type=pkce`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: this.supabaseKey,
+        },
+        body: JSON.stringify({ auth_code: code, code_verifier: codeVerifier }),
+      },
+    );
 
-    if (error) {
-      throw new BadRequestException(error.message);
+    if (!response.ok) {
+      const body = await response.text();
+      throw new BadRequestException(`Failed to exchange code for session: ${body}`);
     }
+
+    const data = await response.json();
 
     return {
       user: data.user,
-      session: data.session,
+      session: { access_token: data.access_token, refresh_token: data.refresh_token, ...data },
     } as AccessTokenDto;
   }
 
@@ -218,18 +243,24 @@ export class AuthService {
       throw new ForbiddenException(authError.message);
     }
 
-    const { error } = await this.supabaseClient.auth.updateUser({
-      password: changePasswordDto.newPassword,
+    const jwt = this.extractJwt();
+    const response = await fetch(`${this.supabaseUrl}/auth/v1/user`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        apikey: this.supabaseKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password: changePasswordDto.newPassword }),
     });
 
-    if (error) {
-      switch (error.status) {
-        case 401:
-        case 403:
-          throw new ForbiddenException(error.message);
-        default:
-          throw new BadRequestException(error.message);
+    if (!response.ok) {
+      const body = await response.text();
+      const status = response.status;
+      if (status === 401 || status === 403) {
+        throw new ForbiddenException(`Failed to update password: ${body}`);
       }
+      throw new BadRequestException(`Failed to update password: ${body}`);
     }
   }
 

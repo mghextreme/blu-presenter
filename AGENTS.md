@@ -100,7 +100,7 @@ import { localHelper } from "./helpers";
 - Use `interface` for object shapes, `type` for unions/intersections
 
 #### React Components
-```typescript
+```tsx
 // Use named exports for components
 export function ComponentName({ prop }: Props) {
   // Hooks at the top

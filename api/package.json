@@ -88,5 +88,8 @@
     "moduleNameMapper": {
       "^src/(.*)$": "<rootDir>/$1"
     }
+  },
+  "volta": {
+    "node": "24.14.0"
   }
 }
