@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { SongPart } from './song-part.entity';
+import { Organization } from './organization.entity';
 import { SongReference } from './song-reference.entity';
 
 @Entity({ name: 'songs' })
@@ -41,11 +42,11 @@ export class Song {
   })
   blocks: SongPart[];
 
-  @ManyToOne('Organization', 'songs', {
+  @ManyToOne(() => Organization, (organization) => organization.songs, {
     createForeignKeyConstraints: true,
   })
   @JoinColumn({ name: 'orgId' })
-  organization: any;
+  organization: Organization;
 
   @Column({
     type: 'json',
