@@ -1,0 +1,10 @@
+onlyBuiltDependencies:
+  - core-js
+  - core-js-pure
+  - esbuild
+  - sharp
+  - workerd
+
+packages:
+  - api
+  - app
