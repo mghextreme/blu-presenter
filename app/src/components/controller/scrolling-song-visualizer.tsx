@@ -162,20 +162,20 @@ export const ScrollingSongVisualizer = forwardRef(({
           transform: `translateY(calc(1em - ${yPxOffset}px - ${yPartsPxOffset}px))`,
         }}>
         <div className="mb-[.6em]" key="title">
-          <pre className={cn(config?.title?.fontFamily ?? 'font-source-code-pro')} style={
+          <div className={cn('whitespace-pre-wrap', config?.title?.fontFamily ?? 'font-source-code-pro')} style={
             buildFontStyle(config?.title, {
               fontSize: 110,
               fontWeight: 700,
               color: config?.foregroundColor,
             })
-          }>{scheduleSong?.title}</pre>
-          <pre className={cn('pt-[.2em]', config?.title?.fontFamily ?? 'font-source-code-pro')} style={
+          }>{scheduleSong?.title}</div>
+          <div className={cn('whitespace-pre-wrap pt-[.2em]', config?.title?.fontFamily ?? 'font-source-code-pro')} style={
             buildFontStyle(config?.artist, {
               fontSize: 110,
               fontWeight: 700,
               color: config?.foregroundColor,
             })
-          }>{scheduleSong?.artist}</pre>
+          }>{scheduleSong?.artist}</div>
         </div>
         {scheduleSong && scheduleSong.blocks?.map((block, blockIndex) => (
           <div
@@ -189,7 +189,7 @@ export const ScrollingSongVisualizer = forwardRef(({
               <span className="w-full pb-[.2em] border-b-1 mb-[.2em]"></span>
               <span className="text-[0.85em] text-muted">{scheduleSong.blocks?.length}</span>
             </div>
-            <div className="px-[.5em] leading-[1.6em] whitespace-pre">
+            <div className="px-[.5em] leading-[1.6em] whitespace-pre-wrap">
               {alternateLyricsAndChords(block.text, block.chords, {
                 chordsClassName: config?.chords?.fontFamily ?? 'font-source-code-pro',
                 chordsStyle: buildFontStyle(config?.chords, {

@@ -34,8 +34,8 @@ export function EditMember() {
   const { organization, user } = useAuth();
   const data = useLoaderData() as IOrganizationUser;
 
-  if (!isRoleHigherOrEqualThan(data.role, 'admin')) {
-    throw new Error(t('error.noPermission'));
+  if (!isRoleHigherOrEqualThan(organization?.role, 'admin')) {
+    throw new Error(t('error.noPermissions'));
   }
 
   const [isLoading, setLoading] = useState<boolean>(false);

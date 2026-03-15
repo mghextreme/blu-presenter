@@ -114,26 +114,26 @@ export class AuthService {
           redirect_to: redirectTo,
           code_challenge: codeChallenge,
           code_challenge_method: 's256',
-          skip_http_redirect: 'true',
         });
 
         const response = await fetch(
           `${this.supabaseUrl}/auth/v1/authorize?${params.toString()}`,
-          { headers: { apikey: this.supabaseKey } },
+          {
+            headers: { apikey: this.supabaseKey },
+            redirect: 'manual',
+          },
         );
 
-        if (!response.ok) {
+        // The /auth/v1/authorize endpoint returns a 302 redirect to the
+        // provider's consent screen. Extract the URL from the Location header.
+        const url = response.headers.get('location');
+
+        if (!url) {
           const body = await response.text();
           throw new BadRequestException(`Failed to initiate OAuth sign-in: ${body}`);
         }
 
-        const data = await response.json();
-
-        if (!data.url) {
-          throw new BadRequestException('No redirect URL returned from OAuth sign-in');
-        }
-
-        return { url: data.url, codeVerifier };
+        return { url, codeVerifier };
     }
 
     throw new BadRequestException(`Provider ${provider} not supported for sign in`);
