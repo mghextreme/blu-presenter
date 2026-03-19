@@ -48,7 +48,7 @@ export function ImportSong() {
       blocks: songParts,
       references: [],
     });
-    setInitialFormValuesHaveChords(songParts.some(p => !!p.chords));
+    setInitialFormValuesHaveChords(songParts.some(p => p.lines?.some(l => l.type === 'chords')));
     setStep(3);
   }
 

@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { getChordsData } from "@/lib/songs";
-import { ISongPart } from "@/types";
+import { ISongPart, ISongPartLine } from "@/types";
 import { Toggle } from "@/components/ui/toggle";
 import { Button } from "@/components/ui/button";
 import MusicalNoteIcon from "@heroicons/react/24/solid/MusicalNoteIcon";
@@ -14,7 +14,8 @@ import ArrowsPointingOutIcon from "@heroicons/react/24/solid/ArrowsPointingOutIc
 export type SongEditMode = 'lyrics' | 'chords';
 type ExpandableMode = 'slash-colon';
 
-interface IImportSongPart extends ISongPart {
+interface IImportLine {
+  content: string
   enabled: boolean
   isDivision: boolean
   type: SongEditMode
@@ -34,10 +35,10 @@ export const ImportSongForm = forwardRef((
 
   const { t } = useTranslation("songs");
 
-  const [parts, setParts] = useState<IImportSongPart[]>([]);
+  const [parts, setParts] = useState<IImportLine[]>([]);
   useEffect(() => {
     const lines = fullText.split(/\n/);
-    const partsValue: IImportSongPart[] = [];
+    const partsValue: IImportLine[] = [];
 
     let isDivision = false;
     let hasSlashColon = false;
@@ -63,8 +64,7 @@ export const ImportSongForm = forwardRef((
         enabled: !isEmpty,
         isDivision: isDivision,
         type: isLyrics ? 'lyrics' : 'chords',
-        text: line,
-        chords: line,
+        content: line,
         expandableMode,
       });
 
@@ -101,7 +101,7 @@ export const ImportSongForm = forwardRef((
     });
   };
 
-  const expandPartSlashColon = (index: number, part: IImportSongPart) => {
+  const expandPartSlashColon = (index: number, part: IImportLine) => {
     let repeatType = part.type;
     let beginRepetition: number | undefined = undefined;
     let beginBlock: number | undefined = undefined;
@@ -110,7 +110,7 @@ export const ImportSongForm = forwardRef((
       const testPart = parts[i];
 
       if (testPart.type !== repeatType) continue;
-      if (testPart.text?.trimStart().startsWith('/:')) {
+      if (testPart.content?.trimStart().startsWith('/:')) {
         beginRepetition = i;
 
         if (i > 0 && testPart.type === 'lyrics' && parts[i - 1].type === 'chords') {
@@ -127,35 +127,31 @@ export const ImportSongForm = forwardRef((
     const originalBlocks = parts.slice(beginBlock, index + 1);
 
     // Remove /: at the beginning
-    let firstLyricsLine = originalBlocks[beginRepetition - beginBlock].text?.trimStart().slice(2).trimStart();
+    let firstLyricsLine = originalBlocks[beginRepetition - beginBlock].content?.trimStart().slice(2).trimStart();
 
     // Trim first line + chords without breaking chord alignment
     if (beginBlock != beginRepetition) {
-      const reducedAmount = (originalBlocks[beginRepetition - beginBlock].text?.length ?? 0) - (firstLyricsLine?.length ?? 0);
-      const firstBlockReduceableAmount = (originalBlocks[0].text?.length ?? 0) - (originalBlocks[0].text?.trimStart().length ?? 0);
+      const reducedAmount = (originalBlocks[beginRepetition - beginBlock].content?.length ?? 0) - (firstLyricsLine?.length ?? 0);
+      const firstBlockReduceableAmount = (originalBlocks[0].content?.length ?? 0) - (originalBlocks[0].content?.trimStart().length ?? 0);
 
       if (firstBlockReduceableAmount >= reducedAmount) {
-        const newContent = originalBlocks[0].text?.slice(reducedAmount);
-        originalBlocks[0].text = newContent;
-        originalBlocks[0].chords = newContent;
+        const newContent = originalBlocks[0].content?.slice(reducedAmount);
+        originalBlocks[0].content = newContent ?? '';
       } else if (firstBlockReduceableAmount > 0) {
         firstLyricsLine = ' '.repeat(reducedAmount - firstBlockReduceableAmount) + firstLyricsLine;
 
-        const newContent = originalBlocks[0].text?.slice(firstBlockReduceableAmount);
-        originalBlocks[0].text = newContent;
-        originalBlocks[0].chords = newContent;
+        const newContent = originalBlocks[0].content?.slice(firstBlockReduceableAmount);
+        originalBlocks[0].content = newContent ?? '';
       } else {
         firstLyricsLine = ' '.repeat(reducedAmount) + firstLyricsLine;
       }
     }
 
-    originalBlocks[beginRepetition - beginBlock].text = firstLyricsLine;
-    originalBlocks[beginRepetition - beginBlock].chords = firstLyricsLine;
+    originalBlocks[beginRepetition - beginBlock].content = firstLyricsLine ?? '';
 
     // Remove :/ at the end
-    const lastBlockLine = originalBlocks[originalBlocks.length - 1].text?.trimEnd().slice(0, -2).trimEnd();
-    originalBlocks[originalBlocks.length - 1].text = lastBlockLine;
-    originalBlocks[originalBlocks.length - 1].chords = lastBlockLine;
+    const lastBlockLine = originalBlocks[originalBlocks.length - 1].content?.trimEnd().slice(0, -2).trimEnd();
+    originalBlocks[originalBlocks.length - 1].content = lastBlockLine ?? '';
     originalBlocks[originalBlocks.length - 1].expandableMode = undefined;
 
     // Duplicate blocks
@@ -173,7 +169,7 @@ export const ImportSongForm = forwardRef((
     });
   }
 
-  const expandPart = (index: number, part: IImportSongPart) => {
+  const expandPart = (index: number, part: IImportLine) => {
     if (!part?.expandableMode) return;
 
     switch (part.expandableMode) {
@@ -186,21 +182,16 @@ export const ImportSongForm = forwardRef((
   const getSongParts = () => {
     const blocks: ISongPart[] = [];
 
-    let currentText = '';
-    let currentChords = '';
+    let currentLines: ISongPartLine[] = [];
 
     for (const part of parts) {
       if (part.isDivision) {
-        if (currentText.length > 0 || currentChords?.length > 0) {
-          const finalText = currentText.trimEnd();
-          const finalChords = currentChords.trimEnd();
+        if (currentLines.length > 0) {
           blocks.push({
-            text: finalText.length > 0 ? finalText : undefined,
-            chords: finalChords.length > 0 ? finalChords : undefined,
+            lines: currentLines,
             id: blocks.length,
           });
-          currentText = '';
-          currentChords = '';
+          currentLines = [];
         }
       }
 
@@ -208,19 +199,15 @@ export const ImportSongForm = forwardRef((
         continue;
       }
 
-      if (part.type === 'lyrics') {
-        currentText += part.text + '\n';
-      } else {
-        currentChords += part.chords + '\n';
-      }
+      currentLines.push({
+        type: part.type,
+        content: part.content,
+      });
     }
 
-    if (currentText.length > 0 || currentChords?.length > 0) {
-      const finalText = currentText.trimEnd();
-      const finalChords = currentChords.trimEnd();
+    if (currentLines.length > 0) {
       blocks.push({
-        text: finalText.length > 0 ? finalText : undefined,
-        chords: finalChords.length > 0 ? finalChords : undefined,
+        lines: currentLines,
         id: blocks.length,
       });
     }
@@ -280,7 +267,7 @@ export const ImportSongForm = forwardRef((
               part.type === 'chords' && 'font-bold',
               !part.enabled && 'opacity-40',
             )}>
-              {part.text}
+              {part.content}
             </div>
             {!!part.expandableMode && <div className="flex items-center gap-x-2 ms-3">
               <Button
@@ -298,4 +285,3 @@ export const ImportSongForm = forwardRef((
   );
 
 });
-

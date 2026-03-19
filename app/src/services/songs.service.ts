@@ -81,12 +81,15 @@ export class SongsService extends ApiService {
         } as ISlideTitleContent);
       }
 
-      const bits = b.text?.split('\n').map((x) => x.trim()) ?? [];
-      for (let i = 0; i < bits.length; i += 2) {
-        let part = bits[i];
+      const lyricsLines = b.lines
+        ?.filter(line => line.type === 'lyrics')
+        .map(line => line.content.trim()) ?? [];
 
-        if (i + 1 < bits.length) {
-          part += '\n' + bits[i + 1];
+      for (let i = 0; i < lyricsLines.length; i += 2) {
+        let part = lyricsLines[i];
+
+        if (i + 1 < lyricsLines.length) {
+          part += '\n' + lyricsLines[i + 1];
         }
 
         content.push({

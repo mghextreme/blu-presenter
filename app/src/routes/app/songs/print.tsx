@@ -17,10 +17,13 @@ import NumberedListIcon from "@heroicons/react/24/solid/NumberedListIcon";
 import ArrowsPointingInIcon from "@heroicons/react/24/solid/ArrowsPointingInIcon";
 import { SpotifyCode } from "@/components/app/songs/spotify-code";
 import { SpotifyIcon } from "@/components/logos/spotify";
-import { alternateLyricsAndChords } from "@/lib/songs";
+import { renderSongPartLines } from "@/lib/songs";
 
 const isBlockEqual = (a: ISongPart, b: ISongPart) => {
-  return a.text === b.text && a.chords === b.chords;
+  if (a.lines.length !== b.lines.length) return false;
+  return a.lines.every((line, i) =>
+    line.type === b.lines[i].type && line.content === b.lines[i].content
+  );
 };
 
 export function PrintSong() {
@@ -73,7 +76,7 @@ export function PrintSong() {
     const sequencedBlocks: INumberedSongPart[] = [];
 
     for (let ix = 0; ix < (data.blocks.length ?? 0); ix++) {
-      const sourceBlock = data.blocks[ix] ?? { text: '', chords: '' } as ISongPart;
+      const sourceBlock = data.blocks[ix] ?? { lines: [] } as ISongPart;
       let added: boolean = false;
       let sequenceNumber: number | undefined = undefined;
       for (let jx = 0; jx < simplifiedBlocks.length; jx++) {
@@ -310,10 +313,10 @@ export function PrintSong() {
                     'max-w-full flex-1 border-s-1 border-slate-300 ps-[.75em] py-[.2em] min-h-[.75em] text-slate-800 whitespace-pre-wrap',
                 showNumbers && 'ms-[.75em]',
                   )} style={{'breakInside': 'avoid'}}>
-                    {alternateLyricsAndChords(
-                      block.text,
-                      showChords ? block.chords : undefined,
+                    {renderSongPartLines(
+                      block.lines,
                       {
+                        includeTypes: showChords ? ['lyrics', 'chords'] : ['lyrics'],
                         chordsClassName: 'font-bold',
                         firstLineCompactMode: compactMode === 'firstLine' && !block.isFirstAppearance,
                       },

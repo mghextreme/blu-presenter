@@ -113,7 +113,7 @@ export function ViewSchedule() {
             const songItem = item.type === "song" ? (item as IScheduleSong) : null;
             const textItem = item as IScheduleText;
             const songLink = getSongLink(item);
-            const hasChords = songItem?.blocks?.some(block => block.chords && block.chords.length > 0);
+            const hasChords = songItem?.blocks?.some(block => block.lines?.some(line => line.type === 'chords'));
 
             return (
               <Card key={`schedule-item-${index}`} variant={item.type === "comment" ? "secondary" : "default"}>

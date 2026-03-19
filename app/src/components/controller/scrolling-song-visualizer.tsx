@@ -5,7 +5,7 @@ import { useController } from "@/hooks/useController";
 import { useWindow } from "@/hooks/window.provider";
 import { IPositionableElement } from "@/types/browser";
 import { Clock } from "./clock";
-import { alternateLyricsAndChords } from "@/lib/songs";
+import { renderSongPartLines } from "@/lib/songs";
 import { buildFontStyle } from "@/lib/style";
 import { cn } from "@/lib/utils";
 
@@ -190,7 +190,7 @@ export const ScrollingSongVisualizer = forwardRef(({
               <span className="text-[0.85em] text-muted">{scheduleSong.blocks?.length}</span>
             </div>
             <div className="px-[.5em] leading-[1.6em] whitespace-pre-wrap">
-              {alternateLyricsAndChords(block.text, block.chords, {
+              {renderSongPartLines(block.lines, {
                 chordsClassName: config?.chords?.fontFamily ?? 'font-source-code-pro',
                 chordsStyle: buildFontStyle(config?.chords, {
                   fontSize: 100,

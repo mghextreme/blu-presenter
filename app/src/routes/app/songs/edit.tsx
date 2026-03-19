@@ -46,8 +46,7 @@ export function EditSong({
       };
     }) : [{
       id: 0,
-      text: '',
-      chords: '',
+      lines: [],
     }],
     references: [],
     organization: organization,

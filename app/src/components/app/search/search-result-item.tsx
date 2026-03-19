@@ -29,7 +29,7 @@ export function SearchResultItem({
 }) {
 
   const { t } = useTranslation('discover');
-  const hasChords = item.blocks?.some(block => block.chords && block.chords.length > 0);
+  const hasChords = item.blocks?.some(block => block.lines?.some(line => line.type === 'chords'));
 
   return (
     <Card key={item.id}>

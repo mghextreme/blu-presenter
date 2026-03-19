@@ -1,4 +1,10 @@
+export class SongPartLine {
+  type: 'lyrics' | 'chords' | 'comments';
+  content: string;
+}
+
 export class SongPart {
-  text: string;
-  chords?: string;
+  name?: string;
+  acronym?: string;
+  lines: SongPartLine[];
 }

@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { ISong } from "@/types";
 import { Toggle } from "@/components/ui/toggle";
-import { alternateLyricsAndChords } from "@/lib/songs";
+import { renderSongPartLines } from "@/lib/songs";
 import { cn } from "@/lib/utils";
 import { ReferencePlayer } from "@/components/app/songs/reference-player";
 import { useTranslation } from "react-i18next";
@@ -18,7 +18,7 @@ export function SongViewer({ song, showReferences = true, children }: SongViewer
 
   const { viewMode, toggleViewMode } = useSongViewConfig();
 
-  const hasChords = song.blocks?.some(block => block.chords && block.chords.length > 0);
+  const hasChords = song.blocks?.some(block => block.lines?.some(line => line.type === 'chords'));
 
   return (
     <div className="p-2 sm:p-8 max-w-3xl">
@@ -39,10 +39,10 @@ export function SongViewer({ song, showReferences = true, children }: SongViewer
       )}>
         {song.blocks?.map((block, ix) => (
           <div key={`block-${ix}`} className="border-s-1 ps-[.75em] py-[.2em] min-h-[.75em] whitespace-pre">
-            {alternateLyricsAndChords(
-              block.text,
-              viewMode === 'chords' ? block.chords : undefined,
+            {renderSongPartLines(
+              block.lines,
               {
+                includeTypes: hasChords && viewMode === 'chords' ? ['lyrics', 'chords'] : ['lyrics'],
                 chordsClassName: 'font-bold',
               }
             )}

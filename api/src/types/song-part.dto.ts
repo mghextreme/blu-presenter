@@ -1,5 +1,10 @@
+export class SongPartLineDto {
+  type: 'lyrics' | 'chords' | 'comments';
+  content: string;
+}
+
 export class SongPartDto {
-  id?: number;
-  text: string;
-  chords?: string;
+  name?: string;
+  acronym?: string;
+  lines: SongPartLineDto[];
 }

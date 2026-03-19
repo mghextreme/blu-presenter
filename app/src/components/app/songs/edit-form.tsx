@@ -122,10 +122,10 @@ export const EditSongForm = forwardRef((
     let uppercaseCount = 0;
     let addUppercaseWarning = false;
     for (const block of blocks) {
-      let blockText = block?.text;
+      const lyricsLines = block?.lines?.filter(line => line.type === 'lyrics') ?? [];
+      const blockText = lyricsLines.map(line => line.content).join('\n').trim();
       if (!blockText) continue;
 
-      blockText = blockText.trim();
       if (blockText.length > 0 && blockText === blockText.toUpperCase()) {
         uppercaseCount++;
       }
@@ -146,12 +146,14 @@ export const EditSongForm = forwardRef((
   const autoFixUppercase = () => {
     const blocks = form.getValues('blocks');
     for (let i = 0; i < blocks.length; i++) {
-      let blockText = blocks[i]?.text?.trimEnd();
-      if (!blockText) continue;
-
-      if (blockText.length > 0) {
-        form.setValue(`blocks.${i}.text`, capitalizeText(blockText));
-      }
+      const lines = blocks[i]?.lines ?? [];
+      const updatedLines = lines.map(line => {
+        if (line.type !== 'lyrics') return line;
+        const trimmed = line.content.trimEnd();
+        if (trimmed.length === 0) return line;
+        return { ...line, content: capitalizeText(trimmed) };
+      });
+      form.setValue(`blocks.${i}.lines`, updatedLines);
     }
 
     checkUppercase();

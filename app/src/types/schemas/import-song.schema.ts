@@ -5,9 +5,14 @@ export const ImportSongSchema = z.object({
   blocks: z.array(
     z.object({
       id: z.number().optional(),
-      text: z.string().optional(),
-      chords: z.string().optional(),
+      name: z.string().optional(),
+      acronym: z.string().optional(),
+      lines: z.array(
+        z.object({
+          type: z.enum(["lyrics", "chords", "comments"]),
+          content: z.string(),
+        }),
+      ),
     }),
   ),
 });
-

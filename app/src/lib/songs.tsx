@@ -1,25 +1,28 @@
 import { ReactNode } from "react";
+import { ISongPartLine, SongPartLineType } from "@/types";
 import { cn } from "./utils";
 
-export const alternateLyricsAndChords = (lyrics?: string, chords?: string, options?: {
+export const renderSongPartLines = (lines?: ISongPartLine[], options?: {
+  includeTypes?: SongPartLineType[];
   lyricsClassName?: string;
-  lyricsStyle?: any;
+  lyricsStyle?: React.CSSProperties;
   chordsClassName?: string;
-  chordsStyle?: any;
+  chordsStyle?: React.CSSProperties;
+  commentsClassName?: string;
+  commentsStyle?: React.CSSProperties;
   firstLineCompactMode?: boolean;
 }): ReactNode => {
 
-  const hasLyrics = (lyrics?.trim() ?? '').length > 0;
-  const hasChords = (chords?.trim() ?? '').length > 0;
-
-  if (!hasLyrics && !hasChords) {
+  if (!lines || lines.length === 0) {
     return null;
   }
 
-  if (!hasLyrics) {
-    return (
-      <p className={cn('chords', options?.chordsClassName)} style={options?.chordsStyle}>{chords}</p>
-    );
+  const filteredLines = options?.includeTypes
+    ? lines.filter(line => options.includeTypes!.includes(line.type))
+    : lines;
+
+  if (filteredLines.length === 0) {
+    return null;
   }
 
   const resolvedLyricsClassName = cn(
@@ -27,42 +30,34 @@ export const alternateLyricsAndChords = (lyrics?: string, chords?: string, optio
     options?.lyricsClassName,
     options?.firstLineCompactMode && 'opacity-60 italic',
   );
-
-  const lyricsLines = (lyrics ?? '').split(/\n/);
-  if (options?.firstLineCompactMode) {
-    return <p key={`lyrics-firstLine`} className={resolvedLyricsClassName} style={options?.lyricsStyle}>{lyricsLines[0]}...</p>
-  }
-
-  if (!hasChords) {
-    return (
-      <>
-        {lyricsLines.map((line, ix) => (
-          <p key={`lyrics-${ix}`} className={resolvedLyricsClassName} style={options?.lyricsStyle}>{line}</p>
-        ))}
-      </>
-    );
-  }
-
-  const chordsLines = (chords ?? '').split(/\n/);
-  const maxLines = Math.max(lyricsLines.length, chordsLines.length);
   const resolvedChordsClassName = cn('chords', options?.chordsClassName);
+  const resolvedCommentsClassName = cn('comments', options?.commentsClassName);
+
+  if (options?.firstLineCompactMode) {
+    const firstLyricsLine = filteredLines.find(line => line.type === 'lyrics');
+    if (firstLyricsLine) {
+      return <p key="lyrics-firstLine" className={resolvedLyricsClassName} style={options?.lyricsStyle}>{firstLyricsLine.content}...</p>;
+    }
+    return null;
+  }
 
   return (
     <>
-      {Array.from(Array(maxLines)).map((_, i) => {
-        const lyricsLine = i < lyricsLines.length ? lyricsLines[i].trimEnd() : '';
-        const chordsLine = i < chordsLines.length ? chordsLines[i].trimEnd() : '';
-
-        if (lyricsLine.length === 0 && chordsLine.length === 0) {
+      {filteredLines.map((line, ix) => {
+        const content = line.content.trimEnd();
+        if (content.length === 0) {
           return null;
         }
 
-        return (
-          <>
-            <p key={`chords-${i}`} className={resolvedChordsClassName} style={options?.chordsStyle}>{chordsLine}</p>
-            <p key={`lyrics-${i}`} className={resolvedLyricsClassName} style={options?.lyricsStyle}>{lyricsLine}</p>
-          </>
-        );
+        switch (line.type) {
+          case 'chords':
+            return <p key={`chords-${ix}`} className={resolvedChordsClassName} style={options?.chordsStyle}>{content}</p>;
+          case 'comments':
+            return <p key={`comments-${ix}`} className={resolvedCommentsClassName} style={options?.commentsStyle}>{content}</p>;
+          case 'lyrics':
+          default:
+            return <p key={`lyrics-${ix}`} className={resolvedLyricsClassName} style={options?.lyricsStyle}>{content}</p>;
+        }
       })}
     </>
   );
