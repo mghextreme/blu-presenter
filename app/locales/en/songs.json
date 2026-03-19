@@ -30,8 +30,10 @@
     },
     "lineType": {
       "chords": "Chords",
-      "lyrics": "Lyrics"
-    }
+      "lyrics": "Lyrics",
+      "comments": "Comments"
+    },
+    "partName": "Part name"
   },
   "actions": {
     "create": "Add song",

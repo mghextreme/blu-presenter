@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { ISongPartLine, SongPartLineType } from "@/types";
+import { ISongPart, ISongPartLine, SongPartLineType } from "@/types";
 import { cn } from "./utils";
 
 export const renderSongPartLines = (lines?: ISongPartLine[], options?: {
@@ -63,7 +63,7 @@ export const renderSongPartLines = (lines?: ISongPartLine[], options?: {
   );
 }
 
-const chordsRegex = /\s[A-G](#{1,2}|b{1,2})?\(?\d*(M|maj|m|min|sus|º|\+)?\d*(\(\d*[+-]?\))?([\\\/][A-G](#{1,2}|b{1,2})?)?\)?\s/gi;
+const chordsRegex = /(?<=\s)[A-G](#{1,2}|b{1,2})?\(?\d*(M|maj|m|min|sus|º|\+)?\d*(\(\d*[+-]?\))?([\\\/][A-G](#{1,2}|b{1,2})?)?\)?(?=\s)/gi;
 export const getChordsData = (text: string) => {
   const words = text.replace(/[\[\]\(\)]+/gi, '').replace(/\s+/gi, ' ').trim().split(/\s/gi);
   const chordsIter = (` ${text} `).matchAll(chordsRegex);
@@ -135,4 +135,50 @@ export function getReferenceType(url: string): ReferenceType {
   if (getSpotifyTrackId(url)) return 'spotify';
   if (getYouTubeVideoId(url)) return 'youtube';
   return 'other';
+}
+
+export function detectLineType(text: string): SongPartLineType {
+  const trimmed = text.trim();
+  if (trimmed === '') return 'lyrics';
+  const data = getChordsData(trimmed);
+  return data.proportion >= 0.75 ? 'chords' : 'lyrics';
+}
+
+export function parseSongText(fullText: string): ISongPart[] {
+  const rawLines = fullText.split(/\n/);
+  const blocks: ISongPart[] = [];
+
+  let currentLines: ISongPartLine[] = [];
+  let emptyCount = 0;
+
+  for (const line of rawLines) {
+    const isEmpty = line.trim() === '';
+
+    if (isEmpty) {
+      emptyCount++;
+      if (emptyCount >= 2 && currentLines.length > 0) {
+        blocks.push({
+          id: blocks.length,
+          lines: currentLines,
+        });
+        currentLines = [];
+      }
+      continue;
+    }
+
+    emptyCount = 0;
+    currentLines.push({
+      type: detectLineType(line),
+      content: line,
+    });
+  }
+
+  if (currentLines.length > 0) {
+    blocks.push({
+      id: blocks.length,
+      lines: currentLines,
+    });
+  }
+
+  return blocks;
 }

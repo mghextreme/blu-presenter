@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import i18next from "i18next";
 import { useTranslation } from "react-i18next";
-import { ISongPart, SupportedLanguage } from "@/types";
+import { SupportedLanguage } from "@/types";
 import { SongSchema } from "@/types/schemas/song.schema";
 import { ImportSongSchema } from "@/types/schemas/import-song.schema";
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -15,8 +15,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { EditSongForm } from "@/components/app/songs/edit-form";
 import { SongPreview } from "@/components/app/songs/song-preview";
-import { ImportSongForm } from "@/components/app/songs/import-song-form";
 import { PreviewIcon } from "@/components/icons/preview";
+import { parseSongText } from "@/lib/songs";
 
 export function ImportSong() {
 
@@ -35,12 +35,7 @@ export function ImportSong() {
   });
 
   const onSubmitStep1 = (data: z.infer<typeof ImportSongSchema>) => {
-    setFullText(data.fullText);
-    setStep(2);
-  }
-
-  const onSubmitStep2 = () => {
-    const songParts: ISongPart[] = (importSongRef.current as any)?.getSongParts() || [];
+    const songParts = parseSongText(data.fullText);
     setInitialFormValues({
       id: 0,
       title: '',
@@ -48,15 +43,10 @@ export function ImportSong() {
       blocks: songParts,
       references: [],
     });
-    setInitialFormValuesHaveChords(songParts.some(p => p.lines?.some(l => l.type === 'chords')));
-    setStep(3);
+    setStep(2);
   }
 
-  const [fullText, setFullText] = useState<string>('');
-  const importSongRef = useRef<typeof ImportSongForm>(null);
-
   const [initialFormValues, setInitialFormValues] = useState<z.infer<typeof SongSchema>>({} as any);
-  const [initialFormValuesHaveChords, setInitialFormValuesHaveChords] = useState<boolean>(false);
 
   const editFormRef = useRef<typeof EditSongForm>(null);
 
@@ -66,7 +56,7 @@ export function ImportSong() {
       <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{organization?.name ?? t('organizations.defaultName')}</b></span>
         <div className="buttons flex-1 flex justify-end gap-x-2">
-          {step == 3 && (
+          {step == 2 && (
             <ControllerProvider>
               <SongPreview getSong={() => (editFormRef.current as any)?.getFormValues()}>
                 <Button
@@ -109,23 +99,12 @@ export function ImportSong() {
           </Form>
         )}
         {step == 2 && (
-          <div className="min-w-sm max-w-2xl space-y-3 flex-1">
-            <ImportSongForm fullText={fullText} ref={importSongRef} />
-            <div className="flex flex-row align-start space-x-2">
-              <Button className="flex-0" type="button" onClick={onSubmitStep2}>{t('button.continue')}</Button>
-              <Button className="flex-0" type="button" variant="secondary" onClick={() => setStep(1)}>{t('button.back')}</Button>
-              <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/songs'}>{t('button.cancel')}</Link></Button>
-            </div>
-          </div>
-        )}
-        {step == 3 && (
           <EditSongForm
             edit={false}
             formValues={initialFormValues}
-            defaultEditMode={initialFormValuesHaveChords ? 'chords' : 'lyrics'}
             ref={editFormRef}
             additionalSubmitButtons={(
-              <Button className="flex-0" type="button" variant="secondary" onClick={() => setStep(2)}>{t('button.back')}</Button>
+              <Button className="flex-0" type="button" variant="secondary" onClick={() => setStep(1)}>{t('button.back')}</Button>
             )}
           />
         )}

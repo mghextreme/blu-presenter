@@ -30,8 +30,10 @@
     },
     "lineType": {
       "chords": "Acordes",
-      "lyrics": "Letra"
-    }
+      "lyrics": "Letra",
+      "comments": "Comentários"
+    },
+    "partName": "Nome da parte"
   },
   "actions": {
     "create": "Adicionar música",
