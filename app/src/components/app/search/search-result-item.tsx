@@ -32,7 +32,7 @@ export function SearchResultItem({
   const hasChords = item.blocks?.some(block => block.lines?.some(line => line.type === 'chords'));
 
   return (
-    <Card key={item.id}>
+    <Card>
       <CardHeader>
         <CardHeaderText>
           <CardTitle>{item?.title}</CardTitle>
