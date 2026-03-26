@@ -9,7 +9,6 @@ interface SongEditorSeparatorProps {
   onNameChange?: (name: string) => void;
   onDuplicate?: () => void;
   onRemove?: () => void;
-  showLine?: boolean;
   showRemove?: boolean;
 }
 
@@ -18,7 +17,6 @@ export function SongEditorSeparator({
   onNameChange,
   onDuplicate,
   onRemove,
-  showLine = true,
   showRemove = true,
 }: SongEditorSeparatorProps) {
 
@@ -49,7 +47,7 @@ export function SongEditorSeparator({
   };
 
   return (
-    <div className={cn("flex items-center gap-2 py-1 select-none", showLine && "mt-1")} contentEditable={false}>
+    <div className="flex items-center gap-2 py-1 select-none mt-1" contentEditable={false}>
       {/* Part name - left */}
       <div className="flex-shrink-0">
         {isEditing ? (
@@ -80,10 +78,10 @@ export function SongEditorSeparator({
       </div>
 
       {/* Line - center */}
-      <div className={cn("flex-1", showLine && "border-t border-border")} />
+      <div className="flex-1 border-t border-border" />
 
       {/* Action buttons - right */}
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-0.5 px-2">
         <button
           type="button"
           onClick={onDuplicate}

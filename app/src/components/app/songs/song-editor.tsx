@@ -585,7 +585,6 @@ export function SongEditor({ form }: SongEditorProps) {
                   onNameChange={(name) => handlePartNameChange(sp.partIndex, name)}
                   onDuplicate={() => handleDuplicatePart(sp.partIndex)}
                   onRemove={() => handleRemovePart(sp.partIndex)}
-                  showLine={sp.partIndex > 0}
                   showRemove={parts.length > 1}
                 />
               </div>
