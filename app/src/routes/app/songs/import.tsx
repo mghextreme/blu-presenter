@@ -35,12 +35,13 @@ export function ImportSong() {
   });
 
   const onSubmitStep1 = (data: z.infer<typeof ImportSongSchema>) => {
-    const songParts = parseSongText(data.fullText);
+    const parsed = parseSongText(data.fullText);
     setInitialFormValues({
       id: 0,
-      title: '',
+      title: parsed.title,
+      artist: parsed.artist,
       language: curLang,
-      blocks: songParts,
+      blocks: parsed.blocks,
       references: [],
     });
     setStep(2);

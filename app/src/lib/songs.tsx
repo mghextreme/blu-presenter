@@ -137,26 +137,83 @@ export function getReferenceType(url: string): ReferenceType {
   return 'other';
 }
 
+// Matches guitar tablature lines like "E|4-12----------|" or "e|---0---2---|"
+const guitarTabRegex = /^[A-Ga-g]#?\|[\d\-\/\\hpbrs~x|().^ ]+\|?\s*$/;
+
 export function detectLineType(text: string): SongPartLineType {
   const trimmed = text.trim();
   if (trimmed === '') return 'lyrics';
+  if (guitarTabRegex.test(trimmed)) return 'comments';
   const data = getChordsData(trimmed);
   return data.proportion >= 0.75 ? 'chords' : 'lyrics';
 }
 
-export function parseSongText(fullText: string): ISongPart[] {
+interface ParsedSong {
+  title: string;
+  artist: string;
+  blocks: ISongPart[];
+}
+
+export function parseSongText(fullText: string): ParsedSong {
   const rawLines = fullText.split(/\n/);
+
+  // Strip leading and trailing empty lines
+  while (rawLines.length > 0 && rawLines[0].trim() === '') rawLines.shift();
+  while (rawLines.length > 0 && rawLines[rawLines.length - 1].trim() === '') rawLines.pop();
+
+  // Extract title and artist if the text starts with a header pattern:
+  // - Title (non-chord) + Artist (non-chord) + empty line
+  // - Title (non-chord) + empty line (title only, no artist)
+  let title = '';
+  let artist = '';
+  let bodyStart = 0;
+
+  if (rawLines.length >= 3) {
+    const firstLine = rawLines[0].trim();
+    const secondLine = rawLines[1].trim();
+    const thirdLine = rawLines[2].trim();
+
+    if (
+      firstLine && detectLineType(firstLine) !== 'chords' &&
+      secondLine && detectLineType(secondLine) !== 'chords' &&
+      thirdLine === ''
+    ) {
+      title = firstLine;
+      artist = secondLine;
+      bodyStart = 3;
+    } else if (
+      firstLine && detectLineType(firstLine) !== 'chords' &&
+      secondLine === ''
+    ) {
+      title = firstLine;
+      bodyStart = 2;
+    }
+  } else if (rawLines.length === 2) {
+    const firstLine = rawLines[0].trim();
+    const secondLine = rawLines[1].trim();
+
+    if (
+      firstLine && detectLineType(firstLine) !== 'chords' &&
+      secondLine === ''
+    ) {
+      title = firstLine;
+      bodyStart = 2;
+    }
+  }
+
+  // Skip any remaining empty lines between header and body
+  while (bodyStart < rawLines.length && rawLines[bodyStart].trim() === '') bodyStart++;
+
+  // Parse remaining lines into blocks, splitting on single empty lines
   const blocks: ISongPart[] = [];
-
   let currentLines: ISongPartLine[] = [];
-  let emptyCount = 0;
 
-  for (const line of rawLines) {
+  for (let i = bodyStart; i < rawLines.length; i++) {
+    const line = rawLines[i];
     const isEmpty = line.trim() === '';
 
     if (isEmpty) {
-      emptyCount++;
-      if (emptyCount >= 2 && currentLines.length > 0) {
+      if (currentLines.length > 0) {
         blocks.push({
           id: blocks.length,
           lines: currentLines,
@@ -166,7 +223,6 @@ export function parseSongText(fullText: string): ISongPart[] {
       continue;
     }
 
-    emptyCount = 0;
     currentLines.push({
       type: detectLineType(line),
       content: line,
@@ -180,5 +236,5 @@ export function parseSongText(fullText: string): ISongPart[] {
     });
   }
 
-  return blocks;
+  return { title, artist, blocks };
 }
