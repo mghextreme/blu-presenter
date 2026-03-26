@@ -240,12 +240,23 @@ export function SongEditor({ form }: SongEditorProps) {
           continue;
         }
 
-        // Match against existing line data by index within this part
+        // For manually-set lines, preserve the user's chosen type as long as
+        // the content still matches (guards against index shifts from
+        // insertions / deletions above).  For everything else, always
+        // re-detect from content so stale DOM classes never win.
         const existingLine = existing?.lines[lineIdx];
-        if (existingLine && existingLine.manuallySet) {
+        if (existingLine && existingLine.manuallySet && existingLine.content === content) {
           lines.push({ ...existingLine, content });
         } else {
-          lines.push({ content, type: detectLineType(content), manuallySet: false });
+          // The line may have shifted index — try to find it elsewhere
+          const shiftedManual = existing?.lines.find(
+            (l) => l.manuallySet && l.content === content,
+          );
+          if (shiftedManual) {
+            lines.push({ ...shiftedManual, content });
+          } else {
+            lines.push({ content, type: detectLineType(content), manuallySet: false });
+          }
         }
         lineIdx++;
       }
@@ -333,6 +344,7 @@ export function SongEditor({ form }: SongEditorProps) {
       const cursor = saveCursor();
       const parsed = parseEditorDOM();
       const split = splitAtDoubleEmpty(parsed);
+      partsRef.current = split;
       setParts(split);
       syncToForm(split);
       requestAnimationFrame(() => {
@@ -346,6 +358,7 @@ export function SongEditor({ form }: SongEditorProps) {
 
     // Normal: re-detect types, update in-place
     const parsed = parseEditorDOM();
+    partsRef.current = parsed;
     setParts(parsed);
     syncToForm(parsed);
 
@@ -410,6 +423,7 @@ export function SongEditor({ form }: SongEditorProps) {
     partDiv.remove();
 
     const parsed = parseEditorDOM();
+    partsRef.current = parsed;
     setParts(parsed);
     syncToForm(parsed);
     forceOverlayUpdate();
@@ -491,6 +505,7 @@ export function SongEditor({ form }: SongEditorProps) {
         ? { ...p, lines: p.lines.map((l, li) => li === lineIndex ? { ...l, type: cycleLineType(l.type), manuallySet: true } : l) }
         : p
     );
+    partsRef.current = newParts;
     setParts(newParts);
     syncToForm(newParts);
     const editor = editorRef.current;
@@ -509,6 +524,7 @@ export function SongEditor({ form }: SongEditorProps) {
   const handlePartNameChange = (partIndex: number, name: string) => {
     const newParts = [...partsRef.current];
     newParts[partIndex] = { ...newParts[partIndex], name: name || undefined };
+    partsRef.current = newParts;
     setParts(newParts);
     syncToForm(newParts);
   };
@@ -518,6 +534,7 @@ export function SongEditor({ form }: SongEditorProps) {
     const dup: IEditorPart = { key: globalPartKeyCounter++, name: part.name, lines: part.lines.map(l => ({ ...l })) };
     const newParts = [...partsRef.current];
     newParts.splice(partIndex + 1, 0, dup);
+    partsRef.current = newParts;
     setParts(newParts);
     syncToForm(newParts);
     requestAnimationFrame(() => { renderEditorDOM(newParts); forceOverlayUpdate(); });
@@ -526,6 +543,7 @@ export function SongEditor({ form }: SongEditorProps) {
   const handleRemovePart = (partIndex: number) => {
     if (partsRef.current.length <= 1) return;
     const newParts = partsRef.current.filter((_, i) => i !== partIndex);
+    partsRef.current = newParts;
     setParts(newParts);
     syncToForm(newParts);
     requestAnimationFrame(() => { renderEditorDOM(newParts); forceOverlayUpdate(); });
