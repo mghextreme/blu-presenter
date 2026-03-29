@@ -203,6 +203,12 @@ export const ScrollingSongVisualizer = forwardRef(({
                   fontWeight: 400,
                   color: config?.foregroundColor,
                 }),
+                commentsClassName: config?.comments?.fontFamily ?? 'font-source-code-pro',
+                commentsStyle: buildFontStyle(config?.comments, {
+                  fontSize: 120,
+                  fontWeight: 400,
+                  color: config?.comments?.color,
+                }),
               })}
             </div>
           </div>

@@ -614,7 +614,7 @@ export function SongEditor({ form }: SongEditorProps) {
               suppressContentEditableWarning
               spellCheck={false}
               className={cn(
-                "font-source-code-pro text-sm leading-6 outline-none",
+                "font-source-code-pro text-sm leading-6 outline-none whitespace-pre-wrap",
                 "px-3 py-2",
                 "border border-l-0 border-input rounded-r-md shadow-xs dark:bg-input/30",
                 "focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]",

@@ -94,7 +94,7 @@ const fontOptions = [
 
 interface ThemeConfigFontFormProps {
   form: UseFormReturn<z.infer<typeof ThemeSchema>>
-  name: 'title' | 'artist' | 'lyrics' | 'chords' | 'clock'
+  name: 'title' | 'artist' | 'lyrics' | 'chords' | 'clock' | 'comments'
   showTransform?: boolean
 }
 

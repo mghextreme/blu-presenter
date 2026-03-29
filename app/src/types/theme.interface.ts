@@ -39,6 +39,7 @@ export interface ISubtitlesThemeConfig extends IBaseThemeConfig {
 export interface ITeleprompterThemeConfig extends IBaseThemeConfig {
   chords: IFontConfig & { color: string, enabled: boolean }
   clock: IFontConfig & { color: string, enabled: boolean, format: '12' | '12withSeconds' | '24' | '24withSeconds' }
+  comments: IFontConfig & { color: string, enabled: boolean }
 }
 
 export interface ITheme {
@@ -157,7 +158,7 @@ export const TeleprompterTheme = {
     invisibleOnEmptyItems: false,
     title: {
       fontFamily: 'font-source-code-pro',
-      fontSize: 110,
+      fontSize: 180,
       fontWeight: 700,
       transform: 'none',
       italic: false,
@@ -167,7 +168,7 @@ export const TeleprompterTheme = {
     },
     artist: {
       fontFamily: 'font-source-code-pro',
-      fontSize: 90,
+      fontSize: 120,
       fontWeight: 500,
       transform: 'none',
       italic: false,
@@ -177,7 +178,7 @@ export const TeleprompterTheme = {
     },
     lyrics: {
       fontFamily: 'font-source-code-pro',
-      fontSize: 100,
+      fontSize: 150,
       fontWeight: 400,
       transform: 'none',
       italic: false,
@@ -189,10 +190,22 @@ export const TeleprompterTheme = {
       enabled: true,
       fontFamily: 'font-source-code-pro',
       color: '#ffdf20',
-      fontSize: 100,
+      fontSize: 150,
       fontWeight: 700,
       transform: 'none',
       italic: false,
+      shadow: {
+        enabled: false,
+      },
+    },
+    comments: {
+      enabled: true,
+      fontFamily: 'font-source-code-pro',
+      color: '#999',
+      fontSize: 120,
+      fontWeight: 400,
+      transform: 'none',
+      italic: true,
       shadow: {
         enabled: false,
       },
@@ -201,7 +214,7 @@ export const TeleprompterTheme = {
       enabled: true,
       fontFamily: 'font-source-code-pro',
       color: '#ffffff',
-      fontSize: 100,
+      fontSize: 150,
       fontWeight: 500,
       transform: 'none',
       italic: false,

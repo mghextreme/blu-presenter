@@ -37,6 +37,7 @@ export const configSchema = z.object({
   alignment: z.enum(['left', 'center', 'right']).optional(),
   position: z.enum(['top', 'middle', 'bottom']).optional(),
   chords: ToggleableColorFontSchema.optional(),
+  comments: ToggleableColorFontSchema.optional(),
   clock: ClockSchema.optional(),
 });
 

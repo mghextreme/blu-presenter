@@ -27,6 +27,7 @@
       "artist": "Artista",
       "lyrics": "Letra",
       "chords": "Acordes",
+      "comments": "Comentários",
       "clock": "Relógio"
     },
     "font": {
@@ -41,12 +42,14 @@
       "backgroundColor": "Fundo",
       "foregroundColor": "Texto",
       "chordsColor": "Acordes",
+      "commentsColor": "Comentários",
       "clockColor": "Relógio",
       "vertical": "Vertical",
       "horizontal": "Horizontal",
       "shadowColor": "Cor da sombra",
       "shadowBlur": "Esmaecer",
       "shadowOffset": "Distância",
+      "commentsEnabled": "Estado",
       "clockEnabled": "Estado",
       "clockFormat": "Formato",
       "invisibleOnEmptyItems": "Invisível nos itens vazios da programação",
