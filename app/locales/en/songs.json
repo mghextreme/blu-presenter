@@ -126,7 +126,24 @@
     "publicArchive": "Public archive"
   },
   "print": {
-    "sequence": "Sequence"
+    "sequence": "Sequence",
+    "customize": "Customize",
+    "fontSize": "Font size",
+    "compactMode": "Compact mode",
+    "compactModeOff": "Off",
+    "compactModeCompact": "Compact",
+    "compactModeFirstLine": "First line",
+    "chords": "Chords",
+    "comments": "Comments",
+    "showChords": "Show chords",
+    "showComments": "Show comments",
+    "color": "Color",
+    "bold": "Bold",
+    "italic": "Italic",
+    "numbering": "Numbering",
+    "showNumbers": "Show numbers",
+    "spotifyCode": "Spotify code",
+    "showSpotifyCode": "Show Spotify code"
   },
   "references": {
     "play": "Play",

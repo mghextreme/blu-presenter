@@ -1,13 +1,18 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
+export interface LineStyle {
+  enabled: boolean
+  color?: string
+  bold: boolean
+  italic: boolean
+}
+
 interface PrintConfigState {
   fontSize: number
   increateFontSize: () => void
   decreateFontSize: () => void
   resetFontSize: () => void
-  showChords: boolean
-  toggleChords: () => void
   showNumbers: boolean
   toggleNumbers: () => void
   columns: number
@@ -15,7 +20,11 @@ interface PrintConfigState {
   showSpotifyCode: boolean
   toggleSpotifyCode: () => void
   compactMode?: 'compact' | 'firstLine'
-  toggleCompactMode: () => void
+  setCompactMode: (mode: 'compact' | 'firstLine' | undefined) => void
+  chordsStyle: LineStyle
+  setChordsStyle: (style: Partial<LineStyle>) => void
+  commentsStyle: LineStyle
+  setCommentsStyle: (style: Partial<LineStyle>) => void
 }
 
 export const usePrintConfig = create<PrintConfigState>()(
@@ -34,10 +43,6 @@ export const usePrintConfig = create<PrintConfigState>()(
       resetFontSize: () => {
         return set({ fontSize: 16 });
       },
-      showChords: true,
-      toggleChords: () => {
-        return set({ showChords: !get().showChords });
-      },
       showNumbers: true,
       toggleNumbers: () => {
         return set({ showNumbers: !get().showNumbers });
@@ -52,30 +57,40 @@ export const usePrintConfig = create<PrintConfigState>()(
         }
       },
       compactMode: 'compact',
-      toggleCompactMode: () => {
-        const cur = get().compactMode;
-        if (cur === 'compact') {
-          return set({ compactMode: 'firstLine' });
-        } else if (cur === 'firstLine') {
-          return set({ compactMode: undefined });
-        } else {
-          return set({ compactMode: 'compact' });
-        }
+      setCompactMode: (mode) => {
+        return set({ compactMode: mode });
       },
       showSpotifyCode: true,
       toggleSpotifyCode: () => {
         return set({ showSpotifyCode: !get().showSpotifyCode });
+      },
+      chordsStyle: {
+        enabled: true,
+        bold: true,
+        italic: false,
+      },
+      setChordsStyle: (style) => {
+        return set({ chordsStyle: { ...get().chordsStyle, ...style } });
+      },
+      commentsStyle: {
+        enabled: true,
+        bold: false,
+        italic: true,
+      },
+      setCommentsStyle: (style) => {
+        return set({ commentsStyle: { ...get().commentsStyle, ...style } });
       },
     }),
     {
       name: "printConfig",
       partialize: (state: PrintConfigState) => ({
         fontSize: state.fontSize,
-        showChords: state.showChords,
         showNumbers: state.showNumbers,
         compactMode: state.compactMode,
         columns: state.columns,
         showSpotifyCode: state.showSpotifyCode,
+        chordsStyle: state.chordsStyle,
+        commentsStyle: state.commentsStyle,
       }),
       storage: createJSONStorage(() => localStorage),
     }
