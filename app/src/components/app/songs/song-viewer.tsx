@@ -42,8 +42,9 @@ export function SongViewer({ song, showReferences = true, children }: SongViewer
             {renderSongPartLines(
               block.lines,
               {
-                includeTypes: hasChords && viewMode === 'chords' ? ['lyrics', 'chords'] : ['lyrics'],
-                chordsClassName: 'font-bold',
+                includeTypes: hasChords && viewMode === 'chords' ? ['lyrics', 'chords', 'comments'] : ['lyrics'],
+                chordsClassName: 'font-bold text-primary',
+                commentsClassName: 'italic text-green-600 dark:text-green-600',
               }
             )}
           </div>

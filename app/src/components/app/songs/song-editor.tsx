@@ -70,7 +70,7 @@ function lineTypeIcon(type: SongPartLineType) {
 function lineClassName(type: SongPartLineType): string {
   switch (type) {
     case 'chords': return 'editor-line font-bold text-primary';
-    case 'comments': return 'editor-line italic text-muted-foreground';
+    case 'comments': return 'editor-line italic text-green-600 dark:text-green-600';
     default: return 'editor-line';
   }
 }
@@ -579,7 +579,7 @@ export function SongEditor({ form }: SongEditorProps) {
                   "hover:bg-accent text-muted-foreground hover:text-accent-foreground",
                   gl.line.manuallySet && "text-foreground",
                   gl.line.type === 'chords' && "text-primary",
-                  gl.line.type === 'comments' && "opacity-40",
+                  gl.line.type === 'comments' && "text-green-600 dark:text-green-600",
                 )}
                 style={{ top: gl.top, height: gl.height }}
                 onClick={() => toggleLineType(gl.partIndex, gl.lineIndex)}

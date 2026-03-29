@@ -201,7 +201,7 @@ export const TeleprompterTheme = {
     comments: {
       enabled: true,
       fontFamily: 'font-source-code-pro',
-      color: '#999',
+      color: '#00a63e',
       fontSize: 120,
       fontWeight: 400,
       transform: 'none',

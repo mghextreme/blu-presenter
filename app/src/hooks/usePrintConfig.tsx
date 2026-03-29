@@ -74,6 +74,7 @@ export const usePrintConfig = create<PrintConfigState>()(
       },
       commentsStyle: {
         enabled: true,
+        color: '#777',
         bold: false,
         italic: true,
       },
