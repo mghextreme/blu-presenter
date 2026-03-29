@@ -228,24 +228,28 @@ export function PrintSong() {
                 type="button"
                 variant="print"
                 size="sm"
-                title={t(canEdit ? 'actions.edit' : 'actions.view')}
+                title={t('actions.view')}
                 asChild>
                 {hasAccess ? (
-                  canEdit ? (
-                    <Link to={`/app/songs/${data.id}/edit`}>
-                      <PencilIcon className="size-3" />
-                    </Link>
-                  ) : (
-                    <Link to={`/app/songs/${data.id}/view`}>
-                      <EyeIcon className="size-3" />
-                    </Link>
-                  )
+                  <Link to={`/app/songs/${data.id}/view`}>
+                    <EyeIcon className="size-3" />
+                  </Link>
                 ) : (
                   <Link to={`/shared/view/${data.id}/${data.secret ?? ''}`}>
                     <EyeIcon className="size-3" />
                   </Link>
                 )}
               </Button>
+              {canEdit && <Button
+                type="button"
+                variant="print"
+                size="sm"
+                title={t('actions.edit')}
+                asChild>
+                <Link to={`/app/songs/${data.id}/edit`}>
+                  <PencilIcon className="size-3" />
+                </Link>
+              </Button>}
               <Button
                 type="button"
                 variant="print"
@@ -262,7 +266,7 @@ export function PrintSong() {
         @page {'{'} size: A4; margin: 0; {'}'}
       </style>
       <div className={cn(
-        'w-full px-2 print:px-8 font-source-code-pro flex flex-col justify-center items-stretch',
+        'w-full px-2 print:px-8 print:pt-6 font-source-code-pro flex flex-col justify-center items-stretch',
        )} style={{ fontSize: `${fontSize}px` }}>
         {Array.from(Array(pages)).map((_, ix) => (
           <div
@@ -278,8 +282,8 @@ export function PrintSong() {
             <h1 className="font-bold" style={{ fontSize: '1.5em' }}>{data.title}</h1>
             <h2 className="text-slate-600 mb-[.5em]" style={{ fontSize: '1.125em' }}>{data.artist}</h2>
           </div>
-          {qrCodeUrl && <div className="max-h-[4em] aspect-square">
-            <QRCode value={qrCodeUrl} className="max-h-full max-w-full" />
+          {qrCodeUrl && <div className="w-[4em] h-[4em] flex-shrink-0">
+            <QRCode value={qrCodeUrl} className="w-full h-full" />
           </div>}
         </div>
             )}
@@ -316,8 +320,9 @@ export function PrintSong() {
                     {renderSongPartLines(
                       block.lines,
                       {
-                        includeTypes: showChords ? ['lyrics', 'chords'] : ['lyrics'],
+                        includeTypes: showChords ? ['lyrics', 'chords', 'comments'] : ['lyrics'],
                         chordsClassName: 'font-bold',
+                        commentsClassName: 'italic opacity-60',
                         firstLineCompactMode: compactMode === 'firstLine' && !block.isFirstAppearance,
                       },
                     )}
