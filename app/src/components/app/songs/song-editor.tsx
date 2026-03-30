@@ -13,6 +13,7 @@ import Bars3BottomLeftIcon from "@heroicons/react/24/solid/Bars3BottomLeftIcon";
 
 interface SongEditorProps {
   form: UseFormReturn<z.infer<typeof SongSchema>>;
+  onCursorFocus?: (blockIndex: number, lineIndex: number) => void;
 }
 
 interface IEditorLine {
@@ -80,7 +81,7 @@ const SEP_ATTR = 'data-separator';
 
 // ─── Component ──────────────────────────────────────────────────
 
-export function SongEditor({ form }: SongEditorProps) {
+export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
   const { t } = useTranslation("songs");
   const blocks = form.getValues('blocks') ?? [];
   const [parts, setParts] = useState<IEditorPart[]>(() => blocksToEditorParts(blocks));
@@ -144,6 +145,61 @@ export function SongEditor({ form }: SongEditorProps) {
     sel.removeAllRanges();
     sel.addRange(r);
   };
+
+  // ─── Track focused block and line ──────────────────────────────
+
+  const lastReportedBlock = useRef<number>(-1);
+  const lastReportedLine = useRef<number>(-1);
+
+  const detectFocusedPosition = useCallback(() => {
+    const editor = editorRef.current;
+    const sel = window.getSelection();
+    if (!editor || !sel || sel.rangeCount === 0) return;
+    if (!editor.contains(sel.anchorNode)) return;
+
+    // Walk up to find the editor-line and editor-part ancestors
+    let lineNode: Node | null = sel.anchorNode;
+    while (lineNode && lineNode !== editor) {
+      if (lineNode instanceof HTMLElement && lineNode.classList.contains('editor-line')) break;
+      lineNode = lineNode.parentNode;
+    }
+
+    let partNode: Node | null = lineNode;
+    while (partNode && partNode !== editor) {
+      if (partNode instanceof HTMLElement && partNode.classList.contains('editor-part')) break;
+      partNode = partNode.parentNode;
+    }
+    if (!partNode || partNode === editor || !(partNode instanceof HTMLElement)) return;
+
+    // Find block index
+    const partDivs = editor.querySelectorAll('.editor-part');
+    let blockIndex = -1;
+    for (let i = 0; i < partDivs.length; i++) {
+      if (partDivs[i] === partNode) { blockIndex = i; break; }
+    }
+    if (blockIndex < 0) return;
+
+    // Find line index within the block
+    let lineIndex = 0;
+    if (lineNode && lineNode !== editor && lineNode instanceof HTMLElement && lineNode.classList.contains('editor-line')) {
+      const lineEls = partNode.querySelectorAll('.editor-line');
+      for (let i = 0; i < lineEls.length; i++) {
+        if (lineEls[i] === lineNode) { lineIndex = i; break; }
+      }
+    }
+
+    if (lastReportedBlock.current !== blockIndex || lastReportedLine.current !== lineIndex) {
+      lastReportedBlock.current = blockIndex;
+      lastReportedLine.current = lineIndex;
+      onCursorFocus?.(blockIndex, lineIndex);
+    }
+  }, [onCursorFocus]);
+
+  useEffect(() => {
+    const handler = () => detectFocusedPosition();
+    document.addEventListener('selectionchange', handler);
+    return () => document.removeEventListener('selectionchange', handler);
+  }, [detectFocusedPosition]);
 
   // ─── Render DOM from state ────────────────────────────────────
 

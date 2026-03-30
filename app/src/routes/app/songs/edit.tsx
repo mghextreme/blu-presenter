@@ -94,7 +94,11 @@ export function EditSong({
             </Button>
           </>}
           <ControllerProvider>
-            <SongPreview getSong={() => (formRef.current as any)?.getFormValues()}>
+            <SongPreview
+              getSong={() => (formRef.current as any)?.getFormValues()}
+              getLastFocusedBlock={() => (formRef.current as any)?.getLastFocusedBlock() ?? 0}
+              getLastFocusedLine={() => (formRef.current as any)?.getLastFocusedLine() ?? 0}
+            >
               <Button
                 type="button"
                 size="sm"

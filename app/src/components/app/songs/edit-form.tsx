@@ -1,4 +1,4 @@
-import { forwardRef, ReactNode, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, ReactNode, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 
@@ -64,6 +64,8 @@ export const EditSongForm = forwardRef((
   }
 
   const [isLoading, setLoading] = useState<boolean>(false);
+  const lastFocusedBlockRef = useRef<number>(0);
+  const lastFocusedLineRef = useRef<number>(0);
 
   const form = useForm<z.infer<typeof SongSchema>>({
     resolver: zodResolver(SongSchema),
@@ -96,6 +98,12 @@ export const EditSongForm = forwardRef((
     return {
       getFormValues() {
         return form.getValues();
+      },
+      getLastFocusedBlock() {
+        return lastFocusedBlockRef.current;
+      },
+      getLastFocusedLine() {
+        return lastFocusedLineRef.current;
       },
     };
   });
@@ -251,7 +259,7 @@ export const EditSongForm = forwardRef((
 
         <div className="flex flex-col items-stretch min-w-md max-w-lg space-y-3 flex-1">
           <FormLabel>{t('input.parts')}</FormLabel>
-          <SongEditor form={form} />
+          <SongEditor form={form} onCursorFocus={(block, line) => { lastFocusedBlockRef.current = block; lastFocusedLineRef.current = line; }} />
 
           <SubmitButtons t={t} edit={edit} isLoading={isLoading} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} />
         </div>
