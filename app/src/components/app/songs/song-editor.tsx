@@ -45,7 +45,7 @@ function blocksToEditorParts(blocks: ISongPart[]): IEditorPart[] {
     key: globalPartKeyCounter++,
     name: block.name,
     lines: block.lines.length > 0
-      ? block.lines.map((line) => ({ content: line.content, type: line.type, manuallySet: false }))
+      ? block.lines.map((line) => ({ content: line.content, type: line.type, manuallySet: true }))
       : [{ content: '', type: 'lyrics' as SongPartLineType, manuallySet: false }],
   }));
 }
