@@ -258,8 +258,10 @@ export const EditSongForm = forwardRef((
         </div>
 
         <div className="flex flex-col items-stretch min-w-md max-w-lg space-y-3 flex-1">
-          <FormLabel>{t('input.parts')}</FormLabel>
-          <SongEditor form={form} onCursorFocus={(block, line) => { lastFocusedBlockRef.current = block; lastFocusedLineRef.current = line; }} />
+          <SongEditor
+            form={form}
+            onCursorFocus={(block, line) => { lastFocusedBlockRef.current = block; lastFocusedLineRef.current = line; }}
+          />
 
           <SubmitButtons t={t} edit={edit} isLoading={isLoading} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} />
         </div>

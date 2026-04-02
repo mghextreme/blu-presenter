@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseSongText } from '../songs'
+import { parseSongText, transposeNote, transposeChordToken, transposeLine, swapAccidentals } from '../songs'
 
 describe('parseSongText', () => {
   it('should parse a song with title, artist, and lyrics-only blocks', () => {
@@ -233,5 +233,90 @@ Some lyrics here`;
     expect(result.blocks[1].lines).toHaveLength(2);
     expect(result.blocks[1].lines[0].type).toBe('chords');
     expect(result.blocks[1].lines[1].type).toBe('lyrics');
+  });
+});
+
+describe('transposeNote', () => {
+  it('transposes up with sharps', () => {
+    expect(transposeNote('C', 1, false)).toBe('C#');
+    expect(transposeNote('B', 1, false)).toBe('C');
+    expect(transposeNote('E', 1, false)).toBe('F');
+  });
+
+  it('transposes down with flats', () => {
+    expect(transposeNote('C', -1, true)).toBe('B');
+    expect(transposeNote('D', -1, true)).toBe('Db');
+    expect(transposeNote('F', -1, true)).toBe('E');
+  });
+
+  it('wraps around the octave', () => {
+    expect(transposeNote('C', 12, false)).toBe('C');
+    expect(transposeNote('G#', 3, false)).toBe('B');
+  });
+});
+
+describe('transposeChordToken', () => {
+  it('transposes a simple chord up', () => {
+    expect(transposeChordToken('C', 1, false)).toBe('C#');
+    expect(transposeChordToken('B', 1, false)).toBe('C');
+  });
+
+  it('transposes a chord with suffix', () => {
+    expect(transposeChordToken('F#m', 1, false)).toBe('Gm');
+    expect(transposeChordToken('Cmaj7', 2, false)).toBe('Dmaj7');
+    expect(transposeChordToken('Asus4', -1, true)).toBe('Absus4');
+  });
+
+  it('transposes a chord with bass note', () => {
+    expect(transposeChordToken('G/B', 1, false)).toBe('G#/C');
+    expect(transposeChordToken('C/E', 2, false)).toBe('D/F#');
+    expect(transposeChordToken('Cmaj7/E', 1, false)).toBe('C#maj7/F');
+  });
+
+  it('transposes flat chords', () => {
+    expect(transposeChordToken('Bb', 2, false)).toBe('C');
+    expect(transposeChordToken('Eb', -1, true)).toBe('D');
+  });
+});
+
+describe('transposeLine', () => {
+  it('transposes all chords in a line upward', () => {
+    // C+1=C#, Am+1=A#m, F+1=F#, G+1=G#; spacing: C(1)→C#(2) eats 1 space, A#m(3) same as Am(2)+1 eats 1
+    expect(transposeLine(' C  Am  F  G ', 1, false)).toBe(' C# A#m F# G#');
+  });
+
+  it('transposes all chords in a line downward with flats', () => {
+    // C-1=B, Am-1=Abm, F-1=E, G-1=Gb
+    expect(transposeLine(' C  Am  F  G ', -1, true)).toBe(' B  Abm E  Gb');
+  });
+
+  it('preserves column alignment when token length changes', () => {
+    // D→E (same), Bm→C#m (+1 eats 1 trailing space), G→A (same), A→B (same)
+    expect(transposeLine(' D    Bm   G    A', 2, false)).toBe(' E    C#m  A    B');
+    // C#→C (-1, gain 1 space), Am→Abm (+1, eat 1 space), F#→F (-1, gain 1 space), G#→G (-1, gain 1 space)
+    expect(transposeLine(' C#  Am  F#  G#', -1, true)).toBe(' C   Abm F   G');
+  });
+
+  it('handles a line with a single chord', () => {
+    expect(transposeLine(' Am ', 2, false)).toBe(' Bm');
+  });
+});
+
+describe('swapAccidentals', () => {
+  it('converts sharps to flats when sharps dominate', () => {
+    expect(swapAccidentals(' C#  F#  G#')).toBe(' Db  Gb  Ab');
+  });
+
+  it('converts flats to sharps when flats dominate', () => {
+    expect(swapAccidentals(' Db  Gb  Ab')).toBe(' C#  F#  G#');
+  });
+
+  it('handles mixed lines, converting everything to flats when sharps dominate', () => {
+    // 2 sharps, 1 flat → target is flats; Bb is already flat so it stays Bb
+    expect(swapAccidentals(' C#  F#  Bb')).toBe(' Db  Gb  Bb');
+  });
+
+  it('does not alter natural notes', () => {
+    expect(swapAccidentals(' C  Am  F  G')).toBe(' C  Am  F  G');
   });
 });

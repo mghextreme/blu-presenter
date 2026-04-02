@@ -33,6 +33,11 @@
       "lyrics": "Lyrics",
       "comments": "Comments"
     },
+    "transpose": {
+      "down": "Transpose down one semitone",
+      "up": "Transpose up one semitone",
+      "swap": "Swap accidentals (♯ ↔ ♭)"
+    },
     "partName": "Part name"
   },
   "actions": {

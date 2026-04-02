@@ -3,7 +3,7 @@ import { UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
-import { detectLineType } from "@/lib/songs";
+import { detectLineType, transposeLine, swapAccidentals } from "@/lib/songs";
 import { ISongPart, SongPartLineType } from "@/types";
 import { SongSchema } from "@/types/schemas/song.schema";
 import { SongEditorSeparator } from "@/components/app/songs/song-editor-separator";
@@ -144,6 +144,69 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
     r.collapse(true);
     sel.removeAllRanges();
     sel.addRange(r);
+  };
+
+  // Saves/restores a full selection (anchor + focus) by line-index + char offset.
+  interface SavedSelection {
+    anchorIdx: number; anchorOffset: number;
+    focusIdx: number;  focusOffset: number;
+  }
+
+  const saveSelection = (): SavedSelection | null => {
+    const editor = editorRef.current;
+    const sel = window.getSelection();
+    if (!editor || !sel || sel.rangeCount === 0) return null;
+    const all = editor.querySelectorAll<HTMLElement>('.editor-line');
+
+    const nodeToIdx = (node: Node | null, offset: number): { idx: number; offset: number } | null => {
+      let n: Node | null = node;
+      while (n && n !== editor) {
+        if (n instanceof HTMLElement && n.classList.contains('editor-line')) break;
+        n = n.parentNode;
+      }
+      if (!n || n === editor) return null;
+      for (let i = 0; i < all.length; i++) {
+        if (all[i] === n) return { idx: i, offset };
+      }
+      return null;
+    };
+
+    const anchor = nodeToIdx(sel.anchorNode, sel.anchorOffset);
+    const focus  = nodeToIdx(sel.focusNode,  sel.focusOffset);
+    if (!anchor || !focus) return null;
+    return { anchorIdx: anchor.idx, anchorOffset: anchor.offset, focusIdx: focus.idx, focusOffset: focus.offset };
+  };
+
+  const restoreSelection = (saved: SavedSelection) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const all = editor.querySelectorAll<HTMLElement>('.editor-line');
+    const sel = window.getSelection();
+    if (!sel) return;
+
+    const idxToPoint = (idx: number, offset: number): { node: Node; offset: number } | null => {
+      const clampedIdx = Math.max(0, Math.min(idx, all.length - 1));
+      const el = all[clampedIdx];
+      if (!el) return null;
+      const text = el.firstChild;
+      if (text && text.nodeType === Node.TEXT_NODE) {
+        return { node: text, offset: Math.min(offset, (text as Text).length) };
+      }
+      return { node: el, offset: 0 };
+    };
+
+    const anchor = idxToPoint(saved.anchorIdx, saved.anchorOffset);
+    const focus  = idxToPoint(saved.focusIdx,  saved.focusOffset);
+    if (!anchor || !focus) return;
+
+    // Set anchor first, then extend to focus — this correctly handles
+    // both forward and backward selections without Range ordering issues.
+    const r = document.createRange();
+    r.setStart(anchor.node, anchor.offset);
+    r.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(r);
+    sel.extend(focus.node, focus.offset);
   };
 
   // ─── Track focused block and line ──────────────────────────────
@@ -605,6 +668,100 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
     requestAnimationFrame(() => { renderEditorDOM(newParts); forceOverlayUpdate(); });
   };
 
+  // ─── Transpose / swap-accidentals ────────────────────────────
+
+  const [showFlats, setShowFlats] = useState(false);
+
+  /** Returns the set of chord-line global indices that are in scope for the operation.
+   *  If the editor has a non-collapsed selection, only lines overlapping that selection
+   *  are included; otherwise all chord lines are included. */
+  const getTargetChordLineIndices = (): Set<number> => {
+    const editor = editorRef.current;
+    if (!editor) return new Set();
+
+    const sel = window.getSelection();
+    const hasSelection = sel && !sel.isCollapsed && sel.rangeCount > 0 && editor.contains(sel.anchorNode);
+
+    const allLineEls = Array.from(editor.querySelectorAll<HTMLElement>('.editor-line'));
+    const indices = new Set<number>();
+
+    // Build a flat list mirroring partsRef so we can check types by global index
+    const flatLines: { type: SongPartLineType }[] = [];
+    for (const part of partsRef.current) {
+      for (const line of part.lines) {
+        flatLines.push(line);
+      }
+    }
+
+    if (hasSelection) {
+      const range = sel!.getRangeAt(0);
+      allLineEls.forEach((el, i) => {
+        if (flatLines[i]?.type !== 'chords') return;
+        // Check if this line element intersects the selection range
+        const elRange = document.createRange();
+        elRange.selectNode(el);
+        const comparison = range.compareBoundaryPoints(Range.END_TO_START, elRange);
+        const comparison2 = range.compareBoundaryPoints(Range.START_TO_END, elRange);
+        if (comparison <= 0 && comparison2 >= 0) {
+          indices.add(i);
+        }
+      });
+    } else {
+      allLineEls.forEach((_, i) => {
+        if (flatLines[i]?.type === 'chords') indices.add(i);
+      });
+    }
+
+    return indices;
+  };
+
+  const applyToChordLines = (transform: (line: string) => string, allLines = false) => {
+    const targetIndices = allLines
+      ? (() => {
+          let i = 0;
+          const set = new Set<number>();
+          for (const part of partsRef.current)
+            for (const line of part.lines) { if (line.type === 'chords') set.add(i); i++; }
+          return set;
+        })()
+      : getTargetChordLineIndices();
+    if (targetIndices.size === 0) return;
+
+    // Save selection before re-rendering so we can restore it after
+    const savedSel = saveSelection();
+
+    let globalIdx = 0;
+    const newParts = partsRef.current.map((part) => ({
+      ...part,
+      lines: part.lines.map((line) => {
+        const idx = globalIdx++;
+        if (!targetIndices.has(idx)) return line;
+        return { ...line, content: transform(line.content) };
+      }),
+    }));
+
+    partsRef.current = newParts;
+    setParts(newParts);
+    syncToForm(newParts);
+    requestAnimationFrame(() => {
+      renderEditorDOM(newParts);
+      forceOverlayUpdate();
+      if (savedSel) restoreSelection(savedSel);
+    });
+  };
+
+  const handleTranspose = (semitones: number) => {
+    const useFlats = semitones < 0;
+    setShowFlats(useFlats);
+    applyToChordLines((line) => transposeLine(line, semitones, useFlats));
+  };
+
+  const handleSwapAccidentals = () => {
+    const next = !showFlats;
+    setShowFlats(next);
+    applyToChordLines((line) => swapAccidentals(line), true);
+  };
+
   // ─── Initial render ───────────────────────────────────────────
 
   const hasRendered = useRef(false);
@@ -617,9 +774,45 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
 
   // ─── Render ────────────────────────────────────────────────────
 
+  const hasChords = parts.some((p) => p.lines.some((l) => l.type === 'chords'));
+
   return (
     <div className="flex flex-col gap-0">
-      {/* Separator overlays (outside editor, positioned via relative wrapper) */}
+      {/* Header: "Parts" label + transpose buttons */}
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-sm font-medium leading-none">{t('input.parts')}</span>
+        {hasChords && (
+          <div className="flex items-center gap-1 ml-auto">
+            <button
+              type="button"
+              title={t('input.transpose.down')}
+              className="flex items-center justify-center w-7 h-7 rounded border border-input bg-background hover:bg-accent text-sm font-bold transition-colors"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => handleTranspose(-1)}
+            >
+              -
+            </button>
+            <button
+              type="button"
+              title={t('input.transpose.swap')}
+              className="flex items-center justify-center h-7 px-2 rounded border border-input bg-background hover:bg-accent text-sm transition-colors"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={handleSwapAccidentals}
+            >
+              <span className="font-semibold tracking-tight">{showFlats ? '♭' : '♯'}</span>
+            </button>
+            <button
+              type="button"
+              title={t('input.transpose.up')}
+              className="flex items-center justify-center w-7 h-7 rounded border border-input bg-background hover:bg-accent text-sm font-bold transition-colors"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => handleTranspose(1)}
+            >
+              +
+            </button>
+          </div>
+        )}
+      </div>
       <div className="relative">
         {/* Main layout: gutter + editor */}
         <div className="flex items-stretch">
