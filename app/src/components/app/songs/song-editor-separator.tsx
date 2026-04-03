@@ -6,7 +6,9 @@ import TrashIcon from "@heroicons/react/24/outline/TrashIcon";
 
 interface SongEditorSeparatorProps {
   name?: string;
+  acronym?: string;
   onNameChange?: (name: string) => void;
+  onAcronymChange?: (acronym: string) => void;
   onDuplicate?: () => void;
   onRemove?: () => void;
   showRemove?: boolean;
@@ -14,35 +16,78 @@ interface SongEditorSeparatorProps {
 
 export function SongEditorSeparator({
   name = '',
+  acronym = '',
   onNameChange,
+  onAcronymChange,
   onDuplicate,
   onRemove,
   showRemove = true,
 }: SongEditorSeparatorProps) {
 
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
   const [localName, setLocalName] = useState(name);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  const [isEditingAcronym, setIsEditingAcronym] = useState(false);
+  const [localAcronym, setLocalAcronym] = useState(acronym);
+  const acronymInputRef = useRef<HTMLInputElement>(null);
+
   const { t } = useTranslation("songs");
 
-  const handleClick = () => {
-    setIsEditing(true);
-    setTimeout(() => inputRef.current?.focus(), 0);
+  // Keep local state in sync when props change (e.g. propagation from another part)
+  const prevName = useRef(name);
+  const prevAcronym = useRef(acronym);
+  if (prevName.current !== name) {
+    prevName.current = name;
+    if (!isEditingName) setLocalName(name);
+  }
+  if (prevAcronym.current !== acronym) {
+    prevAcronym.current = acronym;
+    if (!isEditingAcronym) setLocalAcronym(acronym);
+  }
+
+  const handleNameClick = () => {
+    setIsEditingName(true);
+    setTimeout(() => nameInputRef.current?.focus(), 0);
   };
 
-  const handleBlur = () => {
-    setIsEditing(false);
+  const handleNameBlur = () => {
+    setIsEditingName(false);
     onNameChange?.(localName);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleNameKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      inputRef.current?.blur();
+      nameInputRef.current?.blur();
     }
     if (e.key === 'Escape') {
       setLocalName(name);
-      setIsEditing(false);
+      setIsEditingName(false);
+    }
+  };
+
+  const handleAcronymClick = () => {
+    setIsEditingAcronym(true);
+    setTimeout(() => {
+      acronymInputRef.current?.focus();
+      acronymInputRef.current?.select();
+    }, 0);
+  };
+
+  const handleAcronymBlur = () => {
+    setIsEditingAcronym(false);
+    onAcronymChange?.(localAcronym);
+  };
+
+  const handleAcronymKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      acronymInputRef.current?.blur();
+    }
+    if (e.key === 'Escape') {
+      setLocalAcronym(acronym);
+      setIsEditingAcronym(false);
     }
   };
 
@@ -50,32 +95,64 @@ export function SongEditorSeparator({
     <div className="flex items-center gap-2 py-1 select-none mt-1" contentEditable={false}>
       {/* Part name - left */}
       <div className="flex-shrink-0">
-        {isEditing ? (
+        {isEditingName ? (
           <input
-            ref={inputRef}
+            ref={nameInputRef}
             type="text"
             value={localName}
             onChange={(e) => setLocalName(e.target.value)}
-            onBlur={handleBlur}
-            onKeyDown={handleKeyDown}
+            onBlur={handleNameBlur}
+            onKeyDown={handleNameKeyDown}
             placeholder={t('input.partName')}
             className="text-xs px-2 py-0.5 bg-transparent border border-input rounded text-muted-foreground outline-none focus:border-ring w-28"
           />
         ) : (
           <button
             type="button"
-            onClick={handleClick}
+            onClick={handleNameClick}
             className={cn(
-              "text-xs px-2 py-0.5 rounded transition-colors cursor-pointer",
+              "text-xs px-2 py-0.5 rounded border transition-colors cursor-pointer",
               localName
-                ? "text-muted-foreground hover:bg-accent"
-                : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-accent",
+                ? "border-transparent text-muted-foreground hover:bg-accent"
+                : "border-transparent text-muted-foreground/40 hover:text-muted-foreground hover:bg-accent",
             )}
           >
             {localName || t('input.partName')}
           </button>
         )}
       </div>
+
+      {/* Acronym badge - only shown when there's a name */}
+      {(localName || isEditingAcronym) && (
+        <div className="flex-shrink-0">
+          {isEditingAcronym ? (
+            <input
+              ref={acronymInputRef}
+              type="text"
+              value={localAcronym}
+              onChange={(e) => setLocalAcronym(e.target.value.slice(0, 4))}
+              onBlur={handleAcronymBlur}
+              onKeyDown={handleAcronymKeyDown}
+              maxLength={4}
+              className="text-xs px-1.5 py-0.5 bg-transparent border border-input rounded text-muted-foreground outline-none focus:border-ring w-12"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={handleAcronymClick}
+              title={t('input.partAcronym')}
+              className={cn(
+                "text-xs px-1.5 py-0.5 rounded border transition-colors cursor-pointer min-w-[1.75rem]",
+                localAcronym
+                  ? "border-transparent text-muted-foreground hover:bg-accent"
+                  : "border-transparent text-muted-foreground/40 hover:text-muted-foreground hover:bg-accent",
+              )}
+            >
+              {localAcronym || '—'}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Line - center */}
       <div className="flex-1 border-t border-border" />

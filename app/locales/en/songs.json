@@ -38,7 +38,8 @@
       "up": "Transpose up one semitone",
       "swap": "Swap accidentals (♯ ↔ ♭)"
     },
-    "partName": "Part name"
+    "partName": "Part name",
+    "partAcronym": "Acronym (short label)"
   },
   "actions": {
     "create": "Add song",

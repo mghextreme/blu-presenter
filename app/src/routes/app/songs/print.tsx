@@ -17,14 +17,7 @@ import MinusIcon from "@heroicons/react/24/solid/MinusIcon";
 import AdjustmentsHorizontalIcon from "@heroicons/react/24/solid/AdjustmentsHorizontalIcon";
 import { SpotifyCode } from "@/components/app/songs/spotify-code";
 import { SpotifyIcon } from "@/components/logos/spotify";
-import { renderSongPartLines } from "@/lib/songs";
-
-const isBlockEqual = (a: ISongPart, b: ISongPart) => {
-  if (a.lines.length !== b.lines.length) return false;
-  return a.lines.every((line, i) =>
-    line.type === b.lines[i].type && line.content === b.lines[i].content
-  );
-};
+import { renderSongPartLines, isBlockEqual } from "@/lib/songs";
 
 export function PrintSong() {
 
@@ -71,11 +64,11 @@ export function PrintSong() {
 
   const [numberedBlocks, setNumberedBlocks] = useState<INumberedSongPart[]>([]);
   const [compactedBlocks, setCompactedBlocks] = useState<INumberedSongPart[]>([]);
-  const [sequence, setSequence] = useState<number[]>([]);
+  const [acronymSequence, setAcronymSequence] = useState<string[]>([]);
   useEffect(() => {
     if (!data || !data.blocks) return;
 
-    const simplifiedSequence: number[] = [];
+    const simplifiedAcronymSequence: string[] = [];
     const simplifiedBlocks: INumberedSongPart[] = [];
     const sequencedBlocks: INumberedSongPart[] = [];
 
@@ -88,7 +81,7 @@ export function PrintSong() {
 
         if (isBlockEqual(sourceBlock, comparisonBlock)) {
           sequenceNumber = jx + 1;
-          simplifiedSequence.push(sequenceNumber);
+          simplifiedAcronymSequence.push(comparisonBlock.acronym ?? String(sequenceNumber));
           added = true;
           break;
         }
@@ -109,7 +102,7 @@ export function PrintSong() {
       }
 
       if (!added) {
-        simplifiedSequence.push(simplifiedBlocks.length + 1);
+        simplifiedAcronymSequence.push(sourceBlock.acronym ?? String(simplifiedBlocks.length + 1));
         simplifiedBlocks.push({
           ...sourceBlock,
           sequence: simplifiedBlocks.length + 1,
@@ -117,7 +110,7 @@ export function PrintSong() {
       }
     }
 
-    setSequence(simplifiedSequence);
+    setAcronymSequence(simplifiedAcronymSequence);
     setNumberedBlocks(sequencedBlocks);
     setCompactedBlocks(simplifiedBlocks);
   }, [data.blocks]);
@@ -463,7 +456,7 @@ export function PrintSong() {
             >
               {compactMode && showNumbers && <div className="absolute top-0 right-0 flex flex-col justify-start items-end">
                 <b>{t('print.sequence')}</b>
-                {sequence.map((item, ix) => (
+                {acronymSequence.map((item, ix) => (
                   <span className="border-t-1 border-slate-300 text-center min-w-[1em] my-[.2em] py-[.2em]" key={`sequence-${ix}`}>{item}</span>
                 ))}
               </div>}
@@ -476,7 +469,7 @@ export function PrintSong() {
                 >
                   {showNumbers && (
                     <div className="pt-[.5em] pb-[.2em] min-w-[1.2em] flex-0 text-center leading-[1.1em]">
-                      <p className="text-slate-600">{block.sequence}</p>
+                      <p className="text-slate-600">{block.acronym ?? block.sequence}</p>
                       {compactMode !== 'compact' && <p className="text-slate-400 text-[.8em]">{ix + 1}</p>}
                     </div>
                   )}

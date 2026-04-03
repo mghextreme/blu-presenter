@@ -38,7 +38,8 @@
       "up": "Transpor um semitom acima",
       "swap": "Trocar acidentes (♯ ↔ ♭)"
     },
-    "partName": "Nome da parte"
+    "partName": "Nome da parte",
+    "partAcronym": "Sigla (rótulo curto)"
   },
   "actions": {
     "create": "Adicionar música",

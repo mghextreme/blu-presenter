@@ -262,6 +262,41 @@ export function swapAccidentals(line: string): string {
   return transposeLine(line, 0, targetFlats);
 }
 
+/**
+ * Derives a short acronym (1-3 chars) from a part name using pure text rules.
+ * Examples: "Chorus" → "C", "Verse 1" → "V1", "Pre-Chorus" → "PC",
+ *           "Pre-Chorus 2" → "PC2", "Final Chorus" → "FC"
+ */
+export function deriveAcronym(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return '';
+
+  // Extract trailing number (e.g. "Verse 1" → number="1", rest="Verse")
+  const trailingNumberMatch = trimmed.match(/\s+(\d+)$/);
+  const trailingNumber = trailingNumberMatch ? trailingNumberMatch[1] : '';
+  const withoutNumber = trailingNumber ? trimmed.slice(0, -trailingNumberMatch![0].length) : trimmed;
+
+  // Split on spaces and hyphens, take first letter of each segment (max 3)
+  const segments = withoutNumber.split(/[\s\-]+/).filter(Boolean);
+  const initials = segments
+    .slice(0, 3)
+    .map(s => s.charAt(0).toUpperCase())
+    .join('');
+
+  return initials + trailingNumber;
+}
+
+/**
+ * Returns true if two song parts have identical line content (type + text).
+ * Ignores name and acronym — used for deduplication and propagation.
+ */
+export function isBlockEqual(a: ISongPart, b: ISongPart): boolean {
+  if (a.lines.length !== b.lines.length) return false;
+  return a.lines.every((line, i) =>
+    line.type === b.lines[i].type && line.content === b.lines[i].content
+  );
+}
+
 export function detectLineType(text: string): SongPartLineType {
   const trimmed = text.trim();
   if (trimmed === '') return 'lyrics';

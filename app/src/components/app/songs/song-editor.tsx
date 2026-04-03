@@ -3,7 +3,7 @@ import { UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
-import { detectLineType, transposeLine, swapAccidentals } from "@/lib/songs";
+import { detectLineType, transposeLine, swapAccidentals, deriveAcronym, isBlockEqual } from "@/lib/songs";
 import { ISongPart, SongPartLineType } from "@/types";
 import { SongSchema } from "@/types/schemas/song.schema";
 import { SongEditorSeparator } from "@/components/app/songs/song-editor-separator";
@@ -26,6 +26,7 @@ interface IEditorPart {
   key: number;
   lines: IEditorLine[];
   name?: string;
+  acronym?: string;
 }
 
 const LINE_TYPES: SongPartLineType[] = ['lyrics', 'chords', 'comments'];
@@ -44,6 +45,7 @@ function blocksToEditorParts(blocks: ISongPart[]): IEditorPart[] {
   return blocks.map((block) => ({
     key: globalPartKeyCounter++,
     name: block.name,
+    acronym: block.acronym,
     lines: block.lines.length > 0
       ? block.lines.map((line) => ({ content: line.content, type: line.type, manuallySet: true }))
       : [{ content: '', type: 'lyrics' as SongPartLineType, manuallySet: false }],
@@ -54,6 +56,7 @@ function editorPartsToBlocks(parts: IEditorPart[]): ISongPart[] {
   return parts.map((part, ix) => ({
     id: ix,
     name: part.name,
+    acronym: part.acronym,
     lines: part.lines
       .filter((l) => l.content.trim() !== '')
       .map((l) => ({ type: l.type, content: l.content })),
@@ -383,6 +386,7 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
       result.push({
         key: partKey,
         name: existing?.name,
+        acronym: existing?.acronym,
         lines: lines.length > 0 ? lines : [{ content: '', type: 'lyrics', manuallySet: false }],
       });
     }
@@ -398,6 +402,7 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
       result.push({
         key: ex?.key ?? globalPartKeyCounter++,
         name: ex?.name,
+        acronym: ex?.acronym,
         lines: lines.length > 0 ? lines : [{ content: '', type: 'lyrics', manuallySet: false }],
       });
     }
@@ -420,6 +425,7 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
             result.push({
               key: isFirst ? part.key : globalPartKeyCounter++,
               name: isFirst ? part.name : undefined,
+              acronym: isFirst ? part.acronym : undefined,
               lines: buf.length > 0 ? buf : [{ content: '', type: 'lyrics', manuallySet: false }],
             });
             isFirst = false;
@@ -433,9 +439,24 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
       result.push({
         key: isFirst ? part.key : globalPartKeyCounter++,
         name: isFirst ? part.name : undefined,
+        acronym: isFirst ? part.acronym : undefined,
         lines: buf.length > 0 ? buf : [{ content: '', type: 'lyrics', manuallySet: false }],
       });
     }
+
+    // For any newly created part without a name, check if its content matches
+    // an existing named part in the result and inherit that name + acronym.
+    for (let i = 0; i < result.length; i++) {
+      if (result[i].name) continue;
+      const match = result.find((other, j) => j !== i && !!other.name && isBlockEqual(
+        { lines: result[i].lines.filter(l => l.content.trim() !== '').map(l => ({ type: l.type, content: l.content })) },
+        { lines: other.lines.filter(l => l.content.trim() !== '').map(l => ({ type: l.type, content: l.content })) },
+      ));
+      if (match) {
+        result[i] = { ...result[i], name: match.name, acronym: match.acronym };
+      }
+    }
+
     return result;
   };
 
@@ -506,7 +527,7 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
   // ─── Keydown: backspace merge at part boundary ────────────────
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== 'Backspace') return;
+    if (e.key !== 'Backspace' && e.key !== 'Delete') return;
     const editor = editorRef.current;
     const sel = window.getSelection();
     if (!editor || !sel || sel.rangeCount === 0) return;
@@ -520,40 +541,82 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
     }
     if (!lineNode || !(lineNode instanceof HTMLElement) || !lineNode.classList.contains('editor-line')) return;
 
-    const isAtStart = range.startOffset === 0 && (
-      range.startContainer === lineNode || range.startContainer === lineNode.firstChild
-    );
-    if (!isAtStart) return;
-
     const partDiv = lineNode.closest('.editor-part');
     if (!partDiv) return;
-    if (lineNode !== partDiv.querySelector('.editor-line')) return;
 
-    const sep = partDiv.previousElementSibling;
-    if (!sep || !sep.hasAttribute(SEP_ATTR)) return;
-    const prevPart = sep.previousElementSibling;
-    if (!prevPart || !prevPart.classList.contains('editor-part')) return;
+    if (e.key === 'Backspace') {
+      const isAtStart = range.startOffset === 0 && (
+        range.startContainer === lineNode || range.startContainer === lineNode.firstChild
+      );
+      if (!isAtStart) return;
+      if (lineNode !== partDiv.querySelector('.editor-line')) return;
 
-    e.preventDefault();
-    const prevLineCount = prevPart.querySelectorAll('.editor-line').length;
+      const sep = partDiv.previousElementSibling;
+      if (!sep || !sep.hasAttribute(SEP_ATTR)) return;
+      const prevPart = sep.previousElementSibling;
+      if (!prevPart || !prevPart.classList.contains('editor-part')) return;
 
-    for (const l of Array.from(partDiv.querySelectorAll('.editor-line'))) prevPart.appendChild(l);
-    sep.remove();
-    partDiv.remove();
+      e.preventDefault();
+      const prevLineCount = prevPart.querySelectorAll('.editor-line').length;
 
-    const parsed = parseEditorDOM();
-    partsRef.current = parsed;
-    setParts(parsed);
-    syncToForm(parsed);
-    forceOverlayUpdate();
+      for (const l of Array.from(partDiv.querySelectorAll('.editor-line'))) prevPart.appendChild(l);
+      sep.remove();
+      partDiv.remove();
 
-    const allLines = editor.querySelectorAll('.editor-line');
-    const target = prevPart.querySelectorAll('.editor-line')[prevLineCount];
-    let idx = 0;
-    for (let i = 0; i < allLines.length; i++) {
-      if (allLines[i] === target) { idx = i; break; }
+      const parsed = parseEditorDOM();
+      partsRef.current = parsed;
+      setParts(parsed);
+      syncToForm(parsed);
+      forceOverlayUpdate();
+
+      const allLines = editor.querySelectorAll('.editor-line');
+      const target = prevPart.querySelectorAll('.editor-line')[prevLineCount];
+      let idx = 0;
+      for (let i = 0; i < allLines.length; i++) {
+        if (allLines[i] === target) { idx = i; break; }
+      }
+      restoreCursor(idx, 0);
     }
-    restoreCursor(idx, 0);
+
+    if (e.key === 'Delete') {
+      // Check cursor is at the end of the current line
+      const textNode = lineNode.firstChild;
+      const textLen = textNode && textNode.nodeType === Node.TEXT_NODE ? (textNode as Text).length : 0;
+      const isAtEnd = (range.startContainer === lineNode && range.startOffset === lineNode.childNodes.length)
+        || (range.startContainer === textNode && range.startOffset === textLen);
+      if (!isAtEnd) return;
+
+      // Must be the last editor-line in this part
+      const partLines = partDiv.querySelectorAll('.editor-line');
+      if (lineNode !== partLines[partLines.length - 1]) return;
+
+      const sep = partDiv.nextElementSibling;
+      if (!sep || !sep.hasAttribute(SEP_ATTR)) return;
+      const nextPart = sep.nextElementSibling;
+      if (!nextPart || !nextPart.classList.contains('editor-part')) return;
+
+      e.preventDefault();
+      const curLineCount = partLines.length;
+
+      for (const l of Array.from(nextPart.querySelectorAll('.editor-line'))) partDiv.appendChild(l);
+      sep.remove();
+      nextPart.remove();
+
+      const parsed = parseEditorDOM();
+      partsRef.current = parsed;
+      setParts(parsed);
+      syncToForm(parsed);
+      forceOverlayUpdate();
+
+      // Restore cursor at the same position (end of the original last line)
+      const allLines = editor.querySelectorAll('.editor-line');
+      const target = partDiv.querySelectorAll('.editor-line')[curLineCount - 1];
+      let idx = 0;
+      for (let i = 0; i < allLines.length; i++) {
+        if (allLines[i] === target) { idx = i; break; }
+      }
+      restoreCursor(idx, textLen);
+    }
   };
 
   // ─── Overlay positions ────────────────────────────────────────
@@ -641,8 +704,34 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
   // ─── Part actions ─────────────────────────────────────────────
 
   const handlePartNameChange = (partIndex: number, name: string) => {
+    const newAcronym = name ? deriveAcronym(name) : undefined;
+    // Build the normalized lines of the changed part for equality comparison
+    const changedPart = partsRef.current[partIndex];
+    const changedLines = changedPart.lines
+      .filter(l => l.content.trim() !== '')
+      .map(l => ({ type: l.type, content: l.content }));
+
+    const newParts = partsRef.current.map((p, i) => {
+      if (i === partIndex) {
+        return { ...p, name: name || undefined, acronym: newAcronym };
+      }
+      // Propagate to content-equal parts
+      const pLines = p.lines
+        .filter(l => l.content.trim() !== '')
+        .map(l => ({ type: l.type, content: l.content }));
+      if (isBlockEqual({ lines: changedLines }, { lines: pLines })) {
+        return { ...p, name: name || undefined, acronym: newAcronym };
+      }
+      return p;
+    });
+    partsRef.current = newParts;
+    setParts(newParts);
+    syncToForm(newParts);
+  };
+
+  const handlePartAcronymChange = (partIndex: number, acronym: string) => {
     const newParts = [...partsRef.current];
-    newParts[partIndex] = { ...newParts[partIndex], name: name || undefined };
+    newParts[partIndex] = { ...newParts[partIndex], acronym: acronym || undefined };
     partsRef.current = newParts;
     setParts(newParts);
     syncToForm(newParts);
@@ -650,7 +739,7 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
 
   const handleDuplicatePart = (partIndex: number) => {
     const part = partsRef.current[partIndex];
-    const dup: IEditorPart = { key: globalPartKeyCounter++, name: part.name, lines: part.lines.map(l => ({ ...l })) };
+    const dup: IEditorPart = { key: globalPartKeyCounter++, name: part.name, acronym: part.acronym, lines: part.lines.map(l => ({ ...l })) };
     const newParts = [...partsRef.current];
     newParts.splice(partIndex + 1, 0, dup);
     partsRef.current = newParts;
@@ -786,7 +875,7 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
             <button
               type="button"
               title={t('input.transpose.down')}
-              className="flex items-center justify-center w-7 h-7 rounded border border-input bg-background hover:bg-accent text-sm font-bold transition-colors"
+              className="flex items-center justify-center w-7 h-7 rounded border border-input bg-background hover:bg-accent text-sm font-bold transition-colors cursor-pointer"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleTranspose(-1)}
             >
@@ -795,7 +884,7 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
             <button
               type="button"
               title={t('input.transpose.swap')}
-              className="flex items-center justify-center h-7 px-2 rounded border border-input bg-background hover:bg-accent text-sm transition-colors"
+              className="flex items-center justify-center h-7 px-2 rounded border border-input bg-background hover:bg-accent text-sm transition-colors cursor-pointer"
               onMouseDown={(e) => e.preventDefault()}
               onClick={handleSwapAccidentals}
             >
@@ -804,7 +893,7 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
             <button
               type="button"
               title={t('input.transpose.up')}
-              className="flex items-center justify-center w-7 h-7 rounded border border-input bg-background hover:bg-accent text-sm font-bold transition-colors"
+              className="flex items-center justify-center w-7 h-7 rounded border border-input bg-background hover:bg-accent text-sm font-bold transition-colors cursor-pointer"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleTranspose(1)}
             >
@@ -849,7 +938,9 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
               >
                 <SongEditorSeparator
                   name={parts[sp.partIndex]?.name}
+                  acronym={parts[sp.partIndex]?.acronym}
                   onNameChange={(name) => handlePartNameChange(sp.partIndex, name)}
+                  onAcronymChange={(acronym) => handlePartAcronymChange(sp.partIndex, acronym)}
                   onDuplicate={() => handleDuplicatePart(sp.partIndex)}
                   onRemove={() => handleRemovePart(sp.partIndex)}
                   showRemove={parts.length > 1}
