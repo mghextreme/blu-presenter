@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Sortable, SortableContent, SortableItem, SortableItemHandle } from "@/components/ui/sortable";
 import { Textarea } from "@/components/ui/textarea";
 import { SongSchema } from "@/types/schemas/song.schema";
-import { ISongPartLine } from "@/types";
+import { ISongPartLine, SongEditMode } from "@/types";
 import ArrowsUpDownIcon from "@heroicons/react/20/solid/ArrowsUpDownIcon";
 import Square2StackIcon from "@heroicons/react/24/solid/Square2StackIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
@@ -11,68 +11,39 @@ import { useFieldArray, UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
-export type SongEditMode = 'lyrics' | 'chords';
-
 interface EditSongPartsProps {
   form: UseFormReturn<z.infer<typeof SongSchema>>,
   mode: SongEditMode
 }
 
-function getLyricsText(lines: ISongPartLine[]): string {
+function getLineText(lines: ISongPartLine[], type: 'lyrics' | 'chords'): string {
   return lines
-    .filter(line => line.type === 'lyrics')
+    .filter(line => line.type === type)
     .map(line => line.content)
     .join('\n');
 }
 
-function getChordsText(lines: ISongPartLine[]): string {
-  return lines
-    .filter(line => line.type === 'chords')
-    .map(line => line.content)
-    .join('\n');
-}
-
-function updateLinesFromLyrics(existingLines: ISongPartLine[], newLyricsText: string): ISongPartLine[] {
-  const existingChordLines = existingLines.filter(line => line.type === 'chords');
+function updateLinesByType(
+  existingLines: ISongPartLine[],
+  newText: string,
+  changedType: 'lyrics' | 'chords',
+): ISongPartLine[] {
+  const otherType = changedType === 'lyrics' ? 'chords' : 'lyrics';
+  const existingOtherLines = existingLines.filter(line => line.type === otherType);
   const existingCommentLines = existingLines.filter(line => line.type === 'comments');
-  const newLyricsLines: ISongPartLine[] = newLyricsText.split('\n').map(content => ({
-    type: 'lyrics' as const,
+  const newLines: ISongPartLine[] = newText.split('\n').map(content => ({
+    type: changedType,
     content,
   }));
 
-  // Rebuild: interleave chord + lyrics lines (matching original pattern), then comments
+  // Rebuild: interleave chords + lyrics lines (chords first), then comments
   const result: ISongPartLine[] = [];
-  const maxLen = Math.max(newLyricsLines.length, existingChordLines.length);
+  const chordsLines = changedType === 'chords' ? newLines : existingOtherLines;
+  const lyricsLines = changedType === 'lyrics' ? newLines : existingOtherLines;
+  const maxLen = Math.max(lyricsLines.length, chordsLines.length);
   for (let i = 0; i < maxLen; i++) {
-    if (i < existingChordLines.length) {
-      result.push(existingChordLines[i]);
-    }
-    if (i < newLyricsLines.length) {
-      result.push(newLyricsLines[i]);
-    }
-  }
-  result.push(...existingCommentLines);
-  return result;
-}
-
-function updateLinesFromChords(existingLines: ISongPartLine[], newChordsText: string): ISongPartLine[] {
-  const existingLyricsLines = existingLines.filter(line => line.type === 'lyrics');
-  const existingCommentLines = existingLines.filter(line => line.type === 'comments');
-  const newChordLines: ISongPartLine[] = newChordsText.split('\n').map(content => ({
-    type: 'chords' as const,
-    content,
-  }));
-
-  // Rebuild: interleave chord + lyrics lines, then comments
-  const result: ISongPartLine[] = [];
-  const maxLen = Math.max(existingLyricsLines.length, newChordLines.length);
-  for (let i = 0; i < maxLen; i++) {
-    if (i < newChordLines.length) {
-      result.push(newChordLines[i]);
-    }
-    if (i < existingLyricsLines.length) {
-      result.push(existingLyricsLines[i]);
-    }
+    if (i < chordsLines.length) result.push(chordsLines[i]);
+    if (i < lyricsLines.length) result.push(lyricsLines[i]);
   }
   result.push(...existingCommentLines);
   return result;
@@ -123,14 +94,14 @@ export function EditSongParts({
 
   const handleLyricsBlur = (ix: number, value: string) => {
     const currentLines = form.getValues(`blocks.${ix}.lines`) ?? [];
-    const newLines = updateLinesFromLyrics(currentLines, value);
+    const newLines = updateLinesByType(currentLines, value, 'lyrics');
     form.setValue(`blocks.${ix}.lines`, newLines);
     updateBlocks();
   };
 
   const handleChordsBlur = (ix: number, value: string) => {
     const currentLines = form.getValues(`blocks.${ix}.lines`) ?? [];
-    const newLines = updateLinesFromChords(currentLines, value);
+    const newLines = updateLinesByType(currentLines, value, 'chords');
     form.setValue(`blocks.${ix}.lines`, newLines);
     updateBlocks();
   };
@@ -155,18 +126,18 @@ export function EditSongParts({
                     <div className="flex justify-stretch align-start space-x-2">
                       { mode === 'chords' ? (
                         <div className="flex-1 grid grid-cols-1 grid-rows-1 border-input shadow-xs dark:bg-input/30">
-                          <Textarea variant="invisible" className="col-start-1 row-start-1 pt-5 pb-0 font-source-code-pro leading-[3.2em] pointer-events-none text-muted-foreground" value={getLyricsText(blocks[ix].lines ?? [])} />
+                          <Textarea variant="invisible" className="col-start-1 row-start-1 pt-5 pb-0 font-source-code-pro leading-[3.2em] pointer-events-none text-muted-foreground" value={getLineText(blocks[ix].lines ?? [], 'lyrics')} />
                           <Textarea
                             variant="transparent"
                             className="col-start-1 row-start-1 pt-0 pb-5 font-source-code-pro leading-[3.2em] min-h-full"
-                            defaultValue={getChordsText(blocks[ix].lines ?? [])}
+                            defaultValue={getLineText(blocks[ix].lines ?? [], 'chords')}
                             onBlur={(e) => handleChordsBlur(ix, e.target.value)}
                           />
                         </div>
                       ) : (
                         <Textarea
                           className="flex-1"
-                          defaultValue={getLyricsText(blocks[ix].lines ?? [])}
+                          defaultValue={getLineText(blocks[ix].lines ?? [], 'lyrics')}
                           onBlur={(e) => handleLyricsBlur(ix, e.target.value)}
                         />
                       )}

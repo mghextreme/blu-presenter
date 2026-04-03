@@ -13,7 +13,7 @@ import { ControllerProvider } from "@/hooks/controller.provider";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { EditSongForm } from "@/components/app/songs/edit-form";
+import { EditSongForm, EditSongFormHandle } from "@/components/app/songs/edit-form";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { PreviewIcon } from "@/components/icons/preview";
 import { parseSongText } from "@/lib/songs";
@@ -47,9 +47,9 @@ export function ImportSong() {
     setStep(2);
   }
 
-  const [initialFormValues, setInitialFormValues] = useState<z.infer<typeof SongSchema>>({} as any);
+  const [initialFormValues, setInitialFormValues] = useState<z.infer<typeof SongSchema> | null>(null);
 
-  const editFormRef = useRef<typeof EditSongForm>(null);
+  const editFormRef = useRef<EditSongFormHandle>(null);
 
   return (
     <>
@@ -57,9 +57,9 @@ export function ImportSong() {
       <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
         <span className="text-sm">{t('input.organization')}: <b>{organization?.name ?? t('organizations.defaultName')}</b></span>
         <div className="buttons flex-1 flex justify-end gap-x-2">
-          {step == 2 && (
+          {step === 2 && (
             <ControllerProvider>
-              <SongPreview getSong={() => (editFormRef.current as any)?.getFormValues()}>
+              <SongPreview getSong={() => editFormRef.current?.getFormValues()}>
                 <Button
                   type="button"
                   size="sm"
@@ -73,7 +73,7 @@ export function ImportSong() {
       </div>
       <div className="p-2 sm:p-8">
         <h1 className="text-3xl mb-4">{t('import.title')}</h1>
-        {step == 1 && (
+        {step === 1 && (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmitStep1)} className="flex flex-col space-y-3">
               <div className="min-w-sm max-w-2xl space-y-3 flex-1">
@@ -99,10 +99,10 @@ export function ImportSong() {
             </form>
           </Form>
         )}
-        {step == 2 && (
+        {step === 2 && (
           <EditSongForm
             edit={false}
-            formValues={initialFormValues}
+            formValues={initialFormValues ?? undefined}
             ref={editFormRef}
             additionalSubmitButtons={(
               <Button className="flex-0" type="button" variant="secondary" onClick={() => setStep(1)}>{t('button.back')}</Button>

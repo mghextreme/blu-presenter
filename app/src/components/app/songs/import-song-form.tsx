@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { getChordsData } from "@/lib/songs";
-import { ISongPart, ISongPartLine } from "@/types";
+import { ISongPart, ISongPartLine, SongEditMode } from "@/types";
 import { Toggle } from "@/components/ui/toggle";
 import { Button } from "@/components/ui/button";
 import MusicalNoteIcon from "@heroicons/react/24/solid/MusicalNoteIcon";
@@ -11,7 +11,6 @@ import MinusIcon from "@heroicons/react/24/solid/MinusIcon";
 import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
 import ArrowsPointingOutIcon from "@heroicons/react/24/solid/ArrowsPointingOutIcon";
 
-export type SongEditMode = 'lyrics' | 'chords';
 type ExpandableMode = 'slash-colon';
 
 interface IImportLine {
@@ -26,7 +25,11 @@ interface ImportSongFormProps {
   fullText: string,
 }
 
-export const ImportSongForm = forwardRef((
+export interface ImportSongFormHandle {
+  getSongParts: () => ISongPart[]
+}
+
+export const ImportSongForm = forwardRef<ImportSongFormHandle, ImportSongFormProps>((
   {
     fullText,
   }: ImportSongFormProps,
@@ -77,29 +80,17 @@ export const ImportSongForm = forwardRef((
     setParts(partsValue);
   }, [fullText]);
 
-  const setPartType = (index: number, to: SongEditMode) => {
-    setParts((prevParts) => {
-      const newParts = [...prevParts];
-      newParts[index].type = to;
-      return newParts;
-    });
+  const updatePart = (index: number, update: Partial<IImportLine>) => {
+    setParts((prevParts) => prevParts.map((part, i) =>
+      i === index ? { ...part, ...update } : part
+    ));
   };
 
-  const setPartDivision = (index: number, to: boolean) => {
-    setParts((prevParts) => {
-      const newParts = [...prevParts];
-      newParts[index].isDivision = to;
-      return newParts;
-    });
-  };
+  const setPartType = (index: number, to: SongEditMode) => updatePart(index, { type: to });
 
-  const setPartEnabled = (index: number, to: boolean) => {
-    setParts((prevParts) => {
-      const newParts = [...prevParts];
-      newParts[index].enabled = to;
-      return newParts;
-    });
-  };
+  const setPartDivision = (index: number, to: boolean) => updatePart(index, { isDivision: to });
+
+  const setPartEnabled = (index: number, to: boolean) => updatePart(index, { enabled: to });
 
   const expandPartSlashColon = (index: number, part: IImportLine) => {
     let repeatType = part.type;
@@ -122,41 +113,42 @@ export const ImportSongForm = forwardRef((
       }
     }
 
-    if (!beginBlock || !beginRepetition) return;
+    if (beginBlock === undefined || beginRepetition === undefined) return;
 
-    const originalBlocks = parts.slice(beginBlock, index + 1);
+    // Clone to avoid mutating state
+    const originalBlocks = parts.slice(beginBlock, index + 1).map(b => ({ ...b }));
 
     // Remove /: at the beginning
     let firstLyricsLine = originalBlocks[beginRepetition - beginBlock].content?.trimStart().slice(2).trimStart();
 
     // Trim first line + chords without breaking chord alignment
-    if (beginBlock != beginRepetition) {
+    if (beginBlock !== beginRepetition) {
       const reducedAmount = (originalBlocks[beginRepetition - beginBlock].content?.length ?? 0) - (firstLyricsLine?.length ?? 0);
       const firstBlockReduceableAmount = (originalBlocks[0].content?.length ?? 0) - (originalBlocks[0].content?.trimStart().length ?? 0);
 
       if (firstBlockReduceableAmount >= reducedAmount) {
         const newContent = originalBlocks[0].content?.slice(reducedAmount);
-        originalBlocks[0].content = newContent ?? '';
+        originalBlocks[0] = { ...originalBlocks[0], content: newContent ?? '' };
       } else if (firstBlockReduceableAmount > 0) {
         firstLyricsLine = ' '.repeat(reducedAmount - firstBlockReduceableAmount) + firstLyricsLine;
 
         const newContent = originalBlocks[0].content?.slice(firstBlockReduceableAmount);
-        originalBlocks[0].content = newContent ?? '';
+        originalBlocks[0] = { ...originalBlocks[0], content: newContent ?? '' };
       } else {
         firstLyricsLine = ' '.repeat(reducedAmount) + firstLyricsLine;
       }
     }
 
-    originalBlocks[beginRepetition - beginBlock].content = firstLyricsLine ?? '';
+    originalBlocks[beginRepetition - beginBlock] = { ...originalBlocks[beginRepetition - beginBlock], content: firstLyricsLine ?? '' };
 
     // Remove :/ at the end
-    const lastBlockLine = originalBlocks[originalBlocks.length - 1].content?.trimEnd().slice(0, -2).trimEnd();
-    originalBlocks[originalBlocks.length - 1].content = lastBlockLine ?? '';
-    originalBlocks[originalBlocks.length - 1].expandableMode = undefined;
+    const lastIdx = originalBlocks.length - 1;
+    const lastBlockLine = originalBlocks[lastIdx].content?.trimEnd().slice(0, -2).trimEnd();
+    originalBlocks[lastIdx] = { ...originalBlocks[lastIdx], content: lastBlockLine ?? '', expandableMode: undefined };
 
     // Duplicate blocks
     const newBlocks = structuredClone(originalBlocks);
-    newBlocks[0].isDivision = true;
+    newBlocks[0] = { ...newBlocks[0], isDivision: true };
 
     setParts((prevParts) => {
       const newParts = [
@@ -285,3 +277,5 @@ export const ImportSongForm = forwardRef((
   );
 
 });
+
+ImportSongForm.displayName = 'ImportSongForm';

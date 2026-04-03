@@ -1,5 +1,6 @@
 import { ApiService } from "./api.service";
 import { IScheduleItem, IScheduleSong, IScheduleText, ISlide, ISlideContent, ISlideTextContent, ISlideTitleContent, ISong, ISongWithRole } from "@/types"
+import { pairLyricsLines } from "@/lib/songs";
 
 export class SongsService extends ApiService {
 
@@ -73,7 +74,7 @@ export class SongsService extends ApiService {
     const slides = song.blocks?.map((b, ix) => {
       const content: ISlideContent[] = [];
 
-      if (ix == 0) {
+      if (ix === 0) {
         content.push({
           type: 'title',
           title: song.title,
@@ -85,13 +86,7 @@ export class SongsService extends ApiService {
         ?.filter(line => line.type === 'lyrics')
         .map(line => line.content.trim()) ?? [];
 
-      for (let i = 0; i < lyricsLines.length; i += 2) {
-        let part = lyricsLines[i];
-
-        if (i + 1 < lyricsLines.length) {
-          part += '\n' + lyricsLines[i + 1];
-        }
-
+      for (const part of pairLyricsLines(lyricsLines)) {
         content.push({
           type: 'lyrics',
           text: part

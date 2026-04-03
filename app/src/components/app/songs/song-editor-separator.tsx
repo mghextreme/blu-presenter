@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
-import DocumentDuplicateIcon from "@heroicons/react/24/outline/DocumentDuplicateIcon";
-import TrashIcon from "@heroicons/react/24/outline/TrashIcon";
+import DocumentDuplicateIcon from "@heroicons/react/24/solid/DocumentDuplicateIcon";
+import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 
 interface SongEditorSeparatorProps {
   name?: string;

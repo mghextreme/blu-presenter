@@ -38,13 +38,19 @@ function LanguageAndIcon({ t, language }: { t: TFunction, language: ILanguage["v
   );
 }
 
-type EditSongFormProps = {
+interface EditSongFormProps {
   edit?: boolean
   formValues?: z.infer<typeof SongSchema>
   additionalSubmitButtons?: ReactNode
 }
 
-export const EditSongForm = forwardRef((
+export interface EditSongFormHandle {
+  getFormValues: () => z.infer<typeof SongSchema>
+  getLastFocusedBlock: () => number
+  getLastFocusedLine: () => number
+}
+
+export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
   {
     edit = true,
     formValues,
@@ -59,10 +65,6 @@ export const EditSongForm = forwardRef((
 
   const { songsService } = useServices();
 
-  if (edit && (!formValues || !formValues.id)) {
-    return null;
-  }
-
   const [isLoading, setLoading] = useState<boolean>(false);
   const lastFocusedBlockRef = useRef<number>(0);
   const lastFocusedLineRef = useRef<number>(0);
@@ -71,6 +73,10 @@ export const EditSongForm = forwardRef((
     resolver: zodResolver(SongSchema),
     defaultValues: formValues,
   });
+
+  if (edit && (!formValues || !formValues.id)) {
+    return null;
+  }
 
   const onSubmit = async (values: z.infer<typeof SongSchema>) => {
     if (hasUppercaseWarning && !ignoreWarning) return;
@@ -133,6 +139,9 @@ export const EditSongForm = forwardRef((
     setHasUppercaseWarning(addUppercaseWarning);
   }
 
+  // NOTE: form.watch('blocks') as a useEffect dependency is a react-hook-form
+  // anti-pattern (returns a new reference on every render), but it is intentional
+  // here — we want checkUppercase to re-run whenever the blocks value changes.
   useEffect(() => {
     checkUppercase();
   }, [form.watch('blocks')]);
@@ -254,7 +263,7 @@ export const EditSongForm = forwardRef((
               </FormItem>
             )}></FormField>
 
-          <SubmitButtons t={t} edit={edit} isLoading={isLoading} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} />
+          <SubmitButtons t={t} edit={edit} isLoading={isLoading} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} idSuffix="left" />
         </div>
 
         <div className="flex flex-col items-stretch min-w-md max-w-lg space-y-3 flex-1">
@@ -263,12 +272,14 @@ export const EditSongForm = forwardRef((
             onCursorFocus={(block, line) => { lastFocusedBlockRef.current = block; lastFocusedLineRef.current = line; }}
           />
 
-          <SubmitButtons t={t} edit={edit} isLoading={isLoading} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} />
+          <SubmitButtons t={t} edit={edit} isLoading={isLoading} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} idSuffix="right" />
         </div>
       </form>
     </Form>
   );
 });
+
+EditSongForm.displayName = 'EditSongForm';
 
 function SubmitButtons({
   t,
@@ -279,6 +290,7 @@ function SubmitButtons({
   ignoreWarning,
   setIgnoreWarning,
   autoFixUppercase,
+  idSuffix,
 }: {
   t: TFunction
   edit?: boolean
@@ -288,7 +300,9 @@ function SubmitButtons({
   ignoreWarning: boolean
   setIgnoreWarning: (value: boolean) => void
   autoFixUppercase: () => void
+  idSuffix: string
 }) {
+  const checkboxId = `ignore-uppercase-${idSuffix}`;
   return (
     <>
       {hasUppercaseWarning && <div>
@@ -306,12 +320,12 @@ function SubmitButtons({
               >{t('warning.uppercase.autoFix')}</Button>
               <div className="flex-1 flex items-center gap-2">
                 <Checkbox
-                  id="terms"
+                  id={checkboxId}
                   checked={ignoreWarning}
                   onCheckedChange={setIgnoreWarning}
                   className="rounded border-yellow-600 data-[state=checked]:bg-yellow-600 data-[state=checked]:text-primary-foreground"
                 />
-                <Label htmlFor="terms" className="pb-1">{t('warning.uppercase.ignore')}</Label>
+                <Label htmlFor={checkboxId} className="pb-1">{t('warning.uppercase.ignore')}</Label>
               </div>
             </div>
           </AlertDescription>

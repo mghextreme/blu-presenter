@@ -1,17 +1,11 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-
-export interface LineStyle {
-  enabled: boolean
-  color?: string
-  bold: boolean
-  italic: boolean
-}
+import { LineStyle } from '@/types/line-style.interface'
 
 interface PrintConfigState {
   fontSize: number
-  increateFontSize: () => void
-  decreateFontSize: () => void
+  increaseFontSize: () => void
+  decreaseFontSize: () => void
   resetFontSize: () => void
   showNumbers: boolean
   toggleNumbers: () => void
@@ -31,11 +25,11 @@ export const usePrintConfig = create<PrintConfigState>()(
   persist(
     (set, get) => ({
       fontSize: 16,
-      increateFontSize: () => {
+      increaseFontSize: () => {
         const cur = get().fontSize;
         return set({ fontSize: cur + 1 });
       },
-      decreateFontSize: () => {
+      decreaseFontSize: () => {
         const cur = get().fontSize;
         if (cur <= 2) return;
         return set({ fontSize: cur - 1 });
@@ -50,7 +44,7 @@ export const usePrintConfig = create<PrintConfigState>()(
       columns: 1,
       toggleColumns: () => {
         const cur = get().columns;
-        if (cur == 1) {
+        if (cur === 1) {
           return set({ columns: 2 });
         } else {
           return set({ columns: 1 });

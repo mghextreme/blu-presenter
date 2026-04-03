@@ -1,0 +1,279 @@
+import { ISongPart, SongPartLineType } from "@/types";
+import { detectLineType, isBlockEqual } from "@/lib/songs";
+
+// ─── Types ──────────────────────────────────────────────────────
+
+export interface IEditorLine {
+  content: string;
+  type: SongPartLineType;
+  manuallySet: boolean;
+}
+
+export interface IEditorPart {
+  key: number;
+  lines: IEditorLine[];
+  name?: string;
+  acronym?: string;
+}
+
+export interface SavedSelection {
+  anchorIdx: number;
+  anchorOffset: number;
+  focusIdx: number;
+  focusOffset: number;
+}
+
+export interface SepPos {
+  key: number;
+  partIndex: number;
+  top: number;
+}
+
+export interface GutterLine {
+  partIndex: number;
+  lineIndex: number;
+  line: IEditorLine;
+  top: number;
+  height: number;
+}
+
+// ─── Constants ──────────────────────────────────────────────────
+
+export const EMPTY_LINE: IEditorLine = { content: '', type: 'lyrics', manuallySet: false };
+
+const LINE_TYPES: SongPartLineType[] = ['lyrics', 'chords', 'comments'];
+
+export const PART_ATTR = 'data-part-key';
+export const SEP_ATTR = 'data-separator';
+
+// ─── Pure utility functions ─────────────────────────────────────
+
+let globalPartKeyCounter = 0;
+
+export function nextPartKey(): number {
+  return globalPartKeyCounter++;
+}
+
+export function cycleLineType(current: SongPartLineType): SongPartLineType {
+  const idx = LINE_TYPES.indexOf(current);
+  return LINE_TYPES[(idx + 1) % LINE_TYPES.length];
+}
+
+export function blocksToEditorParts(blocks: ISongPart[]): IEditorPart[] {
+  if (!blocks || blocks.length === 0) {
+    return [{ key: nextPartKey(), lines: [{ ...EMPTY_LINE }] }];
+  }
+  return blocks.map((block) => ({
+    key: nextPartKey(),
+    name: block.name,
+    acronym: block.acronym,
+    lines: block.lines.length > 0
+      ? block.lines.map((line) => ({ content: line.content, type: line.type, manuallySet: true }))
+      : [{ ...EMPTY_LINE }],
+  }));
+}
+
+export function editorPartsToBlocks(parts: IEditorPart[]): ISongPart[] {
+  return parts.map((part, ix) => ({
+    id: ix,
+    name: part.name,
+    acronym: part.acronym,
+    lines: part.lines
+      .filter((l) => l.content.trim() !== '')
+      .map((l) => ({ type: l.type, content: l.content })),
+  })).filter((b) => b.lines.length > 0);
+}
+
+export function lineClassName(type: SongPartLineType): string {
+  switch (type) {
+    case 'chords': return 'editor-line font-bold text-primary';
+    case 'comments': return 'editor-line italic text-green-600 dark:text-green-600';
+    default: return 'editor-line';
+  }
+}
+
+/**
+ * Splits parts at double-empty-line boundaries and propagates names
+ * from content-equal parts.
+ */
+export function splitAtDoubleEmpty(input: IEditorPart[]): IEditorPart[] {
+  const result: IEditorPart[] = [];
+  for (const part of input) {
+    let buf: IEditorLine[] = [];
+    let isFirst = true;
+    for (let i = 0; i < part.lines.length; i++) {
+      const line = part.lines[i];
+      const next = part.lines[i + 1];
+      if (line.content.trim() === '' && next && next.content.trim() === '') {
+        if (buf.length > 0 || isFirst) {
+          result.push({
+            key: isFirst ? part.key : nextPartKey(),
+            name: isFirst ? part.name : undefined,
+            acronym: isFirst ? part.acronym : undefined,
+            lines: buf.length > 0 ? buf : [{ ...EMPTY_LINE }],
+          });
+          isFirst = false;
+        }
+        buf = [];
+        i++; // skip next empty line
+        continue;
+      }
+      buf.push(line);
+    }
+    result.push({
+      key: isFirst ? part.key : nextPartKey(),
+      name: isFirst ? part.name : undefined,
+      acronym: isFirst ? part.acronym : undefined,
+      lines: buf.length > 0 ? buf : [{ ...EMPTY_LINE }],
+    });
+  }
+
+  // For any newly created part without a name, check if its content matches
+  // an existing named part in the result and inherit that name + acronym.
+  for (let i = 0; i < result.length; i++) {
+    if (result[i].name) continue;
+    const match = result.find((other, j) => j !== i && !!other.name && isBlockEqual(
+      { lines: result[i].lines.filter(l => l.content.trim() !== '').map(l => ({ type: l.type, content: l.content })) },
+      { lines: other.lines.filter(l => l.content.trim() !== '').map(l => ({ type: l.type, content: l.content })) },
+    ));
+    if (match) {
+      result[i] = { ...result[i], name: match.name, acronym: match.acronym };
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Parses the contentEditable DOM back into IEditorPart[].
+ */
+export function parseEditorDOM(
+  editor: HTMLDivElement,
+  currentParts: IEditorPart[],
+): IEditorPart[] {
+  const result: IEditorPart[] = [];
+  const partDivs = editor.querySelectorAll<HTMLElement>('.editor-part');
+
+  for (let pi = 0; pi < partDivs.length; pi++) {
+    const partDiv = partDivs[pi];
+    const keyStr = partDiv.getAttribute(PART_ATTR);
+    const existing = currentParts.find(p => String(p.key) === keyStr);
+    const partKey = existing?.key ?? nextPartKey();
+    const lines: IEditorLine[] = [];
+
+    let lineIdx = 0;
+    for (const child of Array.from(partDiv.childNodes)) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        const c = child.textContent ?? '';
+        lines.push({ content: c, type: detectLineType(c), manuallySet: false });
+        lineIdx++;
+        continue;
+      }
+      if (!(child instanceof HTMLElement)) continue;
+      if (child.hasAttribute(SEP_ATTR)) continue;
+
+      const content = child.textContent ?? '';
+
+      if (!child.classList.contains('editor-line')) {
+        if (child.tagName === 'DIV') {
+          child.className = lineClassName(detectLineType(content));
+          lines.push({ content, type: detectLineType(content), manuallySet: false });
+          lineIdx++;
+        }
+        continue;
+      }
+
+      const existingLine = existing?.lines[lineIdx];
+      if (existingLine && existingLine.manuallySet && existingLine.content === content) {
+        lines.push({ ...existingLine, content });
+      } else {
+        const shiftedManual = existing?.lines.find(
+          (l) => l.manuallySet && l.content === content,
+        );
+        if (shiftedManual) {
+          lines.push({ ...shiftedManual, content });
+        } else {
+          lines.push({ content, type: detectLineType(content), manuallySet: false });
+        }
+      }
+      lineIdx++;
+    }
+
+    result.push({
+      key: partKey,
+      name: existing?.name,
+      acronym: existing?.acronym,
+      lines: lines.length > 0 ? lines : [{ ...EMPTY_LINE }],
+    });
+  }
+
+  if (partDivs.length === 0) {
+    const lines: IEditorLine[] = [];
+    for (const child of Array.from(editor.childNodes)) {
+      if (child instanceof HTMLElement && child.hasAttribute(SEP_ATTR)) continue;
+      const c = child.textContent ?? '';
+      lines.push({ content: c, type: detectLineType(c), manuallySet: false });
+    }
+    const ex = currentParts[0];
+    result.push({
+      key: ex?.key ?? nextPartKey(),
+      name: ex?.name,
+      acronym: ex?.acronym,
+      lines: lines.length > 0 ? lines : [{ ...EMPTY_LINE }],
+    });
+  }
+
+  return result;
+}
+
+/**
+ * Renders the editor DOM from state data.
+ */
+export function renderEditorDOM(
+  editor: HTMLDivElement,
+  data: IEditorPart[],
+  cursor: { globalIdx: number; offset: number } | null,
+  restoreCursorFn: (el: HTMLDivElement, globalIdx: number, offset: number) => void,
+): void {
+  editor.innerHTML = '';
+
+  for (let pi = 0; pi < data.length; pi++) {
+    const part = data[pi];
+
+    const sep = document.createElement('div');
+    sep.setAttribute(SEP_ATTR, String(part.key));
+    sep.contentEditable = 'false';
+    sep.className = 'editor-separator';
+    sep.style.height = '28px';
+    sep.style.userSelect = 'none';
+    editor.appendChild(sep);
+
+    const partDiv = document.createElement('div');
+    partDiv.setAttribute(PART_ATTR, String(part.key));
+    partDiv.className = 'editor-part';
+
+    for (const line of part.lines) {
+      const d = document.createElement('div');
+      d.className = lineClassName(line.type);
+      if (line.content) d.textContent = line.content;
+      else d.innerHTML = '<br>';
+      partDiv.appendChild(d);
+    }
+    editor.appendChild(partDiv);
+  }
+
+  if (data.length === 0) {
+    const partDiv = document.createElement('div');
+    partDiv.setAttribute(PART_ATTR, '0');
+    partDiv.className = 'editor-part';
+    const d = document.createElement('div');
+    d.className = 'editor-line';
+    d.innerHTML = '<br>';
+    partDiv.appendChild(d);
+    editor.appendChild(partDiv);
+  }
+
+  if (cursor && (document.activeElement === editor || editor.contains(document.activeElement))) {
+    restoreCursorFn(editor, cursor.globalIdx, cursor.offset);
+  }
+}

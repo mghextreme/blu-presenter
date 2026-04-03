@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { BaseTheme, IControllerSelection, IScheduleSong, ISlide, ISlideTextContent, ISlideTitleContent, ISongPartLine } from "@/types";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { pairLyricsLines } from "@/lib/songs";
 
 function interleaveLines(chords: string, lyrics: string): ISongPartLine[] {
   const chordLines = chords.split('\n');
@@ -49,14 +50,8 @@ export function PreviewWindowTextForm({
 
   const setSong = () => {
     const content: ISlideTextContent[] = [];
-    const bits = lyrics.split('\n').map((x) => x.trimEnd()) ?? [];
-    for (let i = 0; i < bits.length; i += 2) {
-      let part = bits[i];
-
-      if (i + 1 < bits.length) {
-        part += '\n' + bits[i + 1];
-      }
-
+    const bits = lyrics.split('\n').map((x) => x.trimEnd());
+    for (const part of pairLyricsLines(bits)) {
       content.push({
         type: 'lyrics',
         text: part

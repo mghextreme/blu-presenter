@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BASE_THEME_TYPES } from "@/types/theme.interface";
 
 export const ColorField = z.string().regex(/^#[0-9a-f]{6}([0-9a-f]{2})?$/i, { message: "Invalid color hexadecimal" });
 
@@ -27,7 +28,7 @@ export const ClockSchema = ToggleableColorFontSchema.extend({
   format: z.enum(['12', '24', '12withSeconds', '24withSeconds']),
 });
 
-export const configSchema = z.object({
+export const ConfigSchema = z.object({
   backgroundColor: ColorField,
   foregroundColor: ColorField,
   invisibleOnEmptyItems: z.boolean(),
@@ -44,6 +45,6 @@ export const configSchema = z.object({
 export const ThemeSchema = z.object({
   id: z.number(),
   name: z.string().min(2),
-  extends: z.enum(['lyrics', 'subtitles', 'teleprompter']),
-  config: configSchema.optional(),
+  extends: z.enum(BASE_THEME_TYPES),
+  config: ConfigSchema.optional(),
 });

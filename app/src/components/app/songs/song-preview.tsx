@@ -9,7 +9,7 @@ import { useController } from "@/hooks/useController";
 import { useServices } from "@/hooks/useServices";
 
 interface SongPreviewProps {
-  getSong: () => ISong;
+  getSong: () => ISong | undefined;
   getLastFocusedBlock?: () => number;
   getLastFocusedLine?: () => number;
   children?: ReactNode;
@@ -38,7 +38,9 @@ export function SongPreview({
 
   const setupSlides = (open: boolean) => {
     if (open) {
-      setSong(getSong());
+      const s = getSong();
+      if (!s) return;
+      setSong(s);
       setStartBlock(getLastFocusedBlock?.() ?? 0);
       setStartLine(getLastFocusedLine?.() ?? 0);
     }

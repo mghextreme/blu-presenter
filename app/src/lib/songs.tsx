@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
-import { ISongPart, ISongPartLine, SongPartLineType } from "@/types";
+import { INumberedSongPart, ISongPart, ISongPartLine, SongPartLineType } from "@/types";
 import { cn } from "./utils";
+
+// ─── JSX rendering ────────────────────────────────────────────────────────────
 
 export const renderSongPartLines = (lines?: ISongPartLine[], options?: {
   includeTypes?: SongPartLineType[];
@@ -63,6 +65,8 @@ export const renderSongPartLines = (lines?: ISongPartLine[], options?: {
   );
 }
 
+// ─── Chord detection ──────────────────────────────────────────────────────────
+
 const chordsRegex = /(?<=\s)[A-G](#{1,2}|b{1,2})?\(?\d*(M|maj|m|min|sus|º|\+)?\d*(\(\d*[+-]?\))?([\\\/][A-G](#{1,2}|b{1,2})?)?\)?(?=\s)/gi;
 export const getChordsData = (text: string) => {
   const words = text.replace(/[\[\]\(\)]+/gi, '').replace(/\s+/gi, ' ').trim().split(/\s/gi);
@@ -71,11 +75,13 @@ export const getChordsData = (text: string) => {
 
   return {
     wordCount: words.length,
-    chordCount: chords ? chords.length : 0,
-    chords: chords,
-    proportion: chords && words.length > 0 ? chords.length / words.length : 0,
+    chordCount: chords.length,
+    chords,
+    proportion: words.length > 0 ? chords.length / words.length : 0,
   }
 }
+
+// ─── Capitalize ───────────────────────────────────────────────────────────────
 
 const capitalizeEachSentence = (text: string) => {
   return text.replace(/([\.\?!])\s*([A-Za-zÀ-ÖØ-öø-ÿ])/gui, (match, punctuation, letter) => {
@@ -90,13 +96,13 @@ const capitalizeEachLine = (text: string) => {
 }
 
 export const capitalizeText = (text: string) => {
-
   text = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
   text = capitalizeEachLine(text);
   text = capitalizeEachSentence(text);
-
   return text;
 }
+
+// ─── Reference URL helpers ────────────────────────────────────────────────────
 
 export type ReferenceType = 'spotify' | 'youtube' | 'other';
 
@@ -137,9 +143,6 @@ export function getReferenceType(url: string): ReferenceType {
   return 'other';
 }
 
-// Matches guitar tablature lines like "E|4-12----------|" or "e|---0---2---|"
-const guitarTabRegex = /^[A-Ga-g]#?\|[\d\-\/\\hpbrs~x|().^ ]+\|?\s*$/;
-
 // ─── Chord transposition ──────────────────────────────────────────────────────
 
 const SHARPS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -175,7 +178,6 @@ export function transposeChordToken(chord: string, semitones: number, useFlats: 
   if (!m) return chord;
 
   const rawRoot = m[1] + (m[2] ?? '');
-  // Normalise double-accidentals to a single semitone offset before indexing
   let root = rawRoot;
   if (rawRoot.endsWith('##')) root = SHARPS[(noteIndex(m[1]) + 2) % 12];
   else if (rawRoot.endsWith('bb')) root = FLATS[((noteIndex(m[1]) - 2) + 12) % 12];
@@ -201,22 +203,16 @@ export function transposeChordToken(chord: string, semitones: number, useFlats: 
 }
 
 // Matches a chord token preceded by a captured whitespace run and followed by whitespace.
-// Groups: [1] leading spaces, [2] chord token, [3] trailing spaces
 const CHORD_TOKEN_WITH_SPACE_RE = /(\s)([A-G](#{1,2}|b{1,2})?\(?\d*(M|maj|m|min|sus|º|\+)?\d*(\(\d*[+-]?\))?([\\\/][A-G](#{1,2}|b{1,2})?)?\)?)(?=\s)/g;
 
 /**
  * Transposes all chord tokens in a chord-line string by `semitones`,
  * adjusting trailing whitespace so that subsequent columns stay aligned.
- * `useFlats` is derived from direction: negative semitones → flats, positive → sharps.
- * Pass `useFlats` explicitly when semitones === 0 (swap-accidentals case).
  */
 export function transposeLine(line: string, semitones: number, useFlats?: boolean): string {
   const resolvedUseFlats = useFlats !== undefined ? useFlats : semitones < 0;
-  // Wrap in a leading space so the first chord in the line always has whitespace before it
   const padded = ` ${line} `;
 
-  // We process matches from right-to-left so that index adjustments from earlier
-  // replacements don't invalidate later match positions.
   const matches: Array<{ index: number; fullMatch: string; lead: string; token: string }> = [];
   let m: RegExpExecArray | null;
   CHORD_TOKEN_WITH_SPACE_RE.lastIndex = 0;
@@ -230,14 +226,12 @@ export function transposeLine(line: string, semitones: number, useFlats?: boolea
     const transposed = transposeChordToken(token, semitones, resolvedUseFlats);
     const delta = transposed.length - token.length;
 
-    // Find the whitespace run that follows this token in the current result string
     const tokenStart = index + lead.length;
     const tokenEnd = tokenStart + token.length;
     let trailingEnd = tokenEnd;
     while (trailingEnd < result.length && result[trailingEnd] === ' ') trailingEnd++;
     const trailingSpaces = trailingEnd - tokenEnd;
 
-    // Adjust trailing spaces by -delta (min 1 space so tokens don't merge)
     const newTrailing = Math.max(1, trailingSpaces - delta);
     result =
       result.slice(0, tokenStart) +
@@ -251,32 +245,25 @@ export function transposeLine(line: string, semitones: number, useFlats?: boolea
 
 /**
  * Swaps every accidental in a chord line: # ↔ b (enharmonic re-spelling, same pitch).
- * C# → Db, Db → C#, F# → Gb, Bb → A#, etc.
  */
 export function swapAccidentals(line: string): string {
-  // Detect dominant spelling in this line
   const sharpCount = (line.match(/[A-G]#/g) ?? []).length;
   const flatCount  = (line.match(/[A-G]b/g) ?? []).length;
-  // If more flats (or equal), convert to sharps; otherwise to flats
   const targetFlats = sharpCount > flatCount;
   return transposeLine(line, 0, targetFlats);
 }
 
 /**
  * Derives a short acronym (1-3 chars) from a part name using pure text rules.
- * Examples: "Chorus" → "C", "Verse 1" → "V1", "Pre-Chorus" → "PC",
- *           "Pre-Chorus 2" → "PC2", "Final Chorus" → "FC"
  */
 export function deriveAcronym(name: string): string {
   const trimmed = name.trim();
   if (!trimmed) return '';
 
-  // Extract trailing number (e.g. "Verse 1" → number="1", rest="Verse")
   const trailingNumberMatch = trimmed.match(/\s+(\d+)$/);
   const trailingNumber = trailingNumberMatch ? trailingNumberMatch[1] : '';
   const withoutNumber = trailingNumber ? trimmed.slice(0, -trailingNumberMatch![0].length) : trimmed;
 
-  // Split on spaces and hyphens, take first letter of each segment (max 3)
   const segments = withoutNumber.split(/[\s\-]+/).filter(Boolean);
   const initials = segments
     .slice(0, 3)
@@ -290,12 +277,15 @@ export function deriveAcronym(name: string): string {
  * Returns true if two song parts have identical line content (type + text).
  * Ignores name and acronym — used for deduplication and propagation.
  */
-export function isBlockEqual(a: ISongPart, b: ISongPart): boolean {
+export function isBlockEqual(a: Pick<ISongPart, 'lines'>, b: Pick<ISongPart, 'lines'>): boolean {
   if (a.lines.length !== b.lines.length) return false;
   return a.lines.every((line, i) =>
     line.type === b.lines[i].type && line.content === b.lines[i].content
   );
 }
+
+// Matches guitar tablature lines like "E|4-12----------|" or "e|---0---2---|"
+const guitarTabRegex = /^[A-Ga-g]#?\|[\d\-\/\\hpbrs~x|().^ ]+\|?\s*$/;
 
 export function detectLineType(text: string): SongPartLineType {
   const trimmed = text.trim();
@@ -304,6 +294,77 @@ export function detectLineType(text: string): SongPartLineType {
   const data = getChordsData(trimmed);
   return data.proportion >= 0.75 ? 'chords' : 'lyrics';
 }
+
+// ─── Numbered blocks for print view ──────────────────────────────────────────
+
+export interface NumberedBlocksResult {
+  numberedBlocks: INumberedSongPart[];
+  compactedBlocks: INumberedSongPart[];
+  acronymSequence: string[];
+}
+
+export function computeNumberedBlocks(blocks: ISongPart[]): NumberedBlocksResult {
+  const simplifiedAcronymSequence: string[] = [];
+  const simplifiedBlocks: INumberedSongPart[] = [];
+  const sequencedBlocks: INumberedSongPart[] = [];
+
+  for (let ix = 0; ix < blocks.length; ix++) {
+    const sourceBlock = blocks[ix] ?? { lines: [] } as ISongPart;
+    let added = false;
+    let sequenceNumber: number | undefined = undefined;
+
+    for (let jx = 0; jx < simplifiedBlocks.length; jx++) {
+      const comparisonBlock = simplifiedBlocks[jx];
+      if (isBlockEqual(sourceBlock, comparisonBlock)) {
+        sequenceNumber = jx + 1;
+        simplifiedAcronymSequence.push(comparisonBlock.acronym ?? String(sequenceNumber));
+        added = true;
+        break;
+      }
+    }
+
+    if (sequenceNumber) {
+      sequencedBlocks.push({ ...sourceBlock, sequence: sequenceNumber, isFirstAppearance: false });
+    } else {
+      sequencedBlocks.push({ ...sourceBlock, sequence: simplifiedBlocks.length + 1, isFirstAppearance: true });
+    }
+
+    if (!added) {
+      simplifiedAcronymSequence.push(sourceBlock.acronym ?? String(simplifiedBlocks.length + 1));
+      simplifiedBlocks.push({ ...sourceBlock, sequence: simplifiedBlocks.length + 1 });
+    }
+  }
+
+  return {
+    numberedBlocks: sequencedBlocks,
+    compactedBlocks: simplifiedBlocks,
+    acronymSequence: simplifiedAcronymSequence,
+  };
+}
+
+/**
+ * Returns the first Spotify URL found in a references array, or undefined.
+ */
+export function findSpotifyUrl(references?: { url: string }[]): string | undefined {
+  return references?.find((ref) => ref.url.includes('spotify.com'))?.url;
+}
+
+/**
+ * Pairs consecutive lyrics lines into groups of two joined by `\n`.
+ * Used when rendering lyrics as slides (two lines per slide).
+ * Example: ["A", "B", "C", "D"] → ["A\nB", "C\nD"]
+ */
+export function pairLyricsLines(lines: string[]): string[] {
+  const result: string[] = [];
+  for (let i = 0; i < lines.length; i += 2) {
+    let part = lines[i];
+    if (i + 1 < lines.length) part += '\n' + lines[i + 1];
+    result.push(part);
+  }
+  return result;
+}
+
+// ─── Song text parser ─────────────────────────────────────────────────────────
 
 interface ParsedSong {
   title: string;
@@ -318,9 +379,6 @@ export function parseSongText(fullText: string): ParsedSong {
   while (rawLines.length > 0 && rawLines[0].trim() === '') rawLines.shift();
   while (rawLines.length > 0 && rawLines[rawLines.length - 1].trim() === '') rawLines.pop();
 
-  // Extract title and artist if the text starts with a header pattern:
-  // - Title (non-chord) + Artist (non-chord) + empty line
-  // - Title (non-chord) + empty line (title only, no artist)
   let title = '';
   let artist = '';
   let bodyStart = 0;

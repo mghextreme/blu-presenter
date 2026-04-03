@@ -1,4 +1,7 @@
-export type SongPartLineType = 'lyrics' | 'chords' | 'comments'
+export const SONG_PART_LINE_TYPES = ['lyrics', 'chords', 'comments'] as const;
+export type SongPartLineType = typeof SONG_PART_LINE_TYPES[number];
+
+export type SongEditMode = 'lyrics' | 'chords';
 
 export interface ISongPartLine {
   type: SongPartLineType
