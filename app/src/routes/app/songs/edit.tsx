@@ -6,12 +6,12 @@ import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
 import i18next from "i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { SongPreview } from "@/components/app/songs/song-preview";
-import { EditSongForm } from "@/components/app/songs/edit-form";
+import { EditSongForm, EditSongFormHandle } from "@/components/app/songs/edit-form";
 import { PreviewIcon } from "@/components/icons/preview";
 import { ControllerProvider } from "@/hooks/controller.provider";
 import { useRef } from "react";
 
-type EditSongProps = {
+interface EditSongProps {
   edit?: boolean
   startingBlocks?: ISongPart[]
 }
@@ -46,8 +46,7 @@ export function EditSong({
       };
     }) : [{
       id: 0,
-      text: '',
-      chords: '',
+      lines: [],
     }],
     references: [],
     organization: organization,
@@ -75,7 +74,7 @@ export function EditSong({
     orgName = data.organization.name || t("organizations.defaultName");
   }
 
-  const formRef = useRef<typeof EditSongForm>(null);
+  const formRef = useRef<EditSongFormHandle>(null);
 
   return (
     <>
@@ -95,7 +94,11 @@ export function EditSong({
             </Button>
           </>}
           <ControllerProvider>
-            <SongPreview getSong={() => (formRef.current as any)?.getFormValues()}>
+            <SongPreview
+              getSong={() => formRef.current?.getFormValues()}
+              getLastFocusedBlock={() => formRef.current?.getLastFocusedBlock() ?? 0}
+              getLastFocusedLine={() => formRef.current?.getLastFocusedLine() ?? 0}
+            >
               <Button
                 type="button"
                 size="sm"

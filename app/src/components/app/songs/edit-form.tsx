@@ -1,4 +1,4 @@
-import { forwardRef, ReactNode, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, ReactNode, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 
@@ -16,16 +16,14 @@ import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import { TFunction } from "i18next";
-import { EditSongParts } from "@/components/app/songs/edit-parts";
+import { SongEditor } from "@/components/app/songs/song-editor";
 import { SongSchema } from "@/types/schemas/song.schema";
 import { z } from "zod";
-import { Toggle } from "@/components/ui/toggle";
 import { EditSongReferences } from "@/components/app/songs/edit-references";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { capitalizeText } from "@/lib/songs";
-import { useSongViewConfig } from "@/hooks/useSongViewConfig";
 
 function LanguageAndIcon({ t, language }: { t: TFunction, language: ILanguage["value"] }) {
   const lang = supportedLanguagesMap.find((lang) => lang.value === language);
@@ -40,19 +38,21 @@ function LanguageAndIcon({ t, language }: { t: TFunction, language: ILanguage["v
   );
 }
 
-type SongViewMode = 'lyrics' | 'chords';
-
-type EditSongFormProps = {
+interface EditSongFormProps {
   edit?: boolean
-  defaultEditMode?: SongViewMode
   formValues?: z.infer<typeof SongSchema>
   additionalSubmitButtons?: ReactNode
 }
 
-export const EditSongForm = forwardRef((
+export interface EditSongFormHandle {
+  getFormValues: () => z.infer<typeof SongSchema>
+  getLastFocusedBlock: () => number
+  getLastFocusedLine: () => number
+}
+
+export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
   {
     edit = true,
-    defaultEditMode,
     formValues,
     additionalSubmitButtons = null,
   }: EditSongFormProps,
@@ -65,24 +65,18 @@ export const EditSongForm = forwardRef((
 
   const { songsService } = useServices();
 
-  if (edit && (!formValues || !formValues.id)) {
-    return null;
-  }
-
   const [isLoading, setLoading] = useState<boolean>(false);
+  const lastFocusedBlockRef = useRef<number>(0);
+  const lastFocusedLineRef = useRef<number>(0);
 
   const form = useForm<z.infer<typeof SongSchema>>({
     resolver: zodResolver(SongSchema),
     defaultValues: formValues,
   });
 
-  const { viewMode: editMode, setViewMode, toggleViewMode: changeEditMode } = useSongViewConfig();
-
-  useEffect(() => {
-    if (defaultEditMode) {
-      setViewMode(defaultEditMode);
-    }
-  }, []);
+  if (edit && (!formValues || !formValues.id)) {
+    return null;
+  }
 
   const onSubmit = async (values: z.infer<typeof SongSchema>) => {
     if (hasUppercaseWarning && !ignoreWarning) return;
@@ -111,6 +105,12 @@ export const EditSongForm = forwardRef((
       getFormValues() {
         return form.getValues();
       },
+      getLastFocusedBlock() {
+        return lastFocusedBlockRef.current;
+      },
+      getLastFocusedLine() {
+        return lastFocusedLineRef.current;
+      },
     };
   });
 
@@ -122,10 +122,10 @@ export const EditSongForm = forwardRef((
     let uppercaseCount = 0;
     let addUppercaseWarning = false;
     for (const block of blocks) {
-      let blockText = block?.text;
+      const lyricsLines = block?.lines?.filter(line => line.type === 'lyrics') ?? [];
+      const blockText = lyricsLines.map(line => line.content).join('\n').trim();
       if (!blockText) continue;
 
-      blockText = blockText.trim();
       if (blockText.length > 0 && blockText === blockText.toUpperCase()) {
         uppercaseCount++;
       }
@@ -139,6 +139,9 @@ export const EditSongForm = forwardRef((
     setHasUppercaseWarning(addUppercaseWarning);
   }
 
+  // NOTE: form.watch('blocks') as a useEffect dependency is a react-hook-form
+  // anti-pattern (returns a new reference on every render), but it is intentional
+  // here — we want checkUppercase to re-run whenever the blocks value changes.
   useEffect(() => {
     checkUppercase();
   }, [form.watch('blocks')]);
@@ -146,12 +149,14 @@ export const EditSongForm = forwardRef((
   const autoFixUppercase = () => {
     const blocks = form.getValues('blocks');
     for (let i = 0; i < blocks.length; i++) {
-      let blockText = blocks[i]?.text?.trimEnd();
-      if (!blockText) continue;
-
-      if (blockText.length > 0) {
-        form.setValue(`blocks.${i}.text`, capitalizeText(blockText));
-      }
+      const lines = blocks[i]?.lines ?? [];
+      const updatedLines = lines.map(line => {
+        if (line.type !== 'lyrics') return line;
+        const trimmed = line.content.trimEnd();
+        if (trimmed.length === 0) return line;
+        return { ...line, content: capitalizeText(trimmed) };
+      });
+      form.setValue(`blocks.${i}.lines`, updatedLines);
     }
 
     checkUppercase();
@@ -258,20 +263,23 @@ export const EditSongForm = forwardRef((
               </FormItem>
             )}></FormField>
 
-          <SubmitButtons t={t} edit={edit} isLoading={isLoading} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} />
+          <SubmitButtons t={t} edit={edit} isLoading={isLoading} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} idSuffix="left" />
         </div>
 
         <div className="flex flex-col items-stretch min-w-md max-w-lg space-y-3 flex-1">
-          <FormLabel>{t('input.parts')}</FormLabel>
-          <Toggle variant="outline" pressed={editMode == 'chords'} onPressedChange={changeEditMode} className="me-auto">{t('input.editChords')}</Toggle>
-          <EditSongParts form={form} mode={editMode} />
+          <SongEditor
+            form={form}
+            onCursorFocus={(block, line) => { lastFocusedBlockRef.current = block; lastFocusedLineRef.current = line; }}
+          />
 
-          <SubmitButtons t={t} edit={edit} isLoading={isLoading} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} />
+          <SubmitButtons t={t} edit={edit} isLoading={isLoading} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} idSuffix="right" />
         </div>
       </form>
     </Form>
   );
 });
+
+EditSongForm.displayName = 'EditSongForm';
 
 function SubmitButtons({
   t,
@@ -282,6 +290,7 @@ function SubmitButtons({
   ignoreWarning,
   setIgnoreWarning,
   autoFixUppercase,
+  idSuffix,
 }: {
   t: TFunction
   edit?: boolean
@@ -291,7 +300,9 @@ function SubmitButtons({
   ignoreWarning: boolean
   setIgnoreWarning: (value: boolean) => void
   autoFixUppercase: () => void
+  idSuffix: string
 }) {
+  const checkboxId = `ignore-uppercase-${idSuffix}`;
   return (
     <>
       {hasUppercaseWarning && <div>
@@ -309,12 +320,12 @@ function SubmitButtons({
               >{t('warning.uppercase.autoFix')}</Button>
               <div className="flex-1 flex items-center gap-2">
                 <Checkbox
-                  id="terms"
+                  id={checkboxId}
                   checked={ignoreWarning}
                   onCheckedChange={setIgnoreWarning}
                   className="rounded border-yellow-600 data-[state=checked]:bg-yellow-600 data-[state=checked]:text-primary-foreground"
                 />
-                <Label htmlFor="terms" className="pb-1">{t('warning.uppercase.ignore')}</Label>
+                <Label htmlFor={checkboxId} className="pb-1">{t('warning.uppercase.ignore')}</Label>
               </div>
             </div>
           </AlertDescription>

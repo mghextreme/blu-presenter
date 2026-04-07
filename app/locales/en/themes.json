@@ -27,6 +27,7 @@
       "artist": "Artist",
       "lyrics": "Lyrics",
       "chords": "Chords",
+      "comments": "Comments",
       "clock": "Clock"
     },
     "font": {
@@ -41,12 +42,14 @@
       "backgroundColor": "Background",
       "foregroundColor": "Foreground",
       "chordsColor": "Chords",
+      "commentsColor": "Comments",
       "clockColor": "Clock",
       "vertical": "Vertical",
       "horizontal": "Horizontal",
       "shadowColor": "Shadow color",
       "shadowBlur": "Blur",
       "shadowOffset": "Offset",
+      "commentsEnabled": "Enabled",
       "clockEnabled": "Enabled",
       "clockFormat": "Format",
       "invisibleOnEmptyItems": "Invisible on empty schedule items",

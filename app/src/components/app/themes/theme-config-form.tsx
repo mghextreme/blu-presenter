@@ -51,6 +51,13 @@ export function ThemeConfigForm({
                     label={t('input.config.clockColor')}
                   />
                 )}
+                {form.watch('config.comments.enabled') && (
+                  <ColorForm<z.infer<typeof ThemeSchema>>
+                    form={form}
+                    name="config.comments.color"
+                    label={t('input.config.commentsColor')}
+                  />
+                )}
               </>
             )}
           </div>
@@ -152,6 +159,12 @@ export function ThemeConfigForm({
             <AccordionTrigger className="text-lg font-medium py-2">{t("input.titles.chords")}</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2 pt-2">
               <ThemeConfigFontForm form={form} name="chords" showTransform={false} />
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="comments">
+            <AccordionTrigger className="text-lg font-medium py-2">{t("input.titles.comments")}</AccordionTrigger>
+            <AccordionContent className="flex flex-col gap-2 pt-2">
+              <ThemeConfigFontForm form={form} name="comments" showTransform={false} />
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="clock">

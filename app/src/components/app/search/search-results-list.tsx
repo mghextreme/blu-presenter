@@ -7,7 +7,11 @@ export function SearchResultsList(props: SearchResultItemProps) {
     results
   } = useSearch();
 
-  return results.map((item) => (
-    <SearchResultItem key={item.id} item={item} {...props} />
-  ));
+  return (
+    <>
+      {results.map((item) => (
+        <SearchResultItem key={item.id} item={item} {...props} />
+      ))}
+    </>
+  );
 }

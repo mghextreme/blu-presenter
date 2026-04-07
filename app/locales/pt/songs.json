@@ -30,8 +30,16 @@
     },
     "lineType": {
       "chords": "Acordes",
-      "lyrics": "Letra"
-    }
+      "lyrics": "Letra",
+      "comments": "Comentários"
+    },
+    "transpose": {
+      "down": "Transpor um semitom abaixo",
+      "up": "Transpor um semitom acima",
+      "swap": "Trocar acidentes (♯ ↔ ♭)"
+    },
+    "partName": "Nome da parte",
+    "partAcronym": "Sigla (rótulo curto)"
   },
   "actions": {
     "create": "Adicionar música",
@@ -124,7 +132,24 @@
     "publicArchive": "Acervo público"
   },
   "print": {
-    "sequence": "Sequência"
+    "sequence": "Sequência",
+    "customize": "Personalizar",
+    "fontSize": "Tamanho da fonte",
+    "compactMode": "Modo compacto",
+    "compactModeOff": "Desligado",
+    "compactModeCompact": "Compacto",
+    "compactModeFirstLine": "Primeira linha",
+    "chords": "Cifras",
+    "comments": "Comentários",
+    "showChords": "Mostrar cifras",
+    "showComments": "Mostrar comentários",
+    "color": "Cor",
+    "bold": "Negrito",
+    "italic": "Itálico",
+    "numbering": "Numeração",
+    "showNumbers": "Mostrar números",
+    "spotifyCode": "Código do Spotify",
+    "showSpotifyCode": "Mostrar código do Spotify"
   },
   "references": {
     "play": "Reproduzir",

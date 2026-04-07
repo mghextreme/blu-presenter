@@ -5,7 +5,7 @@ import { useController } from "@/hooks/useController";
 import { useWindow } from "@/hooks/window.provider";
 import { IPositionableElement } from "@/types/browser";
 import { Clock } from "./clock";
-import { alternateLyricsAndChords } from "@/lib/songs";
+import { renderSongPartLines } from "@/lib/songs";
 import { buildFontStyle } from "@/lib/style";
 import { cn } from "@/lib/utils";
 
@@ -157,9 +157,10 @@ export const ScrollingSongVisualizer = forwardRef(({
       }}>
       {!isInvisible && <div
         ref={wrapperDiv as React.Ref<HTMLDivElement>}
-        className="w-full leading-[1.15em] px-[.5em] flex flex-col items-start text-left pointer-events-none transition-transform duration-150 ease-out"
+        className="w-full leading-[1.15em] px-[.5em] flex flex-col items-start text-left pointer-events-none transition-transform duration-[400ms]"
         style={{
           transform: `translateY(calc(1em - ${yPxOffset}px - ${yPartsPxOffset}px))`,
+          transitionTimingFunction: 'cubic-bezier(0.65, 0, 0.35, 1)',
         }}>
         <div className="mb-[.6em]" key="title">
           <div className={cn('whitespace-pre-wrap', config?.title?.fontFamily ?? 'font-source-code-pro')} style={
@@ -190,7 +191,7 @@ export const ScrollingSongVisualizer = forwardRef(({
               <span className="text-[0.85em] text-muted">{scheduleSong.blocks?.length}</span>
             </div>
             <div className="px-[.5em] leading-[1.6em] whitespace-pre-wrap">
-              {alternateLyricsAndChords(block.text, block.chords, {
+              {renderSongPartLines(block.lines, {
                 chordsClassName: config?.chords?.fontFamily ?? 'font-source-code-pro',
                 chordsStyle: buildFontStyle(config?.chords, {
                   fontSize: 100,
@@ -202,6 +203,12 @@ export const ScrollingSongVisualizer = forwardRef(({
                   fontSize: 100,
                   fontWeight: 400,
                   color: config?.foregroundColor,
+                }),
+                commentsClassName: config?.comments?.fontFamily ?? 'font-source-code-pro',
+                commentsStyle: buildFontStyle(config?.comments, {
+                  fontSize: 120,
+                  fontWeight: 400,
+                  color: config?.comments?.color,
                 }),
               })}
             </div>

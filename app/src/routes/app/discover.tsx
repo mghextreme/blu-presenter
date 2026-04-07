@@ -60,7 +60,7 @@ export function Discover() {
             <PencilIcon className="size-3" />
           )}
         </Button>
-        <CopySongToOrganization songId={item.id} title={item.title} artist={item.artist} variant="default" />
+        <CopySongToOrganization songId={item.id} title={item.title} artist={item.artist} variant="default" organizationId={item.organization?.id} />
       </>
     );
   }

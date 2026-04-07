@@ -1,13 +1,12 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { LineStyle } from '@/types/line-style.interface'
 
 interface PrintConfigState {
   fontSize: number
-  increateFontSize: () => void
-  decreateFontSize: () => void
+  increaseFontSize: () => void
+  decreaseFontSize: () => void
   resetFontSize: () => void
-  showChords: boolean
-  toggleChords: () => void
   showNumbers: boolean
   toggleNumbers: () => void
   columns: number
@@ -15,28 +14,28 @@ interface PrintConfigState {
   showSpotifyCode: boolean
   toggleSpotifyCode: () => void
   compactMode?: 'compact' | 'firstLine'
-  toggleCompactMode: () => void
+  setCompactMode: (mode: 'compact' | 'firstLine' | undefined) => void
+  chordsStyle: LineStyle
+  setChordsStyle: (style: Partial<LineStyle>) => void
+  commentsStyle: LineStyle
+  setCommentsStyle: (style: Partial<LineStyle>) => void
 }
 
 export const usePrintConfig = create<PrintConfigState>()(
   persist(
     (set, get) => ({
       fontSize: 16,
-      increateFontSize: () => {
+      increaseFontSize: () => {
         const cur = get().fontSize;
         return set({ fontSize: cur + 1 });
       },
-      decreateFontSize: () => {
+      decreaseFontSize: () => {
         const cur = get().fontSize;
         if (cur <= 2) return;
         return set({ fontSize: cur - 1 });
       },
       resetFontSize: () => {
         return set({ fontSize: 16 });
-      },
-      showChords: true,
-      toggleChords: () => {
-        return set({ showChords: !get().showChords });
       },
       showNumbers: true,
       toggleNumbers: () => {
@@ -45,37 +44,48 @@ export const usePrintConfig = create<PrintConfigState>()(
       columns: 1,
       toggleColumns: () => {
         const cur = get().columns;
-        if (cur == 1) {
+        if (cur === 1) {
           return set({ columns: 2 });
         } else {
           return set({ columns: 1 });
         }
       },
       compactMode: 'compact',
-      toggleCompactMode: () => {
-        const cur = get().compactMode;
-        if (cur === 'compact') {
-          return set({ compactMode: 'firstLine' });
-        } else if (cur === 'firstLine') {
-          return set({ compactMode: undefined });
-        } else {
-          return set({ compactMode: 'compact' });
-        }
+      setCompactMode: (mode) => {
+        return set({ compactMode: mode });
       },
       showSpotifyCode: true,
       toggleSpotifyCode: () => {
         return set({ showSpotifyCode: !get().showSpotifyCode });
+      },
+      chordsStyle: {
+        enabled: true,
+        bold: true,
+        italic: false,
+      },
+      setChordsStyle: (style) => {
+        return set({ chordsStyle: { ...get().chordsStyle, ...style } });
+      },
+      commentsStyle: {
+        enabled: true,
+        color: '#777',
+        bold: false,
+        italic: true,
+      },
+      setCommentsStyle: (style) => {
+        return set({ commentsStyle: { ...get().commentsStyle, ...style } });
       },
     }),
     {
       name: "printConfig",
       partialize: (state: PrintConfigState) => ({
         fontSize: state.fontSize,
-        showChords: state.showChords,
         showNumbers: state.showNumbers,
         compactMode: state.compactMode,
         columns: state.columns,
         showSpotifyCode: state.showSpotifyCode,
+        chordsStyle: state.chordsStyle,
+        commentsStyle: state.commentsStyle,
       }),
       storage: createJSONStorage(() => localStorage),
     }

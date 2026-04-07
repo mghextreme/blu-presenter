@@ -4,9 +4,28 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useController } from "@/hooks/useController";
 import { cn } from "@/lib/utils";
-import { BaseTheme, IControllerSelection, IScheduleSong, ISlide, ISlideTextContent, ISlideTitleContent } from "@/types";
+import { BaseTheme, IControllerSelection, IScheduleSong, ISlide, ISlideTextContent, ISlideTitleContent, ISongPartLine } from "@/types";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { pairLyricsLines } from "@/lib/songs";
+
+function interleaveLines(chords: string, lyrics: string): ISongPartLine[] {
+  const chordLines = chords.split('\n');
+  const lyricLines = lyrics.split('\n');
+  const maxLength = Math.max(chordLines.length, lyricLines.length);
+  const result: ISongPartLine[] = [];
+
+  for (let i = 0; i < maxLength; i++) {
+    if (i < chordLines.length) {
+      result.push({ type: 'chords', content: chordLines[i] });
+    }
+    if (i < lyricLines.length) {
+      result.push({ type: 'lyrics', content: lyricLines[i] });
+    }
+  }
+
+  return result;
+}
 
 interface PreviewWindowTextFormProps {
   baseTheme: BaseTheme;
@@ -31,14 +50,8 @@ export function PreviewWindowTextForm({
 
   const setSong = () => {
     const content: ISlideTextContent[] = [];
-    const bits = lyrics.split('\n').map((x) => x.trimEnd()) ?? [];
-    for (let i = 0; i < bits.length; i += 2) {
-      let part = bits[i];
-
-      if (i + 1 < bits.length) {
-        part += '\n' + bits[i + 1];
-      }
-
+    const bits = lyrics.split('\n').map((x) => x.trimEnd());
+    for (const part of pairLyricsLines(bits)) {
       content.push({
         type: 'lyrics',
         text: part
@@ -78,15 +91,13 @@ export function PreviewWindowTextForm({
       ],
       blocks: [
         {
-          text: lyrics,
-          chords: chords,
+          lines: interleaveLines(chords, lyrics),
         },
         {
-          chords: chords,
+          lines: chords.split('\n').map(c => ({ type: 'chords' as const, content: c })),
         },
         {
-          text: lyrics,
-          chords: chords,
+          lines: interleaveLines(chords, lyrics),
         },
       ],
     } as IScheduleSong;
