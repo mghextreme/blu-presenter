@@ -21,7 +21,7 @@ SET blocks = (
                 (i * 2) AS line_ord
               FROM unnest(
                 string_to_array(
-                  COALESCE(NULLIF(block_elem->>'chords', ''), NULL),
+                  replace(COALESCE(NULLIF(block_elem->>'chords', ''), NULL), '\n', E'\n'),
                   E'\n'
                 )
               ) WITH ORDINALITY AS c(chord_line, i)
@@ -35,7 +35,7 @@ SET blocks = (
                 (i * 2 + 1) AS line_ord
               FROM unnest(
                 string_to_array(
-                  COALESCE(NULLIF(block_elem->>'text', ''), NULL),
+                  replace(COALESCE(NULLIF(block_elem->>'text', ''), NULL), '\n', E'\n'),
                   E'\n'
                 )
               ) WITH ORDINALITY AS l(lyrics_line, i)
