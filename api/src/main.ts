@@ -1,16 +1,13 @@
-// Load .env before any module imports so that process.env is populated
-// when decorators (e.g. @WebSocketGateway CORS) are evaluated at class-load time.
-import { config } from 'dotenv';
-config({ path: '../.env' });
-
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { SocketIoAdapter } from './adapters/socket-io.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useWebSocketAdapter(new SocketIoAdapter(app));
   const configService = app.get(ConfigService);
 
   app.enableCors({

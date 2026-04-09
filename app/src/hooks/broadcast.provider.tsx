@@ -1,8 +1,8 @@
-import { createContext, useEffect, useMemo, useRef, useState } from "react"
+import { createContext, useEffect, useMemo, useState } from "react"
 import { BaseTheme, IBroadcastSession } from "@/types"
 import { useAuth } from "./useAuth"
 import { useController } from "./useController"
-import { useSessionSocket } from "./useSessionSocket"
+import { useSessionSocket, JoinSessionParams } from "./useSessionSocket"
 
 type BroadcastProviderProps = {
   children: React.ReactNode
@@ -50,42 +50,16 @@ export function BroadcastProvider({
     }
   });
 
-  // Ref to always have the latest session value in callbacks (avoids stale closures)
-  const sessionRef = useRef(session);
-  useEffect(() => {
-    sessionRef.current = session;
-  }, [session]);
-
-  // Local ref mirroring connectedSessionId to avoid stale closures in updateConnectedSession
-  const connectedSessionIdRef = useRef<number | null>(null);
-
   const {
     connectedSessionId,
-    connect,
-    disconnect,
-    joinSession,
-    leaveSession,
+    switchSession,
     emit
   } = useSessionSocket({
     auth: {
       token: authSession?.access_token,
     },
-    onConnect: () => {
-      // Handle reconnection: if the socket reconnects after a drop,
-      // rejoin the session. Skip if already in a session (connectedSessionIdRef
-      // is set), since the initial join is handled by updateConnectedSession.
-      if (connectedSessionIdRef.current) return;
-
-      const s = sessionRef.current;
-      if (s?.id && s.secret && s.orgId) {
-        joinSession({
-          sessionId: s.id,
-          secret: s.secret,
-          orgId: s.orgId,
-          token: authSession?.access_token,
-        });
-      }
-    },
+    // Values used in onJoinedSession are always fresh because useSessionSocket
+    // calls callbacks via configRef, which is kept in sync every render.
     onJoinedSession: (data) => {
       emit('setSchedule', {
         sessionId: data.id,
@@ -106,55 +80,25 @@ export function BroadcastProvider({
         }
       }
     },
-    onError: (data) => {
-      const s = sessionRef.current;
-      if (data.code === 'notInSession' && s?.id && s.secret && s.orgId) {
-        joinSession({
-          sessionId: s.id,
-          secret: s.secret,
-          orgId: s.orgId,
-          token: authSession?.access_token,
-        });
-      }
-    },
   });
 
-  // Keep local ref in sync with connectedSessionId state from the socket hook
-  useEffect(() => {
-    connectedSessionIdRef.current = connectedSessionId;
-  }, [connectedSessionId]);
-
-  const updateConnectedSession = (toSession?: IBroadcastSession) => {
-    if (!toSession?.id) {
-      disconnect();
-      return;
-    }
-
-    if (toSession.id === connectedSessionIdRef.current) return;
-
-    if (connectedSessionIdRef.current) {
-      leaveSession(connectedSessionIdRef.current);
-    }
-
-    if (toSession.secret && toSession.orgId) {
-      // Ensure the socket is created and connecting/connected.
-      // If already connected, connect() is a no-op.
-      // Then emit joinSession — if the socket is still connecting,
-      // socket.io will buffer the emit and send it once connected.
-      connect();
-      joinSession({
-        sessionId: toSession.id,
-        secret: toSession.secret,
-        orgId: toSession.orgId,
+  const toJoinParams = (s?: IBroadcastSession): JoinSessionParams | null => {
+    if (s?.id && s.secret && s.orgId) {
+      return {
+        sessionId: s.id,
+        secret: s.secret,
+        orgId: s.orgId,
         token: authSession?.access_token,
-      });
+      };
     }
+    return null;
   };
 
   // On mount, connect to the session restored from sessionStorage
   useEffect(() => {
-    if (session) {
-      updateConnectedSession(session);
+    const params = toJoinParams(session);
+    if (params) {
+      switchSession(params);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -165,10 +109,10 @@ export function BroadcastProvider({
       sessionStorage.setItem('broadcastSession', JSON.stringify(newBroadcastSession));
     }
 
-    // Update the ref immediately so onConnect sees the new session
-    sessionRef.current = newBroadcastSession;
     setSession(newBroadcastSession);
-    updateConnectedSession(newBroadcastSession);
+
+    const params = toJoinParams(newBroadcastSession);
+    switchSession(params);
   }
 
   useEffect(() => {

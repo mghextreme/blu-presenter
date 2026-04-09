@@ -43,11 +43,6 @@ interface SetSelectionDto {
 @SkipThrottle()
 @Injectable()
 @WebSocketGateway({
-  cors: {
-    origin: process.env.APP_BASE_URL,
-    methods: ['GET', 'POST'],
-    credentials: true,
-  },
   path: '/socket/sessions',
 })
 export class SessionsGateway implements OnGatewayConnection {
@@ -111,6 +106,7 @@ export class SessionsGateway implements OnGatewayConnection {
     }
   }
 
+  @UseGuards(OptionalWebsocketGuard)
   @SubscribeMessage('leaveSession')
   async handleLeaveRoom(
     @ConnectedSocket() client: AuthenticatedSocket,
@@ -119,12 +115,11 @@ export class SessionsGateway implements OnGatewayConnection {
     try {
       await client.leave(`session:${data.sessionId}`);
 
-      // Clear cached auth properties so the WebsocketGuard
-      // re-verifies on the next joinSession for a different session
+      // Clear cached sessionId so the WebsocketGuard
+      // re-verifies on the next joinSession for a different session.
+      // Keep userId and orgId — they are user-level, not session-level.
       if (client.sessionId === data.sessionId) {
         client.sessionId = undefined;
-        client.orgId = undefined;
-        client.userId = undefined;
       }
 
       client.emit('leftSession', { id: data.sessionId });

@@ -18,7 +18,7 @@ interface SessionSocketConfig {
   }[];
 }
 
-interface JoinSessionParams {
+export interface JoinSessionParams {
   sessionId: number;
   secret: string;
   orgId: number | string;
@@ -28,12 +28,14 @@ interface JoinSessionParams {
 interface UseSessionSocketReturn {
   socket: Socket | null;
   connectedSessionId: number | null;
+  connectedSessionIdRef: React.RefObject<number | null>;
   isConnected: boolean;
   reconnectAttempts: number;
   connect: () => void;
   disconnect: () => void;
   joinSession: (params: JoinSessionParams) => void;
   leaveSession: (sessionId: number) => void;
+  switchSession: (params: JoinSessionParams | null) => void;
   emit: (event: string, data: any) => void;
 }
 
@@ -45,6 +47,10 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
   const [reconnectAttempts, setReconnectAttempts] = useState<number>(0);
   const isSubscribedRef = useRef<boolean>(false);
   const configRef = useRef(socketConfig);
+
+  // Stores the last join params so the hook can auto-rejoin on
+  // reconnect or "notInSession" errors without the caller re-supplying them.
+  const rejoinParamsRef = useRef<JoinSessionParams | null>(null);
 
   // Keep config ref updated with latest callbacks
   useEffect(() => {
@@ -116,6 +122,13 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
     socket.on('connect', () => {
       setIsConnected(true);
       setReconnectAttempts(0);
+
+      // Auto-rejoin: if the socket reconnects after a drop and we're not
+      // currently in a session, rejoin the last session automatically.
+      if (!connectedSessionIdRef.current && rejoinParamsRef.current) {
+        joinSession(rejoinParamsRef.current);
+      }
+
       configRef.current.onConnect?.(socket);
     });
 
@@ -135,6 +148,10 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
 
         case 'notInSession':
           updateConnectedSessionId(null);
+          // Auto-rejoin on "notInSession" (e.g., server restart while transport survived)
+          if (rejoinParamsRef.current) {
+            joinSession(rejoinParamsRef.current);
+          }
           break;
       }
 
@@ -217,11 +234,41 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
       updateConnectedSessionId(null);
     }
 
+    rejoinParamsRef.current = null;
     unsubscribe(socketRef.current);
     socketRef.current.disconnect();
     socketRef.current = null;
     setIsConnected(false);
   }, [leaveSession, updateConnectedSessionId]);
+
+  /**
+   * Switch to a different session (or disconnect if params is null).
+   * Handles leaving the current session, connecting the socket if needed,
+   * and joining the new session. Also stores the join params so the hook
+   * can auto-rejoin on reconnect or "notInSession" errors.
+   */
+  const switchSession = useCallback((params: JoinSessionParams | null) => {
+    if (!params) {
+      rejoinParamsRef.current = null;
+      disconnect();
+      return;
+    }
+
+    if (params.sessionId === connectedSessionIdRef.current) return;
+
+    if (connectedSessionIdRef.current) {
+      leaveSession(connectedSessionIdRef.current);
+    }
+
+    rejoinParamsRef.current = params;
+
+    // Ensure the socket is created and connecting/connected.
+    // If already connected, connect() is a no-op.
+    // Then emit joinSession — if the socket is still connecting,
+    // socket.io will buffer the emit and send it once connected.
+    connect();
+    joinSession(params);
+  }, [connect, disconnect, joinSession, leaveSession]);
 
   useEffect(() => {
     return () => {
@@ -260,12 +307,14 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
   return {
     socket: socketRef.current,
     connectedSessionId,
+    connectedSessionIdRef,
     isConnected,
     reconnectAttempts,
     connect,
     disconnect,
     joinSession,
     leaveSession,
+    switchSession,
     emit,
   };
 }
