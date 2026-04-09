@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { INumberedSongPart, ISongPart, ISongPartLine, SongPartLineType } from "@/types";
 import { cn } from "./utils";
+import { api } from "./config";
 
 // ─── JSX rendering ────────────────────────────────────────────────────────────
 
@@ -104,12 +105,25 @@ export const capitalizeText = (text: string) => {
 
 // ─── Reference URL helpers ────────────────────────────────────────────────────
 
-export type ReferenceType = 'spotify' | 'youtube' | 'other';
+/** Checks if a hostname matches the given domain or is a subdomain of it. */
+function isHostname(hostname: string, domain: string): boolean {
+  const normalized = hostname.replace('www.', '');
+  return normalized === domain || normalized.endsWith(`.${domain}`);
+}
+
+export type ReferenceType =
+  | 'spotify'
+  | 'youtube'
+  | 'deezer'
+  | 'soundcloud'
+  | 'apple-music'
+  | 'tidal'
+  | 'other';
 
 export function getSpotifyTrackId(url: string): string | null {
   try {
     const parsed = new URL(url);
-    if (!parsed.hostname.includes('spotify.com')) return null;
+    if (!isHostname(parsed.hostname, 'spotify.com')) return null;
     const match = parsed.pathname.match(/\/track\/([a-zA-Z0-9]+)/);
     return match ? match[1] : null;
   } catch {
@@ -137,10 +151,155 @@ export function getYouTubeVideoId(url: string): string | null {
   }
 }
 
+export function getDeezerTrackId(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    if (!isHostname(parsed.hostname, 'deezer.com')) return null;
+    // Matches /track/{id} with optional locale prefix, e.g. /en/track/123 or /track/123
+    const match = parsed.pathname.match(/\/track\/(\d+)/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Recognizes Deezer share/short links (link.deezer.com/s/...).
+ * Returns the URL if it matches, or null.
+ */
+export function getDeezerShareUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.replace('www.', '');
+    if (hostname !== 'link.deezer.com') return null;
+    // Short links have a path like /s/{code}
+    if (!parsed.pathname.match(/^\/s\/.+/)) return null;
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Resolves a Deezer share/short link to a track ID by calling the API's
+ * resolve-redirect endpoint (needed because link.deezer.com blocks CORS).
+ */
+export async function resolveDeezerShareUrl(url: string, signal?: AbortSignal): Promise<string | null> {
+  try {
+    const timeoutMs = 20_000;
+    const abortController = new AbortController();
+
+    // Combine the caller's signal (if any) with a timeout signal
+    const timeoutId = setTimeout(() => abortController.abort(), timeoutMs);
+    signal?.addEventListener('abort', () => abortController.abort(), { once: true });
+
+    const response = await fetch(
+      `${api.url}/resolve-redirect?url=${encodeURIComponent(url)}`,
+      { signal: abortController.signal },
+    );
+    clearTimeout(timeoutId);
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const resolvedUrl: string | undefined = data?.url;
+    if (!resolvedUrl) return null;
+
+    return getDeezerTrackId(resolvedUrl);
+  } catch {
+    return null;
+  }
+}
+
+export function getSoundCloudUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.replace('www.', '');
+    if (hostname !== 'soundcloud.com') return null;
+    // Must have at least /user/track (two path segments after the leading /)
+    const segments = parsed.pathname.split('/').filter(Boolean);
+    if (segments.length < 2) return null;
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+export function getAppleMusicEmbedUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    if (!isHostname(parsed.hostname, 'music.apple.com')) return null;
+    // Must be an album (with optional ?i= for track) or song path
+    if (!parsed.pathname.match(/\/(album|song)\//)) return null;
+    // Transform music.apple.com → embed.music.apple.com
+    const embedUrl = new URL(url);
+    embedUrl.hostname = 'embed.music.apple.com';
+    return embedUrl.toString();
+  } catch {
+    return null;
+  }
+}
+
+export function getTidalTrackId(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.replace('www.', '');
+    if (hostname !== 'tidal.com' && hostname !== 'listen.tidal.com') return null;
+    // Matches /track/{id} or /browse/track/{id}
+    const match = parsed.pathname.match(/\/track\/(\d+)/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
 export function getReferenceType(url: string): ReferenceType {
   if (getSpotifyTrackId(url)) return 'spotify';
   if (getYouTubeVideoId(url)) return 'youtube';
+  if (getDeezerTrackId(url) || getDeezerShareUrl(url)) return 'deezer';
+  if (getSoundCloudUrl(url)) return 'soundcloud';
+  if (getAppleMusicEmbedUrl(url)) return 'apple-music';
+  if (getTidalTrackId(url)) return 'tidal';
   return 'other';
+}
+
+export type EmbedInfo =
+  | { type: 'spotify'; trackId: string }
+  | { type: 'youtube'; videoId: string }
+  | { type: 'deezer'; trackId?: string; shareUrl?: string }
+  | { type: 'soundcloud'; trackUrl: string }
+  | { type: 'apple-music'; embedUrl: string }
+  | { type: 'tidal'; trackId: string }
+  | { type: 'other' }
+  | null;
+
+/**
+ * Derives embed-specific parameters from a reference URL in a single pass.
+ * Returns null when there is no active URL.
+ */
+export function getEmbedInfo(url: string | null): EmbedInfo {
+  if (!url) return null;
+
+  const spotifyId = getSpotifyTrackId(url);
+  if (spotifyId) return { type: 'spotify', trackId: spotifyId };
+
+  const ytId = getYouTubeVideoId(url);
+  if (ytId) return { type: 'youtube', videoId: ytId };
+
+  const deezerId = getDeezerTrackId(url);
+  const deezerShare = getDeezerShareUrl(url);
+  if (deezerId || deezerShare) return { type: 'deezer', trackId: deezerId ?? undefined, shareUrl: deezerShare ?? undefined };
+
+  const scUrl = getSoundCloudUrl(url);
+  if (scUrl) return { type: 'soundcloud', trackUrl: scUrl };
+
+  const appleUrl = getAppleMusicEmbedUrl(url);
+  if (appleUrl) return { type: 'apple-music', embedUrl: appleUrl };
+
+  const tidalId = getTidalTrackId(url);
+  if (tidalId) return { type: 'tidal', trackId: tidalId };
+
+  return { type: 'other' };
 }
 
 // ─── Chord transposition ──────────────────────────────────────────────────────

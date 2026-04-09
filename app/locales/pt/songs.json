@@ -153,6 +153,7 @@
   },
   "references": {
     "play": "Reproduzir",
-    "stopPlaying": "Parar"
+    "stopPlaying": "Parar",
+    "embedFailed": "Falha ao carregar o player incorporado"
   }
 }
