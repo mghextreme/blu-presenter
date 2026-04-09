@@ -1,3 +1,8 @@
+// Load .env before any module imports so that process.env is populated
+// when decorators (e.g. @WebSocketGateway CORS) are evaluated at class-load time.
+import { config } from 'dotenv';
+config({ path: '../.env' });
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';

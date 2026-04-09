@@ -88,7 +88,15 @@ export class SessionsGateway implements OnGatewayConnection {
         return;
       }
 
-      await client.join(`session:${data.sessionId}`);
+      // Leave any other session rooms before joining the new one
+      const newRoom = `session:${data.sessionId}`;
+      for (const room of client.rooms) {
+        if (room.startsWith('session:') && room !== newRoom) {
+          await client.leave(room);
+        }
+      }
+
+      await client.join(newRoom);
 
       client.emit('joinedSession', {
         id: data.sessionId,
@@ -110,6 +118,14 @@ export class SessionsGateway implements OnGatewayConnection {
   ) {
     try {
       await client.leave(`session:${data.sessionId}`);
+
+      // Clear cached auth properties so the WebsocketGuard
+      // re-verifies on the next joinSession for a different session
+      if (client.sessionId === data.sessionId) {
+        client.sessionId = undefined;
+        client.orgId = undefined;
+        client.userId = undefined;
+      }
 
       client.emit('leftSession', { id: data.sessionId });
 

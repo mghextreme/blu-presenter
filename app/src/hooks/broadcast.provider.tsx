@@ -1,4 +1,4 @@
-import { createContext, useEffect, useMemo, useState } from "react"
+import { createContext, useEffect, useMemo, useRef, useState } from "react"
 import { BaseTheme, IBroadcastSession } from "@/types"
 import { useAuth } from "./useAuth"
 import { useController } from "./useController"
@@ -41,7 +41,23 @@ export function BroadcastProvider({
     selection,
   } = useController();
 
-  const [session, setSession] = useState<IBroadcastSession | undefined>(initialState.session);
+  const [session, setSession] = useState<IBroadcastSession | undefined>(() => {
+    try {
+      const saved = sessionStorage.getItem('broadcastSession');
+      return saved ? (JSON.parse(saved) as IBroadcastSession) : undefined;
+    } catch {
+      return undefined;
+    }
+  });
+
+  // Ref to always have the latest session value in callbacks (avoids stale closures)
+  const sessionRef = useRef(session);
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
+
+  // Local ref mirroring connectedSessionId to avoid stale closures in updateConnectedSession
+  const connectedSessionIdRef = useRef<number | null>(null);
 
   const {
     connectedSessionId,
@@ -55,11 +71,17 @@ export function BroadcastProvider({
       token: authSession?.access_token,
     },
     onConnect: () => {
-      if (session?.id && session.secret && session.orgId) {
+      // Handle reconnection: if the socket reconnects after a drop,
+      // rejoin the session. Skip if already in a session (connectedSessionIdRef
+      // is set), since the initial join is handled by updateConnectedSession.
+      if (connectedSessionIdRef.current) return;
+
+      const s = sessionRef.current;
+      if (s?.id && s.secret && s.orgId) {
         joinSession({
-          sessionId: session.id,
-          secret: session.secret,
-          orgId: session.orgId,
+          sessionId: s.id,
+          secret: s.secret,
+          orgId: s.orgId,
           token: authSession?.access_token,
         });
       }
@@ -70,27 +92,37 @@ export function BroadcastProvider({
         schedule: schedule ?? [],
       });
 
-      emit('setScheduleItem', {
-        sessionId: data.id,
-        scheduleItem: scheduleItem ?? {},
-      });
+      if (scheduleItem) {
+        emit('setScheduleItem', {
+          sessionId: data.id,
+          scheduleItem: scheduleItem,
+        });
 
-      emit('setSelection', {
-        sessionId: data.id,
-        selection: selection ?? {},
-      });
+        if (selection) {
+          emit('setSelection', {
+            sessionId: data.id,
+            selection: selection,
+          });
+        }
+      }
     },
     onError: (data) => {
-      if (data.code === 'notInSession' && session?.id && session.secret && session.orgId) {
+      const s = sessionRef.current;
+      if (data.code === 'notInSession' && s?.id && s.secret && s.orgId) {
         joinSession({
-          sessionId: session.id,
-          secret: session.secret,
-          orgId: session.orgId,
+          sessionId: s.id,
+          secret: s.secret,
+          orgId: s.orgId,
           token: authSession?.access_token,
         });
       }
     },
   });
+
+  // Keep local ref in sync with connectedSessionId state from the socket hook
+  useEffect(() => {
+    connectedSessionIdRef.current = connectedSessionId;
+  }, [connectedSessionId]);
 
   const updateConnectedSession = (toSession?: IBroadcastSession) => {
     if (!toSession?.id) {
@@ -98,13 +130,17 @@ export function BroadcastProvider({
       return;
     }
 
-    if (toSession.id === connectedSessionId) return;
+    if (toSession.id === connectedSessionIdRef.current) return;
 
-    if (connectedSessionId) {
-      leaveSession(connectedSessionId);
+    if (connectedSessionIdRef.current) {
+      leaveSession(connectedSessionIdRef.current);
     }
 
     if (toSession.secret && toSession.orgId) {
+      // Ensure the socket is created and connecting/connected.
+      // If already connected, connect() is a no-op.
+      // Then emit joinSession — if the socket is still connecting,
+      // socket.io will buffer the emit and send it once connected.
       connect();
       joinSession({
         sessionId: toSession.id,
@@ -115,15 +151,12 @@ export function BroadcastProvider({
     }
   };
 
-  try {
-    const savedBroadcastSession = sessionStorage.getItem('broadcastSession');
-    if (savedBroadcastSession) {
-      initialState.session = (JSON.parse(savedBroadcastSession) as IBroadcastSession) || initialState.session;
+  // On mount, connect to the session restored from sessionStorage
+  useEffect(() => {
+    if (session) {
+      updateConnectedSession(session);
     }
-  }
-  catch (e) {
-    // Ignore error
-  }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const externalSetSession = (newBroadcastSession?: IBroadcastSession) => {
     if (!newBroadcastSession) {
@@ -132,6 +165,8 @@ export function BroadcastProvider({
       sessionStorage.setItem('broadcastSession', JSON.stringify(newBroadcastSession));
     }
 
+    // Update the ref immediately so onConnect sees the new session
+    sessionRef.current = newBroadcastSession;
     setSession(newBroadcastSession);
     updateConnectedSession(newBroadcastSession);
   }
