@@ -43,11 +43,6 @@ interface SetSelectionDto {
 @SkipThrottle()
 @Injectable()
 @WebSocketGateway({
-  cors: {
-    origin: process.env.APP_BASE_URL,
-    methods: ['GET', 'POST'],
-    credentials: true,
-  },
   path: '/socket/sessions',
 })
 export class SessionsGateway implements OnGatewayConnection {
@@ -88,7 +83,15 @@ export class SessionsGateway implements OnGatewayConnection {
         return;
       }
 
-      await client.join(`session:${data.sessionId}`);
+      // Leave any other session rooms before joining the new one
+      const newRoom = `session:${data.sessionId}`;
+      for (const room of client.rooms) {
+        if (room.startsWith('session:') && room !== newRoom) {
+          await client.leave(room);
+        }
+      }
+
+      await client.join(newRoom);
 
       client.emit('joinedSession', {
         id: data.sessionId,
@@ -103,6 +106,7 @@ export class SessionsGateway implements OnGatewayConnection {
     }
   }
 
+  @UseGuards(OptionalWebsocketGuard)
   @SubscribeMessage('leaveSession')
   async handleLeaveRoom(
     @ConnectedSocket() client: AuthenticatedSocket,
@@ -110,6 +114,13 @@ export class SessionsGateway implements OnGatewayConnection {
   ) {
     try {
       await client.leave(`session:${data.sessionId}`);
+
+      // Clear cached sessionId so the WebsocketGuard
+      // re-verifies on the next joinSession for a different session.
+      // Keep userId and orgId — they are user-level, not session-level.
+      if (client.sessionId === data.sessionId) {
+        client.sessionId = undefined;
+      }
 
       client.emit('leftSession', { id: data.sessionId });
 

@@ -2,11 +2,16 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ISongReference } from "@/types";
 import { SpotifyCode } from "@/components/app/songs/spotify-code";
-import { getSpotifyTrackId, getYouTubeVideoId, getReferenceType } from "@/lib/songs";
+import {
+  getEmbedInfo,
+  getReferenceType,
+  resolveDeezerShareUrl,
+} from "@/lib/songs";
 import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOnSquareIcon";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
 import StopIcon from "@heroicons/react/24/solid/StopIcon";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 // Spotify iFrame API types
 interface SpotifyIFrameAPI {
@@ -117,10 +122,93 @@ function YouTubeEmbed({ videoId }: { videoId: string }) {
       src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
       width="100%"
       height={200}
-      frameBorder="0"
       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
       loading="lazy"
-      className="rounded-lg"
+      className="rounded-lg border-0"
+    />
+  );
+}
+
+function DeezerEmbed({ trackId, shareUrl }: { trackId?: string; shareUrl?: string }) {
+  const { t } = useTranslation("songs");
+  const [resolvedTrackId, setResolvedTrackId] = useState<string | null>(trackId ?? null);
+  const [loading, setLoading] = useState(!trackId && !!shareUrl);
+
+  useEffect(() => {
+    if (trackId || !shareUrl) return;
+
+    const controller = new AbortController();
+    setLoading(true);
+
+    resolveDeezerShareUrl(shareUrl, controller.signal).then((id) => {
+      if (controller.signal.aborted) return;
+      setResolvedTrackId(id);
+      setLoading(false);
+
+      if (!id) {
+        toast.error(t('references.embedFailed'));
+      }
+    });
+
+    return () => { controller.abort(); };
+  }, [trackId, shareUrl, t]);
+
+  if (loading) {
+    return <div className="h-20 flex items-center justify-center text-sm text-muted-foreground">Loading...</div>;
+  }
+
+  if (!resolvedTrackId) return null;
+
+  return (
+    <iframe
+      src={`https://widget.deezer.com/widget/auto/track/${resolvedTrackId}`}
+      width="100%"
+      height={80}
+      allow="autoplay; clipboard-write; encrypted-media"
+      loading="lazy"
+      className="rounded-lg border-0"
+    />
+  );
+}
+
+function SoundCloudEmbed({ trackUrl }: { trackUrl: string }) {
+  const encodedUrl = encodeURIComponent(trackUrl);
+  return (
+    <iframe
+      src={`https://w.soundcloud.com/player/?url=${encodedUrl}&auto_play=true&show_artwork=true&show_comments=false&visual=false`}
+      width="100%"
+      height={166}
+      allow="autoplay"
+      scrolling="no"
+      loading="lazy"
+      className="rounded-lg border-0"
+    />
+  );
+}
+
+function AppleMusicEmbed({ embedUrl }: { embedUrl: string }) {
+  return (
+    <iframe
+      src={embedUrl}
+      width="100%"
+      height={175}
+      allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
+      sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
+      loading="lazy"
+      className="rounded-lg border-0"
+    />
+  );
+}
+
+function TidalEmbed({ trackId }: { trackId: string }) {
+  return (
+    <iframe
+      src={`https://embed.tidal.com/tracks/${trackId}?layout=gridify`}
+      width="100%"
+      height={150}
+      allow="autoplay; encrypted-media"
+      loading="lazy"
+      className="rounded-lg border-0"
     />
   );
 }
@@ -137,9 +225,7 @@ export function ReferencePlayer({ references }: ReferencePlayerProps) {
     setActivePlayerUrl(prev => prev === url ? null : url);
   }, []);
 
-  const activeReferenceType = activePlayerUrl ? getReferenceType(activePlayerUrl) : null;
-  const activeSpotifyTrackId = activePlayerUrl ? getSpotifyTrackId(activePlayerUrl) : null;
-  const activeYouTubeVideoId = activePlayerUrl ? getYouTubeVideoId(activePlayerUrl) : null;
+  const embed = getEmbedInfo(activePlayerUrl);
 
   return (
     <div className="max-w-lg space-y-2 mt-3">
@@ -174,14 +260,38 @@ export function ReferencePlayer({ references }: ReferencePlayerProps) {
           </div>
         );
       })}
-      {activeReferenceType === 'spotify' && activeSpotifyTrackId && (
+      {embed?.type === 'spotify' && (
         <div className="mt-3">
-          <SpotifyEmbed key={activeSpotifyTrackId} trackId={activeSpotifyTrackId} />
+          <SpotifyEmbed key={embed.trackId} trackId={embed.trackId} />
         </div>
       )}
-      {activeReferenceType === 'youtube' && activeYouTubeVideoId && (
+      {embed?.type === 'youtube' && (
         <div className="mt-3 rounded-lg overflow-hidden">
-          <YouTubeEmbed key={activeYouTubeVideoId} videoId={activeYouTubeVideoId} />
+          <YouTubeEmbed key={embed.videoId} videoId={embed.videoId} />
+        </div>
+      )}
+      {embed?.type === 'deezer' && (
+        <div className="mt-3 rounded-lg overflow-hidden">
+          <DeezerEmbed
+            key={activePlayerUrl!}
+            trackId={embed.trackId}
+            shareUrl={embed.shareUrl}
+          />
+        </div>
+      )}
+      {embed?.type === 'soundcloud' && (
+        <div className="mt-3 rounded-lg overflow-hidden">
+          <SoundCloudEmbed key={embed.trackUrl} trackUrl={embed.trackUrl} />
+        </div>
+      )}
+      {embed?.type === 'apple-music' && (
+        <div className="mt-3 rounded-lg overflow-hidden">
+          <AppleMusicEmbed key={embed.embedUrl} embedUrl={embed.embedUrl} />
+        </div>
+      )}
+      {embed?.type === 'tidal' && (
+        <div className="mt-3 rounded-lg overflow-hidden">
+          <TidalEmbed key={embed.trackId} trackId={embed.trackId} />
         </div>
       )}
     </div>

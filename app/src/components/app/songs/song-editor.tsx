@@ -3,7 +3,7 @@ import { UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
-import { transposeLine, swapAccidentals, deriveAcronym, isBlockEqual } from "@/lib/songs";
+import { transposeLine, deriveAcronym, isBlockEqual } from "@/lib/songs";
 import { SongPartLineType } from "@/types";
 import { SongSchema } from "@/types/schemas/song.schema";
 import { SongEditorSeparator } from "@/components/app/songs/song-editor-separator";
@@ -529,7 +529,18 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
 
   // ─── Transpose / swap-accidentals ────────────────────────────
 
-  const [showFlats, setShowFlats] = useState(false);
+  const [showFlats, setShowFlats] = useState(() => {
+    let sharps = 0;
+    let flats = 0;
+    for (const part of partsRef.current) {
+      for (const line of part.lines) {
+        if (line.type !== 'chords') continue;
+        sharps += (line.content.match(/[A-G]#/g) ?? []).length;
+        flats += (line.content.match(/[A-G]b/g) ?? []).length;
+      }
+    }
+    return flats > sharps;
+  });
 
   const getTargetChordLineIndices = (): Set<number> => {
     const editor = editorRef.current;
@@ -604,15 +615,13 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
   };
 
   const handleTranspose = (semitones: number) => {
-    const useFlats = semitones < 0;
-    setShowFlats(useFlats);
-    applyToChordLines((line) => transposeLine(line, semitones, useFlats));
+    applyToChordLines((line) => transposeLine(line, semitones, showFlats));
   };
 
   const handleSwapAccidentals = () => {
     const next = !showFlats;
     setShowFlats(next);
-    applyToChordLines((line) => swapAccidentals(line), true);
+    applyToChordLines((line) => transposeLine(line, 0, next), true);
   };
 
   // ─── Initial render ───────────────────────────────────────────

@@ -1,5 +1,19 @@
 import { describe, it, expect } from 'vitest'
-import { parseSongText, transposeNote, transposeChordToken, transposeLine, swapAccidentals } from '../songs'
+import {
+  parseSongText,
+  transposeNote,
+  transposeChordToken,
+  transposeLine,
+  swapAccidentals,
+  getSpotifyTrackId,
+  getYouTubeVideoId,
+  getDeezerTrackId,
+  getDeezerShareUrl,
+  getSoundCloudUrl,
+  getAppleMusicEmbedUrl,
+  getTidalTrackId,
+  getReferenceType,
+} from '../songs'
 
 describe('parseSongText', () => {
   it('should parse a song with title, artist, and lyrics-only blocks', () => {
@@ -318,5 +332,242 @@ describe('swapAccidentals', () => {
 
   it('does not alter natural notes', () => {
     expect(swapAccidentals(' C  Am  F  G')).toBe(' C  Am  F  G');
+  });
+});
+
+// ─── Reference URL helpers ────────────────────────────────────────────────────
+
+describe('getSpotifyTrackId', () => {
+  it('extracts track ID from a standard URL', () => {
+    expect(getSpotifyTrackId('https://open.spotify.com/track/6rqhFgbbKwnb9MLmUQDhG6')).toBe('6rqhFgbbKwnb9MLmUQDhG6');
+  });
+
+  it('extracts track ID with query params', () => {
+    expect(getSpotifyTrackId('https://open.spotify.com/track/6rqhFgbbKwnb9MLmUQDhG6?si=abc123')).toBe('6rqhFgbbKwnb9MLmUQDhG6');
+  });
+
+  it('returns null for non-track Spotify URLs', () => {
+    expect(getSpotifyTrackId('https://open.spotify.com/album/4aawyAB9vmqN3uQ7FjRGTy')).toBeNull();
+    expect(getSpotifyTrackId('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M')).toBeNull();
+  });
+
+  it('returns null for non-Spotify URLs', () => {
+    expect(getSpotifyTrackId('https://www.youtube.com/watch?v=abc')).toBeNull();
+  });
+
+  it('returns null for invalid URLs', () => {
+    expect(getSpotifyTrackId('not-a-url')).toBeNull();
+  });
+});
+
+describe('getYouTubeVideoId', () => {
+  it('extracts video ID from standard youtube.com URL', () => {
+    expect(getYouTubeVideoId('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
+  });
+
+  it('extracts video ID from music.youtube.com', () => {
+    expect(getYouTubeVideoId('https://music.youtube.com/watch?v=dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
+  });
+
+  it('extracts video ID from youtu.be short URL', () => {
+    expect(getYouTubeVideoId('https://youtu.be/dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
+  });
+
+  it('returns null for youtube.com without v param', () => {
+    expect(getYouTubeVideoId('https://www.youtube.com/channel/UC123')).toBeNull();
+  });
+
+  it('returns null for empty youtu.be path', () => {
+    expect(getYouTubeVideoId('https://youtu.be/')).toBeNull();
+  });
+
+  it('returns null for non-YouTube URLs', () => {
+    expect(getYouTubeVideoId('https://vimeo.com/123456')).toBeNull();
+  });
+
+  it('returns null for invalid URLs', () => {
+    expect(getYouTubeVideoId('not-a-url')).toBeNull();
+  });
+});
+
+describe('getDeezerTrackId', () => {
+  it('extracts track ID from a standard URL', () => {
+    expect(getDeezerTrackId('https://www.deezer.com/track/3135556')).toBe('3135556');
+  });
+
+  it('extracts track ID with locale prefix', () => {
+    expect(getDeezerTrackId('https://www.deezer.com/en/track/3135556')).toBe('3135556');
+    expect(getDeezerTrackId('https://www.deezer.com/pt-br/track/3135556')).toBe('3135556');
+  });
+
+  it('extracts track ID with query params', () => {
+    expect(getDeezerTrackId('https://www.deezer.com/track/3135556?utm_source=test')).toBe('3135556');
+  });
+
+  it('returns null for non-track Deezer URLs', () => {
+    expect(getDeezerTrackId('https://www.deezer.com/album/302127')).toBeNull();
+    expect(getDeezerTrackId('https://www.deezer.com/playlist/1479458365')).toBeNull();
+  });
+
+  it('returns null for non-Deezer URLs', () => {
+    expect(getDeezerTrackId('https://www.spotify.com/track/123')).toBeNull();
+  });
+
+  it('returns null for invalid URLs', () => {
+    expect(getDeezerTrackId('not-a-url')).toBeNull();
+  });
+});
+
+describe('getDeezerShareUrl', () => {
+  it('returns the URL for a valid share link', () => {
+    const url = 'https://link.deezer.com/s/32TkH6hCqKdAEKktEboCJ';
+    expect(getDeezerShareUrl(url)).toBe(url);
+  });
+
+  it('returns null for standard deezer.com URLs', () => {
+    expect(getDeezerShareUrl('https://www.deezer.com/track/3135556')).toBeNull();
+  });
+
+  it('returns null for link.deezer.com without /s/ path', () => {
+    expect(getDeezerShareUrl('https://link.deezer.com/')).toBeNull();
+    expect(getDeezerShareUrl('https://link.deezer.com/other')).toBeNull();
+  });
+
+  it('returns null for non-Deezer URLs', () => {
+    expect(getDeezerShareUrl('https://www.spotify.com/track/123')).toBeNull();
+  });
+
+  it('returns null for invalid URLs', () => {
+    expect(getDeezerShareUrl('not-a-url')).toBeNull();
+  });
+});
+
+describe('getSoundCloudUrl', () => {
+  it('returns the URL for a valid track URL', () => {
+    const url = 'https://soundcloud.com/forss/flickermood';
+    expect(getSoundCloudUrl(url)).toBe(url);
+  });
+
+  it('returns the URL with www prefix', () => {
+    const url = 'https://www.soundcloud.com/artist/track-name';
+    expect(getSoundCloudUrl(url)).toBe(url);
+  });
+
+  it('returns the URL for nested paths (sets)', () => {
+    const url = 'https://soundcloud.com/artist/sets/album-name';
+    expect(getSoundCloudUrl(url)).toBe(url);
+  });
+
+  it('returns null for soundcloud.com root (no track)', () => {
+    expect(getSoundCloudUrl('https://soundcloud.com/')).toBeNull();
+  });
+
+  it('returns null for user-only URL (single segment)', () => {
+    expect(getSoundCloudUrl('https://soundcloud.com/forss')).toBeNull();
+  });
+
+  it('returns null for non-SoundCloud URLs', () => {
+    expect(getSoundCloudUrl('https://www.youtube.com/watch?v=abc')).toBeNull();
+  });
+
+  it('returns null for invalid URLs', () => {
+    expect(getSoundCloudUrl('not-a-url')).toBeNull();
+  });
+});
+
+describe('getAppleMusicEmbedUrl', () => {
+  it('transforms an album URL to embed URL', () => {
+    const url = 'https://music.apple.com/us/album/some-album/1440837641';
+    const result = getAppleMusicEmbedUrl(url);
+    expect(result).toBe('https://embed.music.apple.com/us/album/some-album/1440837641');
+  });
+
+  it('transforms an album URL with track param to embed URL', () => {
+    const url = 'https://music.apple.com/us/album/some-album/1440837641?i=1440837643';
+    const result = getAppleMusicEmbedUrl(url);
+    expect(result).toBe('https://embed.music.apple.com/us/album/some-album/1440837641?i=1440837643');
+  });
+
+  it('transforms a song URL to embed URL', () => {
+    const url = 'https://music.apple.com/us/song/some-song/1440837643';
+    const result = getAppleMusicEmbedUrl(url);
+    expect(result).toBe('https://embed.music.apple.com/us/song/some-song/1440837643');
+  });
+
+  it('returns null for non-album/song Apple Music URLs', () => {
+    expect(getAppleMusicEmbedUrl('https://music.apple.com/us/artist/some-artist/123')).toBeNull();
+    expect(getAppleMusicEmbedUrl('https://music.apple.com/us/playlist/some-playlist/pl.123')).toBeNull();
+  });
+
+  it('returns null for non-Apple Music URLs', () => {
+    expect(getAppleMusicEmbedUrl('https://www.spotify.com/track/123')).toBeNull();
+  });
+
+  it('returns null for invalid URLs', () => {
+    expect(getAppleMusicEmbedUrl('not-a-url')).toBeNull();
+  });
+});
+
+describe('getTidalTrackId', () => {
+  it('extracts track ID from tidal.com/browse/track URL', () => {
+    expect(getTidalTrackId('https://tidal.com/browse/track/251380837')).toBe('251380837');
+  });
+
+  it('extracts track ID from listen.tidal.com/track URL', () => {
+    expect(getTidalTrackId('https://listen.tidal.com/track/251380837')).toBe('251380837');
+  });
+
+  it('extracts track ID with query params', () => {
+    expect(getTidalTrackId('https://tidal.com/browse/track/251380837?u')).toBe('251380837');
+  });
+
+  it('returns null for non-track Tidal URLs', () => {
+    expect(getTidalTrackId('https://tidal.com/browse/album/251380835')).toBeNull();
+    expect(getTidalTrackId('https://tidal.com/browse/playlist/abc-123')).toBeNull();
+  });
+
+  it('returns null for non-Tidal URLs', () => {
+    expect(getTidalTrackId('https://www.spotify.com/track/123')).toBeNull();
+  });
+
+  it('returns null for invalid URLs', () => {
+    expect(getTidalTrackId('not-a-url')).toBeNull();
+  });
+});
+
+describe('getReferenceType', () => {
+  it('identifies Spotify URLs', () => {
+    expect(getReferenceType('https://open.spotify.com/track/6rqhFgbbKwnb9MLmUQDhG6')).toBe('spotify');
+  });
+
+  it('identifies YouTube URLs', () => {
+    expect(getReferenceType('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe('youtube');
+    expect(getReferenceType('https://youtu.be/dQw4w9WgXcQ')).toBe('youtube');
+    expect(getReferenceType('https://music.youtube.com/watch?v=dQw4w9WgXcQ')).toBe('youtube');
+  });
+
+  it('identifies Deezer URLs', () => {
+    expect(getReferenceType('https://www.deezer.com/track/3135556')).toBe('deezer');
+    expect(getReferenceType('https://www.deezer.com/en/track/3135556')).toBe('deezer');
+    expect(getReferenceType('https://link.deezer.com/s/32TkH6hCqKdAEKktEboCJ')).toBe('deezer');
+  });
+
+  it('identifies SoundCloud URLs', () => {
+    expect(getReferenceType('https://soundcloud.com/forss/flickermood')).toBe('soundcloud');
+  });
+
+  it('identifies Apple Music URLs', () => {
+    expect(getReferenceType('https://music.apple.com/us/album/some-album/1440837641?i=1440837643')).toBe('apple-music');
+    expect(getReferenceType('https://music.apple.com/us/song/some-song/1440837643')).toBe('apple-music');
+  });
+
+  it('identifies Tidal URLs', () => {
+    expect(getReferenceType('https://tidal.com/browse/track/251380837')).toBe('tidal');
+    expect(getReferenceType('https://listen.tidal.com/track/251380837')).toBe('tidal');
+  });
+
+  it('returns other for unrecognized URLs', () => {
+    expect(getReferenceType('https://www.example.com/song')).toBe('other');
+    expect(getReferenceType('https://bandcamp.com/track/something')).toBe('other');
   });
 });

@@ -153,6 +153,7 @@
   },
   "references": {
     "play": "Play",
-    "stopPlaying": "Stop playing"
+    "stopPlaying": "Stop playing",
+    "embedFailed": "Failed to load the embedded player"
   }
 }

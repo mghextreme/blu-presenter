@@ -2,7 +2,7 @@ import { createContext, useEffect, useMemo, useState } from "react"
 import { BaseTheme, IBroadcastSession } from "@/types"
 import { useAuth } from "./useAuth"
 import { useController } from "./useController"
-import { useSessionSocket } from "./useSessionSocket"
+import { useSessionSocket, JoinSessionParams } from "./useSessionSocket"
 
 type BroadcastProviderProps = {
   children: React.ReactNode
@@ -41,89 +41,66 @@ export function BroadcastProvider({
     selection,
   } = useController();
 
-  const [session, setSession] = useState<IBroadcastSession | undefined>(initialState.session);
+  const [session, setSession] = useState<IBroadcastSession | undefined>(() => {
+    try {
+      const saved = sessionStorage.getItem('broadcastSession');
+      return saved ? (JSON.parse(saved) as IBroadcastSession) : undefined;
+    } catch {
+      return undefined;
+    }
+  });
 
   const {
     connectedSessionId,
-    connect,
-    disconnect,
-    joinSession,
-    leaveSession,
+    switchSession,
     emit
   } = useSessionSocket({
     auth: {
       token: authSession?.access_token,
     },
-    onConnect: () => {
-      if (session?.id && session.secret && session.orgId) {
-        joinSession({
-          sessionId: session.id,
-          secret: session.secret,
-          orgId: session.orgId,
-          token: authSession?.access_token,
-        });
-      }
-    },
+    // Values used in onJoinedSession are always fresh because useSessionSocket
+    // calls callbacks via configRef, which is kept in sync every render.
     onJoinedSession: (data) => {
       emit('setSchedule', {
         sessionId: data.id,
         schedule: schedule ?? [],
       });
 
-      emit('setScheduleItem', {
-        sessionId: data.id,
-        scheduleItem: scheduleItem ?? {},
-      });
-
-      emit('setSelection', {
-        sessionId: data.id,
-        selection: selection ?? {},
-      });
-    },
-    onError: (data) => {
-      if (data.code === 'notInSession' && session?.id && session.secret && session.orgId) {
-        joinSession({
-          sessionId: session.id,
-          secret: session.secret,
-          orgId: session.orgId,
-          token: authSession?.access_token,
+      if (scheduleItem) {
+        emit('setScheduleItem', {
+          sessionId: data.id,
+          scheduleItem: scheduleItem,
         });
+
+        if (selection) {
+          emit('setSelection', {
+            sessionId: data.id,
+            selection: selection,
+          });
+        }
       }
     },
   });
 
-  const updateConnectedSession = (toSession?: IBroadcastSession) => {
-    if (!toSession?.id) {
-      disconnect();
-      return;
-    }
-
-    if (toSession.id === connectedSessionId) return;
-
-    if (connectedSessionId) {
-      leaveSession(connectedSessionId);
-    }
-
-    if (toSession.secret && toSession.orgId) {
-      connect();
-      joinSession({
-        sessionId: toSession.id,
-        secret: toSession.secret,
-        orgId: toSession.orgId,
+  const toJoinParams = (s?: IBroadcastSession): JoinSessionParams | null => {
+    if (s?.id && s.secret && s.orgId) {
+      return {
+        sessionId: s.id,
+        secret: s.secret,
+        orgId: s.orgId,
         token: authSession?.access_token,
-      });
+      };
     }
+    return null;
   };
 
-  try {
-    const savedBroadcastSession = sessionStorage.getItem('broadcastSession');
-    if (savedBroadcastSession) {
-      initialState.session = (JSON.parse(savedBroadcastSession) as IBroadcastSession) || initialState.session;
+  // On mount, connect to the session restored from sessionStorage
+  useEffect(() => {
+    const params = toJoinParams(session);
+    if (params) {
+      switchSession(params);
     }
-  }
-  catch (e) {
-    // Ignore error
-  }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const externalSetSession = (newBroadcastSession?: IBroadcastSession) => {
     if (!newBroadcastSession) {
@@ -133,7 +110,9 @@ export function BroadcastProvider({
     }
 
     setSession(newBroadcastSession);
-    updateConnectedSession(newBroadcastSession);
+
+    const params = toJoinParams(newBroadcastSession);
+    switchSession(params);
   }
 
   useEffect(() => {

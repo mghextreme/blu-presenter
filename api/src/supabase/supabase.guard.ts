@@ -84,7 +84,7 @@ export class WebsocketGuard implements CanActivate {
     const data = context.switchToWs().getData();
 
     if (!!client.userId && !!client.orgId && !!client.sessionId) {
-      if (!data.sessionId || data.sessionId === client.sessionId) {
+      if (!data.sessionId || (data.sessionId === client.sessionId && data.orgId === client.orgId)) {
         return true;
       }
     }
