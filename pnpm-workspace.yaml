@@ -1,10 +1,16 @@
+packages:
+  - api
+  - app
 onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@scarf/scarf'
+  - '@swc/core'
   - core-js
   - core-js-pure
   - esbuild
   - sharp
   - workerd
-
-packages:
-  - api
-  - app
+overrides:
+  cookie@<0.7.0: '>=0.7.0'
+  file-type@>=13.0.0 <21.3.1: '>=21.3.1'
+  file-type@>=20.0.0 <=21.3.1: '>=21.3.2'
