@@ -220,12 +220,13 @@ interface ReferencePlayerProps {
 
 export function ReferencePlayer({ references }: ReferencePlayerProps) {
   const { t } = useTranslation("songs");
-  const [activePlayerUrl, setActivePlayerUrl] = useState<string | null>(null);
+  const [activePlayerIndex, setActivePlayerIndex] = useState<number | null>(null);
 
-  const togglePlayer = useCallback((url: string) => {
-    setActivePlayerUrl(prev => prev === url ? null : url);
+  const togglePlayer = useCallback((index: number) => {
+    setActivePlayerIndex(prev => prev === index ? null : index);
   }, []);
 
+  const activePlayerUrl = activePlayerIndex !== null ? references[activePlayerIndex]?.url ?? null : null;
   const embed = getEmbedInfo(activePlayerUrl);
 
   return (
@@ -234,7 +235,7 @@ export function ReferencePlayer({ references }: ReferencePlayerProps) {
       {references.map((reference, ix) => {
         const refType = getReferenceType(reference.url);
         const isPlayable = refType !== 'other';
-        const isActive = activePlayerUrl === reference.url;
+        const isActive = activePlayerIndex === ix;
 
         return (
           <div className="flex items-center gap-x-2" key={`references-${ix}`}>
@@ -247,7 +248,7 @@ export function ReferencePlayer({ references }: ReferencePlayerProps) {
                 size="icon"
                 type="button"
                 title={isActive ? t('references.stopPlaying') : t('references.play')}
-                onClick={() => togglePlayer(reference.url)}
+                onClick={() => togglePlayer(ix)}
               >
                 {isActive ? <StopIcon className="size-4" /> : <PlayIcon className="size-4" />}
               </Button>
