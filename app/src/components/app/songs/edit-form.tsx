@@ -16,7 +16,7 @@ import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import { TFunction } from "i18next";
-import { SongEditor } from "@/components/app/songs/song-editor";
+import { SongEditor, SongEditorHandle } from "@/components/app/songs/song-editor";
 import { SongSchema } from "@/types/schemas/song.schema";
 import { z } from "zod";
 import { EditSongReferences } from "@/components/app/songs/edit-references";
@@ -68,6 +68,7 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
   const [isLoading, setLoading] = useState<boolean>(false);
   const lastFocusedBlockRef = useRef<number>(0);
   const lastFocusedLineRef = useRef<number>(0);
+  const songEditorRef = useRef<SongEditorHandle>(null);
 
   const form = useForm<z.infer<typeof SongSchema>>({
     resolver: zodResolver(SongSchema),
@@ -156,9 +157,11 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
         if (trimmed.length === 0) return line;
         return { ...line, content: capitalizeText(trimmed) };
       });
+      blocks[i] = { ...blocks[i], lines: updatedLines };
       form.setValue(`blocks.${i}.lines`, updatedLines);
     }
 
+    songEditorRef.current?.loadBlocks(blocks);
     checkUppercase();
   }
 
@@ -268,6 +271,7 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
 
         <div className="flex flex-col items-stretch min-w-md max-w-lg space-y-3 flex-1">
           <SongEditor
+            ref={songEditorRef}
             form={form}
             onCursorFocus={(block, line) => { lastFocusedBlockRef.current = block; lastFocusedLineRef.current = line; }}
           />
