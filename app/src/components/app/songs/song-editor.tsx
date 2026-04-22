@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
@@ -31,6 +31,10 @@ interface SongEditorProps {
   onCursorFocus?: (blockIndex: number, lineIndex: number) => void;
 }
 
+export interface SongEditorHandle {
+  loadBlocks: (blocks: z.infer<typeof SongSchema>['blocks']) => void;
+}
+
 function lineTypeIcon(type: SongPartLineType) {
   switch (type) {
     case 'chords': return <MusicalNoteIcon className="size-3" />;
@@ -41,7 +45,7 @@ function lineTypeIcon(type: SongPartLineType) {
 
 // ─── Component ──────────────────────────────────────────────────
 
-export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
+export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function SongEditor({ form, onCursorFocus }, ref) {
   const { t } = useTranslation("songs");
   const blocks = form.getValues('blocks') ?? [];
   const [parts, setParts] = useState<IEditorPart[]>(() => blocksToEditorParts(blocks));
@@ -130,6 +134,16 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
     isRendering.current = false;
   }, [saveCursor]);
 
+  // ─── External handle ──────────────────────────────────────────
+
+  useImperativeHandle(ref, () => ({
+    loadBlocks: (blocks) => {
+      const newParts = blocksToEditorParts(blocks);
+      setParts(newParts);
+      renderEditorDOM(newParts);
+    },
+  }), [renderEditorDOM]);
+
   // ─── Parse DOM back to state ──────────────────────────────────
 
   const parseEditorDOM = (): IEditorPart[] => {
@@ -205,7 +219,7 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
     const range = sel.getRangeAt(0);
     range.deleteContents();
 
-    const lines = text.split('\n');
+    const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
 
     if (lines.length <= 1) {
       // Single line: insert as plain text node (original behaviour)
@@ -746,4 +760,4 @@ export function SongEditor({ form, onCursorFocus }: SongEditorProps) {
       </div>
     </div>
   );
-}
+});

@@ -64,7 +64,9 @@
   "schedule": {
     "actions": {
       "restoreLastSession": "Restaurar última sessão",
-      "clear": "Limpar programação"
+      "clear": "Limpar programação",
+      "sort": "Reordenar itens",
+      "reorder": "Arraste para reordenar"
     },
     "items": {
       "expand": "Expandir",

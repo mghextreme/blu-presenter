@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   parseSongText,
+  capitalizeText,
   transposeNote,
   transposeChordToken,
   transposeLine,
@@ -14,6 +15,40 @@ import {
   getTidalTrackId,
   getReferenceType,
 } from '../songs'
+
+describe('capitalizeText', () => {
+  it('lowercases an all-uppercase single line and capitalizes the first letter', () => {
+    expect(capitalizeText('HELLO WORLD')).toBe('Hello world');
+  });
+
+  it('capitalizes the first letter of a lowercase string', () => {
+    expect(capitalizeText('hello world')).toBe('Hello world');
+  });
+
+  it('capitalizes after sentence-ending punctuation', () => {
+    expect(capitalizeText('HELLO WORLD. HOW ARE YOU?')).toBe('Hello world. How are you?');
+  });
+
+  it('capitalizes after exclamation marks', () => {
+    expect(capitalizeText('PRAISE HIM! GLORY TO GOD')).toBe('Praise him! Glory to god');
+  });
+
+  it('does not trim trailing whitespace (trimming is the caller\'s responsibility)', () => {
+    expect(capitalizeText('HELLO   ')).toBe('Hello   ');
+  });
+
+  it('handles a single word', () => {
+    expect(capitalizeText('ALELUIA')).toBe('Aleluia');
+  });
+
+  it('handles accented characters at the start', () => {
+    expect(capitalizeText('ÔMEGA')).toBe('Ômega');
+  });
+
+  it('preserves an already correctly cased string', () => {
+    expect(capitalizeText('Hello world')).toBe('Hello world');
+  });
+});
 
 describe('parseSongText', () => {
   it('should parse a song with title, artist, and lyrics-only blocks', () => {

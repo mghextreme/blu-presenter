@@ -119,12 +119,13 @@ function SpotifyEmbed({ trackId }: { trackId: string }) {
 function YouTubeEmbed({ videoId }: { videoId: string }) {
   return (
     <iframe
-      src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+      src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`}
       width="100%"
       height={200}
       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
       loading="lazy"
       className="rounded-lg border-0"
+      referrerPolicy="strict-origin-when-cross-origin"
     />
   );
 }
