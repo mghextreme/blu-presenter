@@ -578,24 +578,37 @@ export function parseSongText(fullText: string): ParsedSong {
   // Skip any remaining empty lines between header and body
   while (bodyStart < rawLines.length && rawLines[bodyStart].trim() === '') bodyStart++;
 
-  // Parse remaining lines into blocks, splitting on single empty lines
+  // Parse remaining lines into blocks, splitting on empty lines.
+  // 3 or more consecutive empty lines between parts inserts an extra empty block.
   const blocks: ISongPart[] = [];
   let currentLines: ISongPartLine[] = [];
+  let emptyLineCount = 0;
 
   for (let i = bodyStart; i < rawLines.length; i++) {
     const line = rawLines[i];
     const isEmpty = line.trim() === '';
 
     if (isEmpty) {
-      if (currentLines.length > 0) {
+      if (currentLines.length > 0 && emptyLineCount === 0) {
+        // First empty line after content — flush the current block
         blocks.push({
           id: blocks.length,
           lines: currentLines,
         });
         currentLines = [];
       }
+      emptyLineCount++;
       continue;
     }
+
+    // Non-empty line: if we had ≥3 empty lines since the last block, insert an empty block
+    if (emptyLineCount >= 3 && blocks.length > 0) {
+      blocks.push({
+        id: blocks.length,
+        lines: [],
+      });
+    }
+    emptyLineCount = 0;
 
     currentLines.push({
       type: detectLineType(line),
