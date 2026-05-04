@@ -833,11 +833,11 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
               suppressContentEditableWarning
               spellCheck={false}
               className={cn(
-                "font-source-code-pro text-sm leading-6 outline-none whitespace-pre-wrap",
+                "font-source-code-pro text-sm leading-6 outline-none whitespace-pre overflow-x-auto",
                 "px-3 py-2",
                 "border border-l-0 border-input rounded-r-md shadow-xs dark:bg-input/30",
                 "focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]",
-                "[&_.editor-line]:min-h-[1.5rem]",
+                "[&_.editor-line]:min-h-[1.5rem] [&_.editor-line]:whitespace-pre",
                 "[&_.editor-separator]:cursor-default",
               )}
               onInput={handleInput}
