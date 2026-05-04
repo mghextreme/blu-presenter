@@ -29,7 +29,7 @@ jobs:
 
     - name: Build the Docker image
       run: |
-        docker build -f ./api/Dockerfile ./api -t ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY }}:latest
+        docker build -f ./api/Dockerfile . -t ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY }}:latest
 
     - name: Push Docker image to ECR
       run: |
