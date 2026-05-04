@@ -213,117 +213,174 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
 
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const text = e.clipboardData.getData('text/plain');
+    const editor = editorRef.current;
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return;
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
+    if (!editor || !sel || sel.rangeCount === 0) return;
 
+    const text = e.clipboardData.getData('text/plain');
     const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    const range = sel.getRangeAt(0);
 
-    if (lines.length <= 1) {
-      // Single line: insert as plain text node (original behaviour)
+    // Helpers ────────────────────────────────────────────────────
+    const findLineEl = (n: Node | null): HTMLElement | null => {
+      while (n && n !== editor) {
+        if (n instanceof HTMLElement && n.classList.contains('editor-line')) return n;
+        n = n.parentNode;
+      }
+      return null;
+    };
+    // Compute the text offset of (container, offset) within lineEl
+    const offsetInLine = (lineEl: HTMLElement, container: Node, offset: number): number => {
+      if (container === lineEl) {
+        let acc = 0;
+        for (let i = 0; i < offset && i < lineEl.childNodes.length; i++) {
+          acc += lineEl.childNodes[i].textContent?.length ?? 0;
+        }
+        return acc;
+      }
+      if (!lineEl.contains(container)) return (lineEl.textContent ?? '').length;
+      let acc = 0;
+      for (const child of Array.from(lineEl.childNodes)) {
+        if (child === container || child.contains(container)) {
+          if (container.nodeType === Node.TEXT_NODE && child === container) {
+            acc += offset;
+          } else {
+            // container is nested deeper; walk down counting text
+            const walker = document.createTreeWalker(child, NodeFilter.SHOW_TEXT);
+            let tn: Node | null;
+            while ((tn = walker.nextNode())) {
+              if (tn === container) { acc += offset; break; }
+              acc += (tn as Text).length;
+            }
+          }
+          return acc;
+        }
+        acc += child.textContent?.length ?? 0;
+      }
+      return acc;
+    };
+
+    const startLineEl = findLineEl(range.startContainer);
+    const endLineEl = findLineEl(range.endContainer);
+
+    // Fallback: structure not recognized — let the browser handle plain text.
+    if (!startLineEl || !endLineEl) {
+      range.deleteContents();
       const textNode = document.createTextNode(text);
       range.insertNode(textNode);
       range.setStartAfter(textNode);
       range.collapse(true);
       sel.removeAllRanges();
       sel.addRange(range);
-    } else {
-      // Multi-line: find the editor-line we're inside and split it, then
-      // insert one editor-line div per pasted line.
-      const editor = editorRef.current;
-      if (!editor) return;
-
-      // Locate the editor-line element that contains the cursor
-      let lineEl: HTMLElement | null = null;
-      let node: Node | null = range.startContainer;
-      while (node && node !== editor) {
-        if (node instanceof HTMLElement && node.classList.contains('editor-line')) {
-          lineEl = node;
-          break;
-        }
-        node = node.parentNode;
-      }
-
-      if (!lineEl) {
-        // Fallback: plain text insert if structure not found
-        const textNode = document.createTextNode(text);
-        range.insertNode(textNode);
-        range.setStartAfter(textNode);
-        range.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      } else {
-        // Split the current line at the cursor offset to get before/after text
-        const fullText = lineEl.textContent ?? '';
-        // Determine cursor offset within the line's text
-        let cursorOffset = 0;
-        if (range.startContainer === lineEl) {
-          // cursor is directly on the element (e.g. before any child)
-          cursorOffset = 0;
-        } else if (range.startContainer.nodeType === Node.TEXT_NODE && lineEl.contains(range.startContainer)) {
-          // Walk text nodes up to the cursor
-          let offset = 0;
-          for (const child of Array.from(lineEl.childNodes)) {
-            if (child === range.startContainer) {
-              offset += range.startOffset;
-              break;
-            }
-            offset += child.textContent?.length ?? 0;
-          }
-          cursorOffset = offset;
-        } else {
-          cursorOffset = fullText.length;
-        }
-
-        const beforeText = fullText.slice(0, cursorOffset);
-        const afterText = fullText.slice(cursorOffset);
-
-        // Build the array of new line texts
-        const newLineTexts: string[] = [];
-        newLineTexts.push(beforeText + lines[0]);
-        for (let i = 1; i < lines.length - 1; i++) newLineTexts.push(lines[i]);
-        newLineTexts.push(lines[lines.length - 1] + afterText);
-
-        const partDiv = lineEl.parentElement;
-        if (!partDiv) return;
-
-        // Create new editor-line divs
-        const newDivs: HTMLElement[] = newLineTexts.map((lt) => {
-          const d = document.createElement('div');
-          d.className = lineEl!.className; // preserve type class for now; handleInput will re-detect
-          if (lt) d.textContent = lt;
-          else d.innerHTML = '<br>';
-          return d;
-        });
-
-        // Replace the original line element with the new ones
-        const lastDiv = newDivs[newDivs.length - 1];
-        lineEl.replaceWith(...newDivs);
-
-        // Place cursor at the end of the last inserted div
-        const newRange = document.createRange();
-        const lastText = lastDiv.firstChild;
-        if (lastText && lastText.nodeType === Node.TEXT_NODE) {
-          newRange.setStart(lastText, (lastText as Text).length - afterText.length);
-        } else {
-          newRange.setStart(lastDiv, 0);
-        }
-        newRange.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(newRange);
-      }
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+      return;
     }
 
-    // Dispatch an input event so handleInput runs
-    editorRef.current?.dispatchEvent(new InputEvent('input', { bubbles: true }));
+    const startOffset = offsetInLine(startLineEl, range.startContainer, range.startOffset);
+    const endOffset = offsetInLine(endLineEl, range.endContainer, range.endOffset);
+
+    const beforeText = (startLineEl.textContent ?? '').slice(0, startOffset);
+    const afterText = (endLineEl.textContent ?? '').slice(endOffset);
+
+    const startPart = startLineEl.parentElement;
+    const endPart = endLineEl.parentElement;
+    if (!startPart || !endPart) return;
+
+    // Single-line paste with collapsed selection inside one line: keep simple
+    // text-node insert so we don't disturb existing chord/lyric formatting.
+    if (lines.length <= 1 && startLineEl === endLineEl && range.collapsed) {
+      const textNode = document.createTextNode(text);
+      range.insertNode(textNode);
+      range.setStartAfter(textNode);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
+      return;
+    }
+
+    // Build the new line texts
+    const newLineTexts: string[] = [];
+    if (lines.length === 1) {
+      newLineTexts.push(beforeText + lines[0] + afterText);
+    } else {
+      newLineTexts.push(beforeText + lines[0]);
+      for (let i = 1; i < lines.length - 1; i++) newLineTexts.push(lines[i]);
+      newLineTexts.push(lines[lines.length - 1] + afterText);
+    }
+
+    // Remove all selected lines/parts/separators between startLineEl and endLineEl.
+    // For cross-part selections we merge endPart into startPart.
+    // Note: startLineEl is removed below via replaceWith(); here we only clear
+    // the elements *between* it and endLineEl, plus endLineEl itself when distinct.
+    if (startPart === endPart) {
+      if (startLineEl !== endLineEl) {
+        let cur: Element | null = startLineEl.nextElementSibling;
+        while (cur && cur !== endLineEl) {
+          const next: Element | null = cur.nextElementSibling;
+          cur.remove();
+          cur = next;
+        }
+        endLineEl.remove();
+      }
+    } else {
+      // Remove trailing siblings of startLineEl within startPart.
+      while (startLineEl.nextElementSibling) startLineEl.nextElementSibling.remove();
+
+      // Remove any parts/separators strictly between startPart and endPart.
+      let between: Element | null = startPart.nextElementSibling;
+      while (between && between !== endPart) {
+        const next: Element | null = between.nextElementSibling;
+        between.remove();
+        between = next;
+      }
+
+      // Remove leading siblings of endLineEl within endPart, then endLineEl itself.
+      while (endLineEl.previousElementSibling) endLineEl.previousElementSibling.remove();
+      const tailLines = Array.from(endPart.querySelectorAll<HTMLElement>('.editor-line'))
+        .filter((el) => el !== endLineEl);
+      endLineEl.remove();
+
+      // Move any lines that were after endLineEl into startPart, then drop endPart and the separator.
+      for (const l of tailLines) startPart.appendChild(l);
+      const sep = startPart.nextElementSibling;
+      if (sep && sep.hasAttribute(SEP_ATTR)) sep.remove();
+      endPart.remove();
+    }
+
+    // Create new editor-line divs (preserve startLineEl class; handleInput re-detects types).
+    const newDivs: HTMLElement[] = newLineTexts.map((lt) => {
+      const d = document.createElement('div');
+      d.className = startLineEl.className;
+      if (lt) d.textContent = lt;
+      else d.innerHTML = '<br>';
+      return d;
+    });
+
+    // Replace startLineEl with the new divs.
+    const lastDiv = newDivs[newDivs.length - 1];
+    startLineEl.replaceWith(...newDivs);
+
+    // Place cursor at end of pasted content within the last new div.
+    const newRange = document.createRange();
+    const lastText = lastDiv.firstChild;
+    if (lastText && lastText.nodeType === Node.TEXT_NODE) {
+      const t = lastText as Text;
+      newRange.setStart(t, Math.max(0, t.length - afterText.length));
+    } else {
+      newRange.setStart(lastDiv, 0);
+    }
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+
+    editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
   };
 
   // ─── Keydown: backspace merge at part boundary ────────────────
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== 'Backspace' && e.key !== 'Delete') return;
+    if (e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
     const editor = editorRef.current;
     const sel = window.getSelection();
     if (!editor || !sel || sel.rangeCount === 0) return;
@@ -339,6 +396,38 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
 
     const partDiv = lineNode.closest('.editor-part');
     if (!partDiv) return;
+
+    // ArrowUp on first line: keep caret inside the editor (move to start of line).
+    if (e.key === 'ArrowUp') {
+      const allLines = editor.querySelectorAll('.editor-line');
+      if (allLines.length > 0 && allLines[0] === lineNode) {
+        e.preventDefault();
+        const newRange = document.createRange();
+        const first = lineNode.firstChild;
+        if (first && first.nodeType === Node.TEXT_NODE) newRange.setStart(first, 0);
+        else newRange.setStart(lineNode, 0);
+        newRange.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+      }
+      return;
+    }
+
+    // ArrowDown on last line: keep caret inside the editor (move to end of line).
+    if (e.key === 'ArrowDown') {
+      const allLines = editor.querySelectorAll('.editor-line');
+      if (allLines.length > 0 && allLines[allLines.length - 1] === lineNode) {
+        e.preventDefault();
+        const newRange = document.createRange();
+        const last = lineNode.lastChild;
+        if (last && last.nodeType === Node.TEXT_NODE) newRange.setStart(last, (last as Text).length);
+        else newRange.setStart(lineNode, lineNode.childNodes.length);
+        newRange.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+      }
+      return;
+    }
 
     if (e.key === 'Backspace') {
       const isAtStart = range.startOffset === 0 && (
