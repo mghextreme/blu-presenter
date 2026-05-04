@@ -1,8 +1,8 @@
 services:
   api:
     build:
-      context: ./api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: api/Dockerfile
     container_name: api
     ports:
       - "3000:3000"
@@ -25,8 +25,8 @@ services:
 
   app:
     build:
-      context: ./app
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: app/Dockerfile
       args:
         - NODE_ENV=production
         - VITE_API_HOST=api
