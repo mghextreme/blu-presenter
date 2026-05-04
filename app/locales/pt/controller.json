@@ -8,7 +8,8 @@
   "plan": {
     "search": {
       "basic": "Básico",
-      "advanced": "Avançado"
+      "advanced": "Avançado",
+      "addedToSchedule": "\"{{title}}\" adicionado à programação"
     },
     "text": {
       "input": {
@@ -18,7 +19,8 @@
       "actions": {
         "add": "Adicionar",
         "open": "Abrir"
-      }
+      },
+      "addedToSchedule": "\"{{title}}\" adicionado à programação"
     },
     "comment": {
       "input": {
@@ -26,7 +28,8 @@
       },
       "actions": {
         "add": "Adicionar"
-      }
+      },
+      "addedToSchedule": "\"{{title}}\" adicionado à programação"
     },
     "configuration": {
       "autoAdvanceScheduleItem": "Avançar programação ao avançar slide no final de uma música",

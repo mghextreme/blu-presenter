@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { ISongWithRole } from "@/types";
 import { useServices } from "@/hooks/useServices";
@@ -42,7 +43,10 @@ export function PlanSearch({ showOpen = true }: PlanSearchProps) {
   const getButtonActions = (item: ISongWithRole) => {
     return (
       <>
-        <Button type="button" size="sm" title={t('schedule.items.addToSchedule')} onClick={() => addToSchedule(songsService.toScheduleSong(item))}>
+        <Button type="button" size="sm" title={t('schedule.items.addToSchedule')} onClick={() => {
+          addToSchedule(songsService.toScheduleSong(item));
+          toast.success(t('plan.search.addedToSchedule', { title: item.title }));
+        }}>
           <PlusIcon className="size-3"></PlusIcon>
         </Button>
         {showOpen && (
