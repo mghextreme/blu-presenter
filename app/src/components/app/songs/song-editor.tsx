@@ -159,15 +159,21 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
     const editor = editorRef.current;
     if (!editor) return;
 
-    // Detect double-empty-line in any part
+    // Detect double-empty-line in any part — only split when the empty pair
+    // is followed by more content. Trailing empty lines at the end of a part
+    // are allowed during editing (e.g., after pressing Enter to start typing).
     let needsSplit = false;
     for (const partDiv of Array.from(editor.querySelectorAll<HTMLElement>('.editor-part'))) {
       const kids = Array.from(partDiv.childNodes);
       for (let i = 0; i < kids.length - 1; i++) {
-        if ((kids[i].textContent ?? '').trim() === '' && (kids[i + 1]?.textContent ?? '').trim() === '') {
-          needsSplit = true;
-          break;
+        if ((kids[i].textContent ?? '').trim() !== '') continue;
+        if ((kids[i + 1]?.textContent ?? '').trim() !== '') continue;
+        // Require at least one non-empty sibling after the empty pair.
+        let hasContentAfter = false;
+        for (let j = i + 2; j < kids.length; j++) {
+          if ((kids[j].textContent ?? '').trim() !== '') { hasContentAfter = true; break; }
         }
+        if (hasContentAfter) { needsSplit = true; break; }
       }
       if (needsSplit) break;
     }
@@ -380,7 +386,7 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
   // ─── Keydown: backspace merge at part boundary ────────────────
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    if (e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowUp' && e.key !== 'ArrowDown' && e.key !== 'Enter') return;
     const editor = editorRef.current;
     const sel = window.getSelection();
     if (!editor || !sel || sel.rangeCount === 0) return;
@@ -426,6 +432,83 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
         sel.removeAllRanges();
         sel.addRange(newRange);
       }
+      return;
+    }
+
+    // Enter on a lyrics line that has a chords line directly above:
+    // split both lines at the same column so chords stay aligned.
+    if (e.key === 'Enter' && !e.shiftKey) {
+      const prevSibling = lineNode.previousElementSibling;
+      const isLyricsLine = !lineNode.classList.contains('text-primary')
+        && !lineNode.classList.contains('italic');
+      const prevIsChords = prevSibling instanceof HTMLElement
+        && prevSibling.classList.contains('editor-line')
+        && prevSibling.classList.contains('text-primary');
+      if (!isLyricsLine || !prevIsChords) return;
+
+      // Compute caret offset within the lyric line's text.
+      const lyricText = lineNode.textContent ?? '';
+      let offset = 0;
+      if (range.startContainer === lineNode) {
+        for (let i = 0; i < range.startOffset && i < lineNode.childNodes.length; i++) {
+          offset += lineNode.childNodes[i].textContent?.length ?? 0;
+        }
+      } else if (lineNode.contains(range.startContainer)) {
+        for (const child of Array.from(lineNode.childNodes)) {
+          if (child === range.startContainer) { offset += range.startOffset; break; }
+          offset += child.textContent?.length ?? 0;
+        }
+      } else {
+        offset = lyricText.length;
+      }
+
+      const chordEl = prevSibling as HTMLElement;
+      const chordText = chordEl.textContent ?? '';
+
+      const lyricBefore = lyricText.slice(0, offset);
+      const lyricAfter = lyricText.slice(offset);
+      const chordBefore = chordText.slice(0, offset);
+      const chordAfter = chordText.slice(offset);
+
+      // Only split the chord line when there's actual content to redistribute
+      // on both sides — i.e. text after the caret in the lyric AND chords past
+      // the caret column. Otherwise fall back to default Enter behavior.
+      if (lyricAfter.trim() === '' || chordAfter.trim() === '') return;
+
+      e.preventDefault();
+
+      // Update the original chord/lyric lines in place.
+      const setLineText = (el: HTMLElement, text: string) => {
+        if (text) el.textContent = text;
+        else el.innerHTML = '<br>';
+      };
+      setLineText(chordEl, chordBefore);
+      setLineText(lineNode, lyricBefore);
+
+      // Build new chord + lyric lines and insert after the original lyric line.
+      const newChordLine = document.createElement('div');
+      newChordLine.className = chordEl.className;
+      setLineText(newChordLine, chordAfter);
+
+      const newLyricLine = document.createElement('div');
+      newLyricLine.className = lineNode.className;
+      setLineText(newLyricLine, lyricAfter);
+
+      const after = lineNode.nextSibling;
+      partDiv.insertBefore(newChordLine, after);
+      partDiv.insertBefore(newLyricLine, after);
+
+      // Place caret at the start of the new lyric line.
+      const newRange = document.createRange();
+      const first = newLyricLine.firstChild;
+      if (first && first.nodeType === Node.TEXT_NODE) newRange.setStart(first, 0);
+      else newRange.setStart(newLyricLine, 0);
+      newRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
+
+      // Re-parse so state/form sync, types re-detected, and overlays refresh.
+      editor.dispatchEvent(new InputEvent('input', { bubbles: true }));
       return;
     }
 
