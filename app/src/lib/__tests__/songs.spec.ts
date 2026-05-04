@@ -283,6 +283,95 @@ Some lyrics here`;
     expect(result.blocks[1].lines[0].type).toBe('chords');
     expect(result.blocks[1].lines[1].type).toBe('lyrics');
   });
+
+  it('should NOT insert an empty block between parts separated by 1 empty line', () => {
+    // Use chord lines so the header detection does not consume lines as title/artist
+    const input = `C G Am F
+Verse line one
+
+G C F G
+Verse line two`;
+
+    const result = parseSongText(input);
+
+    expect(result.blocks).toHaveLength(2);
+    expect(result.blocks[0].lines).toHaveLength(2);
+    expect(result.blocks[1].lines).toHaveLength(2);
+  });
+
+  it('should NOT insert an empty block between parts separated by 2 empty lines', () => {
+    const input = `C G Am F
+Verse line one
+
+
+G C F G
+Verse line two`;
+
+    const result = parseSongText(input);
+
+    expect(result.blocks).toHaveLength(2);
+    expect(result.blocks[0].lines).toHaveLength(2);
+    expect(result.blocks[1].lines).toHaveLength(2);
+  });
+
+  it('should insert an empty block between parts separated by exactly 3 empty lines', () => {
+    const input = `C G Am F
+Verse line one
+
+
+
+G C F G
+Verse line two`;
+
+    const result = parseSongText(input);
+
+    expect(result.blocks).toHaveLength(3);
+    expect(result.blocks[0].lines).toHaveLength(2);
+    expect(result.blocks[1].lines).toHaveLength(0);
+    expect(result.blocks[2].lines).toHaveLength(2);
+  });
+
+  it('should insert an empty block between parts separated by more than 3 empty lines', () => {
+    const input = `C G Am F
+Verse line one
+
+
+
+
+G C F G
+Verse line two`;
+
+    const result = parseSongText(input);
+
+    expect(result.blocks).toHaveLength(3);
+    expect(result.blocks[0].lines).toHaveLength(2);
+    expect(result.blocks[1].lines).toHaveLength(0);
+    expect(result.blocks[2].lines).toHaveLength(2);
+  });
+
+  it('should insert multiple empty blocks when multiple 3+ empty line gaps exist', () => {
+    const input = `C G Am
+Part A
+
+
+
+G C F
+Part B
+
+
+
+Am F C
+Part C`;
+
+    const result = parseSongText(input);
+
+    expect(result.blocks).toHaveLength(5);
+    expect(result.blocks[0].lines).toHaveLength(2);
+    expect(result.blocks[1].lines).toHaveLength(0);
+    expect(result.blocks[2].lines).toHaveLength(2);
+    expect(result.blocks[3].lines).toHaveLength(0);
+    expect(result.blocks[4].lines).toHaveLength(2);
+  });
 });
 
 describe('transposeNote', () => {

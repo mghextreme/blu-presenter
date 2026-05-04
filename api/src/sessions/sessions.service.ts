@@ -7,6 +7,7 @@ import { Request as ExpRequest } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { OrganizationsService } from 'src/organizations/organizations.service';
 import { CreateSessionDto, UpdateSessionDto } from 'src/types';
+import { isRoleHigherOrEqualThan } from 'src/types/organization-role.type';
 
 
 @Injectable()
@@ -171,7 +172,16 @@ export class SessionsServiceWithRequest extends SessionsService {
 
     const user = this.request.user['internal'];
     userOrgs = await this.usersService.findUserOrganizations(user.id);
-    userOrgIds = userOrgs.map((org) => org.organization.id);
+    // Only include orgs where the user is a member or above. Guests must not see
+    // sessions in the cross-org listing — this mirrors the role checks on the
+    // per-org session endpoints (see SessionsController).
+    userOrgIds = userOrgs
+      .filter((org) => isRoleHigherOrEqualThan(org.role, 'member'))
+      .map((org) => org.organization.id);
+
+    if (userOrgIds.length === 0) {
+      return [];
+    }
 
     return await this.sessionsRepository.find({
       select: {

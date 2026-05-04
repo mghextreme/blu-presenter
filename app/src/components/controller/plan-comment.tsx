@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "sonner";
 import { useController } from "@/hooks/useController";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
@@ -40,10 +41,13 @@ export function PlanComment() {
   const add = async (values: z.infer<typeof textFormSchema>) => {
     const scheduleItem = getScheduleItem(values);
     addToSchedule(scheduleItem);
+    toast.success(t('plan.comment.addedToSchedule', { title: values.title }));
+    form.reset();
   }
 
   const handleAdd = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault();
+    e?.stopPropagation();
     form.handleSubmit(add)();
   }
 
@@ -64,7 +68,7 @@ export function PlanComment() {
           )}></FormField>
 
         <div className="flex justify-end space-x-2">
-          <Button type="button" title={t('plan.comment.actions.add')} onClick={handleAdd}>
+          <Button type="submit" title={t('plan.comment.actions.add')}>
             <PlusIcon className="size-3"></PlusIcon>
           </Button>
         </div>

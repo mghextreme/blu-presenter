@@ -8,7 +8,7 @@ import { useServices } from "@/hooks/useServices";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link, NavigateFunction, useLoaderData, useNavigate, useRevalidator } from "react-router-dom";
+import { Link, useLoaderData, useNavigate, useRevalidator } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
@@ -34,7 +34,7 @@ type EditOrganizationProps = {
   edit?: boolean
 }
 
-const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, navigate: NavigateFunction) => {
+const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, revalidate: () => void) => {
   const columns: ColumnDef<IOrganizationUser>[] = [
     {
       accessorKey: "name",
@@ -86,9 +86,15 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
                   size="sm"
                   variant={canDelete ? 'destructive' : 'secondary'}
                   title={t('actions.removeMember')}
-                  onClick={() => {
-                    organizationsService.removeMember(row.original.id);
-                    navigate("/app", { replace: true });
+                  onClick={async () => {
+                    try {
+                      await organizationsService.removeMember(row.original.id);
+                      revalidate();
+                    } catch (e: any) {
+                      toast.error(t('actions.removeMember'), {
+                        description: e?.message || '',
+                      });
+                    }
                   }}>
                   <TrashIcon className="size-3" />
                 </Button>
@@ -103,7 +109,7 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
   return columns;
 }
 
-const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, navigate: NavigateFunction) => {
+const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, revalidate: () => void) => {
   const copyLink = (id: number, secret: string) => {
     const link = `${window.location.origin}/signup?id=${id}&secret=${secret}`;
     navigator.clipboard.writeText(link)
@@ -179,9 +185,15 @@ const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, use
                 variant="destructive"
                 title={t('actions.removeInvitation')}
                 disabled={userRole !== 'owner' && userEmail !== row.original?.inviter?.email}
-                onClick={() => {
-                  organizationsService.cancelInvitation(row.original.id);
-                  navigate("/app", { replace: true });
+                onClick={async () => {
+                  try {
+                    await organizationsService.cancelInvitation(row.original.id);
+                    revalidate();
+                  } catch (e: any) {
+                    toast.error(t('actions.removeInvitation'), {
+                      description: e?.message || '',
+                    });
+                  }
                 }}>
                 <TrashIcon className="size-3" />
               </Button>
@@ -280,8 +292,8 @@ export function EditOrganization({
     }
   }
 
-  const columns = buildColumns(t, user?.email, loadedData?.role, organizationsService, navigate);
-  const invitationColumns = buildInvitationColumns(t, user?.email, loadedData?.role, organizationsService, navigate);
+  const columns = buildColumns(t, user?.email, loadedData?.role, organizationsService, revalidate);
+  const invitationColumns = buildInvitationColumns(t, user?.email, loadedData?.role, organizationsService, revalidate);
 
   useEffect(() => {
     if (edit) {

@@ -42,7 +42,16 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
       cell: ({ row }) => {
         return (
           <div className="flex justify-end space-x-2 -m-1">
-            {canEdit ? (
+            <Button
+              type="button"
+              size="sm"
+              title={t('actions.view')}
+              asChild>
+              <Link to={`/app/songs/${row.original.id}/view`}>
+                <EyeIcon className="size-3" />
+              </Link>
+            </Button>
+            {canEdit && (
               <Button
                 type="button"
                 size="sm"
@@ -50,16 +59,6 @@ const buildColumns = (t: TFunction, organization: IOrganization | null, onDelete
                 asChild>
                 <Link to={`/app/songs/${row.original.id}/edit`}>
                   <PencilIcon className="size-3" />
-                </Link>
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                size="sm"
-                title={t('actions.view')}
-                asChild>
-                <Link to={`/app/songs/${row.original.id}/view`}>
-                  <EyeIcon className="size-3" />
                 </Link>
               </Button>
             )}
