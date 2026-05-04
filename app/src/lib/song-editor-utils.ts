@@ -184,7 +184,8 @@ export function parseEditorDOM(
       }
 
       const existingLine = existing?.lines[lineIdx];
-      if (existingLine && existingLine.manuallySet && existingLine.content === content) {
+      if (existingLine && existingLine.manuallySet) {
+        // Preserve manually-set type even as the user edits the line's content.
         lines.push({ ...existingLine, content });
       } else {
         const shiftedManual = existing?.lines.find(
