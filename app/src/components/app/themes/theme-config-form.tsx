@@ -164,7 +164,7 @@ export function ThemeConfigForm({
           <AccordionItem value="comments">
             <AccordionTrigger className="text-lg font-medium py-2">{t("input.titles.comments")}</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2 pt-2">
-              <ThemeConfigFontForm form={form} name="comments" showTransform={false} />
+              <ThemeConfigFontForm form={form} name="comments" />
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="clock">
