@@ -133,13 +133,23 @@ export function ThemeConfigFontForm({
     }
 
     const curOffset = form.getValues(`config.${name}.shadow.offset`);
-    if (!curOffset) {
+    if (curOffset === undefined || curOffset === null) {
       form.setValue(`config.${name}.shadow.offset`, 8);
     }
 
     const curBlur = form.getValues(`config.${name}.shadow.blur`);
-    if (!curBlur) {
+    if (curBlur === undefined || curBlur === null) {
       form.setValue(`config.${name}.shadow.blur`, 0);
+    }
+
+    const curStrokeColor = form.getValues(`config.${name}.shadow.strokeColor`);
+    if (!curStrokeColor) {
+      form.setValue(`config.${name}.shadow.strokeColor`, "#000000");
+    }
+
+    const curStrokeSize = form.getValues(`config.${name}.shadow.strokeSize`);
+    if (curStrokeSize === undefined || curStrokeSize === null) {
+      form.setValue(`config.${name}.shadow.strokeSize`, 0);
     }
   }
 
@@ -253,35 +263,56 @@ export function ThemeConfigFontForm({
           )}></FormField>
       </div>
       {form.watch(`config.${name}.shadow.enabled`) && (
-        <div className="flex justify-between gap-2">
-          <ColorForm<z.infer<typeof ThemeSchema>>
-            form={form}
-            name={`config.${name}.shadow.color`}
-            label={t('input.config.shadowColor')}
-          />
+        <>
+          <div className="flex justify-between gap-2">
+            <ColorForm<z.infer<typeof ThemeSchema>>
+              form={form}
+              name={`config.${name}.shadow.color`}
+              label={t('input.config.shadowColor')}
+            />
 
-        <FormField
-          control={form.control}
-          name={`config.${name}.shadow.offset`}
-          render={({ field }) => (
-            <FormItem className="w-24">
-              <FormLabel>{t('input.config.shadowOffset')}</FormLabel>
-                <Input type="number" step="2" {...field} />
-              <FormMessage />
-            </FormItem>
-          )}></FormField>
+          <FormField
+            control={form.control}
+            name={`config.${name}.shadow.offset`}
+            render={({ field }) => (
+              <FormItem className="w-24">
+                <FormLabel>{t('input.config.shadowOffset')}</FormLabel>
+                  <Input type="number" step="2" {...field} />
+                <FormMessage />
+              </FormItem>
+            )}></FormField>
 
-        <FormField
-          control={form.control}
-          name={`config.${name}.shadow.blur`}
-          render={({ field }) => (
-            <FormItem className="w-24">
-              <FormLabel>{t('input.config.shadowBlur')}</FormLabel>
-                <Input type="number" step="5" {...field} />
-              <FormMessage />
-            </FormItem>
-          )}></FormField>
-        </div>
+          <FormField
+            control={form.control}
+            name={`config.${name}.shadow.blur`}
+            render={({ field }) => (
+              <FormItem className="w-24">
+                <FormLabel>{t('input.config.shadowBlur')}</FormLabel>
+                  <Input type="number" step="5" {...field} />
+                <FormMessage />
+              </FormItem>
+            )}></FormField>
+          </div>
+          
+          <div className="flex justify-between gap-2">
+            <ColorForm<z.infer<typeof ThemeSchema>>
+              form={form}
+              name={`config.${name}.shadow.strokeColor`}
+              label={t('input.config.strokeColor')}
+            />
+
+            <FormField
+              control={form.control}
+              name={`config.${name}.shadow.strokeSize`}
+              render={({ field }) => (
+                <FormItem className="w-24">
+                  <FormLabel>{t('input.config.strokeSize')}</FormLabel>
+                    <Input type="number" step="1" min="0" {...field} />
+                  <FormMessage />
+                </FormItem>
+              )}></FormField>
+          </div>
+        </>
       )}
     </>
   );

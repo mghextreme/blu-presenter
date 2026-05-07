@@ -6,6 +6,8 @@ export interface IShadowConfig {
   color?: string
   blur?: number
   offset?: number
+  strokeColor?: string
+  strokeSize?: number
 }
 
 export interface IFontConfig {

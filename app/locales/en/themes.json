@@ -49,6 +49,8 @@
       "shadowColor": "Shadow color",
       "shadowBlur": "Blur",
       "shadowOffset": "Offset",
+      "strokeColor": "Outline color",
+      "strokeSize": "Size",
       "commentsEnabled": "Enabled",
       "clockEnabled": "Enabled",
       "clockFormat": "Format",

@@ -49,6 +49,8 @@
       "shadowColor": "Cor da sombra",
       "shadowBlur": "Esmaecer",
       "shadowOffset": "Distância",
+      "strokeColor": "Cor do contorno",
+      "strokeSize": "Tamanho",
       "commentsEnabled": "Estado",
       "clockEnabled": "Estado",
       "clockFormat": "Formato",
