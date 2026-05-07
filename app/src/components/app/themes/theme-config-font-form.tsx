@@ -299,6 +299,7 @@ export function ThemeConfigFontForm({
               form={form}
               name={`config.${name}.shadow.strokeColor`}
               label={t('input.config.strokeColor')}
+              defaultValue="#000000"
             />
 
             <FormField
@@ -307,7 +308,13 @@ export function ThemeConfigFontForm({
               render={({ field }) => (
                 <FormItem className="w-24">
                   <FormLabel>{t('input.config.strokeSize')}</FormLabel>
-                    <Input type="number" step="1" min="0" {...field} />
+                    <Input
+                      type="number"
+                      step="1"
+                      min="0"
+                      {...field}
+                      value={field.value ?? 0}
+                    />
                   <FormMessage />
                 </FormItem>
               )}></FormField>
