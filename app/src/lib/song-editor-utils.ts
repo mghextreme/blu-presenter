@@ -179,6 +179,13 @@ export function parseEditorDOM(
     for (const l of p.lines) linesByKey.set(l.key, l);
   }
 
+  // Track keys that have already been claimed in this parse pass. The
+  // browser's default Enter behavior clones the current div (including
+  // its data-line-key attribute), producing two DOM lines with the same
+  // key. The first occurrence (original) keeps the key; later duplicates
+  // are treated as brand new lines with fresh keys and detected types.
+  const claimedKeys = new Set<number>();
+
   const result: IEditorPart[] = [];
   const partDivs = editor.querySelectorAll<HTMLElement>('.editor-part');
 
@@ -205,22 +212,30 @@ export function parseEditorDOM(
           child.className = lineClassName(detectLineType(content));
           const newKey = nextLineKey();
           child.setAttribute(LINE_ATTR, String(newKey));
+          claimedKeys.add(newKey);
           lines.push({ key: newKey, content, type: detectLineType(content), manuallySet: false });
         }
         continue;
       }
 
       const lineKeyStr = child.getAttribute(LINE_ATTR);
-      const existingLine = lineKeyStr !== null ? linesByKey.get(Number(lineKeyStr)) : undefined;
+      const lineKeyNum = lineKeyStr !== null ? Number(lineKeyStr) : NaN;
+      const existingLine = !Number.isNaN(lineKeyNum) ? linesByKey.get(lineKeyNum) : undefined;
+      const isDuplicate = !Number.isNaN(lineKeyNum) && claimedKeys.has(lineKeyNum);
 
-      if (existingLine) {
+      if (existingLine && !isDuplicate) {
         // Reuse stable identity. Type/manuallySet travel with the line; only
         // content tracks the live DOM.
+        claimedKeys.add(lineKeyNum);
         lines.push({ ...existingLine, content });
       } else {
-        // New line (browser-inserted via Enter, or paste-created without key).
+        // New line: either no key (browser/paste insertion) or a duplicate
+        // key (browser cloned the div on Enter). Assign a fresh identity
+        // and rewrite the attribute on the DOM element so subsequent
+        // parses match it correctly.
         const newKey = nextLineKey();
         child.setAttribute(LINE_ATTR, String(newKey));
+        claimedKeys.add(newKey);
         lines.push({ key: newKey, content, type: detectLineType(content), manuallySet: false });
       }
     }
