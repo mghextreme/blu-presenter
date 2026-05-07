@@ -8,6 +8,8 @@ export const ShadowSchema = z.object({
   color: ColorField.optional(),
   offset: z.coerce.number().min(0).optional(),
   blur: z.coerce.number().min(0).max(100).optional(),
+  strokeColor: ColorField.optional(),
+  strokeSize: z.coerce.number().min(0).max(100).optional(),
 });
 
 export const FontSchema = z.object({

@@ -4,6 +4,12 @@ import { detectLineType, isBlockEqual } from "@/lib/songs";
 // ─── Types ──────────────────────────────────────────────────────
 
 export interface IEditorLine {
+  /**
+   * Stable per-line identity. Allows the editor to anchor metadata
+   * (type, manuallySet) to a specific line of content rather than to
+   * a positional index that shifts on insert/delete.
+   */
+  key: number;
   content: string;
   type: SongPartLineType;
   manuallySet: boolean;
@@ -39,19 +45,27 @@ export interface GutterLine {
 
 // ─── Constants ──────────────────────────────────────────────────
 
-export const EMPTY_LINE: IEditorLine = { content: '', type: 'lyrics', manuallySet: false };
+export function createEmptyLine(): IEditorLine {
+  return { key: nextLineKey(), content: '', type: 'lyrics', manuallySet: false };
+}
 
 const LINE_TYPES: SongPartLineType[] = ['lyrics', 'chords', 'comments'];
 
 export const PART_ATTR = 'data-part-key';
 export const SEP_ATTR = 'data-separator';
+export const LINE_ATTR = 'data-line-key';
 
 // ─── Pure utility functions ─────────────────────────────────────
 
 let globalPartKeyCounter = 0;
+let globalLineKeyCounter = 0;
 
 export function nextPartKey(): number {
   return globalPartKeyCounter++;
+}
+
+export function nextLineKey(): number {
+  return globalLineKeyCounter++;
 }
 
 export function cycleLineType(current: SongPartLineType): SongPartLineType {
@@ -61,15 +75,15 @@ export function cycleLineType(current: SongPartLineType): SongPartLineType {
 
 export function blocksToEditorParts(blocks: ISongPart[]): IEditorPart[] {
   if (!blocks || blocks.length === 0) {
-    return [{ key: nextPartKey(), lines: [{ ...EMPTY_LINE }] }];
+    return [{ key: nextPartKey(), lines: [createEmptyLine()] }];
   }
   return blocks.map((block) => ({
     key: nextPartKey(),
     name: block.name,
     acronym: block.acronym,
     lines: block.lines.length > 0
-      ? block.lines.map((line) => ({ content: line.content, type: line.type, manuallySet: true }))
-      : [{ ...EMPTY_LINE }],
+      ? block.lines.map((line) => ({ key: nextLineKey(), content: line.content, type: line.type, manuallySet: true }))
+      : [createEmptyLine()],
   }));
 }
 
@@ -110,7 +124,7 @@ export function splitAtDoubleEmpty(input: IEditorPart[]): IEditorPart[] {
             key: isFirst ? part.key : nextPartKey(),
             name: isFirst ? part.name : undefined,
             acronym: isFirst ? part.acronym : undefined,
-            lines: buf.length > 0 ? buf : [{ ...EMPTY_LINE }],
+            lines: buf.length > 0 ? buf : [createEmptyLine()],
           });
           isFirst = false;
         }
@@ -124,7 +138,7 @@ export function splitAtDoubleEmpty(input: IEditorPart[]): IEditorPart[] {
       key: isFirst ? part.key : nextPartKey(),
       name: isFirst ? part.name : undefined,
       acronym: isFirst ? part.acronym : undefined,
-      lines: buf.length > 0 ? buf : [{ ...EMPTY_LINE }],
+      lines: buf.length > 0 ? buf : [createEmptyLine()],
     });
   }
 
@@ -146,11 +160,32 @@ export function splitAtDoubleEmpty(input: IEditorPart[]): IEditorPart[] {
 
 /**
  * Parses the contentEditable DOM back into IEditorPart[].
+ *
+ * Lines are matched to existing state by their `data-line-key` attribute,
+ * not by positional index. This means a manually-set type stays anchored
+ * to its line of content even when other lines are inserted or removed
+ * above it. Divs without a `data-line-key` (typically created by the
+ * browser's default Enter behavior or by paste) get a fresh key and have
+ * their type detected from content.
  */
 export function parseEditorDOM(
   editor: HTMLDivElement,
   currentParts: IEditorPart[],
 ): IEditorPart[] {
+  // Build an index of every existing line by key so we can match across
+  // parts (e.g. when a paste/Enter rearranges lines into different parts).
+  const linesByKey = new Map<number, IEditorLine>();
+  for (const p of currentParts) {
+    for (const l of p.lines) linesByKey.set(l.key, l);
+  }
+
+  // Track keys that have already been claimed in this parse pass. The
+  // browser's default Enter behavior clones the current div (including
+  // its data-line-key attribute), producing two DOM lines with the same
+  // key. The first occurrence (original) keeps the key; later duplicates
+  // are treated as brand new lines with fresh keys and detected types.
+  const claimedKeys = new Set<number>();
+
   const result: IEditorPart[] = [];
   const partDivs = editor.querySelectorAll<HTMLElement>('.editor-part');
 
@@ -161,12 +196,10 @@ export function parseEditorDOM(
     const partKey = existing?.key ?? nextPartKey();
     const lines: IEditorLine[] = [];
 
-    let lineIdx = 0;
     for (const child of Array.from(partDiv.childNodes)) {
       if (child.nodeType === Node.TEXT_NODE) {
         const c = child.textContent ?? '';
-        lines.push({ content: c, type: detectLineType(c), manuallySet: false });
-        lineIdx++;
+        lines.push({ key: nextLineKey(), content: c, type: detectLineType(c), manuallySet: false });
         continue;
       }
       if (!(child instanceof HTMLElement)) continue;
@@ -177,34 +210,41 @@ export function parseEditorDOM(
       if (!child.classList.contains('editor-line')) {
         if (child.tagName === 'DIV') {
           child.className = lineClassName(detectLineType(content));
-          lines.push({ content, type: detectLineType(content), manuallySet: false });
-          lineIdx++;
+          const newKey = nextLineKey();
+          child.setAttribute(LINE_ATTR, String(newKey));
+          claimedKeys.add(newKey);
+          lines.push({ key: newKey, content, type: detectLineType(content), manuallySet: false });
         }
         continue;
       }
 
-      const existingLine = existing?.lines[lineIdx];
-      if (existingLine && existingLine.manuallySet) {
-        // Preserve manually-set type even as the user edits the line's content.
+      const lineKeyStr = child.getAttribute(LINE_ATTR);
+      const lineKeyNum = lineKeyStr !== null ? Number(lineKeyStr) : NaN;
+      const existingLine = !Number.isNaN(lineKeyNum) ? linesByKey.get(lineKeyNum) : undefined;
+      const isDuplicate = !Number.isNaN(lineKeyNum) && claimedKeys.has(lineKeyNum);
+
+      if (existingLine && !isDuplicate) {
+        // Reuse stable identity. Type/manuallySet travel with the line; only
+        // content tracks the live DOM.
+        claimedKeys.add(lineKeyNum);
         lines.push({ ...existingLine, content });
       } else {
-        const shiftedManual = existing?.lines.find(
-          (l) => l.manuallySet && l.content === content,
-        );
-        if (shiftedManual) {
-          lines.push({ ...shiftedManual, content });
-        } else {
-          lines.push({ content, type: detectLineType(content), manuallySet: false });
-        }
+        // New line: either no key (browser/paste insertion) or a duplicate
+        // key (browser cloned the div on Enter). Assign a fresh identity
+        // and rewrite the attribute on the DOM element so subsequent
+        // parses match it correctly.
+        const newKey = nextLineKey();
+        child.setAttribute(LINE_ATTR, String(newKey));
+        claimedKeys.add(newKey);
+        lines.push({ key: newKey, content, type: detectLineType(content), manuallySet: false });
       }
-      lineIdx++;
     }
 
     result.push({
       key: partKey,
       name: existing?.name,
       acronym: existing?.acronym,
-      lines: lines.length > 0 ? lines : [{ ...EMPTY_LINE }],
+      lines: lines.length > 0 ? lines : [createEmptyLine()],
     });
   }
 
@@ -213,14 +253,14 @@ export function parseEditorDOM(
     for (const child of Array.from(editor.childNodes)) {
       if (child instanceof HTMLElement && child.hasAttribute(SEP_ATTR)) continue;
       const c = child.textContent ?? '';
-      lines.push({ content: c, type: detectLineType(c), manuallySet: false });
+      lines.push({ key: nextLineKey(), content: c, type: detectLineType(c), manuallySet: false });
     }
     const ex = currentParts[0];
     result.push({
       key: ex?.key ?? nextPartKey(),
       name: ex?.name,
       acronym: ex?.acronym,
-      lines: lines.length > 0 ? lines : [{ ...EMPTY_LINE }],
+      lines: lines.length > 0 ? lines : [createEmptyLine()],
     });
   }
 
@@ -256,6 +296,7 @@ export function renderEditorDOM(
     for (const line of part.lines) {
       const d = document.createElement('div');
       d.className = lineClassName(line.type);
+      d.setAttribute(LINE_ATTR, String(line.key));
       if (line.content) d.textContent = line.content;
       else d.innerHTML = '<br>';
       partDiv.appendChild(d);
@@ -269,6 +310,7 @@ export function renderEditorDOM(
     partDiv.className = 'editor-part';
     const d = document.createElement('div');
     d.className = 'editor-line';
+    d.setAttribute(LINE_ATTR, String(nextLineKey()));
     d.innerHTML = '<br>';
     partDiv.appendChild(d);
     editor.appendChild(partDiv);

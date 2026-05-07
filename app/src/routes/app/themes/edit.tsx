@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ControllerProvider } from "@/hooks/controller.provider";
 import { PreviewWindow } from "@/components/controller/preview-window";
 import { Controls } from "@/components/controller/controls";
-import { PreviewWindowTextForm } from "@/components/app/themes/preview-window-text-form";
+import { ThemePreviewSongForm } from "@/components/app/themes/theme-preview-song-form";
 import { ThemeSchema } from "@/types/schemas/theme.schema";
 import { ThemeConfigForm } from "@/components/app/themes/theme-config-form";
 
@@ -118,7 +118,8 @@ export function EditTheme({
                   <PreviewWindow theme={form.watch()} attachControllerMode={true} showThemeSelector={false} />
                 </div>
                 <Controls showBlank={false} className="px-0" />
-                <PreviewWindowTextForm baseTheme={form.watch('extends')} />
+                {/* Preview content editor: a song-editor-driven form that pushes a synthetic schedule song into the controller above. */}
+                <ThemePreviewSongForm baseTheme={form.watch('extends')} />
               </div>
               <div className="min-w-sm max-w-lg space-y-3 flex-1">
                 <FormField

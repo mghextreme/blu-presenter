@@ -12,7 +12,9 @@ import {
   SepPos,
   GutterLine,
   SEP_ATTR,
+  LINE_ATTR,
   nextPartKey,
+  nextLineKey,
   cycleLineType,
   blocksToEditorParts,
   editorPartsToBlocks,
@@ -159,21 +161,18 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
     const editor = editorRef.current;
     if (!editor) return;
 
-    // Detect double-empty-line in any part — only split when the empty pair
-    // is followed by more content. Trailing empty lines at the end of a part
-    // are allowed during editing (e.g., after pressing Enter to start typing).
+    // Detect double-empty-line in any part. Two consecutive empty lines
+    // always trigger a split into a new (possibly empty) block — including
+    // when the empty pair is at the end of a part. This matches the user's
+    // mental model: pressing Enter twice ends the current block.
     let needsSplit = false;
     for (const partDiv of Array.from(editor.querySelectorAll<HTMLElement>('.editor-part'))) {
       const kids = Array.from(partDiv.childNodes);
       for (let i = 0; i < kids.length - 1; i++) {
         if ((kids[i].textContent ?? '').trim() !== '') continue;
         if ((kids[i + 1]?.textContent ?? '').trim() !== '') continue;
-        // Require at least one non-empty sibling after the empty pair.
-        let hasContentAfter = false;
-        for (let j = i + 2; j < kids.length; j++) {
-          if ((kids[j].textContent ?? '').trim() !== '') { hasContentAfter = true; break; }
-        }
-        if (hasContentAfter) { needsSplit = true; break; }
+        needsSplit = true;
+        break;
       }
       if (needsSplit) break;
     }
@@ -355,9 +354,14 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
     }
 
     // Create new editor-line divs (preserve startLineEl class; handleInput re-detects types).
-    const newDivs: HTMLElement[] = newLineTexts.map((lt) => {
+    // The first new div inherits startLineEl's data-line-key so its identity
+    // (and any manually-set type) is preserved; subsequent divs get fresh keys.
+    const startLineKey = startLineEl.getAttribute(LINE_ATTR);
+    const newDivs: HTMLElement[] = newLineTexts.map((lt, idx) => {
       const d = document.createElement('div');
       d.className = startLineEl.className;
+      const keyAttr = idx === 0 && startLineKey !== null ? startLineKey : String(nextLineKey());
+      d.setAttribute(LINE_ATTR, keyAttr);
       if (lt) d.textContent = lt;
       else d.innerHTML = '<br>';
       return d;
@@ -486,12 +490,17 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
       setLineText(lineNode, lyricBefore);
 
       // Build new chord + lyric lines and insert after the original lyric line.
+      // Stamp fresh data-line-key on the new divs so parseEditorDOM treats them
+      // as new lines (with detected types) while the originals keep their keys
+      // (and any manually-set type) on the "before" halves.
       const newChordLine = document.createElement('div');
       newChordLine.className = chordEl.className;
+      newChordLine.setAttribute(LINE_ATTR, String(nextLineKey()));
       setLineText(newChordLine, chordAfter);
 
       const newLyricLine = document.createElement('div');
       newLyricLine.className = lineNode.className;
+      newLyricLine.setAttribute(LINE_ATTR, String(nextLineKey()));
       setLineText(newLyricLine, lyricAfter);
 
       const after = lineNode.nextSibling;

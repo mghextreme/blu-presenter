@@ -1,5 +1,6 @@
 import { ApiService } from "./api.service";
 import { ITheme } from "@/types"
+import { mergeTheme } from "@/lib/theme-config";
 
 export class ThemesService extends ApiService {
 
@@ -8,19 +9,21 @@ export class ThemesService extends ApiService {
   }
 
   public async getAll(orgId?: number): Promise<ITheme[]> {
-    return await this.getOrFetch({
+    const themes = await this.getOrFetch({
       queryKey: ['themes', 'all', orgId ?? null],
       queryFn: async () => await this.getRequest('/themes', {
         'Organization': orgId ? orgId.toString() : '',
       }) as ITheme[],
     });
+    return themes.map(mergeTheme);
   }
 
   public async getAllForUser(): Promise<ITheme[]> {
-    return await this.getOrFetch({
+    const themes = await this.getOrFetch({
       queryKey: ['themes', 'allForUser'],
       queryFn: async () => await this.getRequest('/themes/user/all') as ITheme[],
     });
+    return themes.map(mergeTheme);
   }
 
   public async getBySessionSecret(
@@ -37,17 +40,19 @@ export class ThemesService extends ApiService {
       params.append('theme', theme.toString());
     }
 
-    return await this.getOrFetch({
+    const themes = await this.getOrFetch({
       queryKey: ['themes', 'session', sessionId, theme ?? null],
       queryFn: async () => await this.getRequest(`/themes/session/${orgId}/${sessionId}?${params.toString()}`) as ITheme[],
     });
+    return themes.map(mergeTheme);
   }
 
   public async getById(themeId: number): Promise<ITheme | null> {
-    return await this.getOrFetch({
+    const theme = await this.getOrFetch({
       queryKey: ['themes', 'id', themeId],
       queryFn: async () => await this.getRequest(`/themes/${themeId}`) as ITheme,
     });
+    return theme ? mergeTheme(theme) : null;
   }
 
   public async add(value: ITheme): Promise<ITheme | null> {
