@@ -7,6 +7,7 @@ import {
   mockScheduleItems,
 } from '@/test/mockData/scheduleItems'
 import { IWindow } from '@/types'
+import { STORAGE_KEYS } from '@/lib/storage-keys'
 
 // Mock react-hotkeys-hook
 vi.mock('react-hotkeys-hook', () => ({
@@ -329,9 +330,9 @@ describe('ControllerProvider Integration Tests', () => {
       await user.click(getByText('Replace Schedule'))
 
       await waitFor(() => {
-        const sessionSaved = sessionStorage.getItem('controllerSchedule')
+        const sessionSaved = sessionStorage.getItem(STORAGE_KEYS.controllerSchedule)
         expect(sessionSaved).toBeNull()
-        const localSaved = localStorage.getItem('controllerSchedule')
+        const localSaved = localStorage.getItem(STORAGE_KEYS.controllerSchedule)
         expect(localSaved).toBeNull()
       })
     })
@@ -347,12 +348,12 @@ describe('ControllerProvider Integration Tests', () => {
       await user.click(getByText('Replace Schedule'))
 
       await waitFor(() => {
-        const sessionSaved = sessionStorage.getItem('controllerSchedule')
+        const sessionSaved = sessionStorage.getItem(STORAGE_KEYS.controllerSchedule)
         expect(sessionSaved).toBeTruthy()
         const sessionParsed = JSON.parse(sessionSaved!)
         expect(sessionParsed).toHaveLength(mockScheduleItems.length)
 
-        const localSaved = localStorage.getItem('controllerSchedule')
+        const localSaved = localStorage.getItem(STORAGE_KEYS.controllerSchedule)
         expect(localSaved).toBeTruthy()
         const localParsed = JSON.parse(localSaved!)
         expect(localParsed).toHaveLength(mockScheduleItems.length)
@@ -360,4 +361,3 @@ describe('ControllerProvider Integration Tests', () => {
     })
   })
 })
-

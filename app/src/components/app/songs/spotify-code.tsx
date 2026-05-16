@@ -38,6 +38,6 @@ export function SpotifyCode({
   const imgUrl = `https://scannables.scdn.co/uri/plain/svg/${backgroundColor}/${foregroundColor}/${imgWidth}/spotify:track:${trackBits[1]}`;
 
   return (
-    <img src={imgUrl} {...props} />
+    <img src={imgUrl} alt="Spotify code" {...props} />
   );
 }

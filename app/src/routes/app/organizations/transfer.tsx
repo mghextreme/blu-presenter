@@ -55,6 +55,7 @@ export function TransferOrganization() {
   }
 
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);
+  const memberSelectorListId = "transfer-member-selector-list";
 
   return (
     <div className="p-2 sm:p-8">
@@ -68,6 +69,8 @@ export function TransferOrganization() {
               <Button
                 variant="outline"
                 role="combobox"
+                aria-expanded={openRoleSelector}
+                aria-controls={memberSelectorListId}
                 className={cn(
                   "w-full justify-between",
                   !selectedMember && "text-muted-foreground"
@@ -85,7 +88,7 @@ export function TransferOrganization() {
               <Command>
                 <CommandInput placeholder={t('members.searchPlaceholder')} className="h-9" />
                 <CommandEmpty>{t('members.searchNoneFound')}</CommandEmpty>
-                <CommandList>
+                <CommandList id={memberSelectorListId}>
                   <CommandGroup>
                     {members.map((member) => (
                       <CommandItem

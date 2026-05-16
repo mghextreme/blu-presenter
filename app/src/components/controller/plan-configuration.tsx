@@ -85,6 +85,8 @@ export function PlanConfiguration() {
 
   const [openSessionSelector, setOpenSessionSelector] = useState<boolean>(false);
   const [openSessionUrlThemeSelector, setOpenSessionUrlThemeSelector] = useState<boolean>(false);
+  const sessionSelectorListId = "plan-configuration-session-selector-list";
+  const sessionUrlThemeSelectorListId = "plan-configuration-session-url-theme-selector-list";
 
   const defaultThemeOptions: {label: string; value: BaseTheme | number}[] = [
     {
@@ -191,6 +193,8 @@ export function PlanConfiguration() {
                     <Button
                       variant="outline"
                       role="combobox"
+                      aria-expanded={openSessionSelector}
+                      aria-controls={sessionSelectorListId}
                       className={cn(
                         "justify-start",
                         !field.value && "text-muted-foreground"
@@ -207,7 +211,7 @@ export function PlanConfiguration() {
                       placeholder={t('session.search')}
                       className="h-9"
                     />
-                    <CommandList>
+                    <CommandList id={sessionSelectorListId}>
                       <CommandEmpty>{t('session.notFound')}</CommandEmpty>
                       <CommandGroup>
                         <CommandItem
@@ -284,6 +288,8 @@ export function PlanConfiguration() {
                             <Button
                               variant="outline"
                               role="combobox"
+                              aria-expanded={openSessionUrlThemeSelector}
+                              aria-controls={sessionUrlThemeSelectorListId}
                               className={cn(
                                 "justify-start",
                                 !field.value && "text-muted-foreground"
@@ -300,7 +306,7 @@ export function PlanConfiguration() {
                               placeholder={t('session.urlTheme.search')}
                               className="h-9"
                             />
-                            <CommandList>
+                            <CommandList id={sessionUrlThemeSelectorListId}>
                               <CommandEmpty>{t('session.urlTheme.notFound')}</CommandEmpty>
                               <CommandGroup>
                                 <CommandItem

@@ -3,6 +3,7 @@ import { BaseTheme, IBroadcastSession } from "@/types"
 import { useAuth } from "./useAuth"
 import { useController } from "./useController"
 import { useSessionSocket, JoinSessionParams } from "./useSessionSocket"
+import { STORAGE_KEYS } from "@/lib/storage-keys"
 
 type BroadcastProviderProps = {
   children: React.ReactNode
@@ -43,7 +44,7 @@ export function BroadcastProvider({
 
   const [session, setSession] = useState<IBroadcastSession | undefined>(() => {
     try {
-      const saved = sessionStorage.getItem('broadcastSession');
+      const saved = sessionStorage.getItem(STORAGE_KEYS.broadcastSession) ?? sessionStorage.getItem(LEGACY_STORAGE_KEYS.broadcastSession);
       return saved ? (JSON.parse(saved) as IBroadcastSession) : undefined;
     } catch {
       return undefined;
@@ -104,9 +105,9 @@ export function BroadcastProvider({
 
   const externalSetSession = (newBroadcastSession?: IBroadcastSession) => {
     if (!newBroadcastSession) {
-      sessionStorage.removeItem('broadcastSession');
+      sessionStorage.removeItem(STORAGE_KEYS.broadcastSession);
     } else {
-      sessionStorage.setItem('broadcastSession', JSON.stringify(newBroadcastSession));
+      sessionStorage.setItem(STORAGE_KEYS.broadcastSession, JSON.stringify(newBroadcastSession));
     }
 
     setSession(newBroadcastSession);

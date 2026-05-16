@@ -19,6 +19,7 @@ export function LanguageToggler({
   const curLang = i18next.resolvedLanguage || 'en';
 
   const [open, setOpen] = useState(false);
+  const languageListId = "language-selector-list";
 
   const setValue = (lang: string) => {
     i18next.changeLanguage(lang);
@@ -44,6 +45,7 @@ export function LanguageToggler({
           variant={variant}
           role="combobox"
           aria-expanded={open}
+          aria-controls={languageListId}
           className="w-auto justify-between"
           title={t('language.title')}
         >
@@ -53,7 +55,7 @@ export function LanguageToggler({
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandGroup>
+          <CommandGroup id={languageListId}>
             {languages.map((lang) => (
               <CommandItem
                 key={lang.value}

@@ -58,7 +58,28 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
   }: EditSongFormProps,
   ref,
 ) => {
+  if (edit && (!formValues || !formValues.id)) {
+    return null;
+  }
 
+  return (
+    <EditSongFormContent
+      edit={edit}
+      formValues={formValues}
+      additionalSubmitButtons={additionalSubmitButtons}
+      ref={ref}
+    />
+  );
+});
+
+const EditSongFormContent = forwardRef<EditSongFormHandle, EditSongFormProps>((
+  {
+    edit = true,
+    formValues,
+    additionalSubmitButtons = null,
+  }: EditSongFormProps,
+  ref,
+) => {
   const { t } = useTranslation("songs");
 
   const navigate = useNavigate();
@@ -74,10 +95,6 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
     resolver: zodResolver(SongSchema),
     defaultValues: formValues,
   });
-
-  if (edit && (!formValues || !formValues.id)) {
-    return null;
-  }
 
   const onSubmit = async (values: z.infer<typeof SongSchema>) => {
     if (hasUppercaseWarning && !ignoreWarning) return;
@@ -117,6 +134,8 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
 
   const [ignoreWarning, setIgnoreWarning] = useState<boolean>(false);
   const [hasUppercaseWarning, setHasUppercaseWarning] = useState<boolean>(false);
+  const [openLanguageSelector, setOpenLanguageSelector] = useState<boolean>(false);
+  const languageListId = "song-language-selector-list";
   const checkUppercase = () => {
     const blocks = form.watch('blocks');
 
@@ -201,12 +220,14 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
             render={({ field }) => (
               <FormItem className="flex flex-col">
                 <FormLabel>{t('input.language')}</FormLabel>
-                <Popover>
+                <Popover open={openLanguageSelector} onOpenChange={setOpenLanguageSelector}>
                   <PopoverTrigger asChild>
                     <FormControl>
                       <Button
                         variant="outline"
                         role="combobox"
+                        aria-expanded={openLanguageSelector}
+                        aria-controls={languageListId}
                         className={cn(
                           "justify-start",
                           !field.value && "text-muted-foreground"
@@ -223,7 +244,7 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
                         placeholder={t('language.search')}
                         className="h-9"
                       />
-                      <CommandList>
+                      <CommandList id={languageListId}>
                         <CommandEmpty>{t('language.notFound')}</CommandEmpty>
                         <CommandGroup>
                           {supportedLanguagesMap.map((language) => (
@@ -232,6 +253,7 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
                               key={language.value}
                               onSelect={() => {
                                 form.setValue("language", language.value)
+                                setOpenLanguageSelector(false);
                               }}
                             >
                               <LanguageAndIcon t={t} language={language.value} />
@@ -284,6 +306,7 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
 });
 
 EditSongForm.displayName = 'EditSongForm';
+EditSongFormContent.displayName = 'EditSongFormContent';
 
 function SubmitButtons({
   t,

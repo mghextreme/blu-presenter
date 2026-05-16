@@ -8,6 +8,7 @@ import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import InboxArrowDownIcon from "@heroicons/react/24/solid/InboxArrowDownIcon"
 import ArrowsUpDownIcon from "@heroicons/react/20/solid/ArrowsUpDownIcon";
 import { ISortableScheduleItem } from "@/types";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 type SchedulePanelProps = {
   showRestore?: boolean;
@@ -30,13 +31,13 @@ export function SchedulePanel({ showRestore = true, showOpen = true }: ScheduleP
   let hasLastSession = false;
   let lastSessionScheduleParsed = [];
   if (showRestore) {
-    const lastSessionSchedule = localStorage.getItem("controllerSchedule");
+    const lastSessionSchedule = localStorage.getItem(STORAGE_KEYS.controllerSchedule);
     try {
       if (lastSessionSchedule !== null) {
         lastSessionScheduleParsed = JSON.parse(lastSessionSchedule);
       }
     } catch (e) {
-      localStorage.removeItem("controllerSchedule");
+      localStorage.removeItem(STORAGE_KEYS.controllerSchedule);
     }
     hasLastSession = lastSessionScheduleParsed.length > 0;
   }

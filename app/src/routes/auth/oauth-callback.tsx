@@ -4,6 +4,7 @@ import { useServices } from "@/hooks/useServices";
 import { useEffect } from "react";
 import { IAuthInvitationData, IExchangeCodeData } from "@/types/auth";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 export function OAuthCallback() {
 
@@ -20,7 +21,7 @@ export function OAuthCallback() {
 
   const { authService } = useServices();
 
-  const rawInvite = localStorage.getItem('invite');
+  const rawInvite = localStorage.getItem(STORAGE_KEYS.authInvite);
   let invite: IAuthInvitationData | undefined = undefined;
   if (rawInvite) {
     try {
@@ -42,7 +43,7 @@ export function OAuthCallback() {
 
     await authService.exchangeCodeForSession(payload);
     localStorage.removeItem('auth-token-code-verifier');
-    localStorage.removeItem('invite');
+    localStorage.removeItem(STORAGE_KEYS.authInvite);
 
     // Timeout prevents users from briefly seeing the React Router error layout
     setTimeout(async () => {

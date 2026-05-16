@@ -88,14 +88,35 @@ export function blocksToEditorParts(blocks: ISongPart[]): IEditorPart[] {
 }
 
 export function editorPartsToBlocks(parts: IEditorPart[]): ISongPart[] {
-  return parts.map((part, ix) => ({
-    id: ix,
-    name: part.name,
-    acronym: part.acronym,
-    lines: part.lines
-      .filter((l) => l.content.trim() !== '')
-      .map((l) => ({ type: l.type, content: l.content })),
-  })).filter((b) => b.lines.length > 0);
+  const blocks: ISongPart[] = [];
+  for (let ix = 0; ix < parts.length; ix++) {
+    const part = parts[ix];
+    const lines = compactSongLines(part.lines);
+    if (lines.length > 0) {
+      blocks.push({
+        id: ix,
+        name: part.name,
+        acronym: part.acronym,
+        lines,
+      });
+    }
+  }
+
+  return blocks;
+}
+
+function compactSongLines(lines: IEditorLine[]) {
+  const compacted: { type: SongPartLineType; content: string }[] = [];
+  for (const line of lines) {
+    if (line.content.trim() !== '') {
+      compacted.push({
+        type: line.type,
+        content: line.content,
+      });
+    }
+  }
+
+  return compacted;
 }
 
 export function lineClassName(type: SongPartLineType): string {
@@ -147,8 +168,8 @@ export function splitAtDoubleEmpty(input: IEditorPart[]): IEditorPart[] {
   for (let i = 0; i < result.length; i++) {
     if (result[i].name) continue;
     const match = result.find((other, j) => j !== i && !!other.name && isBlockEqual(
-      { lines: result[i].lines.filter(l => l.content.trim() !== '').map(l => ({ type: l.type, content: l.content })) },
-      { lines: other.lines.filter(l => l.content.trim() !== '').map(l => ({ type: l.type, content: l.content })) },
+      { lines: compactSongLines(result[i].lines) },
+      { lines: compactSongLines(other.lines) },
     ));
     if (match) {
       result[i] = { ...result[i], name: match.name, acronym: match.acronym };
@@ -185,6 +206,7 @@ export function parseEditorDOM(
   // key. The first occurrence (original) keeps the key; later duplicates
   // are treated as brand new lines with fresh keys and detected types.
   const claimedKeys = new Set<number>();
+  const currentPartsByKey = new Map(currentParts.map((part) => [String(part.key), part]));
 
   const result: IEditorPart[] = [];
   const partDivs = editor.querySelectorAll<HTMLElement>('.editor-part');
@@ -192,7 +214,7 @@ export function parseEditorDOM(
   for (let pi = 0; pi < partDivs.length; pi++) {
     const partDiv = partDivs[pi];
     const keyStr = partDiv.getAttribute(PART_ATTR);
-    const existing = currentParts.find(p => String(p.key) === keyStr);
+    const existing = keyStr !== null ? currentPartsByKey.get(keyStr) : undefined;
     const partKey = existing?.key ?? nextPartKey();
     const lines: IEditorLine[] = [];
 

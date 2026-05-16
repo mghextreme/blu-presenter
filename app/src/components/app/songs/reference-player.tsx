@@ -29,6 +29,7 @@ interface SpotifyEmbedController {
   togglePlay(): void;
   destroy(): void;
   addListener(event: string, callback: (e?: unknown) => void): void;
+  removeListener(event: string, callback: (e?: unknown) => void): void;
 }
 
 declare global {
@@ -78,6 +79,11 @@ function SpotifyEmbed({ trackId }: { trackId: string }) {
     if (!el) return;
 
     let destroyed = false;
+    const playWhenReady = () => {
+      if (!destroyed) {
+        controllerRef.current?.play();
+      }
+    };
 
     loadSpotifyIFrameApi().then((api) => {
       if (destroyed || !containerRef.current) return;
@@ -95,11 +101,7 @@ function SpotifyEmbed({ trackId }: { trackId: string }) {
             return;
           }
           controllerRef.current = controller;
-          controller.addListener("ready", () => {
-            if (!destroyed) {
-              controller.play();
-            }
-          });
+          controller.addListener("ready", playWhenReady);
         },
       );
     });
@@ -107,6 +109,7 @@ function SpotifyEmbed({ trackId }: { trackId: string }) {
     return () => {
       destroyed = true;
       if (controllerRef.current) {
+        controllerRef.current.removeListener("ready", playWhenReady);
         controllerRef.current.destroy();
         controllerRef.current = null;
       }
@@ -120,6 +123,7 @@ function YouTubeEmbed({ videoId }: { videoId: string }) {
   return (
     <iframe
       src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`}
+      title="YouTube reference player"
       width="100%"
       height={200}
       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
@@ -163,6 +167,7 @@ function DeezerEmbed({ trackId, shareUrl }: { trackId?: string; shareUrl?: strin
   return (
     <iframe
       src={`https://widget.deezer.com/widget/auto/track/${resolvedTrackId}`}
+      title="Deezer reference player"
       width="100%"
       height={80}
       allow="autoplay; clipboard-write; encrypted-media"
@@ -177,6 +182,7 @@ function SoundCloudEmbed({ trackUrl }: { trackUrl: string }) {
   return (
     <iframe
       src={`https://w.soundcloud.com/player/?url=${encodedUrl}&auto_play=true&show_artwork=true&show_comments=false&visual=false`}
+      title="SoundCloud reference player"
       width="100%"
       height={166}
       allow="autoplay"
@@ -191,6 +197,7 @@ function AppleMusicEmbed({ embedUrl }: { embedUrl: string }) {
   return (
     <iframe
       src={embedUrl}
+      title="Apple Music reference player"
       width="100%"
       height={175}
       allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
@@ -205,6 +212,7 @@ function TidalEmbed({ trackId }: { trackId: string }) {
   return (
     <iframe
       src={`https://embed.tidal.com/tracks/${trackId}?layout=gridify`}
+      title="Tidal reference player"
       width="100%"
       height={150}
       allow="autoplay; encrypted-media"

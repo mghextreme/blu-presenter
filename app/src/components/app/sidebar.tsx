@@ -8,6 +8,24 @@ import ChevronDoubleRightIcon from "@heroicons/react/24/solid/ChevronDoubleRight
 import { useAuth } from "@/hooks/useAuth";
 import { isRoleHigherOrEqualThan } from "@/types";
 
+function SidebarMenuItem({ to, content, disabled = false, onSelect }: { to: string, content: string, disabled?: boolean, onSelect: () => void }) {
+  return (
+    <li>
+      <Link
+        to={to}
+        onClick={onSelect}
+        title={content}
+        className={cn(
+          'group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background',
+          disabled && 'opacity-50 pointer-events-none',
+        )}
+      >
+        {content}
+      </Link>
+    </li>
+  )
+}
+
 export function AppSidebar() {
 
   const { t } = useTranslation("app");
@@ -17,24 +35,7 @@ export function AppSidebar() {
   const {
     organization,
   } = useAuth();
-
-  function SidebarMenuItem({ to, content, disabled = false }: { to: string, content: string, disabled?: boolean }) {
-    return (
-      <li>
-        <Link
-          to={to}
-          onClick={() => setExpanded(false)}
-          title={content}
-          className={cn(
-            'group relative flex items-center gap-2 rounded-sm px-4 py-2 font-medium hover:bg-background',
-            disabled && 'opacity-50 pointer-events-none',
-          )}
-        >
-          {content}
-        </Link>
-      </li>
-    )
-  }
+  const closeSidebar = () => setExpanded(false);
 
   return (
     <>
@@ -46,19 +47,19 @@ export function AppSidebar() {
           <ul className="flex flex-col gap-1.5">
             <h3 className="mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.menu')}</h3>
             <hr />
-            <SidebarMenuItem to="/app" content={t('menu.home')} />
-            <SidebarMenuItem to="/app/controller" content={t('menu.controller')} />
-            <SidebarMenuItem to="/app/discover" content={t('menu.discover')} />
+            <SidebarMenuItem to="/app" content={t('menu.home')} onSelect={closeSidebar} />
+            <SidebarMenuItem to="/app/controller" content={t('menu.controller')} onSelect={closeSidebar} />
+            <SidebarMenuItem to="/app/discover" content={t('menu.discover')} onSelect={closeSidebar} />
             <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.organization')}</h3>
             <hr />
-            <SidebarMenuItem to="/app/organization" content={t('menu.organization')} />
-            <SidebarMenuItem to="/app/songs" content={t('menu.songs')} />
-            <SidebarMenuItem to="/app/schedules" content={t('menu.schedules')} />
-            <SidebarMenuItem to="/app/themes" content={t('menu.themes')} />
-            <SidebarMenuItem to="/app/sessions" content={t('menu.sessions')} disabled={!isRoleHigherOrEqualThan(organization?.role, 'admin')} />
+            <SidebarMenuItem to="/app/organization" content={t('menu.organization')} onSelect={closeSidebar} />
+            <SidebarMenuItem to="/app/songs" content={t('menu.songs')} onSelect={closeSidebar} />
+            <SidebarMenuItem to="/app/schedules" content={t('menu.schedules')} onSelect={closeSidebar} />
+            <SidebarMenuItem to="/app/themes" content={t('menu.themes')} onSelect={closeSidebar} />
+            <SidebarMenuItem to="/app/sessions" content={t('menu.sessions')} disabled={!isRoleHigherOrEqualThan(organization?.role, 'admin')} onSelect={closeSidebar} />
             <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.account')}</h3>
             <hr />
-            <SidebarMenuItem to="/app/profile" content={t('menu.profile')} />
+            <SidebarMenuItem to="/app/profile" content={t('menu.profile')} onSelect={closeSidebar} />
           </ul>
           <Button variant="outline" className="fixed bottom-2 right-2 lg:hidden" onClick={() => setExpanded(false)}>
             <ChevronDoubleLeftIcon className="size-3" />
