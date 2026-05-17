@@ -36,5 +36,9 @@ export * from './oauth-redirect.dto';
 export * from './auth-invitation-data.dto';
 export * from './set-password.dto';
 export * from './user-identity.dto';
+export * from './forgot-password.dto';
+export * from './reset-password.dto';
+export * from './otp-sign-in-request.dto';
+export * from './otp-sign-in-verify.dto';
 
 export * from './authenticated-socket.interface';
