@@ -66,3 +66,27 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 })
 
+// jsdom doesn't ship ResizeObserver; input-otp (and other observers) need it.
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+Object.defineProperty(window, 'ResizeObserver', {
+  writable: true,
+  value: ResizeObserverMock,
+})
+Object.defineProperty(globalThis, 'ResizeObserver', {
+  writable: true,
+  value: ResizeObserverMock,
+})
+
+// jsdom doesn't implement elementFromPoint; input-otp schedules an inspector
+// that touches it. Stub returns null so the inspector becomes a no-op.
+if (typeof document !== 'undefined' && !document.elementFromPoint) {
+  Object.defineProperty(document, 'elementFromPoint', {
+    writable: true,
+    value: () => null,
+  })
+}
+
