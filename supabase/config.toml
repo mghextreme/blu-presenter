@@ -116,14 +116,14 @@ max_frequency = "1m0s"
 
 # Password reset email (link-based recovery flow).
 [auth.email.template.recovery]
-subject = "Reset your BluPresenter password"
+subject = "BluPresenter - Redefinir senha / Reset password"
 content_path = "./supabase/templates/recovery.html"
 
 # Passwordless sign-in email (OTP code). The default Supabase magic-link
 # template emphasizes the link; ours emphasizes the {{ .Token }} 6-digit code
 # because we use it for OTP login, not magic links.
 [auth.email.template.magic_link]
-subject = "Your BluPresenter sign-in code"
+subject = "BluPresenter - Código de acesso / Sign-in code"
 content_path = "./supabase/templates/magic-link.html"
 
 [auth.sms]

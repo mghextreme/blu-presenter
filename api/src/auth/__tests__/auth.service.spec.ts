@@ -122,7 +122,10 @@ describe('AuthService — password reset & OTP login', () => {
       const fetchMock = jest.fn().mockResolvedValue({ ok: true });
       global.fetch = fetchMock as any;
 
-      await service.resetPassword({ newPassword: 'newSecret1' });
+      await service.resetPassword({
+        accessToken: 'recovery-jwt',
+        newPassword: 'newSecret1',
+      });
 
       expect(fetchMock).toHaveBeenCalledWith(
         `${SUPABASE_URL}/auth/v1/user`,
@@ -148,7 +151,10 @@ describe('AuthService — password reset & OTP login', () => {
       }) as any;
 
       await expect(
-        service.resetPassword({ newPassword: 'newSecret1' }),
+        service.resetPassword({
+          accessToken: 'recovery-jwt',
+          newPassword: 'newSecret1',
+        }),
       ).rejects.toBeInstanceOf(ForbiddenException);
     });
   });

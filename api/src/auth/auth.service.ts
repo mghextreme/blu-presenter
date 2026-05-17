@@ -480,7 +480,7 @@ export class AuthService {
    * active session on success.
    */
   async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<void> {
-    const jwt = this.extractJwt();
+    const jwt = resetPasswordDto.accessToken;
 
     const response = await fetch(`${this.supabaseUrl}/auth/v1/user`, {
       method: 'PUT',

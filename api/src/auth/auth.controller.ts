@@ -140,6 +140,7 @@ export class AuthController {
     await this.authService.forgotPassword(dto);
   }
 
+  @Public()
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('password/reset')
   async resetPassword(@Body() dto: ResetPasswordDto): Promise<void> {
