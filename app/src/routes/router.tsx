@@ -25,6 +25,7 @@ import { TermsAndConditions } from "./terms-and-conditions";
 
 import { SignUp } from "./auth/signup";
 import { Login } from "./auth/login";
+import { ForgotPassword } from "./auth/forgot-password";
 import { OAuthCallback } from "./auth/oauth-callback";
 import { OAuthLinkCallback } from "./auth/oauth-link-callback";
 
@@ -83,6 +84,7 @@ export function AppRouter() {
         <Route element={<AuthLayout />} errorElement={<ErrorLayout />} loader={(loader: LoaderFunctionArgs) => authLoader({ request: loader.request, organizationsService: services.organizationsService })}>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
           <Route path="/oauth/link-callback" element={<OAuthLinkCallback />} />
         </Route>

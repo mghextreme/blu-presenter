@@ -22,6 +22,7 @@ import { useServices } from "@/hooks/useServices";
 import { toast } from "sonner";
 import { ApiError } from "@/types";
 import { SocialLogin } from "./social-login";
+import { SupportedLocale } from "@/types/auth";
 
 import { captcha } from "@/lib/config";
 
@@ -35,6 +36,7 @@ const formSchema = z.object({
 export function LoginForm({ className, ...props }: LoginFormProps) {
 
   const { t } = useTranslation("auth");
+  const { i18n } = useTranslation();
   const { email: invitedEmail, id, secret } = useInvitation();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -74,6 +76,7 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
         ...values,
         ...inviteValues,
         captchaToken,
+        locale: i18n.language as SupportedLocale,
       });
     } catch (e: unknown) {
       const error = e as ApiError;
@@ -124,6 +127,12 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
                 <FormMessage />
               </FormItem>
             )}></FormField>
+
+          <div className="flex justify-end">
+            <Button variant="link" className="text-xs px-0 h-auto text-muted-foreground" asChild>
+              <Link to="/forgot-password">{t('signIn.forgotPassword')}</Link>
+            </Button>
+          </div>
 
           {captcha.enabled && (
             <Turnstile
