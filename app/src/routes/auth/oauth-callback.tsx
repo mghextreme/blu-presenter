@@ -2,13 +2,13 @@ import { useTranslation } from "react-i18next";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import { useServices } from "@/hooks/useServices";
 import { useEffect } from "react";
-import { IAuthInvitationData, IExchangeCodeData } from "@/types/auth";
+import { IAuthInvitationData, IExchangeCodeData, SupportedLocale } from "@/types/auth";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 export function OAuthCallback() {
 
-  const { t } = useTranslation("auth");
+  const { t, i18n } = useTranslation("auth");
   const navigate = useNavigate();
 
   const [params] = useSearchParams();
@@ -35,6 +35,7 @@ export function OAuthCallback() {
     const payload = {
       code,
       codeVerifier,
+      locale: i18n.language as SupportedLocale,
     } as IExchangeCodeData;
 
     if (invite) {

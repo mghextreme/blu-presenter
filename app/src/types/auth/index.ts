@@ -47,6 +47,7 @@ export interface IExchangeCodeData {
   code: string;
   codeVerifier: string;
   invite?: IAuthInvitationData;
+  locale?: SupportedLocale;
 }
 
 export interface IUserIdentity {

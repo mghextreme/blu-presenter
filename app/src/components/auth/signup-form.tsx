@@ -22,6 +22,7 @@ import { useServices } from "@/hooks/useServices";
 import { toast } from "sonner";
 import { ApiError } from "@/types";
 import { SocialLogin } from "./social-login";
+import { SupportedLocale } from "@/types/auth";
 
 import { captcha } from "@/lib/config";
 
@@ -30,6 +31,7 @@ interface SignUpFormProps extends HTMLAttributes<HTMLDivElement> {}
 export function SignUpForm({ className, ...props }: SignUpFormProps) {
 
   const { t } = useTranslation("auth");
+  const { i18n } = useTranslation();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { isLoggedIn } = useAuth();
@@ -84,6 +86,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
         ...values,
         ...inviteValues,
         captchaToken,
+        locale: i18n.language as SupportedLocale,
       });
     } catch (e: unknown) {
       const error = e as ApiError;

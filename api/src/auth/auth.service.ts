@@ -145,7 +145,11 @@ export class AuthService {
     throw new BadRequestException(`Provider ${provider} not supported for sign in`);
   }
 
-  async exchangeCodeForSession(code: string, codeVerifier: string): Promise<AccessTokenDto> {
+  async exchangeCodeForSession(
+    code: string,
+    codeVerifier: string,
+    locale?: string,
+  ): Promise<AccessTokenDto> {
     const response = await fetch(
       `${this.supabaseUrl}/auth/v1/token?grant_type=pkce`,
       {
@@ -164,6 +168,10 @@ export class AuthService {
     }
 
     const data = await response.json();
+
+    // Keep user_metadata.locale current so future OTP / recovery emails are
+    // localized even when the user signs in through OAuth.
+    await this.syncUserLocale(data.user?.id, locale, data.user?.user_metadata?.locale);
 
     return {
       user: data.user,

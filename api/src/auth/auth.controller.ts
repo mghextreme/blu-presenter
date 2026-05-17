@@ -66,6 +66,7 @@ export class AuthController {
     const accessToken = await this.authService.exchangeCodeForSession(
       validateDto.code,
       validateDto.codeVerifier,
+      validateDto.locale,
     );
 
     if (validateDto.invite?.id && validateDto.invite?.secret) {
