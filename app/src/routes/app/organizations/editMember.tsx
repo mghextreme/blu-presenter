@@ -75,6 +75,7 @@ export function EditMember() {
   }
 
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);
+  const roleSelectorListId = "edit-member-role-selector-list";
   const canEdit = data.role !== 'owner' && data.email != user?.email; // TODO: Use internal users ID to compare instead of email
 
   return (
@@ -114,6 +115,8 @@ export function EditMember() {
                           <Button
                             variant="outline"
                             role="combobox"
+                            aria-expanded={openRoleSelector}
+                            aria-controls={roleSelectorListId}
                             className={cn(
                               "w-[200px] justify-between",
                               !field.value && "text-muted-foreground"
@@ -130,7 +133,7 @@ export function EditMember() {
                       </PopoverTrigger>
                       <PopoverContent className="w-[200px] p-0">
                         <Command>
-                          <CommandList>
+                          <CommandList id={roleSelectorListId}>
                             <CommandGroup>
                               {roles.map((role) => (
                                 <CommandItem

@@ -78,6 +78,7 @@ export function InviteOrganizationMember() {
   }
 
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);
+  const roleSelectorListId = "invite-role-selector-list";
 
   return (
     <div className="p-2 sm:p-8">
@@ -115,6 +116,8 @@ export function InviteOrganizationMember() {
                         <Button
                           variant="outline"
                           role="combobox"
+                          aria-expanded={openRoleSelector}
+                          aria-controls={roleSelectorListId}
                           className={cn(
                             "w-[200px] justify-between",
                             !field.value && "text-muted-foreground"
@@ -131,7 +134,7 @@ export function InviteOrganizationMember() {
                     </PopoverTrigger>
                     <PopoverContent className="w-[200px] p-0">
                       <Command>
-                        <CommandList>
+                        <CommandList id={roleSelectorListId}>
                           <CommandGroup>
                             {roles.map((role) => (
                               <CommandItem

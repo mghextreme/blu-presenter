@@ -5,6 +5,7 @@ import { ControllerProvider, ControllerProviderContext } from '../controller.pro
 import {
   mockScheduleItems,
 } from '@/test/mockData/scheduleItems'
+import { STORAGE_KEYS } from '@/lib/storage-keys'
 
 // Mock react-hotkeys-hook
 vi.mock('react-hotkeys-hook', () => ({
@@ -76,7 +77,7 @@ describe('ControllerProvider', () => {
 
     it('should load schedule from sessionStorage if available', () => {
       const savedSchedule = [mockScheduleItems[0]]
-      sessionStorage.setItem('controllerSchedule', JSON.stringify(savedSchedule))
+      sessionStorage.setItem(STORAGE_KEYS.controllerSchedule, JSON.stringify(savedSchedule))
 
       // Provider should load the saved schedule
       const wrapper = createWrapper(false)
@@ -84,11 +85,10 @@ describe('ControllerProvider', () => {
     })
 
     it('should handle invalid JSON in sessionStorage gracefully', () => {
-      sessionStorage.setItem('controllerSchedule', 'invalid json')
+      sessionStorage.setItem(STORAGE_KEYS.controllerSchedule, 'invalid json')
 
       const wrapper = createWrapper(false)
       expect(() => renderHook(() => null, { wrapper })).not.toThrow()
     })
   })
 })
-

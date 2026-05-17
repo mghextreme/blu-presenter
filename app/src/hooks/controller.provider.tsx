@@ -5,6 +5,7 @@ import { Key } from 'ts-key-enum';
 import { SelectorScreen } from "@/components/controller/selector-screen"
 import { IScheduleItem, IWindow, ISlide, ControllerMode, ISlideTextContent, ISlideImageContent, IControllerSelection } from "@/types"
 import { generateScheduleItemUniqueId } from "@/lib/utils"
+import { STORAGE_KEYS } from "@/lib/storage-keys"
 import { WindowProvider } from "./window.provider"
 
 export interface IControllerConfig {
@@ -100,11 +101,11 @@ export function ControllerProvider({
   let storedSchedule: IScheduleItem[] = [];
   if (storeState) {
     try {
-      const localSchedule = localStorage.getItem('controllerSchedule');
+      const localSchedule = localStorage.getItem(STORAGE_KEYS.controllerSchedule);
       if (localSchedule) {
         storedSchedule = (JSON.parse(localSchedule) as IScheduleItem[]) || [];
       } else {
-        const sessionSchedule = sessionStorage.getItem('controllerSchedule');
+        const sessionSchedule = sessionStorage.getItem(STORAGE_KEYS.controllerSchedule);
         if (sessionSchedule) {
           storedSchedule = (JSON.parse(sessionSchedule) as IScheduleItem[]) || [];
         }
@@ -119,8 +120,8 @@ export function ControllerProvider({
 
   const saveAndSetSchedule = (newSchedule: IScheduleItem[]) => {
     if (storeState) {
-      sessionStorage.setItem('controllerSchedule', JSON.stringify(newSchedule));
-      localStorage.setItem('controllerSchedule', JSON.stringify(newSchedule));
+      sessionStorage.setItem(STORAGE_KEYS.controllerSchedule, JSON.stringify(newSchedule));
+      localStorage.setItem(STORAGE_KEYS.controllerSchedule, JSON.stringify(newSchedule));
     }
     setSchedule(newSchedule);
   };
@@ -151,10 +152,10 @@ export function ControllerProvider({
     if (scheduleItemIx !== undefined) {
       if (ix == scheduleItemIx) {
         setScheduleItemIx(undefined);
-        setLatestScheduleItemIx(latestScheduleItemIx - 1);
+        setLatestScheduleItemIx((prev) => prev - 1);
       } else if (ix < scheduleItemIx) {
-        setScheduleItemIx(scheduleItemIx - 1);
-        setLatestScheduleItemIx(latestScheduleItemIx - 1);
+        setScheduleItemIx((prev) => prev === undefined ? prev : prev - 1);
+        setLatestScheduleItemIx((prev) => prev - 1);
       }
     }
 
@@ -184,8 +185,8 @@ export function ControllerProvider({
     if (fromIx < scheduleItemIx) { scheduleItemDelta -= 1; }
     if (toIx <= scheduleItemIx) { scheduleItemDelta += 1; }
     if (scheduleItemDelta !== 0) {
-      setScheduleItemIx(scheduleItemIx + scheduleItemDelta);
-      setLatestScheduleItemIx(scheduleItemIx + scheduleItemDelta);
+      setScheduleItemIx((prev) => prev === undefined ? prev : prev + scheduleItemDelta);
+      setLatestScheduleItemIx((prev) => prev + scheduleItemDelta);
     }
   };
   const removeAllFromSchedule = () => {
@@ -470,7 +471,7 @@ export function ControllerProvider({
   let storedConfig: IControllerConfig = initialState.config;
   if (storeState) {
     try {
-      const savedControllerConfig = localStorage.getItem('controllerConfig');
+      const savedControllerConfig = localStorage.getItem(STORAGE_KEYS.controllerConfig);
       if (savedControllerConfig) {
         storedConfig = (JSON.parse(savedControllerConfig) as IControllerConfig) || storedConfig;
       }
@@ -483,7 +484,7 @@ export function ControllerProvider({
 
   const setAndSaveConfig = (newConfig: IControllerConfig) => {
     if (storeState) {
-      localStorage.setItem('controllerConfig', JSON.stringify(newConfig));
+      localStorage.setItem(STORAGE_KEYS.controllerConfig, JSON.stringify(newConfig));
     }
     setConfig(newConfig);
   }

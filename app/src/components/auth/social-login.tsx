@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useInvitation } from "@/hooks/invitation.provider";
 import { IAuthInvitationData } from "@/types/auth";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 // import MicrosoftIcon from "@/components/logos/microsoft";
 // import AppleIcon from "@/components/logos/apple";
 // import FacebookIcon from "@/components/logos/facebook";
@@ -33,7 +34,7 @@ export function SocialLogin({ isLoading, setIsLoading }: SocialLoginProps) {
           id: inviteId,
           secret: inviteSecret,
         } as IAuthInvitationData;
-        localStorage.setItem('invite', JSON.stringify(invite));
+        localStorage.setItem(STORAGE_KEYS.authInvite, JSON.stringify(invite));
       }
 
       const redirectData = await authService.signInWithProvider(provider, invite);

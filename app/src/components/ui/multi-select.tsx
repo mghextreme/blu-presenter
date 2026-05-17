@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useId, useMemo, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "./button"
 import { Popover, PopoverContent, PopoverTrigger } from "./popover"
@@ -57,6 +57,7 @@ export function MultiSelect<T extends Option>({
   itemRenderFunction = defaultItemRenderFunction,
 }: MultiSelectProps<T>) {
   const [open, setOpen] = useState(false)
+  const listId = useId()
 
   const handleSelect = useCallback(
     (value: string) => {
@@ -83,6 +84,7 @@ export function MultiSelect<T extends Option>({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-controls={listId}
           className={cn("w-full justify-between", className)}
         >
           {summaryRenderFunction(selectedItems, placeholder)}
@@ -92,7 +94,7 @@ export function MultiSelect<T extends Option>({
       <PopoverContent className="w-full p-0">
         <Command>
           <CommandInput placeholder={searchText} className="h-9" />
-          <CommandList>
+          <CommandList id={listId}>
             <CommandEmpty>{emptyText}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (

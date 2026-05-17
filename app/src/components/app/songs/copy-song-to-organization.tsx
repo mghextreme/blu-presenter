@@ -48,6 +48,7 @@ export function CopySongToOrganization({
   const [loading, setLoading] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
   const [selectedOrg, setSelectedOrg] = useState<number | undefined>(startingOrg);
+  const organizationListId = "copy-song-organization-list";
 
   const onSubmit = async () => {
     if (!selectedOrg) {
@@ -87,6 +88,7 @@ export function CopySongToOrganization({
                   variant="outline"
                   role="combobox"
                   aria-expanded={open}
+                  aria-controls={organizationListId}
                   className="w-full justify-between"
                 >
                   {selectedOrg
@@ -99,7 +101,7 @@ export function CopySongToOrganization({
               <PopoverContent className="w-full p-0">
                 <Command>
                   <CommandInput placeholder={t('message.copyToOrganization.searchOrgs')} className="h-9" />
-                  <CommandList>
+                  <CommandList id={organizationListId}>
                     <CommandEmpty>{t('message.copyToOrganization.noOrgFound')}</CommandEmpty>
                     <CommandGroup>
                       {possibleOrgs.map((org) => (

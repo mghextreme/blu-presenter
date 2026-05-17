@@ -2,6 +2,7 @@ import { SongsService } from "@/services";
 import { ISongWithRole, SupportedLanguage } from "@/types";
 import i18next from "i18next";
 import { createContext, useContext, useMemo, useState } from "react";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 export type AdvancedSearchOptions = {
   languages?: SupportedLanguage[];
@@ -37,7 +38,7 @@ export const SearchProvider = ({ songsService, children }: SearchProviderProps) 
   const [isSearching, setIsSearching] = useState<boolean>(false);
 
   try {
-    const storedFormValues = localStorage.getItem('advancedSearchOptions');
+    const storedFormValues = localStorage.getItem(STORAGE_KEYS.advancedSearchOptions);
     if (storedFormValues) {
       initialState.formValues = (JSON.parse(storedFormValues) as AdvancedSearchOptions) || null;
     }
@@ -49,7 +50,7 @@ export const SearchProvider = ({ songsService, children }: SearchProviderProps) 
 
   const setAndStoreFormValues = (values: AdvancedSearchOptions) => {
     setFormValues(values);
-    localStorage.setItem('advancedSearchOptions', JSON.stringify(values));
+    localStorage.setItem(STORAGE_KEYS.advancedSearchOptions, JSON.stringify(values));
   };
 
   const search = async (query: string, includeBlocks: boolean = false) => {

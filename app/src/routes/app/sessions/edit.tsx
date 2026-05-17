@@ -110,6 +110,8 @@ export function EditSession({
 
   const [openLanguageSelector, setOpenLanguageSelector] = useState(false);
   const [openThemeSelector, setOpenThemeSelector] = useState(false);
+  const languageSelectorListId = "session-language-selector-list";
+  const themeSelectorListId = "session-theme-selector-list";
   
   const defaultThemeOptions: {label: string; value: BaseTheme | number}[] = [
     {
@@ -153,11 +155,12 @@ export function EditSession({
       });
   }, [organization]);
 
-  const [selectedThemeName, setSelectedThemeName] = useState<string>(nameFromTheme(selectedTheme));
+  const watchedTheme = form.watch('theme');
+  const [selectedThemeName, setSelectedThemeName] = useState<string>(() => nameFromTheme(selectedTheme));
   useEffect(() => {
     const theme = form.getValues('theme');
     setSelectedThemeName(nameFromTheme(theme));
-  }, [selectedTheme, consolidatedOptions, form.watch('theme')]);
+  }, [selectedTheme, consolidatedOptions, watchedTheme]);
   
   const [sessionQrCodeUrl, setSessionQrCodeUrl] = useState<string | undefined>(undefined);
   useEffect(() => {
@@ -166,13 +169,13 @@ export function EditSession({
       return;
     }
 
-    const theme = form.watch("theme");
+    const theme = form.getValues("theme");
 
     const currentUrl = new URL(window.location.href);
     const themeParam = theme ? `/${theme}` : '';
     const completeUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/session/${data?.organization?.id}/${data.id}/${data.secret ?? ''}${themeParam}`
     setSessionQrCodeUrl(completeUrl);
-  }, [edit, data, form.watch("theme")]);
+  }, [edit, data, form, watchedTheme]);
 
   const copyShareableUrlToClipboard = async () => {
     if (!sessionQrCodeUrl) return;
@@ -226,6 +229,8 @@ export function EditSession({
                           <Button
                             variant="outline"
                             role="combobox"
+                            aria-expanded={openLanguageSelector}
+                            aria-controls={languageSelectorListId}
                             className={cn(
                               "justify-start",
                               !field.value && "text-muted-foreground"
@@ -242,7 +247,7 @@ export function EditSession({
                             placeholder={t('language.search')}
                             className="h-9"
                           />
-                          <CommandList>
+                          <CommandList id={languageSelectorListId}>
                             <CommandEmpty>{t('language.notFound')}</CommandEmpty>
                             <CommandGroup>
                               <CommandItem
@@ -305,6 +310,8 @@ export function EditSession({
                             <Button
                               variant="outline"
                               role="combobox"
+                              aria-expanded={openThemeSelector}
+                              aria-controls={themeSelectorListId}
                               className={cn(
                                 "justify-start",
                                 !field.value && "text-muted-foreground"
@@ -321,7 +328,7 @@ export function EditSession({
                               placeholder={t('theme.search')}
                               className="h-9"
                             />
-                            <CommandList>
+                            <CommandList id={themeSelectorListId}>
                               <CommandEmpty>{t('theme.notFound')}</CommandEmpty>
                               <CommandGroup>
                                 <CommandItem

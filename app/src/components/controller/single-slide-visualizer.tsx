@@ -15,10 +15,19 @@ export const SingleSlideVisualizer = forwardRef((
   }: SingleSlideVisualizerProps,
   ref,
 ) => {
-
   if (theme.extends === 'teleprompter') {
     return <></>; // Teleprompter theme is not supported in single slide visualizer
   }
+
+  return <SingleSlideVisualizerContent theme={theme} ref={ref} />;
+});
+
+const SingleSlideVisualizerContent = forwardRef((
+  {
+    theme,
+  }: Required<SingleSlideVisualizerProps>,
+  ref,
+) => {
 
   const {
     selectedSlide,

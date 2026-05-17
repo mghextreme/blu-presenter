@@ -131,6 +131,8 @@ export function PreviewWindow({
   }, [theme]);
 
   const [consolidatedOptions, setConsolidatedOptions] = useState<typeof defaultThemeOptions>(defaultThemeOptions);
+  const previewThemeListId = "preview-theme-selector-list";
+  const previewRatioListId = "preview-ratio-selector-list";
   useEffect(() => {
     themesService.getAllForUser()
       .then((customThemes: ITheme[]) => {
@@ -154,6 +156,8 @@ export function PreviewWindow({
                 <Button
                   variant="outline"
                   role="combobox"
+                  aria-expanded={openPreviewThemeSelector}
+                  aria-controls={previewThemeListId}
                   className="flex-1 justify-between overflow-hidden"
                   title={t('preview.theme.title')}
                 >
@@ -166,7 +170,7 @@ export function PreviewWindow({
                 <Command>
                   <CommandInput placeholder={t('preview.theme.searchPlaceholder')} className="h-9"/>
                   <CommandEmpty>{t('preview.theme.searchNoneFound')}</CommandEmpty>
-                  <CommandGroup>
+                  <CommandGroup id={previewThemeListId}>
                     {consolidatedOptions.map(option => {
                       let orgName: string | undefined = undefined;
                       if (option.value.id !== 0) {
@@ -218,6 +222,8 @@ export function PreviewWindow({
               <Button
                 variant="outline"
                 role="combobox"
+                aria-expanded={openPreviewRatioSelector}
+                aria-controls={previewRatioListId}
                 className="flex-1 justify-between overflow-hidden"
                 title={t('preview.resolution.title')}
               >
@@ -230,7 +236,7 @@ export function PreviewWindow({
               <Command>
                 <CommandInput placeholder={t('preview.resolution.searchPlaceholder')} className="h-9"/>
                 <CommandEmpty>{t('preview.resolution.searchNoneFound')}</CommandEmpty>
-                <CommandGroup>
+                <CommandGroup id={previewRatioListId}>
                   {ratioOptions.map((option) => (
                     <CommandItem
                       key={option.value}
