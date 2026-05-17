@@ -44,7 +44,7 @@ export function BroadcastProvider({
 
   const [session, setSession] = useState<IBroadcastSession | undefined>(() => {
     try {
-      const saved = sessionStorage.getItem(STORAGE_KEYS.broadcastSession) ?? sessionStorage.getItem(LEGACY_STORAGE_KEYS.broadcastSession);
+      const saved = sessionStorage.getItem(STORAGE_KEYS.broadcastSession);
       return saved ? (JSON.parse(saved) as IBroadcastSession) : undefined;
     } catch {
       return undefined;
