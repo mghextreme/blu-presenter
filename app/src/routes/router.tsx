@@ -5,6 +5,8 @@ import {
   createBrowserRouter,
   createRoutesFromElements
 } from "react-router-dom";
+import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 import { AuthLayout } from "@/layouts/auth";
 import { loader as authLoader } from "@/layouts/auth.loader";
@@ -74,6 +76,11 @@ import { ImportSong } from "./app/songs/import";
 export function AppRouter() {
 
   const services = useServices();
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    document.documentElement.lang = i18n.language || 'en';
+  }, [i18n.language]);
 
   const router = createBrowserRouter(
     createRoutesFromElements(
