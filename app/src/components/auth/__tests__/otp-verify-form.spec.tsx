@@ -81,7 +81,7 @@ describe("OtpVerifyForm", () => {
     expect(screen.getByText("app-page")).toBeInTheDocument();
   });
 
-  it("auto-submits when 6 digits are entered and forwards email + token + locale", async () => {
+  it("auto-submits when 6 digits are entered and forwards email + token", async () => {
     verifySignInOtpMock.mockResolvedValueOnce(undefined);
 
     renderWithState({ email: "u@example.com" });
@@ -93,7 +93,6 @@ describe("OtpVerifyForm", () => {
       expect(verifySignInOtpMock).toHaveBeenCalledWith({
         email: "u@example.com",
         token: "123456",
-        locale: "pt",
       });
     });
   });
@@ -110,7 +109,6 @@ describe("OtpVerifyForm", () => {
         email: "u@example.com",
         token: "123456",
         invite: { id: 42, secret: "s3cr3t" },
-        locale: "pt",
       });
     });
   });
@@ -131,7 +129,7 @@ describe("OtpVerifyForm", () => {
     });
   });
 
-  it("resend triggers requestSignInOtp with the same email + locale", async () => {
+  it("resend triggers requestSignInOtp with the same email", async () => {
     requestSignInOtpMock.mockResolvedValueOnce(undefined);
 
     renderWithState({ email: "u@example.com" });
@@ -141,7 +139,6 @@ describe("OtpVerifyForm", () => {
     await waitFor(() => {
       expect(requestSignInOtpMock).toHaveBeenCalledWith({
         email: "u@example.com",
-        locale: "pt",
       });
     });
     expect(toastSuccess).toHaveBeenCalledWith("otpSignIn.resent");

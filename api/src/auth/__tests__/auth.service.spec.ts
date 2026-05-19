@@ -36,7 +36,6 @@ describe('AuthService — password reset & OTP login', () => {
 
     const supabaseProvider = {
       getClient: jest.fn().mockReturnValue({ auth: supabaseAuth }),
-      getAdminClient: jest.fn().mockReturnValue(adminAuth),
     };
 
     const configService = {
@@ -83,7 +82,6 @@ describe('AuthService — password reset & OTP login', () => {
       await service.forgotPassword({
         email: 'u@example.com',
         captchaToken: 'c',
-        locale: 'pt',
       });
 
       expect(supabaseAuth.resetPasswordForEmail).toHaveBeenCalledWith(
@@ -91,7 +89,6 @@ describe('AuthService — password reset & OTP login', () => {
         {
           redirectTo: 'http://app.local/reset-password',
           captchaToken: 'c',
-          data: { locale: 'pt' },
         },
       );
     });
@@ -137,10 +134,6 @@ describe('AuthService — password reset & OTP login', () => {
           }),
         }),
       );
-      expect(adminAuth.auth.admin.signOut).toHaveBeenCalledWith(
-        'recovery-jwt',
-        'others',
-      );
     });
 
     it('throws ForbiddenException on 401 from Supabase', async () => {
@@ -160,13 +153,12 @@ describe('AuthService — password reset & OTP login', () => {
   });
 
   describe('requestSignInOtp', () => {
-    it('calls signInWithOtp with shouldCreateUser=false and locale', async () => {
+    it('calls signInWithOtp with shouldCreateUser=false', async () => {
       supabaseAuth.signInWithOtp.mockResolvedValue({ error: null });
 
       await service.requestSignInOtp({
         email: 'u@example.com',
         captchaToken: 'c',
-        locale: 'en',
       });
 
       expect(supabaseAuth.signInWithOtp).toHaveBeenCalledWith({
@@ -174,7 +166,6 @@ describe('AuthService — password reset & OTP login', () => {
         options: {
           shouldCreateUser: false,
           captchaToken: 'c',
-          data: { locale: 'en' },
         },
       });
     });
@@ -191,10 +182,10 @@ describe('AuthService — password reset & OTP login', () => {
   });
 
   describe('verifySignInOtp', () => {
-    it('verifies the OTP, syncs locale, and returns an access token', async () => {
+    it('verifies the OTP and returns an access token', async () => {
       supabaseAuth.verifyOtp.mockResolvedValue({
         data: {
-          user: { id: 'auth-1', user_metadata: { locale: 'en' } },
+          user: { id: 'auth-1' },
           session: { access_token: 'a', refresh_token: 'r' },
         },
         error: null,
@@ -203,7 +194,6 @@ describe('AuthService — password reset & OTP login', () => {
       const result = await service.verifySignInOtp({
         email: 'u@example.com',
         token: '123456',
-        locale: 'pt',
       });
 
       expect(supabaseAuth.verifyOtp).toHaveBeenCalledWith({
@@ -211,30 +201,7 @@ describe('AuthService — password reset & OTP login', () => {
         token: '123456',
         type: 'email',
       });
-      // locale changed from 'en' -> 'pt'
-      expect(adminAuth.auth.admin.updateUserById).toHaveBeenCalledWith(
-        'auth-1',
-        { user_metadata: { locale: 'pt' } },
-      );
       expect(result.session).toEqual({ access_token: 'a', refresh_token: 'r' });
-    });
-
-    it('skips locale sync when the requested locale already matches', async () => {
-      supabaseAuth.verifyOtp.mockResolvedValue({
-        data: {
-          user: { id: 'auth-1', user_metadata: { locale: 'pt' } },
-          session: { access_token: 'a', refresh_token: 'r' },
-        },
-        error: null,
-      });
-
-      await service.verifySignInOtp({
-        email: 'u@example.com',
-        token: '123456',
-        locale: 'pt',
-      });
-
-      expect(adminAuth.auth.admin.updateUserById).not.toHaveBeenCalled();
     });
 
     it('throws ForbiddenException on 401/403', async () => {

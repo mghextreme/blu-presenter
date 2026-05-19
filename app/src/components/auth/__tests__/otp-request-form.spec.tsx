@@ -64,7 +64,6 @@ describe("OtpRequestForm", () => {
       expect(requestSignInOtpMock).toHaveBeenCalledWith({
         email: "u@example.com",
         captchaToken: "",
-        locale: "pt",
       });
     });
 
@@ -90,7 +89,6 @@ describe("OtpRequestForm", () => {
         email: "invited@example.com",
         invite: { id: 42, secret: "s3cr3t" },
         captchaToken: "",
-        locale: "pt",
       });
     });
   });

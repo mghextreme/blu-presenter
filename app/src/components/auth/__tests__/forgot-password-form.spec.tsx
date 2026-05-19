@@ -50,7 +50,6 @@ describe("ForgotPasswordForm", () => {
       expect(forgotPasswordMock).toHaveBeenCalledWith({
         email: "u@example.com",
         captchaToken: "",
-        locale: "pt",
       });
     });
   });

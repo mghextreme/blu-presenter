@@ -78,8 +78,6 @@ export class AuthService {
       }
     }
 
-    await this.syncUserLocale(data.user?.id, signInDto.locale, data.user?.user_metadata?.locale);
-
     let inviteOrgId = undefined;
     if (signInDto.invite) {
       try {
@@ -168,10 +166,6 @@ export class AuthService {
     }
 
     const data = await response.json();
-
-    // Keep user_metadata.locale current so future OTP / recovery emails are
-    // localized even when the user signs in through OAuth.
-    await this.syncUserLocale(data.user?.id, locale, data.user?.user_metadata?.locale);
 
     return {
       user: data.user,
@@ -278,10 +272,6 @@ export class AuthService {
       }
       throw new BadRequestException(`Failed to update password: ${body}`);
     }
-
-    // Invalidate every session except the current one, in case the user is
-    // changing their password because they suspect a compromise.
-    await this.signOutOtherSessions(jwt);
   }
 
   async getIdentities(): Promise<UserIdentitiesResponseDto> {
@@ -461,10 +451,6 @@ export class AuthService {
         ...(forgotPasswordDto.captchaToken && {
           captchaToken: forgotPasswordDto.captchaToken,
         }),
-        // Locale is read by the recovery email template via `{{ .Data.locale }}`
-        ...(forgotPasswordDto.locale && {
-          data: { locale: forgotPasswordDto.locale },
-        }),
       },
     );
 
@@ -484,8 +470,7 @@ export class AuthService {
   /**
    * Sets a new password using the recovery session JWT (already exchanged via
    * `/auth/validate`). Unlike `setPassword`, this is intended for users who
-   * already have a password and need to replace it. Invalidates every other
-   * active session on success.
+   * already have a password and need to replace it.
    */
   async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<void> {
     const jwt = resetPasswordDto.accessToken;
@@ -508,8 +493,6 @@ export class AuthService {
       }
       throw new BadRequestException(`Failed to reset password: ${body}`);
     }
-
-    await this.signOutOtherSessions(jwt);
   }
 
   /**
@@ -523,11 +506,6 @@ export class AuthService {
       options: {
         shouldCreateUser: false,
         ...(dto.captchaToken && { captchaToken: dto.captchaToken }),
-        // For existing users, Supabase reads locale from `user_metadata` (set
-        // at sign-up or kept in sync via `syncUserLocale`). The `data` here is
-        // only honored for new users, which we don't allow, but we pass it for
-        // forward-compatibility.
-        ...(dto.locale && { data: { locale: dto.locale } }),
       },
     });
 
@@ -567,8 +545,6 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired code');
     }
 
-    await this.syncUserLocale(data.user.id, dto.locale, data.user.user_metadata?.locale);
-
     let inviteOrgId: number | undefined = undefined;
     if (dto.invite) {
       try {
@@ -595,61 +571,6 @@ export class AuthService {
       session: data.session,
       inviteOrgId,
     } as AccessTokenDto;
-  }
-
-  /**
-   * Updates the Supabase user's `user_metadata.locale` when it differs from
-   * the locale the frontend reported. Requires the service role key; degrades
-   * silently when unavailable (local dev without admin key).
-   */
-  private async syncUserLocale(
-    userId: string | undefined,
-    requestedLocale: string | undefined,
-    currentLocale: string | undefined,
-  ): Promise<void> {
-    if (!userId || !requestedLocale || requestedLocale === currentLocale) {
-      return;
-    }
-
-    const admin = this.supabase.getAdminClient();
-    if (!admin) {
-      // Without the admin key we can't update metadata server-side. Acceptable
-      // in local dev; in production the env var should always be set.
-      return;
-    }
-
-    try {
-      const { error } = await admin.auth.admin.updateUserById(userId, {
-        user_metadata: { locale: requestedLocale },
-      });
-      if (error) {
-        console.warn(`syncUserLocale: ${error.message}`);
-      }
-    } catch (e) {
-      console.warn(`syncUserLocale: ${e}`);
-    }
-  }
-
-  /**
-   * Invalidates every session for the current user except the one belonging to
-   * the supplied JWT. Used after password change/reset to evict potentially
-   * compromised sessions. Requires the service role key; degrades silently
-   * when unavailable.
-   */
-  private async signOutOtherSessions(currentJwt: string): Promise<void> {
-    const admin = this.supabase.getAdminClient();
-    if (!admin) {
-      return;
-    }
-
-    try {
-      const { error } = await admin.auth.admin.signOut(currentJwt, 'others');
-      if (error) {
-        console.warn(`signOutOtherSessions: ${error.message}`);
-      }
-    } catch (e) {
-      console.warn(`signOutOtherSessions: ${e}`);
-    }
   }
 
   private extractJwt(): string {
