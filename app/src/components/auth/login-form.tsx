@@ -22,7 +22,6 @@ import { useServices } from "@/hooks/useServices";
 import { toast } from "sonner";
 import { ApiError } from "@/types";
 import { SocialLogin } from "./social-login";
-import { SupportedLocale } from "@/types/auth";
 
 import { captcha } from "@/lib/config";
 
@@ -36,7 +35,6 @@ const formSchema = z.object({
 export function LoginForm({ className, ...props }: LoginFormProps) {
 
   const { t } = useTranslation("auth");
-  const { i18n } = useTranslation();
   const { email: invitedEmail, id, secret } = useInvitation();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);

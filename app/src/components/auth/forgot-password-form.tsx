@@ -18,7 +18,6 @@ import { useTranslation } from "react-i18next";
 import { useServices } from "@/hooks/useServices";
 import { toast } from "sonner";
 import { ApiError } from "@/types";
-import { SupportedLocale } from "@/types/auth";
 
 import { captcha } from "@/lib/config";
 
@@ -29,7 +28,7 @@ const formSchema = z.object({
 });
 
 export function ForgotPasswordForm({ className, ...props }: ForgotPasswordFormProps) {
-  const { t, i18n } = useTranslation("auth");
+  const { t } = useTranslation("auth");
   const { authService } = useServices();
 
   const [isLoading, setIsLoading] = useState(false);

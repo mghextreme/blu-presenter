@@ -15,7 +15,6 @@ import { useInvitation } from "@/hooks/invitation.provider";
 import { useServices } from "@/hooks/useServices";
 import { toast } from "sonner";
 import { ApiError } from "@/types";
-import { SupportedLocale } from "@/types/auth";
 
 interface OtpVerifyFormProps extends HTMLAttributes<HTMLDivElement> {}
 
