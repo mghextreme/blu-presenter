@@ -11,6 +11,8 @@ onlyBuiltDependencies:
   - sharp
   - workerd
 overrides:
+  brace-expansion@>=5.0.0 <5.0.6: '>=5.0.6'
   cookie@<0.7.0: '>=0.7.0'
   file-type@>=13.0.0 <21.3.1: '>=21.3.1'
   file-type@>=20.0.0 <=21.3.1: '>=21.3.2'
+  ws@>=8.0.0 <8.20.1: '>=8.20.1'
