@@ -5,6 +5,8 @@ import {
   createBrowserRouter,
   createRoutesFromElements
 } from "react-router-dom";
+import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 import { AuthLayout } from "@/layouts/auth";
 import { loader as authLoader } from "@/layouts/auth.loader";
@@ -25,6 +27,10 @@ import { TermsAndConditions } from "./terms-and-conditions";
 
 import { SignUp } from "./auth/signup";
 import { Login } from "./auth/login";
+import { ForgotPassword } from "./auth/forgot-password";
+import { ResetPassword } from "./auth/reset-password";
+import { OtpRequest } from "./auth/otp-request";
+import { OtpVerify } from "./auth/otp-verify";
 import { OAuthCallback } from "./auth/oauth-callback";
 import { OAuthLinkCallback } from "./auth/oauth-link-callback";
 
@@ -70,6 +76,11 @@ import { ImportSong } from "./app/songs/import";
 export function AppRouter() {
 
   const services = useServices();
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    document.documentElement.lang = i18n.language || 'en';
+  }, [i18n.language]);
 
   const router = createBrowserRouter(
     createRoutesFromElements(
@@ -83,6 +94,10 @@ export function AppRouter() {
         <Route element={<AuthLayout />} errorElement={<ErrorLayout />} loader={(loader: LoaderFunctionArgs) => authLoader({ request: loader.request, organizationsService: services.organizationsService })}>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/login/otp" element={<OtpRequest />} />
+          <Route path="/login/otp/verify" element={<OtpVerify />} />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
           <Route path="/oauth/link-callback" element={<OAuthLinkCallback />} />
         </Route>

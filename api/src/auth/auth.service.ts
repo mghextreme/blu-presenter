@@ -16,7 +16,11 @@ import {
   AccessTokenDto,
   AuthDto,
   ChangePasswordDto,
+  ForgotPasswordDto,
   OAuthRedirectDto,
+  OtpSignInRequestDto,
+  OtpSignInVerifyDto,
+  ResetPasswordDto,
   SetPasswordDto,
   SignInDto,
   SignUpDto,
@@ -139,7 +143,11 @@ export class AuthService {
     throw new BadRequestException(`Provider ${provider} not supported for sign in`);
   }
 
-  async exchangeCodeForSession(code: string, codeVerifier: string): Promise<AccessTokenDto> {
+  async exchangeCodeForSession(
+    code: string,
+    codeVerifier: string,
+    locale?: string,
+  ): Promise<AccessTokenDto> {
     const response = await fetch(
       `${this.supabaseUrl}/auth/v1/token?grant_type=pkce`,
       {
@@ -167,10 +175,12 @@ export class AuthService {
 
   async signUp(signUpDto: SignUpDto): Promise<AccessTokenDto> {
     const { data, error } = await this.supabaseClient.auth.signUp({
-      ...signUpDto,
+      email: signUpDto.email,
+      password: signUpDto.password,
       options: {
         emailRedirectTo: this.configService.get('app.baseUrl') + '/app',
         ...(signUpDto.captchaToken && { captchaToken: signUpDto.captchaToken }),
+        ...(signUpDto.locale && { data: { locale: signUpDto.locale } }),
       },
     });
 
@@ -424,6 +434,143 @@ export class AuthService {
       const body = await response.text();
       throw new BadRequestException(`Failed to set password: ${body}`);
     }
+  }
+
+  /**
+   * Triggers the Supabase password-recovery email. Always resolves
+   * successfully — even when the email does not exist — to avoid leaking which
+   * addresses are registered.
+   */
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<void> {
+    const redirectTo = this.configService.get('app.baseUrl') + '/reset-password';
+
+    const { error } = await this.supabaseClient.auth.resetPasswordForEmail(
+      forgotPasswordDto.email,
+      {
+        redirectTo,
+        ...(forgotPasswordDto.captchaToken && {
+          captchaToken: forgotPasswordDto.captchaToken,
+        }),
+      },
+    );
+
+    if (error) {
+      // Rate-limit and captcha failures are real errors; everything else is
+      // swallowed so we always return 200 and prevent enumeration.
+      if (error.status === 429) {
+        throw new BadRequestException(error.message);
+      }
+      if (forgotPasswordDto.captchaToken && /captcha/i.test(error.message)) {
+        throw new BadRequestException(error.message);
+      }
+      console.warn(`forgotPassword: suppressed Supabase error: ${error.message}`);
+    }
+  }
+
+  /**
+   * Sets a new password using the recovery session JWT (already exchanged via
+   * `/auth/validate`). Unlike `setPassword`, this is intended for users who
+   * already have a password and need to replace it.
+   */
+  async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<void> {
+    const jwt = resetPasswordDto.accessToken;
+
+    const response = await fetch(`${this.supabaseUrl}/auth/v1/user`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${jwt}`,
+        apikey: this.supabaseKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password: resetPasswordDto.newPassword }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      const status = response.status;
+      if (status === 401 || status === 403) {
+        throw new ForbiddenException(`Failed to reset password: ${body}`);
+      }
+      throw new BadRequestException(`Failed to reset password: ${body}`);
+    }
+  }
+
+  /**
+   * Sends a 6-digit OTP code to the email for passwordless sign-in. Only
+   * existing users are allowed (`shouldCreateUser: false`). Always resolves
+   * successfully to avoid enumeration; rate-limit errors propagate.
+   */
+  async requestSignInOtp(dto: OtpSignInRequestDto): Promise<void> {
+    const { error } = await this.supabaseClient.auth.signInWithOtp({
+      email: dto.email,
+      options: {
+        shouldCreateUser: false,
+        ...(dto.captchaToken && { captchaToken: dto.captchaToken }),
+      },
+    });
+
+    if (error) {
+      if (error.status === 429) {
+        throw new BadRequestException(error.message);
+      }
+      if (dto.captchaToken && /captcha/i.test(error.message)) {
+        throw new BadRequestException(error.message);
+      }
+      console.warn(`requestSignInOtp: suppressed Supabase error: ${error.message}`);
+    }
+  }
+
+  /**
+   * Verifies a 6-digit OTP and, on success, returns a session identical to a
+   * password sign-in. Mirrors `signIn` for invite acceptance and locale sync.
+   */
+  async verifySignInOtp(dto: OtpSignInVerifyDto): Promise<AccessTokenDto> {
+    const { data, error } = await this.supabaseClient.auth.verifyOtp({
+      email: dto.email,
+      token: dto.token,
+      type: 'email',
+    });
+
+    if (error) {
+      switch (error.status) {
+        case 401:
+        case 403:
+          throw new ForbiddenException(error.message);
+        default:
+          throw new BadRequestException(error.message);
+      }
+    }
+
+    if (!data.user || !data.session) {
+      throw new BadRequestException('Invalid or expired code');
+    }
+
+    let inviteOrgId: number | undefined = undefined;
+    if (dto.invite) {
+      try {
+        const invite = await this.organizationsService.getInvitation(
+          dto.invite.id,
+          dto.invite.secret,
+        );
+
+        const user = await this.usersService.findByAuthId(data.user.id);
+        if (!this.request.user) {
+          this.request.user = {};
+        }
+        this.request.user['internal'] = user;
+
+        await this.organizationsService.acceptInvitation(invite.id);
+        inviteOrgId = invite.orgId;
+      } catch (e) {
+        console.warn(`Error accepting invite: ${e}`);
+      }
+    }
+
+    return {
+      user: data.user,
+      session: data.session,
+      inviteOrgId,
+    } as AccessTokenDto;
   }
 
   private extractJwt(): string {

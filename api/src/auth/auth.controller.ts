@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Inject, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Inject, Param, Post } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags } from '@nestjs/swagger';
@@ -8,7 +8,11 @@ import {
   AuthDto,
   ChangePasswordDto,
   ExchangeCodeDto,
+  ForgotPasswordDto,
   OAuthRedirectDto,
+  OtpSignInRequestDto,
+  OtpSignInVerifyDto,
+  ResetPasswordDto,
   SetPasswordDto,
   SignInDto,
   SignUpDto,
@@ -62,6 +66,7 @@ export class AuthController {
     const accessToken = await this.authService.exchangeCodeForSession(
       validateDto.code,
       validateDto.codeVerifier,
+      validateDto.locale,
     );
 
     if (validateDto.invite?.id && validateDto.invite?.secret) {
@@ -122,5 +127,43 @@ export class AuthController {
     @Body() setPasswordDto: SetPasswordDto,
   ): Promise<void> {
     await this.authService.setPassword(setPasswordDto);
+  }
+
+  @Public()
+  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @HttpCode(HttpStatus.OK)
+  @Post('password/forgot')
+  async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> {
+    if (!dto.captchaToken && this.captchaEnabled) {
+      throw new HttpException('required captcha not set', HttpStatus.BAD_REQUEST);
+    }
+
+    await this.authService.forgotPassword(dto);
+  }
+
+  @Public()
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Post('password/reset')
+  async resetPassword(@Body() dto: ResetPasswordDto): Promise<void> {
+    await this.authService.resetPassword(dto);
+  }
+
+  @Public()
+  @Throttle({ default: { ttl: 60_000, limit: 3 } })
+  @HttpCode(HttpStatus.OK)
+  @Post('signIn/otp/request')
+  async requestSignInOtp(@Body() dto: OtpSignInRequestDto): Promise<void> {
+    if (!dto.captchaToken && this.captchaEnabled) {
+      throw new HttpException('required captcha not set', HttpStatus.BAD_REQUEST);
+    }
+
+    await this.authService.requestSignInOtp(dto);
+  }
+
+  @Public()
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
+  @Post('signIn/otp/verify')
+  async verifySignInOtp(@Body() dto: OtpSignInVerifyDto): Promise<AccessTokenDto> {
+    return await this.authService.verifySignInOtp(dto);
   }
 }

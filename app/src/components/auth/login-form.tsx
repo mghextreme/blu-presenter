@@ -125,6 +125,12 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
               </FormItem>
             )}></FormField>
 
+          <div className="flex justify-end">
+            <Button variant="link" className="text-xs px-0 h-auto text-muted-foreground" asChild>
+              <Link to="/forgot-password">{t('signIn.forgotPassword')}</Link>
+            </Button>
+          </div>
+
           {captcha.enabled && (
             <Turnstile
               siteKey={captcha.siteKey}
@@ -142,6 +148,19 @@ export function LoginForm({ className, ...props }: LoginFormProps) {
           </Button>
         </form>
       </Form>
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-card px-2 text-muted-foreground">
+            {t('socials.or')}
+          </span>
+        </div>
+      </div>
+      <Button variant="outline" asChild disabled={isLoading}>
+        <Link to="/login/otp">{t('signIn.withOtp')}</Link>
+      </Button>
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />

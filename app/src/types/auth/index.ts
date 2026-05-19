@@ -1,5 +1,7 @@
 import { Session, User } from "@supabase/supabase-js";
 
+export type SupportedLocale = "en" | "pt";
+
 export interface IAuthInvitationData {
   id: number;
   secret: string;
@@ -60,3 +62,26 @@ export interface IUserIdentitiesResponse {
 export interface ISetPasswordData {
   newPassword: string;
 }
+
+export interface IForgotPasswordData {
+  email: string;
+  captchaToken?: string;
+}
+
+export interface IResetPasswordData {
+  accessToken: string;
+  newPassword: string;
+}
+
+export interface IOtpSignInRequestData {
+  email: string;
+  invite?: IAuthInvitationData;
+  captchaToken?: string;
+}
+
+export interface IOtpSignInVerifyData {
+  email: string;
+  token: string;
+  invite?: IAuthInvitationData;
+}
+

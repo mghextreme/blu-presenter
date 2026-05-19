@@ -1,4 +1,4 @@
-import { IAuthInvitationData, IAuthResponse, IChangePasswordData, IExchangeCodeData, IOAuthRedirect, ISetPasswordData, ISignInData, ISignUpData, IUserIdentitiesResponse } from "@/types/auth";
+import { IAuthInvitationData, IAuthResponse, IChangePasswordData, IExchangeCodeData, IForgotPasswordData, IOAuthRedirect, IOtpSignInRequestData, IOtpSignInVerifyData, IResetPasswordData, ISetPasswordData, ISignInData, ISignUpData, IUserIdentitiesResponse } from "@/types/auth";
 import { ApiService } from "./api.service";
 import { useAuth } from "@/hooks/useAuth";
 import { QueryClient } from "@tanstack/react-query";
@@ -86,6 +86,41 @@ export class AuthService extends ApiService {
     await this.postRequest('/auth/setPassword', JSON.stringify(value), {
       'content-type': 'application/json',
     });
+  }
+
+  public async forgotPassword(value: IForgotPasswordData): Promise<void> {
+    await this.postRequest('/auth/password/forgot', JSON.stringify(value), {
+      'content-type': 'application/json',
+    }, false);
+  }
+
+  public async resetPassword(value: IResetPasswordData): Promise<void> {
+    await this.postRequest('/auth/password/reset', JSON.stringify(value), {
+      'content-type': 'application/json',
+    }, false);
+  }
+
+  public async requestSignInOtp(value: IOtpSignInRequestData): Promise<void> {
+    await this.postRequest('/auth/signIn/otp/request', JSON.stringify(value), {
+      'content-type': 'application/json',
+    }, false);
+  }
+
+  public async verifySignInOtp(value: IOtpSignInVerifyData): Promise<void> {
+    const {
+      user, session, inviteOrgId,
+    } = await this.postRequest('/auth/signIn/otp/verify', JSON.stringify(value), {
+      'content-type': 'application/json',
+    }, false) as IAuthResponse;
+
+    useAuth.setState({
+      isLoggedIn: true,
+      user,
+      session,
+    });
+
+    this.queryClient.clear();
+    await this.getAndSetOrganizations(inviteOrgId);
   }
 
   public async exchangeCodeForSession(data: IExchangeCodeData): Promise<void> {

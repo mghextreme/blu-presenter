@@ -60,8 +60,10 @@ api_url = "http://127.0.0.1"
 enabled = true
 # Port to use for the email testing server web interface.
 port = 54324
-# Uncomment to expose additional ports for testing user applications that send emails.
-# smtp_port = 54325
+# Expose the SMTP port so the Auth service can deliver password-reset and OTP
+# emails to Inbucket during local development. View captured mail at
+# http://127.0.0.1:54324
+smtp_port = 54325
 # pop3_port = 54326
 
 [storage]
@@ -111,6 +113,18 @@ max_frequency = "1m0s"
 # [auth.email.template.invite]
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
+
+# Password reset email (link-based recovery flow).
+[auth.email.template.recovery]
+subject = "BluPresenter - Redefinir senha / Reset password"
+content_path = "./supabase/templates/recovery.html"
+
+# Passwordless sign-in email (OTP code). The default Supabase magic-link
+# template emphasizes the link; ours emphasizes the {{ .Token }} 6-digit code
+# because we use it for OTP login, not magic links.
+[auth.email.template.magic_link]
+subject = "BluPresenter - Código de acesso / Sign-in code"
+content_path = "./supabase/templates/magic-link.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
