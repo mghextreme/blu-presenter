@@ -58,7 +58,6 @@ export function OtpRequestForm({ className, ...props }: OtpRequestFormProps) {
         email: values.email,
         ...inviteValues,
         captchaToken,
-        locale: i18n.language as SupportedLocale,
       });
 
       // Forward to verify step. Invitation context flows via AuthLayout/provider

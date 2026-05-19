@@ -52,7 +52,6 @@ export function OtpVerifyForm({ className, ...props }: OtpVerifyFormProps) {
           email,
           token,
           ...inviteValues,
-          locale: i18n.language as SupportedLocale,
         });
 
         // isLoggedIn flips true via useAuth; the <Navigate/> guard below
@@ -85,10 +84,7 @@ export function OtpVerifyForm({ className, ...props }: OtpVerifyFormProps) {
     }
     try {
       setIsResending(true);
-      await authService.requestSignInOtp({
-        email,
-        locale: i18n.language as SupportedLocale,
-      });
+      await authService.requestSignInOtp({ email });
       toast.success(t("otpSignIn.resent"));
     } catch (e: unknown) {
       const error = e as ApiError;

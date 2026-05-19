@@ -86,7 +86,6 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
         ...values,
         ...inviteValues,
         captchaToken,
-        locale: i18n.language as SupportedLocale,
       });
     } catch (e: unknown) {
       const error = e as ApiError;

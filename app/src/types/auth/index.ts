@@ -12,7 +12,6 @@ export interface ISignInData {
   password: string;
   invite?: IAuthInvitationData;
   captchaToken?: string;
-  locale?: SupportedLocale;
 }
 
 export interface ISignUpData {
@@ -20,7 +19,6 @@ export interface ISignUpData {
   password: string;
   invite?: IAuthInvitationData;
   captchaToken?: string;
-  locale?: SupportedLocale;
 }
 
 export interface IRefreshSessionData {
@@ -47,7 +45,6 @@ export interface IExchangeCodeData {
   code: string;
   codeVerifier: string;
   invite?: IAuthInvitationData;
-  locale?: SupportedLocale;
 }
 
 export interface IUserIdentity {
@@ -69,7 +66,6 @@ export interface ISetPasswordData {
 export interface IForgotPasswordData {
   email: string;
   captchaToken?: string;
-  locale?: SupportedLocale;
 }
 
 export interface IResetPasswordData {
@@ -81,13 +77,11 @@ export interface IOtpSignInRequestData {
   email: string;
   invite?: IAuthInvitationData;
   captchaToken?: string;
-  locale?: SupportedLocale;
 }
 
 export interface IOtpSignInVerifyData {
   email: string;
   token: string;
   invite?: IAuthInvitationData;
-  locale?: SupportedLocale;
 }
 

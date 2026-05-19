@@ -53,7 +53,6 @@ export function ForgotPasswordForm({ className, ...props }: ForgotPasswordFormPr
       await authService.forgotPassword({
         email: values.email,
         captchaToken,
-        locale: i18n.language as SupportedLocale,
       });
 
       // Anti-enumeration: always show the success state regardless of result.

@@ -35,7 +35,6 @@ export function OAuthCallback() {
     const payload = {
       code,
       codeVerifier,
-      locale: i18n.language as SupportedLocale,
     } as IExchangeCodeData;
 
     if (invite) {
