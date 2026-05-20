@@ -1,15 +1,16 @@
 packages:
   - api
   - app
-onlyBuiltDependencies:
-  - '@nestjs/core'
-  - '@scarf/scarf'
-  - '@swc/core'
-  - core-js
-  - core-js-pure
-  - esbuild
-  - sharp
-  - workerd
+allowBuilds:
+  '@nestjs/core': true
+  '@scarf/scarf': true
+  '@swc/core': true
+  core-js: true
+  core-js-pure: true
+  esbuild: true
+  sharp: true
+  workerd: true
+minimumReleaseAge: 0
 overrides:
   brace-expansion@>=5.0.0 <5.0.6: '>=5.0.6'
   cookie@<0.7.0: '>=0.7.0'
