@@ -8,7 +8,7 @@
 
 FROM node:24-slim AS builder
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@11
 
 WORKDIR /workspace
 
