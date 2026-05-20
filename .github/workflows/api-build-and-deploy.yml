@@ -2,11 +2,13 @@ name: API Build and Deploy
 
 on:
   workflow_dispatch:
-    inputs:
   push:
     branches: [ "master" ]
     paths:
       - 'api/**'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
 
@@ -15,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
