@@ -242,18 +242,38 @@ export const ScrollingSongVisualizer = forwardRef(({
           </div>
         )}
       </div>}
-      {config?.clock && config.clock.enabled && (
-        <div className="absolute bottom-0 right-0 py-[.2em] px-[.5em] z-50" style={{
-          ...buildFontStyle(config?.clock, {
-            fontSize: 100,
-            fontWeight: 400,
-            color: config?.clock?.color ?? config?.foregroundColor,
-          }),
-          backgroundColor: config?.backgroundColor,
-        }}>
-          <Clock format={config?.clock?.format} />
+      <div className="absolute bottom-0 right-0 left-0 z-50">
+        <div className="flex justify-between items-end gap-x-2">
+          {isInvisible && nextUpTitle && (
+            <div className="flex flex-col items-start font-source-code-pro" style={{
+              ...buildFontStyle(config?.clock, {
+                fontSize: 100,
+                fontWeight: 400,
+                color: config?.foregroundColor,
+              }),
+            }}>
+              <div className="text-sm pt-[.2em] px-[.8em]" style={{
+                backgroundColor: config?.backgroundColor,
+              }}>{t('nextUp')}</div>
+              <div className="py-[.2em] px-[.5em]" style={{
+                backgroundColor: config?.backgroundColor,
+              }}>{nextUpTitle}</div>
+            </div>
+          )}
+          {config?.clock && config.clock.enabled && (
+            <div className="ml-auto mr-0 py-[.2em] px-[.5em] flex-none" style={{
+              ...buildFontStyle(config?.clock, {
+                fontSize: 100,
+                fontWeight: 400,
+                color: config?.clock?.color ?? config?.foregroundColor,
+              }),
+              backgroundColor: config?.backgroundColor,
+            }}>
+              <Clock format={config?.clock?.format} />
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 });

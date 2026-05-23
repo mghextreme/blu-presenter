@@ -100,7 +100,7 @@ const SingleSlideVisualizerContent = forwardRef((
         fontSize: 100,
         fontWeight: 400,
       })}>
-        {content.text.replace(/[^\S\r\n]+/g, ' ')}
+        {content.text.replace(/_/g, '').replace(/[^\S\r\n]+/g, ' ')}
       </div>
     )
   }
