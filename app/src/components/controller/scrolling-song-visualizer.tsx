@@ -252,7 +252,8 @@ export const ScrollingSongVisualizer = forwardRef(({
                 color: config?.foregroundColor,
               }),
             }}>
-              <div className="text-sm pt-[.2em] px-[.8em]" style={{
+              <div className="pt-[.1em] px-[.8em]" style={{
+                fontSize: '0.5em',
                 backgroundColor: config?.backgroundColor,
               }}>{t('nextUp')}</div>
               <div className="py-[.2em] px-[.5em]" style={{
