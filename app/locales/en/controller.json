@@ -94,6 +94,11 @@
     "previous": "Previous",
     "blank": "Blank",
     "logo": "Logo",
+    "voiceStart": "Start voice auto-advance",
+    "voiceStop": "Stop voice auto-advance",
+    "voiceListening": "Listening…",
+    "voiceModeNormal": "Mode: normal (advance when the slide is recognized) — click for slow",
+    "voiceModeSlow": "Mode: slow (advance only on the last word) — click for normal",
     "windows": {
       "open": "Open window",
       "closeAll": "Close all windows"

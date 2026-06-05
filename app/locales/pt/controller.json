@@ -94,6 +94,11 @@
     "previous": "Anterior",
     "blank": "Em branco",
     "logo": "Logo",
+    "voiceStart": "Iniciar avanço automático por voz",
+    "voiceStop": "Parar avanço automático por voz",
+    "voiceListening": "Ouvindo…",
+    "voiceModeNormal": "Modo: normal (avança ao reconhecer o slide) — clique para devagar",
+    "voiceModeSlow": "Modo: devagar (avança só na última palavra) — clique para normal",
     "windows": {
       "open": "Abrir janela",
       "closeAll": "Fechar todas janelas"

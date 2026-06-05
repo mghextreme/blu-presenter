@@ -49,7 +49,7 @@ export function LivePanel() {
         </Button>}
         {previewOpen && <PreviewWindow closeWindow={closePreview} attachControllerMode={windows.length === 0}></PreviewWindow>}
       </div>
-      <Controls></Controls>
+      <Controls showVoice></Controls>
       <div id="content" className="p-3 pt-0 flex-1 overflow-y-auto" ref={contentWrapper}>
         {scheduleItem?.slides.map((s, ix) => (
           //@ts-expect-error // TODO look into ref usage here

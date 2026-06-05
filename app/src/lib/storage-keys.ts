@@ -4,4 +4,5 @@ export const STORAGE_KEYS = {
   broadcastSession: 'broadcastSession',
   controllerConfig: 'controllerConfig',
   controllerSchedule: 'controllerSchedule',
+  voiceAdvanceMode: 'voiceAdvanceMode',
 } as const;
