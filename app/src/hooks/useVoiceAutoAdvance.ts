@@ -89,6 +89,12 @@ const CORRECTION_INTERVAL_MS = 3000;
 const WINDOW_WORDS = 24;
 /** Minimum gap between two automatic transitions. */
 const ADVANCE_COOLDOWN_MS = 1000;
+/**
+ * Delay before relaunching recognition after it ends. A small gap (instead of
+ * restarting synchronously) prevents the busy restart loop that makes the tab
+ * flicker / the mic appear to connect and disconnect repeatedly.
+ */
+const RECOGNITION_RESTART_DELAY_MS = 300;
 
 /**
  * - `normal`: advance as soon as the slide is recognized — tolerant of the
@@ -144,6 +150,11 @@ export function useVoiceAutoAdvance({
   // without us tearing down and recreating the recognizer on every render.
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const shouldListenRef = useRef(false);
+  // Guards against the "tab flickers / mic connects-disconnects" restart loop:
+  // a pending restart timer, and whether the last error was fatal (permission
+  // denied, mic busy, etc.) so we don't keep relaunching recognition.
+  const restartTimerRef = useRef<number | null>(null);
+  const recognitionActiveRef = useRef(false);
   // Recognized speech is split into a committed buffer (finalized results, which
   // only ever grow) and a replaceable interim tail (the in-progress phrase).
   const committedRef = useRef("");
@@ -285,31 +296,59 @@ export function useVoiceAutoAdvance({
     const SpeechRecognitionImpl = getSpeechRecognition();
     if (!SpeechRecognitionImpl) return;
 
+    // Never run two recognizers at once (a second one steals the mic and causes
+    // the connect/disconnect flicker). Tear down any previous instance first.
+    const previous = recognitionRef.current;
+    if (previous) {
+      previous.onresult = null;
+      previous.onerror = null;
+      previous.onend = null;
+      try {
+        previous.abort();
+      } catch {
+        // Ignore.
+      }
+    }
+
     const recognition = new SpeechRecognitionImpl();
     recognition.lang = lang;
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
+    recognition.onstart = () => {
+      recognitionActiveRef.current = true;
+    };
     recognition.onresult = handleResult;
     recognition.onerror = (event) => {
-      // "no-speech"/"aborted" are routine; surface anything else.
-      if (event.error !== "no-speech" && event.error !== "aborted") {
-        console.warn("[useVoiceAutoAdvance] recognition error:", event.error);
+      // Fatal errors must NOT trigger a restart, otherwise we loop forever
+      // re-requesting the mic (the tab "flickers" connecting/disconnecting).
+      const fatal =
+        event.error === "not-allowed" ||
+        event.error === "service-not-allowed" ||
+        event.error === "audio-capture";
+      if (fatal) {
+        console.warn("[useVoiceAutoAdvance] microfone indisponível:", event.error);
+        shouldListenRef.current = false;
+        setIsListening(false);
       }
     };
     recognition.onend = () => {
-      // Browsers stop recognition on silence even when `continuous`; restart it
-      // ourselves while the user still wants to listen.
-      if (shouldListenRef.current) {
-        try {
-          recognition.start();
-        } catch {
-          // start() throws if it is already starting; safe to ignore.
-        }
-      } else {
+      recognitionActiveRef.current = false;
+      // Browsers stop recognition on silence even when `continuous`. Restart it
+      // ourselves while the user still wants to listen — but on a short timer,
+      // never synchronously, so a rapid end→start cycle can't busy-loop.
+      if (!shouldListenRef.current) {
         setIsListening(false);
+        return;
       }
+      if (restartTimerRef.current !== null) return;
+      restartTimerRef.current = window.setTimeout(() => {
+        restartTimerRef.current = null;
+        if (shouldListenRef.current && !recognitionActiveRef.current) {
+          startInternal();
+        }
+      }, RECOGNITION_RESTART_DELAY_MS);
     };
 
     recognitionRef.current = recognition;
@@ -339,6 +378,10 @@ export function useVoiceAutoAdvance({
   const stop = useCallback(() => {
     shouldListenRef.current = false;
     setIsListening(false);
+    if (restartTimerRef.current !== null) {
+      window.clearTimeout(restartTimerRef.current);
+      restartTimerRef.current = null;
+    }
     const recognition = recognitionRef.current;
     if (recognition) {
       try {
@@ -402,8 +445,13 @@ export function useVoiceAutoAdvance({
   useEffect(() => {
     return () => {
       shouldListenRef.current = false;
+      if (restartTimerRef.current !== null) {
+        window.clearTimeout(restartTimerRef.current);
+        restartTimerRef.current = null;
+      }
       const recognition = recognitionRef.current;
       if (recognition) {
+        recognition.onstart = null;
         recognition.onresult = null;
         recognition.onerror = null;
         recognition.onend = null;
