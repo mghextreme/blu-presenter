@@ -2,7 +2,7 @@ export * from './create-song.dto';
 export * from './song-part.dto';
 export * from './update-song.dto';
 export * from './copy-song-to-organization.dto';
-export * from './advanced-search.dto';
+export * from './search-song.dto';
 
 export * from './create-theme.dto';
 export * from './update-theme.dto';

@@ -74,6 +74,9 @@ export class SchedulesService {
         id,
         orgId,
       },
+      relations: {
+        organization: true,
+      },
     });
 
     if (!schedule || !schedule.items?.length) {

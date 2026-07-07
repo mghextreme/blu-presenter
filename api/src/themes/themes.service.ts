@@ -26,11 +26,18 @@ export class ThemesService {
         name: true,
         extends: true,
         config: true,
+        organization: {
+          id: true,
+          name: true,
+        },
       },
       where: {
         id,
         orgId,
       },
+      relations: {
+        organization: true,
+      }
     });
   }
 

@@ -1,10 +1,10 @@
-import { IsArray, IsBoolean, IsIn, IsNotEmpty, IsOptional, Length, Min } from 'class-validator';
+import { IsArray, IsBoolean, IsIn, IsInt, IsNotEmpty, IsOptional, Length, Max, Min } from 'class-validator';
 import { SupportedLanguages } from './supported-languages';
 
-export class AdvancedSearchDto {
-  @IsNotEmpty()
+export class SearchSongDto {
+  @IsOptional()
   @Length(2, 255)
-  query: string;
+  query?: string;
 
   @IsIn(SupportedLanguages)
   queryLanguage: string;
@@ -27,4 +27,15 @@ export class AdvancedSearchDto {
   @IsOptional()
   @IsBoolean()
   includeBlocks?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  itemsPerPage?: number;
 }

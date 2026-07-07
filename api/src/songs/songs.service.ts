@@ -1,7 +1,7 @@
 import { ForbiddenException, Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOperator, FindOptionsWhere, ILike, In, IsNull, Or, Raw, Repository } from 'typeorm';
-import { AdvancedSearchDto, CreateSongDto, OrganizationRoleOptions, UpdateSongDto } from 'src/types';
+import { FindOperator, FindOptionsWhere, ILike, In, IsNull, ObjectLiteral, Or, Raw, Repository } from 'typeorm';
+import { SearchSongDto, CreateSongDto, OrganizationRoleOptions, UpdateSongDto } from 'src/types';
 import { OrganizationUser, Song } from 'src/entities';
 import { OrganizationsService } from 'src/organizations/organizations.service';
 import { UsersService } from 'src/users/users.service';
@@ -120,58 +120,67 @@ export class SongsService {
     });
   }
 
-  async advancedSearch(advancedSearchDto: AdvancedSearchDto): Promise<SongWithRoleViewModel[]> {
+  async advancedSearch(searchDto: SearchSongDto): Promise<SongWithRoleViewModel[]> {
     const user = this.request.user['internal'];
     const userOrgs = await this.usersService.findUserOrganizations(user.id);
     const userOrgIds = userOrgs.map((org) => org.organization.id);
 
     let orgIdCondition: { orgId: FindOperator<number>};
-    if (advancedSearchDto.organizations && advancedSearchDto.organizations.length > 0) {
-      if (!advancedSearchDto.organizations.every((id: number) => userOrgIds.includes(id))) {
+    if (searchDto.organizations && searchDto.organizations.length > 0) {
+      if (!searchDto.organizations.every((id: number) => userOrgIds.includes(id))) {
         throw new ForbiddenException('You selected an organization which you don\'t have permissions to access.');
       }
 
-      orgIdCondition = { orgId: In(advancedSearchDto.organizations) };
+      orgIdCondition = { orgId: In(searchDto.organizations) };
     } else {
       orgIdCondition = { orgId: In(userOrgIds) };
     }
 
-    if (advancedSearchDto.searchPublicArchive) {
+    if (searchDto.searchPublicArchive) {
       orgIdCondition.orgId = Or(orgIdCondition.orgId, IsNull());
     }
 
-    const languageCondition = advancedSearchDto.languages && advancedSearchDto.languages.length > 0
-      ? {language: In(advancedSearchDto.languages)}
+    const languageCondition = searchDto.languages && searchDto.languages.length > 0
+      ? {language: In(searchDto.languages)}
       : {};
 
-    const queryLang = !!advancedSearchDto.queryLanguage ? advancedSearchDto.queryLanguage : ((advancedSearchDto.languages?.length ?? 0) === 1 ? advancedSearchDto.languages[0] : 'en');
-    const whereQuery = [
-      {
-        ...orgIdCondition,
-        ...languageCondition,
-        searchVector: Raw(() => `searchVector @@ get_combined_tsquery_code(:query, :lang)`, {
-          query: advancedSearchDto.query,
-          lang: queryLang,
-        }),
-      },
-    ];
+    let songsQuery = this.songsRepository.createQueryBuilder('s');
+    let whereQuery: ObjectLiteral = {
+      ...orgIdCondition,
+      ...languageCondition,
+    };
 
-    let songsQuery = this.songsRepository
-      .createQueryBuilder('s')
-      .addSelect('ts_rank(searchVector, get_combined_tsquery_code(:query, :lang))', 'rank');
+    const queryLang = !!searchDto.queryLanguage ? searchDto.queryLanguage : ((searchDto.languages?.length ?? 0) === 1 ? searchDto.languages[0] : 'en');
+    if (searchDto.query) {
+      whereQuery.searchVector = Raw(() => `searchVector @@ get_combined_tsquery_code(:query, :lang)`, {
+        query: searchDto.query,
+        lang: queryLang,
+      }),
 
-    if (advancedSearchDto.includeBlocks === true) {
+      songsQuery = songsQuery.addSelect('ts_rank(searchVector, get_combined_tsquery_code(:query, :lang))', 'rank');
+    }
+
+    if (searchDto.includeBlocks === true) {
       songsQuery = songsQuery.addSelect('s.blocks');
     }
 
+    songsQuery = songsQuery.where([whereQuery]);
+
+    if (searchDto.query) {
+      songsQuery = songsQuery.orderBy('rank', 'DESC')
+    } else {
+      songsQuery = songsQuery.orderBy('title', 'ASC')
+    }
+
     songsQuery = songsQuery
-      .where(whereQuery)
-      .orderBy('rank', 'DESC')
-      .setParameter('query', advancedSearchDto.query)
+      .setParameter('query', searchDto.query)
       .setParameter('lang', queryLang);
 
+    const pageSize = searchDto.itemsPerPage ?? 20;
+    const page = searchDto.page ?? 1;
     const songs = await songsQuery
-      .take(100)
+      .skip(pageSize * (page - 1))
+      .take(pageSize)
       .getMany();
 
     const userOrgsMap: {[key: number]: Partial<OrganizationUser>} = {};
