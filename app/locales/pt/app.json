@@ -5,8 +5,8 @@
   "menu": {
     "title": {
       "menu": "Menu",
-      "organization": "Organização",
-      "account": "Minha Conta"
+      "entries": "Cadastros",
+      "settings": "Configurações"
     },
     "home": "Principal",
     "controller": "Painel de Controle",

@@ -49,16 +49,15 @@ export function AppSidebar() {
             <hr />
             <SidebarMenuItem to="/app" content={t('menu.home')} onSelect={closeSidebar} />
             <SidebarMenuItem to="/app/controller" content={t('menu.controller')} onSelect={closeSidebar} />
-            <SidebarMenuItem to="/app/discover" content={t('menu.discover')} onSelect={closeSidebar} />
-            <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.organization')}</h3>
+            <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.entries')}</h3>
             <hr />
-            <SidebarMenuItem to="/app/organization" content={t('menu.organization')} onSelect={closeSidebar} />
             <SidebarMenuItem to="/app/songs" content={t('menu.songs')} onSelect={closeSidebar} />
             <SidebarMenuItem to="/app/schedules" content={t('menu.schedules')} onSelect={closeSidebar} />
             <SidebarMenuItem to="/app/themes" content={t('menu.themes')} onSelect={closeSidebar} />
             <SidebarMenuItem to="/app/sessions" content={t('menu.sessions')} disabled={!isRoleHigherOrEqualThan(organization?.role, 'admin')} onSelect={closeSidebar} />
-            <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.account')}</h3>
+            <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.settings')}</h3>
             <hr />
+            <SidebarMenuItem to="/app/organization" content={t('menu.organization')} onSelect={closeSidebar} />
             <SidebarMenuItem to="/app/profile" content={t('menu.profile')} onSelect={closeSidebar} />
           </ul>
           <Button variant="outline" className="fixed bottom-2 right-2 lg:hidden" onClick={() => setExpanded(false)}>

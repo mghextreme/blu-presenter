@@ -5,8 +5,8 @@
   "menu": {
     "title": {
       "menu": "Menu",
-      "organization": "Organization",
-      "account": "My Account"
+      "entries": "Entries",
+      "settings": "Settings"
     },
     "home": "Home",
     "controller": "Controller",

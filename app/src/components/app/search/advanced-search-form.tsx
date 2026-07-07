@@ -16,7 +16,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 const advancedSearchFormSchema = z.object({
-  query: z.string().min(2),
+  query: z.string().optional(),
   languages: z.array(z.string().min(2).max(2)).optional(),
   organizations: z.array(z.string()).optional(),
   searchPublicArchive: z.boolean(),
@@ -30,7 +30,7 @@ export function AdvancedSearchForm({
   includeBlocks = false,
 }: AdvancedSearchFormProps) {
 
-  const { t } = useTranslation('discover');
+  const { t } = useTranslation('songs');
   const {
     formValues,
     advancedSearch,
@@ -71,7 +71,7 @@ export function AdvancedSearchForm({
           name="query"
           render={({ field }) => (
             <FormItem className="flex-1 min-w-48">
-              <FormLabel>{t('input.query')}</FormLabel>
+              <FormLabel>{t('searchInput.query')}</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -84,15 +84,15 @@ export function AdvancedSearchForm({
           name="languages"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('input.languages')}</FormLabel>
+              <FormLabel>{t('searchInput.languages')}</FormLabel>
               <FormControl>
                 <MultiSelect
                   selected={field.value?.map(x => x.toString()) || []}
                   onChange={field.onChange}
                   options={supportedLanguagesMap}
-                  placeholder={t('input.languagesPlaceholder')}
-                  searchText={t('input.languagesSearch')}
-                  emptyText={t('input.languagesEmpty')}
+                  placeholder={t('searchInput.languagesPlaceholder')}
+                  searchText={t('searchInput.languagesSearch')}
+                  emptyText={t('searchInput.languagesEmpty')}
                   className="min-w-32"
                   summaryRenderFunction={(options, placeholder) => {
                     if (options.length === 0) {
@@ -127,7 +127,7 @@ export function AdvancedSearchForm({
           name="organizations"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('input.organizations')}</FormLabel>
+              <FormLabel>{t('searchInput.organizations')}</FormLabel>
               <FormControl>
                 <MultiSelect
                   selected={field.value?.map(x => x.toString()) || []}
@@ -138,9 +138,9 @@ export function AdvancedSearchForm({
                       label: o.name || t('organizations.defaultName'),
                     })) || []
                   }
-                  placeholder={t('input.organizationsPlaceholder')}
-                  searchText={t('input.organizationsSearch')}
-                  emptyText={t('input.organizationsEmpty')}
+                  placeholder={t('searchInput.organizationsPlaceholder')}
+                  searchText={t('searchInput.organizationsSearch')}
+                  emptyText={t('searchInput.organizationsEmpty')}
                   className="min-w-48"
                 />
               </FormControl>
@@ -153,8 +153,8 @@ export function AdvancedSearchForm({
           name="searchPublicArchive"
           render={({ field }) => (
             <FormItem className="flex-row items-center sm:items-start sm:flex-col mt-2 sm:mt-0 justify-between">
-              <FormLabel>{t('input.searchPublicArchive')}</FormLabel>
-              <FormControl className="ms-3 sm:mt-3">
+              <FormLabel>{t('searchInput.searchPublicArchive')}</FormLabel>
+              <FormControl className="my-auto">
                 <Switch
                   checked={field.value}
                   onCheckedChange={field.onChange}

@@ -20,7 +20,7 @@ export function BasicSearchForm({
   includeBlocks = false,
 }: BasicSearchFormProps) {
 
-  const { t } = useTranslation('discover');
+  const { t } = useTranslation('songs');
   const {
     search,
     isSearching,
@@ -46,7 +46,7 @@ export function BasicSearchForm({
           render={({field}) => (
             <FormItem className="flex-1">
               <FormControl>
-                <Input placeholder={t('input.basicSearchPlaceholder')} autoComplete="off" {...field} />
+                <Input placeholder={t('searchInput.basicSearchPlaceholder')} autoComplete="off" {...field} />
               </FormControl>
               <FormMessage/>
             </FormItem>

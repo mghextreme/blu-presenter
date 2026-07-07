@@ -38,11 +38,10 @@ import { Welcome } from "./app/welcome";
 import { loader as welcomeLoader } from "./app/welcome.loader";
 import { Controller } from "./app/controller";
 import { Receiver } from "./app/receiver";
-import { Discover } from "./app/discover";
 import { Profile } from "./app/profile";
 import { loader as profileLoader } from "./app/profile.loader";
 
-import { Songs as SongsIndex } from "./app/songs/index";
+import { Songs as SongsIndex } from "./app/songs";
 import { EditSong } from "./app/songs/edit";
 import { ViewSong } from "./app/songs/view";
 import { PrintSong } from "./app/songs/print";
@@ -105,13 +104,12 @@ export function AppRouter() {
           <Route index={true} element={<Welcome />} loader={() => welcomeLoader({ organizationsService: services.organizationsService })} />
           <Route path="profile" element={<Profile />} loader={() => profileLoader({ usersService: services.usersService, authService: services.authService })} />
           <Route path="songs">
-            <Route index={true} element={<SongsIndex />} loader={() => allSongsLoader({ songsService: services.songsService })} />
+            <Route index={true} element={<SongsIndex />} loader={() => allSongsLoader({ songsService: services.songsService, lang: i18n.language })} />
             <Route path="add" element={<EditSong edit={false} />} />
             <Route path="import" element={<ImportSong />} />
             <Route path=":id/view" element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
             <Route path=":id/edit" element={<EditSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
           </Route>
-          <Route path="discover" element={<Discover />} />
           <Route path="organization">
             <Route index={true} element={<EditOrganization />} loader={() => editOrganizationLoader({ organizationsService: services.organizationsService })} />
             <Route path="invite" element={<InviteOrganizationMember />} loader={() => inviteOrganizationMemberLoader({ organizationsService: services.organizationsService })} />

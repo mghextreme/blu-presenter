@@ -5,7 +5,7 @@
     "print": "\"{{title}}\" by {{artist}} - Print - Songs",
     "add": "Add - Songs",
     "import": "Import - Songs",
-    "list": "Songs - {{organization}}"
+    "list": "Songs"
   },
   "input": {
     "title": "Title",
@@ -14,7 +14,6 @@
     "language": "Language",
     "editChords": "Edit chords",
     "viewChords": "View chords",
-    "organization": "Organization",
     "references": "References",
     "placeholders": {
       "referenceUrl": "Reference URL",
@@ -41,7 +40,22 @@
     "partName": "Part name",
     "partAcronym": "Acronym (short label)"
   },
+  "searchInput": {
+    "query": "Search query",
+    "languages": "Languages",
+    "organizations": "Organizations",
+    "searchPublicArchive": "Use public archive?",
+    "languagesPlaceholder": "Select languages",
+    "languagesSearch": "Search languages",
+    "languagesEmpty": "No languages found",
+    "organizationsPlaceholder": "Select organizations",
+    "organizationsSearch": "Search organizations",
+    "organizationsEmpty": "No organizations found",
+    "basicSearchPlaceholder": "Search songs..."
+  },
   "actions": {
+    "search": "Search",
+    "searching": "Searching...",
     "create": "Add song",
     "import": "Import song",
     "edit": "Edit song",
@@ -108,7 +122,8 @@
   "error": {
     "deleteSong": "Error deleting song",
     "copyToOrganization": "Error copying song",
-    "noPermission": "You don't have permission to access this song"
+    "noPermission": "You don't have permission to access this song",
+    "search": "Search failed"
   },
   "warning": {
     "uppercase": {
@@ -155,5 +170,9 @@
     "play": "Play",
     "stopPlaying": "Stop playing",
     "embedFailed": "Failed to load the embedded player"
+  },
+  "chords": {
+    "available": "Chords available",
+    "notAvailable": "No chords available"
   }
 }

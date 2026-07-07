@@ -28,7 +28,7 @@ export function SearchResultItem({
   item: ISongWithRole;
 }) {
 
-  const { t } = useTranslation('discover');
+  const { t } = useTranslation('songs');
   const hasChords = item.blocks?.some(block => block.lines?.some(line => line.type === 'chords'));
 
   return (

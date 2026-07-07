@@ -8,13 +8,6 @@ export class SongsService extends ApiService {
     this.queryClient.removeQueries({ queryKey: ['songs'] });
   }
 
-  public async getAll(): Promise<ISong[]> {
-    return await this.getOrFetch({
-      queryKey: ['songs', 'all'],
-      queryFn: async () => await this.getRequest('/songs') as ISong[],
-    });
-  }
-
   public async getById(songId: number, secret?: string): Promise<ISong | null> {
     const hasSecret = secret && secret.length > 0;
     const secretParam = hasSecret ? `?secret=${secret}` : '';
@@ -25,17 +18,19 @@ export class SongsService extends ApiService {
     });
   }
 
-  public async advancedSearch(
+  public async search(
     payload: {
-      query: string;
+      query?: string | undefined;
       queryLanguage?: string | undefined;
       organizations?: number[];
       languages?: string[] | undefined;
       searchPublicArchive?: boolean;
       includeBlocks?: boolean;
+      page?: number;
+      itemsPerPage?: number;
     }
   ): Promise<ISongWithRole[]> {
-    return await this.postRequest('/songs/advancedSearch', JSON.stringify(payload), {
+    return await this.postRequest('/songs/search', JSON.stringify(payload), {
       'content-type': 'application/json',
     }) as ISongWithRole[];
   }

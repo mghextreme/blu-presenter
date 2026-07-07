@@ -5,7 +5,7 @@
     "print": "\"{{title}}\" por {{artist}} - Imprimir - Músicas",
     "add": "Adicionar - Músicas",
     "import": "Importar - Músicas",
-    "list": "Músicas - {{organization}}"
+    "list": "Músicas"
   },
   "input": {
     "title": "Título",
@@ -14,7 +14,6 @@
     "language": "Idioma",
     "editChords": "Editar cifras",
     "viewChords": "Ver cifras",
-    "organization": "Organização",
     "references": "Referências",
     "placeholders": {
       "referenceUrl": "URL da referência",
@@ -41,7 +40,22 @@
     "partName": "Nome da parte",
     "partAcronym": "Sigla (rótulo curto)"
   },
+  "searchInput": {
+    "query": "Termo de busca",
+    "languages": "Idiomas",
+    "organizations": "Organizações",
+    "searchPublicArchive": "Usar acervo público?",
+    "languagesPlaceholder": "Selecionar idiomas",
+    "languagesSearch": "Buscar idiomas",
+    "languagesEmpty": "Nenhum idioma encontrado",
+    "organizationsPlaceholder": "Selecionar organizações",
+    "organizationsSearch": "Buscar organizações",
+    "organizationsEmpty": "Nenhuma organização encontrada",
+    "basicSearchPlaceholder": "Buscar músicas..."
+  },
   "actions": {
+    "search": "Buscar",
+    "searching": "Buscando...",
     "create": "Adicionar música",
     "import": "Importar música",
     "edit": "Editar música",
@@ -108,7 +122,8 @@
   "error": {
     "deleteSong": "Erro ao remover música",
     "copyToOrganization": "Erro ao copiar música",
-    "noPermission": "Você não tem permissão para acessar esta música"
+    "noPermission": "Você não tem permissão para acessar esta música",
+    "search": "Busca falhou"
   },
   "warning": {
     "uppercase": {
@@ -155,5 +170,9 @@
     "play": "Reproduzir",
     "stopPlaying": "Parar",
     "embedFailed": "Falha ao carregar o player incorporado"
+  },
+  "chords": {
+    "available": "Acordes disponíveis",
+    "notAvailable": "Acordes indisponíveis"
   }
 }
