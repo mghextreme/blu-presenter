@@ -11,6 +11,7 @@ import { SessionSchema } from "@/types/schemas/session.schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useServices } from "@/hooks/useServices";
 import { ControllerProvider } from "@/hooks/controller.provider";
+import { OrganizationBar } from "@/components/app/organization-bar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -194,9 +195,7 @@ export function EditSession({
   return (
     <>
       <title>{(edit ? t('title.edit', { name: data.default ? t('session.defaultName') : data.name }) : t('title.add')) + ' - ' + orgName + ' - BluPresenter'}</title>
-      <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
-        <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
-      </div>
+      <OrganizationBar organizations={[data.organization ?? organization]} />
       <div className="p-2 sm:p-8">
         <h1 className="text-3xl mb-4">{edit ? t('edit.title') : t('add.title')}</h1>
         <ControllerProvider>

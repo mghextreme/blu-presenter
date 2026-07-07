@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { getLocaleConfig } from "@/components/ui/date-picker";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { OrganizationBar } from "@/components/app/organization-bar";
 
 export function ViewSchedule() {
   const { t, i18n } = useTranslation("schedules");
@@ -77,32 +78,29 @@ export function ViewSchedule() {
   return (
     <>
       <title>{t("title.view", { name: data.title }) + " - BluPresenter"}</title>
-      <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
-        <span className="text-sm">{t("list.title")}</span>
-        <div className="buttons flex-1 flex justify-end gap-x-2">
-          <Button
-            type="button"
-            size="sm"
-            title={t("actions.share")}
-            onClick={copyShareableUrlToClipboard}>
-            <ShareIcon className="size-3" />
+      <OrganizationBar organizations={[data.organization]}>
+        <Button
+          type="button"
+          size="sm"
+          title={t("actions.share")}
+          onClick={copyShareableUrlToClipboard}>
+          <ShareIcon className="size-3" />
+        </Button>
+        {hasSongs && (
+          <Button type="button" size="sm" title={t("actions.rehearsal")} asChild>
+            <Link to={getRehearsalLink()}>
+              <PlayIcon className="size-3" />
+            </Link>
           </Button>
-          {hasSongs && (
-            <Button type="button" size="sm" title={t("actions.rehearsal")} asChild>
-              <Link to={getRehearsalLink()}>
-                <PlayIcon className="size-3" />
-              </Link>
-            </Button>
-          )}
-          {isLoggedIn && (
-            <Button type="button" size="sm" title={t("actions.edit")} asChild>
-              <Link to={`/app/schedules/${data.id}/edit`}>
-                <PencilIcon className="size-3" />
-              </Link>
-            </Button>
-          )}
-        </div>
-      </div>
+        )}
+        {isLoggedIn && (
+          <Button type="button" size="sm" title={t("actions.edit")} asChild>
+            <Link to={`/app/schedules/${data.id}/edit`}>
+              <PencilIcon className="size-3" />
+            </Link>
+          </Button>
+        )}
+      </OrganizationBar>
 
       <div className="p-2 sm:p-8 max-w-3xl">
         <h1 className="text-3xl mb-2">{data.title}</h1>

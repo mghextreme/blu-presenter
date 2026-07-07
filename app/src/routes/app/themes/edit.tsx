@@ -18,6 +18,7 @@ import { Controls } from "@/components/controller/controls";
 import { ThemePreviewSongForm } from "@/components/app/themes/theme-preview-song-form";
 import { ThemeSchema } from "@/types/schemas/theme.schema";
 import { ThemeConfigForm } from "@/components/app/themes/theme-config-form";
+import { OrganizationBar } from "@/components/app/organization-bar";
 
 type EditThemeProps = {
   edit?: boolean
@@ -105,9 +106,7 @@ export function EditTheme({
   return (
     <>
       <title>{(edit ? t('title.edit', { name: data.name }) : t('title.add')) + ' - ' + orgName + ' - BluPresenter'}</title>
-      <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
-        <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
-      </div>
+      <OrganizationBar organizations={[data.organization ?? organization]} />
       <div className="p-2 sm:p-8">
         <h1 className="text-3xl mb-4">{edit ? t('edit.title') : t('add.title')}</h1>
         <ControllerProvider>

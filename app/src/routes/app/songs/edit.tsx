@@ -7,6 +7,7 @@ import i18next from "i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { EditSongForm, EditSongFormHandle } from "@/components/app/songs/edit-form";
+import { OrganizationBar } from "@/components/app/organization-bar";
 import { PreviewIcon } from "@/components/icons/preview";
 import { ControllerProvider } from "@/hooks/controller.provider";
 import { useRef } from "react";
@@ -69,18 +70,12 @@ export function EditSong({
     references: data.references ?? [],
   };
 
-  let orgName: string | undefined = t("organizations.publicArchive");
-  if (data.organization) {
-    orgName = data.organization.name || t("organizations.defaultName");
-  }
-
   const formRef = useRef<EditSongFormHandle>(null);
 
   return (
     <>
       <title>{(edit ? t('title.edit', { title: data.title, artist: data.artist }) : t('title.add')) + ' - BluPresenter'}</title>
-      <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
-        <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
+      <OrganizationBar organizations={[data.organization]}>
         <div className="buttons flex-1 flex justify-end gap-x-2">
           {edit && <>
             <Button
@@ -108,7 +103,7 @@ export function EditSong({
             </SongPreview>
           </ControllerProvider>
         </div>
-      </div>
+      </OrganizationBar>
       <div className="p-2 sm:p-8">
         <h1 className="text-3xl mb-4">{edit ? t('edit.title') : t('add.title')}</h1>
         <EditSongForm edit={edit} formValues={formValues} ref={formRef} />

@@ -11,6 +11,7 @@ import { SongPreview } from "@/components/app/songs/song-preview";
 import { PreviewIcon } from "@/components/icons/preview";
 import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
 import { SongViewer } from "@/components/app/songs/song-viewer";
+import { OrganizationBar } from "@/components/app/organization-bar";
 import { toast } from "sonner";
 
 export function ViewSong() {
@@ -28,11 +29,6 @@ export function ViewSong() {
   const hasAccess = isRoleHigherOrEqualThan(data.organization?.role, 'guest');
   if (!hasAccess && !!data.secret && params.secret !== data.secret) {
     throw new Error(t('error.noPermission'));
-  }
-
-  let orgName: string | undefined = t("organizations.publicArchive");
-  if (data.organization) {
-    orgName = data.organization.name || t("organizations.defaultName");
   }
 
   const canEdit = isRoleHigherOrEqualThan(data.organization?.role, 'member');
@@ -54,52 +50,49 @@ export function ViewSong() {
   return (
     <>
       <title>{t('title.view', { title: data.title, artist: data.artist }) + ' - BluPresenter'}</title>
-      <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
-        <span className="text-sm">{t('input.organization')}: <b>{orgName}</b></span>
-        <div className="buttons flex-1 flex justify-end gap-x-2">
-          {isLoggedIn && <CopySongToOrganization songId={data.id} title={data.title} artist={data.artist} variant="default" organizationId={data.organization?.id} />}
-          <Button
-            type="button"
-            size="sm"
-            title={t('actions.share')}
-            onClick={copyShareableUrlToClipboard}>
-            <ShareIcon className="size-3" />
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            title={t('actions.print')}
-            asChild>
-            <Link to={hasAccess ? `/app/songs/${data.id}/print` : `/shared/print/${data.id}/${data.secret ?? ''}`}>
-              <PrinterIcon className="size-3" />
-            </Link>
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            title={t('actions.edit')}
-            asChild={canEdit}
-            disabled={!canEdit}>
-            {canEdit ? (
-              <Link to={`/app/songs/${data.id}/edit`}>
-                <PencilIcon className="size-3" />
-              </Link>
-            ) : (
+      <OrganizationBar organizations={[data.organization]}>
+        {isLoggedIn && <CopySongToOrganization songId={data.id} title={data.title} artist={data.artist} variant="default" />}
+        <Button
+          type="button"
+          size="sm"
+          title={t('actions.share')}
+          onClick={copyShareableUrlToClipboard}>
+          <ShareIcon className="size-3" />
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          title={t('actions.print')}
+          asChild>
+          <Link to={hasAccess ? `/app/songs/${data.id}/print` : `/shared/print/${data.id}/${data.secret ?? ''}`}>
+            <PrinterIcon className="size-3" />
+          </Link>
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          title={t('actions.edit')}
+          asChild={canEdit}
+          disabled={!canEdit}>
+          {canEdit ? (
+            <Link to={`/app/songs/${data.id}/edit`}>
               <PencilIcon className="size-3" />
-            )}
-          </Button>
-          {hasAccess && <ControllerProvider>
-            <SongPreview getSong={() => data}>
-              <Button
-                type="button"
-                size="sm"
-                title={t('actions.preview')}>
-                <PreviewIcon className="size-5" />
-              </Button>
-            </SongPreview>
-          </ControllerProvider>}
-        </div>
-      </div>
+            </Link>
+          ) : (
+            <PencilIcon className="size-3" />
+          )}
+        </Button>
+        {hasAccess && <ControllerProvider>
+          <SongPreview getSong={() => data}>
+            <Button
+              type="button"
+              size="sm"
+              title={t('actions.preview')}>
+              <PreviewIcon className="size-5" />
+            </Button>
+          </SongPreview>
+        </ControllerProvider>}
+      </OrganizationBar>
       <SongViewer song={data} />
       {isLoggedIn && <div className="flex flex-row align-start space-x-2 px-2 sm:px-8 pb-8">
         <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/songs'}>{t('button.back')}</Link></Button>

@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { EditSongForm, EditSongFormHandle } from "@/components/app/songs/edit-form";
 import { SongPreview } from "@/components/app/songs/song-preview";
+import { OrganizationBar } from "@/components/app/organization-bar";
 import { PreviewIcon } from "@/components/icons/preview";
 import { parseSongText } from "@/lib/songs";
 
@@ -54,23 +55,20 @@ export function ImportSong() {
   return (
     <>
       <title>{t('title.import') + ' - BluPresenter'}</title>
-      <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
-        <span className="text-sm">{t('input.organization')}: <b>{organization?.name ?? t('organizations.defaultName')}</b></span>
-        <div className="buttons flex-1 flex justify-end gap-x-2">
-          {step === 2 && (
-            <ControllerProvider>
-              <SongPreview getSong={() => editFormRef.current?.getFormValues()}>
-                <Button
-                  type="button"
-                  size="sm"
-                  title={t('actions.preview')}>
-                  <PreviewIcon className="size-5" />
-                </Button>
-              </SongPreview>
-            </ControllerProvider>
-          )}
-        </div>
-      </div>
+      <OrganizationBar organizations={[organization]}>
+        {step === 2 && (
+          <ControllerProvider>
+            <SongPreview getSong={() => editFormRef.current?.getFormValues()}>
+              <Button
+                type="button"
+                size="sm"
+                title={t('actions.preview')}>
+                <PreviewIcon className="size-5" />
+              </Button>
+            </SongPreview>
+          </ControllerProvider>
+        )}
+      </OrganizationBar>
       <div className="p-2 sm:p-8">
         <h1 className="text-3xl mb-4">{t('import.title')}</h1>
         {step === 1 && (

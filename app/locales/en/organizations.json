@@ -5,7 +5,10 @@
     "member": "{{member}} - Member - {{organization}}",
     "transfer": "Transfer - {{organization}}"
   },
+  "singular": "Organization",
+  "plural": "Organizations",
   "defaultName": "Personal space",
+  "publicArchive": "Public archive",
   "input": {
     "name": "Name",
     "email": "Email",

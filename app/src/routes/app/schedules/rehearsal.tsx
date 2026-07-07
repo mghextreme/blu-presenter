@@ -10,6 +10,7 @@ import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import PrinterIcon from "@heroicons/react/24/solid/PrinterIcon";
 import { RehearsalNav } from "@/components/app/schedules/rehearsal-nav";
 import { SongViewer } from "@/components/app/songs/song-viewer";
+import { OrganizationBar } from "@/components/app/organization-bar";
 import { toast } from "sonner";
 
 export function RehearsalSchedule() {
@@ -90,16 +91,13 @@ export function RehearsalSchedule() {
     return (
       <>
         <title>{t("rehearsal.title") + " - " + data.title + " - BluPresenter"}</title>
-        <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
-          <span className="text-sm">{data.title}</span>
-          <div className="buttons flex-1 flex justify-end gap-x-2">
-            <Button type="button" size="sm" title={t("actions.view")} asChild>
-              <Link to={getViewLink()}>
-                <EyeIcon className="size-3" />
-              </Link>
-            </Button>
-          </div>
-        </div>
+        <OrganizationBar organizations={[data.organization]} subtitle={data.title}>
+          <Button type="button" size="sm" title={t("actions.view")} asChild>
+            <Link to={getViewLink()}>
+              <EyeIcon className="size-3" />
+            </Link>
+          </Button>
+        </OrganizationBar>
         <div className="p-2 sm:p-8">
           <p className="text-muted-foreground">{t('rehearsal.noSongs')}</p>
           {isLoggedIn && (
@@ -117,36 +115,33 @@ export function RehearsalSchedule() {
   return (
     <>
       <title>{t("rehearsal.title") + " - " + data.title + " - BluPresenter"}</title>
-      <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
-        <span className="text-sm">{data.title}</span>
-        <div className="buttons flex-1 flex justify-end gap-x-2">
-          <Button type="button" size="sm" title={t("rehearsal.print")} asChild>
-            <Link to={getPrintLink()}>
-              <PrinterIcon className="size-3" />
+      <OrganizationBar organizations={[data.organization]} subtitle={data.title}>
+        <Button type="button" size="sm" title={t("rehearsal.print")} asChild>
+          <Link to={getPrintLink()}>
+            <PrinterIcon className="size-3" />
+          </Link>
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          title={t("actions.share")}
+          onClick={copyShareableUrlToClipboard}
+        >
+          <ShareIcon className="size-3" />
+        </Button>
+        <Button type="button" size="sm" title={t("actions.view")} asChild>
+          <Link to={getViewLink()}>
+            <EyeIcon className="size-3" />
+          </Link>
+        </Button>
+        {isLoggedIn && (
+          <Button type="button" size="sm" title={t("actions.edit")} asChild>
+            <Link to={`/app/schedules/${data.id}/edit`}>
+              <PencilIcon className="size-3" />
             </Link>
           </Button>
-          <Button
-            type="button"
-            size="sm"
-            title={t("actions.share")}
-            onClick={copyShareableUrlToClipboard}
-          >
-            <ShareIcon className="size-3" />
-          </Button>
-          <Button type="button" size="sm" title={t("actions.view")} asChild>
-            <Link to={getViewLink()}>
-              <EyeIcon className="size-3" />
-            </Link>
-          </Button>
-          {isLoggedIn && (
-            <Button type="button" size="sm" title={t("actions.edit")} asChild>
-              <Link to={`/app/schedules/${data.id}/edit`}>
-                <PencilIcon className="size-3" />
-              </Link>
-            </Button>
-          )}
-        </div>
-      </div>
+        )}
+      </OrganizationBar>
 
       <RehearsalNav
         items={data.items}
