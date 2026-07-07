@@ -24,11 +24,11 @@ export function CopyThemeToOrganization({
 }: CopyThemeToOrganizationProps) {
 
   const { t } = useTranslation("themes");
-  const { organizations, organization } = useAuth();
+  const { organizations } = useAuth();
   const { themesService } = useServices();
 
   const possibleOrgs = organizations.filter(
-    org => org.id !== organization?.id && isRoleHigherOrEqualThan(organization?.role, "member")
+    org => isRoleHigherOrEqualThan(org?.role, "member")
   ).map((org) => {
     if (!org.name) {
       org.name = t('message.copyToOrganization.defaultName');

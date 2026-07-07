@@ -18,23 +18,18 @@ interface CopySongToOrganizationProps {
   title: string;
   artist?: string;
   variant?: "default" | "secondary";
-  /** The organization the song belongs to. When provided, that org is excluded
-   *  from the copy targets instead of the currently active org. */
-  organizationId?: number;
 }
 
 export function CopySongToOrganization({
-  songId, title, artist, variant = "secondary", organizationId
+  songId, title, artist, variant = "secondary"
 }: CopySongToOrganizationProps) {
 
   const { t } = useTranslation("songs");
-  const { organizations, organization } = useAuth();
+  const { organizations } = useAuth();
   const { songsService } = useServices();
 
-  const sourceOrgId = organizationId ?? organization?.id;
-
   const possibleOrgs = organizations.filter(
-    org => org.id !== sourceOrgId && isRoleHigherOrEqualThan(organization?.role, "member")
+    org => isRoleHigherOrEqualThan(org?.role, "member")
   ).map((org) => {
     if (!org.name) {
       org.name = t('message.copyToOrganization.defaultName');
