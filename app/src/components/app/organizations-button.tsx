@@ -53,7 +53,7 @@ export function OrganizationsButton() {
             {organizations.map((option) => (
               <CommandItem
                 key={option.id}
-                value={option.id.toString()}
+                value={option.name?.toString() ?? t('organizations.defaultName')}
                 onSelect={() => {
                   setOpenSelector(false);
                   setOrganizationById(option.id);
