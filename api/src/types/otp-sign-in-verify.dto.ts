@@ -1,4 +1,10 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 import { AuthDto } from './auth.dto';
 
 export class OtpSignInVerifyDto extends AuthDto {

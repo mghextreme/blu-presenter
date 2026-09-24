@@ -1,8 +1,8 @@
-import { IScheduleItem, ISelection } from "src/types";
+import { IScheduleItem, ISelection } from 'src/types';
 
 export const sanitizeSchedule = (schedule: any[]) => {
   return schedule.map((item) => sanitizeScheduleItem(item));
-}
+};
 
 export const sanitizeScheduleItem = (item: any) => {
   return {
@@ -15,7 +15,7 @@ export const sanitizeScheduleItem = (item: any) => {
     slides: item.slides,
     uniqueId: item.uniqueId,
   } as IScheduleItem;
-}
+};
 
 export const sanitizeSelection = (selection: any) => {
   return {
@@ -23,4 +23,4 @@ export const sanitizeSelection = (selection: any) => {
     slide: selection.slide,
     part: selection.part,
   } as ISelection;
-}
+};

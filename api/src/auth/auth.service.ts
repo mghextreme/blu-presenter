@@ -59,14 +59,13 @@ export class AuthService {
   }
 
   async signIn(signInDto: SignInDto): Promise<AccessTokenDto> {
-    const { data, error } =
-      await this.supabaseClient.auth.signInWithPassword({
-        email: signInDto.email,
-        password: signInDto.password,
-        options: {
-          ...(signInDto.captchaToken && { captchaToken: signInDto.captchaToken }),
-        },
-      });
+    const { data, error } = await this.supabaseClient.auth.signInWithPassword({
+      email: signInDto.email,
+      password: signInDto.password,
+      options: {
+        ...(signInDto.captchaToken && { captchaToken: signInDto.captchaToken }),
+      },
+    });
 
     if (error) {
       switch (error.status) {
@@ -106,10 +105,14 @@ export class AuthService {
     } as AccessTokenDto;
   }
 
-  async signInWithProvider(provider: string, authDto?: AuthDto): Promise<OAuthRedirectDto> {
+  async signInWithProvider(
+    provider: string,
+    _authDto?: AuthDto,
+  ): Promise<OAuthRedirectDto> {
     switch (provider) {
       case 'google':
-        const redirectTo = this.configService.get('app.baseUrl') + '/oauth/callback';
+        const redirectTo =
+          this.configService.get('app.baseUrl') + '/oauth/callback';
         const codeVerifier = this.generatePKCEVerifier();
         const codeChallenge = this.generatePKCEChallenge(codeVerifier);
 
@@ -134,19 +137,23 @@ export class AuthService {
 
         if (!url) {
           const body = await response.text();
-          throw new BadRequestException(`Failed to initiate OAuth sign-in: ${body}`);
+          throw new BadRequestException(
+            `Failed to initiate OAuth sign-in: ${body}`,
+          );
         }
 
         return { url, codeVerifier };
     }
 
-    throw new BadRequestException(`Provider ${provider} not supported for sign in`);
+    throw new BadRequestException(
+      `Provider ${provider} not supported for sign in`,
+    );
   }
 
   async exchangeCodeForSession(
     code: string,
     codeVerifier: string,
-    locale?: string,
+    _locale?: string,
   ): Promise<AccessTokenDto> {
     const response = await fetch(
       `${this.supabaseUrl}/auth/v1/token?grant_type=pkce`,
@@ -162,14 +169,20 @@ export class AuthService {
 
     if (!response.ok) {
       const body = await response.text();
-      throw new BadRequestException(`Failed to exchange code for session: ${body}`);
+      throw new BadRequestException(
+        `Failed to exchange code for session: ${body}`,
+      );
     }
 
     const data = await response.json();
 
     return {
       user: data.user,
-      session: { access_token: data.access_token, refresh_token: data.refresh_token, ...data },
+      session: {
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+        ...data,
+      },
     } as AccessTokenDto;
   }
 
@@ -222,8 +235,12 @@ export class AuthService {
     } as AccessTokenDto;
   }
 
-  async tokenRefresh(tokenRefreshDto: TokenRefreshDto): Promise<AccessTokenDto> {
-    const { data, error } = await this.supabaseClient.auth.refreshSession({ refresh_token: tokenRefreshDto.refreshToken });
+  async tokenRefresh(
+    tokenRefreshDto: TokenRefreshDto,
+  ): Promise<AccessTokenDto> {
+    const { data, error } = await this.supabaseClient.auth.refreshSession({
+      refresh_token: tokenRefreshDto.refreshToken,
+    });
 
     if (error) {
       switch (error.status) {
@@ -238,7 +255,7 @@ export class AuthService {
     return {
       user: data.user,
       session: data.session,
-    }
+    };
   }
 
   async changePassword(changePasswordDto: ChangePasswordDto): Promise<void> {
@@ -400,9 +417,7 @@ export class AuthService {
 
     if (!response.ok) {
       const body = await response.text();
-      throw new BadRequestException(
-        `Failed to unlink identity: ${body}`,
-      );
+      throw new BadRequestException(`Failed to unlink identity: ${body}`);
     }
   }
 
@@ -442,7 +457,8 @@ export class AuthService {
    * addresses are registered.
    */
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<void> {
-    const redirectTo = this.configService.get('app.baseUrl') + '/reset-password';
+    const redirectTo =
+      this.configService.get('app.baseUrl') + '/reset-password';
 
     const { error } = await this.supabaseClient.auth.resetPasswordForEmail(
       forgotPasswordDto.email,
@@ -463,7 +479,9 @@ export class AuthService {
       if (forgotPasswordDto.captchaToken && /captcha/i.test(error.message)) {
         throw new BadRequestException(error.message);
       }
-      console.warn(`forgotPassword: suppressed Supabase error: ${error.message}`);
+      console.warn(
+        `forgotPassword: suppressed Supabase error: ${error.message}`,
+      );
     }
   }
 
@@ -516,7 +534,9 @@ export class AuthService {
       if (dto.captchaToken && /captcha/i.test(error.message)) {
         throw new BadRequestException(error.message);
       }
-      console.warn(`requestSignInOtp: suppressed Supabase error: ${error.message}`);
+      console.warn(
+        `requestSignInOtp: suppressed Supabase error: ${error.message}`,
+      );
     }
   }
 

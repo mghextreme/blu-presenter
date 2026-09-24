@@ -1,7 +1,27 @@
-import { ForbiddenException, Inject, Injectable, NotFoundException, Scope } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  Scope,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOperator, FindOptionsWhere, ILike, In, IsNull, ObjectLiteral, Or, Raw, Repository } from 'typeorm';
-import { SearchSongDto, CreateSongDto, OrganizationRoleOptions, UpdateSongDto } from 'src/types';
+import {
+  FindOperator,
+  FindOptionsWhere,
+  In,
+  IsNull,
+  ObjectLiteral,
+  Or,
+  Raw,
+  Repository,
+} from 'typeorm';
+import {
+  SearchSongDto,
+  CreateSongDto,
+  OrganizationRoleOptions,
+  UpdateSongDto,
+} from 'src/types';
 import { OrganizationUser, Song } from 'src/entities';
 import { OrganizationsService } from 'src/organizations/organizations.service';
 import { UsersService } from 'src/users/users.service';
@@ -14,7 +34,8 @@ import { generateRandomSecret } from 'src/utils/secret';
 export class SongsService {
   constructor(
     @InjectRepository(Song) private readonly songsRepository: Repository<Song>,
-    @Inject(OrganizationsService) private readonly organizationsService: OrganizationsService,
+    @Inject(OrganizationsService)
+    private readonly organizationsService: OrganizationsService,
     @Inject(UsersService) private readonly usersService: UsersService,
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {}
@@ -41,7 +62,10 @@ export class SongsService {
     });
   }
 
-  async findOneInAnyOrgOrBySecret(id: number, secret?: string): Promise<SongWithRoleViewModel | null> {
+  async findOneInAnyOrgOrBySecret(
+    id: number,
+    secret?: string,
+  ): Promise<SongWithRoleViewModel | null> {
     let whereClause: FindOptionsWhere<Song> | FindOptionsWhere<Song>[] = { id };
 
     let userOrgs: Partial<OrganizationUser>[] = [];
@@ -90,13 +114,15 @@ export class SongsService {
     return {
       ...song,
       references: song.references,
-      organization: orgUser ? {
-        ...orgUser.organization,
-        role: orgUser.role as OrganizationRoleOptions,
-      } : {
-        ...song.organization,
-        role: undefined,
-      },
+      organization: orgUser
+        ? {
+            ...orgUser.organization,
+            role: orgUser.role as OrganizationRoleOptions,
+          }
+        : {
+            ...song.organization,
+            role: undefined,
+          },
     } as SongWithRoleViewModel;
   }
 
@@ -120,15 +146,21 @@ export class SongsService {
     });
   }
 
-  async advancedSearch(searchDto: SearchSongDto): Promise<SongWithRoleViewModel[]> {
+  async advancedSearch(
+    searchDto: SearchSongDto,
+  ): Promise<SongWithRoleViewModel[]> {
     const user = this.request.user['internal'];
     const userOrgs = await this.usersService.findUserOrganizations(user.id);
     const userOrgIds = userOrgs.map((org) => org.organization.id);
 
-    let orgIdCondition: { orgId: FindOperator<number>};
+    let orgIdCondition: { orgId: FindOperator<number> };
     if (searchDto.organizations && searchDto.organizations.length > 0) {
-      if (!searchDto.organizations.every((id: number) => userOrgIds.includes(id))) {
-        throw new ForbiddenException('You selected an organization which you don\'t have permissions to access.');
+      if (
+        !searchDto.organizations.every((id: number) => userOrgIds.includes(id))
+      ) {
+        throw new ForbiddenException(
+          "You selected an organization which you don't have permissions to access.",
+        );
       }
 
       orgIdCondition = { orgId: In(searchDto.organizations) };
@@ -140,9 +172,10 @@ export class SongsService {
       orgIdCondition.orgId = Or(orgIdCondition.orgId, IsNull());
     }
 
-    const languageCondition = searchDto.languages && searchDto.languages.length > 0
-      ? {language: In(searchDto.languages)}
-      : {};
+    const languageCondition =
+      searchDto.languages && searchDto.languages.length > 0
+        ? { language: In(searchDto.languages) }
+        : {};
 
     let songsQuery = this.songsRepository.createQueryBuilder('s');
     let whereQuery: ObjectLiteral = {
@@ -150,14 +183,24 @@ export class SongsService {
       ...languageCondition,
     };
 
-    const queryLang = !!searchDto.queryLanguage ? searchDto.queryLanguage : ((searchDto.languages?.length ?? 0) === 1 ? searchDto.languages[0] : 'en');
+    const queryLang = !!searchDto.queryLanguage
+      ? searchDto.queryLanguage
+      : (searchDto.languages?.length ?? 0) === 1
+        ? searchDto.languages[0]
+        : 'en';
     if (searchDto.query) {
-      whereQuery.searchVector = Raw(() => `searchVector @@ get_combined_tsquery_code(:query, :lang)`, {
-        query: searchDto.query,
-        lang: queryLang,
-      }),
+      whereQuery.searchVector = Raw(
+        () => `searchVector @@ get_combined_tsquery_code(:query, :lang)`,
+        {
+          query: searchDto.query,
+          lang: queryLang,
+        },
+      );
 
-      songsQuery = songsQuery.addSelect('ts_rank(searchVector, get_combined_tsquery_code(:query, :lang))', 'rank');
+      songsQuery = songsQuery.addSelect(
+        'ts_rank(searchVector, get_combined_tsquery_code(:query, :lang))',
+        'rank',
+      );
     }
 
     if (searchDto.includeBlocks === true) {
@@ -167,9 +210,9 @@ export class SongsService {
     songsQuery = songsQuery.where([whereQuery]);
 
     if (searchDto.query) {
-      songsQuery = songsQuery.orderBy('rank', 'DESC')
+      songsQuery = songsQuery.orderBy('rank', 'DESC');
     } else {
-      songsQuery = songsQuery.orderBy('title', 'ASC')
+      songsQuery = songsQuery.orderBy('title', 'ASC');
     }
 
     songsQuery = songsQuery
@@ -183,7 +226,7 @@ export class SongsService {
       .take(pageSize)
       .getMany();
 
-    const userOrgsMap: {[key: number]: Partial<OrganizationUser>} = {};
+    const userOrgsMap: { [key: number]: Partial<OrganizationUser> } = {};
     for (const org of userOrgs) {
       userOrgsMap[org.organization.id] = org;
     }
@@ -192,13 +235,15 @@ export class SongsService {
       const orgUser = userOrgsMap[song.orgId];
       return {
         ...song,
-        organization: orgUser ? {
-          ...orgUser.organization,
-          role: orgUser.role as OrganizationRoleOptions,
-         } : {
-          ...song.organization,
-          role: undefined,
-         },
+        organization: orgUser
+          ? {
+              ...orgUser.organization,
+              role: orgUser.role as OrganizationRoleOptions,
+            }
+          : {
+              ...song.organization,
+              role: undefined,
+            },
       } as SongWithRoleViewModel;
     });
   }
@@ -247,29 +292,34 @@ export class SongsService {
     await this.songsRepository.delete(id);
   }
 
-  async copyToOrganization(songId: number, organizationId: number): Promise<void> {
+  async copyToOrganization(
+    songId: number,
+    organizationId: number,
+  ): Promise<void> {
     const orgId = this.request.user['organization'];
-    const song = await this.findOne(orgId, songId)
+    const song = await this.findOne(orgId, songId);
     if (!song) {
       throw new NotFoundException('Song not found');
     }
 
     const userId = this.request.user['internal']?.id;
-    const userRole = await this.organizationsService.userRole(organizationId, userId);
+    const userRole = await this.organizationsService.userRole(
+      organizationId,
+      userId,
+    );
 
     if (!userRole || !['owner', 'admin', 'member'].includes(userRole)) {
-      throw new NotFoundException('User does not have permission to copy songs to this organization');
+      throw new NotFoundException(
+        'User does not have permission to copy songs to this organization',
+      );
     }
 
-    this.create(
-      organizationId,
-      {
-        title: song.title,
-        artist: song.artist,
-        language: song.language,
-        blocks: song.blocks,
-        references: song.references,
-      }
-    );
+    this.create(organizationId, {
+      title: song.title,
+      artist: song.artist,
+      language: song.language,
+      blocks: song.blocks,
+      references: song.references,
+    });
   }
 }

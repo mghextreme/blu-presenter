@@ -11,7 +11,11 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { Session } from 'src/entities';
-import { CreateSessionDto, UpdateSessionDto } from 'src/types';
+import {
+  CreateSessionDto,
+  SearchSessionDto,
+  UpdateSessionDto,
+} from 'src/types';
 import { SessionsServiceWithRequest } from './sessions.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
 import { Public } from 'src/supabase/public.decorator';
@@ -25,23 +29,21 @@ import { Public } from 'src/supabase/public.decorator';
   required: false,
 })
 export class SessionsController {
-  constructor(
-    private readonly sessionsService: SessionsServiceWithRequest,
-  ) {}
+  constructor(private readonly sessionsService: SessionsServiceWithRequest) {}
 
-  @Get()
-  @OrganizationRole('owner', 'admin', 'member')
-  async findAll(@Headers('Organization') orgId: number): Promise<Session[]> {
-    return await this.sessionsService.findAll(orgId);
+  @Post('search')
+  async search(@Body() searchSessionDto: SearchSessionDto): Promise<Session[]> {
+    return await this.sessionsService.search(searchSessionDto);
+  }
+
+  @Get('user/all')
+  async findAllForUser(): Promise<Session[]> {
+    return await this.sessionsService.findAllForUserOrgs();
   }
 
   @Get(':id')
-  @OrganizationRole('owner', 'admin', 'member', 'guest')
-  async findOne(
-    @Headers('Organization') orgId: number,
-    @Param('id') id: number,
-  ): Promise<Session | null> {
-    return await this.sessionsService.findOne(orgId, id);
+  async findOne(@Param('id') id: number): Promise<Session | null> {
+    return await this.sessionsService.findOneInAnyOrg(id);
   }
 
   @Post()
@@ -72,11 +74,6 @@ export class SessionsController {
     return await this.sessionsService.delete(orgId, id);
   }
 
-  @Get('user/all')
-  async findAllForUser(): Promise<Session[]> {
-    return await this.sessionsService.findAllForUserOrgs();
-  }
-
   @Public()
   @Get('org/:orgId/:sessionId')
   async findAllForSession(
@@ -84,10 +81,6 @@ export class SessionsController {
     @Param('sessionId') sessionId: number,
     @Query('secret') secret: string,
   ): Promise<Session> {
-    return await this.sessionsService.findOneBySecret(
-      orgId,
-      sessionId,
-      secret,
-    );
+    return await this.sessionsService.findOneBySecret(orgId, sessionId, secret);
   }
 }

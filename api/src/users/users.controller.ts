@@ -7,24 +7,23 @@ import {
   Put,
   Scope,
 } from '@nestjs/common';
-import {ApiTags, ApiBearerAuth} from '@nestjs/swagger';
-import {User} from 'src/entities';
-import {UsersService} from './users.service';
-import {REQUEST} from '@nestjs/core';
-import {Request as ExpRequest} from 'express';
-import {UpdateProfileDto} from 'src/types';
-import {OrganizationUserViewModel} from 'src/models';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { User } from 'src/entities';
+import { UsersService } from './users.service';
+import { REQUEST } from '@nestjs/core';
+import { Request as ExpRequest } from 'express';
+import { UpdateProfileDto } from 'src/types';
+import { OrganizationUserViewModel } from 'src/models';
 
 @Controller('users')
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
-@Injectable({scope: Scope.REQUEST})
+@Injectable({ scope: Scope.REQUEST })
 export class UsersController {
   constructor(
     private usersService: UsersService,
     @Inject(REQUEST) private readonly request: ExpRequest,
-  ) {
-  }
+  ) {}
 
   @Get('profile')
   async getProfile(): Promise<Partial<User>> {
@@ -36,8 +35,13 @@ export class UsersController {
     @Body() updateProfileDto: UpdateProfileDto,
   ): Promise<Partial<User>> {
     const user = this.request.user['internal'];
-    const accessToken = this.request.headers.authorization?.replace('Bearer ', '') ?? '';
-    return await this.usersService.update(user.id, updateProfileDto, accessToken);
+    const accessToken =
+      this.request.headers.authorization?.replace('Bearer ', '') ?? '';
+    return await this.usersService.update(
+      user.id,
+      updateProfileDto,
+      accessToken,
+    );
   }
 
   @Get('organizations')

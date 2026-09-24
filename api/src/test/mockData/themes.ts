@@ -92,9 +92,24 @@ export const getMockConfig = (
   return baseConfig;
 };
 
-export const mockLyricsTheme = createMockTheme(1, 1, 'Default Lyrics', 'lyrics');
-export const mockSubtitlesTheme = createMockTheme(2, 1, 'Default Subtitles', 'subtitles');
-export const mockTeleprompterTheme = createMockTheme(3, 1, 'Default Teleprompter', 'teleprompter');
+export const mockLyricsTheme = createMockTheme(
+  1,
+  1,
+  'Default Lyrics',
+  'lyrics',
+);
+export const mockSubtitlesTheme = createMockTheme(
+  2,
+  1,
+  'Default Subtitles',
+  'subtitles',
+);
+export const mockTeleprompterTheme = createMockTheme(
+  3,
+  1,
+  'Default Teleprompter',
+  'teleprompter',
+);
 
 export const mockThemes: Theme[] = [
   mockLyricsTheme,
@@ -121,4 +136,3 @@ export const createMockUpdateThemeDto = (
   extends: themeType,
   config: getMockConfig(themeType),
 });
-

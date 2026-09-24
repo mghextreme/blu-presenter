@@ -7,13 +7,20 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, IsNull, Or, Repository } from 'typeorm';
-import { CreateScheduleDto, IScheduleItem, OrganizationRoleOptions, UpdateScheduleDto } from 'src/types';
-import { Schedule, Song } from 'src/entities';
+import { ILike, In, IsNull, Or, Repository } from 'typeorm';
+import {
+  CreateScheduleDto,
+  IScheduleItem,
+  OrganizationRoleOptions,
+  SearchScheduleDto,
+  UpdateScheduleDto,
+} from 'src/types';
+import { OrganizationUser, Schedule, Song } from 'src/entities';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 import { generateRandomSecret } from 'src/utils/secret';
 import { UsersService } from 'src/users/users.service';
+import { ScheduleWithRoleViewModel } from 'src/models/schedule-with-role.view-model';
 
 type ScheduleWithRole = Schedule & {
   organization?: {
@@ -35,25 +42,84 @@ export class SchedulesService {
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {}
 
-  async findAll(orgId: number): Promise<Schedule[]> {
-    return this.schedulesRepository.find({
+  async search(
+    searchDto: SearchScheduleDto,
+  ): Promise<ScheduleWithRoleViewModel[]> {
+    const user = this.request.user['internal'];
+    const userOrgs = await this.usersService.findUserOrganizations(user.id);
+    const userOrgIds = userOrgs.map((org) => org.organization.id);
+
+    // Any membership role (including guests) may list schedules, mirroring the
+    // role policy of the previous per-org list endpoint.
+    let orgIds: number[];
+    if (searchDto.organizations && searchDto.organizations.length > 0) {
+      if (
+        !searchDto.organizations.every((id: number) => userOrgIds.includes(id))
+      ) {
+        throw new ForbiddenException(
+          "You selected an organization which you don't have permissions to access.",
+        );
+      }
+
+      orgIds = searchDto.organizations;
+    } else {
+      orgIds = userOrgIds;
+    }
+
+    if (orgIds.length === 0) {
+      return [];
+    }
+
+    const pageSize = searchDto.itemsPerPage ?? 20;
+    const page = searchDto.page ?? 1;
+
+    const schedules = await this.schedulesRepository.find({
       select: {
         id: true,
         title: true,
         date: true,
-        items: true,
-        createdBy: true,
-        updatedBy: true,
         secret: true,
+        createdBy: true,
         createdAt: true,
         updatedAt: true,
+        organization: {
+          id: true,
+          name: true,
+        },
+      },
+      relations: {
+        organization: true,
       },
       where: {
-        orgId,
+        orgId: In(orgIds),
+        ...(searchDto.query ? { title: ILike(`%${searchDto.query}%`) } : {}),
       },
       order: {
         createdAt: 'DESC',
       },
+      skip: pageSize * (page - 1),
+      take: pageSize,
+    });
+
+    const userOrgsMap: { [key: number]: Partial<OrganizationUser> } = {};
+    for (const org of userOrgs) {
+      userOrgsMap[org.organization.id] = org;
+    }
+
+    return schedules.map((schedule) => {
+      const orgUser = userOrgsMap[schedule.orgId];
+      return {
+        ...schedule,
+        organization: orgUser
+          ? {
+              ...orgUser.organization,
+              role: orgUser.role as OrganizationRoleOptions,
+            }
+          : {
+              ...schedule.organization,
+              role: undefined,
+            },
+      } as ScheduleWithRoleViewModel;
     });
   }
 
@@ -87,7 +153,10 @@ export class SchedulesService {
     return schedule;
   }
 
-  async findOneInAnyOrgOrBySecret(id: number, secret?: string): Promise<ScheduleWithRole | null> {
+  async findOneInAnyOrgOrBySecret(
+    id: number,
+    secret?: string,
+  ): Promise<ScheduleWithRole | null> {
     let whereClause: any = { id };
 
     let userOrgs: any[] = [];
@@ -134,7 +203,9 @@ export class SchedulesService {
       schedule.items = await this.resolveSongReferences(schedule.items);
     }
 
-    const orgUser = userOrgs.find((org) => org.organization.id === schedule.orgId);
+    const orgUser = userOrgs.find(
+      (org) => org.organization.id === schedule.orgId,
+    );
 
     return {
       ...schedule,
@@ -150,7 +221,9 @@ export class SchedulesService {
     } as ScheduleWithRole;
   }
 
-  private async resolveSongReferences(items: IScheduleItem[]): Promise<IScheduleItem[]> {
+  private async resolveSongReferences(
+    items: IScheduleItem[],
+  ): Promise<IScheduleItem[]> {
     const songItems = items.filter((item) => item.type === 'song');
     if (songItems.length === 0) {
       return items;
@@ -200,7 +273,10 @@ export class SchedulesService {
       .filter((item) => item !== null);
   }
 
-  async create(orgId: number, createScheduleDto: CreateScheduleDto): Promise<Schedule> {
+  async create(
+    orgId: number,
+    createScheduleDto: CreateScheduleDto,
+  ): Promise<Schedule> {
     if (this.request.user === undefined) {
       throw new UnauthorizedException();
     }

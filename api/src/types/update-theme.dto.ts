@@ -1,4 +1,11 @@
-import { IsIn, IsInt, IsNotEmpty, IsObject, Length, Min } from 'class-validator';
+import {
+  IsIn,
+  IsInt,
+  IsNotEmpty,
+  IsObject,
+  Length,
+  Min,
+} from 'class-validator';
 
 export class UpdateThemeDto {
   @IsInt()

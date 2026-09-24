@@ -10,7 +10,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { Schedule } from 'src/entities';
-import { CreateScheduleDto, UpdateScheduleDto } from 'src/types';
+import {
+  CreateScheduleDto,
+  SearchScheduleDto,
+  UpdateScheduleDto,
+} from 'src/types';
+import { ScheduleWithRoleViewModel } from 'src/models/schedule-with-role.view-model';
 import { SchedulesService } from './schedules.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
 import { Public } from 'src/supabase/public.decorator';
@@ -19,10 +24,11 @@ import { Public } from 'src/supabase/public.decorator';
 export class SchedulesController {
   constructor(private readonly schedulesService: SchedulesService) {}
 
-  @Get()
-  @OrganizationRole('owner', 'admin', 'member', 'guest')
-  async findAll(@Headers('Organization') orgId: number): Promise<Schedule[]> {
-    return await this.schedulesService.findAll(orgId);
+  @Post('search')
+  async search(
+    @Body() searchScheduleDto: SearchScheduleDto,
+  ): Promise<ScheduleWithRoleViewModel[]> {
+    return await this.schedulesService.search(searchScheduleDto);
   }
 
   @Public()

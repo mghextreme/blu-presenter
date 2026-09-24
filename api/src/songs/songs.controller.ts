@@ -11,7 +11,12 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { Song } from 'src/entities';
-import { SearchSongDto, CopySongToOrganizationDto, CreateSongDto, UpdateSongDto } from 'src/types';
+import {
+  SearchSongDto,
+  CopySongToOrganizationDto,
+  CreateSongDto,
+  UpdateSongDto,
+} from 'src/types';
 import { SongsService } from './songs.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
 import { SongWithRoleViewModel } from 'src/models/song-with-role.view-model';
@@ -26,9 +31,7 @@ import { Public } from 'src/supabase/public.decorator';
   required: false,
 })
 export class SongsController {
-  constructor(
-    private readonly songsService: SongsService,
-  ) {}
+  constructor(private readonly songsService: SongsService) {}
 
   @Public()
   @Get(':id')
@@ -60,7 +63,10 @@ export class SongsController {
   async copyToOrganization(
     @Body() copySongDto: CopySongToOrganizationDto,
   ): Promise<void> {
-    await this.songsService.copyToOrganization(copySongDto.songId, copySongDto.organizationId);
+    await this.songsService.copyToOrganization(
+      copySongDto.songId,
+      copySongDto.organizationId,
+    );
   }
 
   @Put(':id')

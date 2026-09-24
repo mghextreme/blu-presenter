@@ -6,10 +6,7 @@ import { UsersController } from './users.controller';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [
-    ConfigModule,
-    TypeOrmModule.forFeature([User, OrganizationUser]),
-  ],
+  imports: [ConfigModule, TypeOrmModule.forFeature([User, OrganizationUser])],
   controllers: [UsersController],
   providers: [UsersService, UsersBaseService],
   exports: [UsersService, UsersBaseService],

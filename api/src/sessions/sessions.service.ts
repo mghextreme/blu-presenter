@@ -1,19 +1,40 @@
-import { BadRequestException, Inject, Injectable, NotFoundException, Scope, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  Scope,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { ILike, In, Repository } from 'typeorm';
 import { OrganizationUser, Session } from 'src/entities';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 import { UsersService } from 'src/users/users.service';
 import { OrganizationsService } from 'src/organizations/organizations.service';
-import { CreateSessionDto, UpdateSessionDto } from 'src/types';
+import {
+  CreateSessionDto,
+  OrganizationRoleOptions,
+  SearchSessionDto,
+  UpdateSessionDto,
+} from 'src/types';
 import { isRoleHigherOrEqualThan } from 'src/types/organization-role.type';
 
+type SessionWithRole = Session & {
+  organization: {
+    id: number;
+    name: string;
+    role?: OrganizationRoleOptions;
+  };
+};
 
 @Injectable()
 export class SessionsService {
   constructor(
-    @InjectRepository(Session) protected readonly sessionsRepository: Repository<Session>,
+    @InjectRepository(Session)
+    protected readonly sessionsRepository: Repository<Session>,
   ) {}
 
   async findOne(orgId: number, id: number): Promise<Session | null> {
@@ -46,44 +67,37 @@ export class SessionsService {
   }
 
   async setSchedule(orgId: number, id: number, schedule: any[]): Promise<void> {
-    const result = await this.sessionsRepository.update({ id, orgId }, { schedule });
+    const result = await this.sessionsRepository.update(
+      { id, orgId },
+      { schedule },
+    );
     if (!result.affected) {
       throw new NotFoundException();
     }
   }
 
-  async setScheduleItem(orgId: number, id: number, scheduleItem: any): Promise<void> {
-    const result = await this.sessionsRepository.update({ id, orgId }, { scheduleItem });
+  async setScheduleItem(
+    orgId: number,
+    id: number,
+    scheduleItem: any,
+  ): Promise<void> {
+    const result = await this.sessionsRepository.update(
+      { id, orgId },
+      { scheduleItem },
+    );
     if (!result.affected) {
       throw new NotFoundException();
     }
   }
 
   async setSelection(orgId: number, id: number, selection: any): Promise<void> {
-    const result = await this.sessionsRepository.update({ id, orgId }, { selection });
+    const result = await this.sessionsRepository.update(
+      { id, orgId },
+      { selection },
+    );
     if (!result.affected) {
       throw new NotFoundException();
     }
-  }
-
-  async findAll(orgId: number): Promise<Session[]> {
-    return this.sessionsRepository.find({
-      select: {
-        id: true,
-        name: true,
-        secret: true,
-        language: true,
-        theme: true,
-        default: true,
-      },
-      where: {
-        orgId,
-      },
-      order: {
-        default: 'desc',
-        name: 'asc',
-      },
-    });
   }
 
   async findOneBySecret(orgId: number, id: number, secret: string) {
@@ -103,11 +117,14 @@ export class SessionsService {
         id,
         orgId,
         secret,
-      }
+      },
     });
   }
 
-  async create(orgId: number, createSessionDto: CreateSessionDto): Promise<Session> {
+  async create(
+    orgId: number,
+    createSessionDto: CreateSessionDto,
+  ): Promise<Session> {
     const result = await this.sessionsRepository.insert({
       name: createSessionDto.name,
       orgId,
@@ -154,28 +171,166 @@ export class SessionsService {
 @Injectable({ scope: Scope.REQUEST })
 export class SessionsServiceWithRequest extends SessionsService {
   constructor(
-    @InjectRepository(Session) protected readonly sessionsRepository: Repository<Session>,
-    @Inject(OrganizationsService) protected readonly organizationsService: OrganizationsService,
+    @InjectRepository(Session)
+    protected readonly sessionsRepository: Repository<Session>,
+    @Inject(OrganizationsService)
+    protected readonly organizationsService: OrganizationsService,
     @Inject(UsersService) protected readonly usersService: UsersService,
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {
     super(sessionsRepository);
   }
 
-  async findAllForUserOrgs(): Promise<Session[] | null> {
-    let userOrgs: Partial<OrganizationUser>[] = [];
-    let userOrgIds: number[] = [];
-
+  private async getUserOrgs(): Promise<Partial<OrganizationUser>[]> {
     if (this.request.user === undefined) {
       throw new UnauthorizedException();
     }
 
     const user = this.request.user['internal'];
-    userOrgs = await this.usersService.findUserOrganizations(user.id);
+    return await this.usersService.findUserOrganizations(user.id);
+  }
+
+  async findOneInAnyOrg(id: number): Promise<SessionWithRole> {
+    const userOrgs = await this.getUserOrgs();
+    const userOrgIds = userOrgs.map((org) => org.organization.id);
+
+    const session = await this.sessionsRepository.findOne({
+      select: {
+        id: true,
+        orgId: true,
+        name: true,
+        language: true,
+        theme: true,
+        secret: true,
+        default: true,
+        schedule: true,
+        scheduleItem: true,
+        selection: true,
+        updatedAt: true,
+        organization: {
+          id: true,
+          name: true,
+        },
+      },
+      relations: {
+        organization: true,
+      },
+      where: {
+        id,
+        orgId: In(userOrgIds),
+      },
+    });
+
+    if (!session) {
+      throw new NotFoundException();
+    }
+
+    const orgUser = userOrgs.find(
+      (org) => org.organization.id === session.orgId,
+    );
+    return {
+      ...session,
+      organization: orgUser
+        ? {
+            ...orgUser.organization,
+            role: orgUser.role as OrganizationRoleOptions,
+          }
+        : {
+            ...session.organization,
+            role: undefined,
+          },
+    } as SessionWithRole;
+  }
+
+  async search(searchDto: SearchSessionDto): Promise<Session[]> {
+    const userOrgs = await this.getUserOrgs();
     // Only include orgs where the user is a member or above. Guests must not see
     // sessions in the cross-org listing — this mirrors the role checks on the
     // per-org session endpoints (see SessionsController).
-    userOrgIds = userOrgs
+    const memberOrgIds = userOrgs
+      .filter((org) => isRoleHigherOrEqualThan(org.role, 'member'))
+      .map((org) => org.organization.id);
+
+    let orgIds: number[];
+    if (searchDto.organizations && searchDto.organizations.length > 0) {
+      if (
+        !searchDto.organizations.every((id: number) =>
+          memberOrgIds.includes(id),
+        )
+      ) {
+        throw new ForbiddenException(
+          "You selected an organization which you don't have permissions to access.",
+        );
+      }
+
+      orgIds = searchDto.organizations;
+    } else {
+      orgIds = memberOrgIds;
+    }
+
+    if (orgIds.length === 0) {
+      return [];
+    }
+
+    const pageSize = searchDto.itemsPerPage ?? 20;
+    const page = searchDto.page ?? 1;
+
+    const sessions = await this.sessionsRepository.find({
+      select: {
+        id: true,
+        name: true,
+        secret: true,
+        language: true,
+        theme: true,
+        default: true,
+        organization: {
+          id: true,
+          name: true,
+        },
+      },
+      relations: {
+        organization: true,
+      },
+      where: {
+        orgId: In(orgIds),
+        ...(searchDto.query ? { name: ILike(`%${searchDto.query}%`) } : {}),
+      },
+      order: {
+        default: 'desc',
+        name: 'asc',
+      },
+      skip: pageSize * (page - 1),
+      take: pageSize,
+    });
+
+    const userOrgsMap: { [key: number]: Partial<OrganizationUser> } = {};
+    for (const org of userOrgs) {
+      userOrgsMap[org.organization.id] = org;
+    }
+
+    return sessions.map((session) => {
+      const orgUser = userOrgsMap[session.orgId];
+      return {
+        ...session,
+        organization: orgUser
+          ? {
+              ...orgUser.organization,
+              role: orgUser.role as OrganizationRoleOptions,
+            }
+          : {
+              ...session.organization,
+              role: undefined,
+            },
+      } as SessionWithRole;
+    });
+  }
+
+  async findAllForUserOrgs(): Promise<Session[] | null> {
+    const userOrgs = await this.getUserOrgs();
+    // Only include orgs where the user is a member or above. Guests must not see
+    // sessions in the cross-org listing — this mirrors the role checks on the
+    // per-org session endpoints (see SessionsController).
+    const userOrgIds = userOrgs
       .filter((org) => isRoleHigherOrEqualThan(org.role, 'member'))
       .map((org) => org.organization.id);
 
@@ -200,7 +355,7 @@ export class SessionsServiceWithRequest extends SessionsService {
         organization: true,
       },
       where: {
-        orgId: In(userOrgIds)
+        orgId: In(userOrgIds),
       },
     });
   }

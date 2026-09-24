@@ -10,7 +10,6 @@ import { OrganizationsService } from '../../organizations/organizations.service'
 describe('AuthService — password reset & OTP login', () => {
   let service: AuthService;
   let supabaseAuth: any;
-  let adminAuth: any;
   const SUPABASE_URL = 'http://supabase.local';
   const SUPABASE_KEY = 'anon-key';
 
@@ -25,15 +24,6 @@ describe('AuthService — password reset & OTP login', () => {
       getUser: jest.fn(),
     };
 
-    adminAuth = {
-      auth: {
-        admin: {
-          updateUserById: jest.fn().mockResolvedValue({ data: {}, error: null }),
-          signOut: jest.fn().mockResolvedValue({ data: {}, error: null }),
-        },
-      },
-    };
-
     const supabaseProvider = {
       getClient: jest.fn().mockReturnValue({ auth: supabaseAuth }),
     };
@@ -41,10 +31,14 @@ describe('AuthService — password reset & OTP login', () => {
     const configService = {
       get: jest.fn((k: string) => {
         switch (k) {
-          case 'supabase.url': return SUPABASE_URL;
-          case 'supabase.key': return SUPABASE_KEY;
-          case 'app.baseUrl': return 'http://app.local';
-          default: return undefined;
+          case 'supabase.url':
+            return SUPABASE_URL;
+          case 'supabase.key':
+            return SUPABASE_KEY;
+          case 'app.baseUrl':
+            return 'http://app.local';
+          default:
+            return undefined;
         }
       }),
     };

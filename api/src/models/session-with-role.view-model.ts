@@ -1,15 +1,15 @@
-import { SongPart } from 'src/entities';
 import { OrganizationRoleOptions } from 'src/types';
 
-export interface SongWithRoleViewModel {
+export interface SessionWithRoleViewModel {
   id: number;
-  title: string;
-  artist: string;
+  name: string;
   language: string;
-  blocks: SongPart[];
+  theme: string;
+  default: boolean;
+  secret: string;
   organization: {
     id: number;
     name: string;
     role?: OrganizationRoleOptions;
-  } | null;
+  };
 }

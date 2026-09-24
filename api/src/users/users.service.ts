@@ -72,7 +72,11 @@ export class UsersService extends UsersBaseService {
     super(dataSource, usersRepository, organizationUsersRepository);
   }
 
-  async update(id: number, profileDto: UpdateProfileDto, accessToken: string): Promise<User | null> {
+  async update(
+    id: number,
+    profileDto: UpdateProfileDto,
+    accessToken: string,
+  ): Promise<User | null> {
     let result: User;
     await this.dataSource.transaction(async (manager) => {
       const usersRepository = manager.getRepository(User);
@@ -91,8 +95,12 @@ export class UsersService extends UsersBaseService {
         apikey: this.configService.get('supabase.key'),
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ data: { nickname: profileDto.nickname, name: profileDto.name } }),
-    }).catch(() => {/* non-critical — DB record is already saved */});
+      body: JSON.stringify({
+        data: { nickname: profileDto.nickname, name: profileDto.name },
+      }),
+    }).catch(() => {
+      /* non-critical — DB record is already saved */
+    });
 
     return result;
   }

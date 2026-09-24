@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Inject, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Param,
+  Post,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import { ApiTags } from '@nestjs/swagger';
@@ -38,7 +49,10 @@ export class AuthController {
   @Post('signIn')
   async signIn(@Body() signInDto: SignInDto): Promise<AccessTokenDto> {
     if (!signInDto.captchaToken && this.captchaEnabled) {
-      throw new HttpException('required captcha not set', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'required captcha not set',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     return await this.authService.signIn(signInDto);
@@ -46,7 +60,9 @@ export class AuthController {
 
   @Public()
   @Post('refresh')
-  async refresh(@Body() tokenRefreshDto: TokenRefreshDto): Promise<AccessTokenDto> {
+  async refresh(
+    @Body() tokenRefreshDto: TokenRefreshDto,
+  ): Promise<AccessTokenDto> {
     return await this.authService.tokenRefresh(tokenRefreshDto);
   }
 
@@ -62,7 +78,9 @@ export class AuthController {
   @Public()
   @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Post('validate')
-  async validate(@Body() validateDto: ExchangeCodeDto): Promise<AccessTokenDto> {
+  async validate(
+    @Body() validateDto: ExchangeCodeDto,
+  ): Promise<AccessTokenDto> {
     const accessToken = await this.authService.exchangeCodeForSession(
       validateDto.code,
       validateDto.codeVerifier,
@@ -71,14 +89,14 @@ export class AuthController {
 
     if (validateDto.invite?.id && validateDto.invite?.secret) {
       try {
-        const invitation  = await this.authService.organizationsService.associateInvite(
-          accessToken.user.id,
-          validateDto.invite,
-        );
+        const invitation =
+          await this.authService.organizationsService.associateInvite(
+            accessToken.user.id,
+            validateDto.invite,
+          );
 
         accessToken.inviteOrgId = invitation.orgId;
-      }
-      catch (e) {
+      } catch (e) {
         console.warn(`Error associating invite: ${e}`);
       }
     }
@@ -90,7 +108,10 @@ export class AuthController {
   @Post('signUp')
   async signUp(@Body() signUpDto: SignUpDto): Promise<AccessTokenDto> {
     if (!signUpDto.captchaToken && this.captchaEnabled) {
-      throw new HttpException('required captcha not set', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'required captcha not set',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     return await this.authService.signUp(signUpDto);
@@ -116,16 +137,12 @@ export class AuthController {
   }
 
   @Delete('identities/:identityId')
-  async unlinkIdentity(
-    @Param('identityId') identityId: string,
-  ): Promise<void> {
+  async unlinkIdentity(@Param('identityId') identityId: string): Promise<void> {
     await this.authService.unlinkIdentity(identityId);
   }
 
   @Post('setPassword')
-  async setPassword(
-    @Body() setPasswordDto: SetPasswordDto,
-  ): Promise<void> {
+  async setPassword(@Body() setPasswordDto: SetPasswordDto): Promise<void> {
     await this.authService.setPassword(setPasswordDto);
   }
 
@@ -135,7 +152,10 @@ export class AuthController {
   @Post('password/forgot')
   async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> {
     if (!dto.captchaToken && this.captchaEnabled) {
-      throw new HttpException('required captcha not set', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'required captcha not set',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     await this.authService.forgotPassword(dto);
@@ -154,7 +174,10 @@ export class AuthController {
   @Post('signIn/otp/request')
   async requestSignInOtp(@Body() dto: OtpSignInRequestDto): Promise<void> {
     if (!dto.captchaToken && this.captchaEnabled) {
-      throw new HttpException('required captcha not set', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'required captcha not set',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     await this.authService.requestSignInOtp(dto);
@@ -163,7 +186,9 @@ export class AuthController {
   @Public()
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post('signIn/otp/verify')
-  async verifySignInOtp(@Body() dto: OtpSignInVerifyDto): Promise<AccessTokenDto> {
+  async verifySignInOtp(
+    @Body() dto: OtpSignInVerifyDto,
+  ): Promise<AccessTokenDto> {
     return await this.authService.verifySignInOtp(dto);
   }
 }
