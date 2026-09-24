@@ -8,7 +8,6 @@ import { IProfile } from "@/types";
 import { IUserIdentitiesResponse } from "@/types/auth";
 import { useServices } from "@/hooks/useServices";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent } from "@/components/shared/page-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -209,7 +208,6 @@ export function Profile() {
   return (
     <PageContent>
       <title>{t('title') + ' - BluPresenter'}</title>
-      <PageTitle value={t('update.title')} />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
           <FormField

@@ -19,7 +19,6 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent } from "@/components/shared/page-content";
 
 export async function loader({ params, organizationsService, orgId }: { params: Params, organizationsService: OrganizationsService, orgId: number }) {
@@ -86,7 +85,6 @@ export function EditMember() {
   return (
     <PageContent>
       <title>{t('title.member', {member: data.name || data.email, organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
-      <PageTitle value={t('editMember.title')} />
       <Form {...form}>
         {/*
         // @ts-expect-error //TODO investigar  */}

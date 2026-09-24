@@ -10,7 +10,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFilteredList } from "@/hooks/use-filtered-list";
 import { filterToSelection } from "@/hooks/use-organization-filter";
 import { OrganizationBar } from "@/components/app/organization-bar";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent } from "@/components/shared/page-content";
 import { ListItemCard } from "@/components/shared/list-item-card";
 import { QuerySearchForm } from "@/components/shared/query-search-form";
@@ -124,7 +123,6 @@ export function Schedules() {
   return (
     <>
       <title>{t('title.list') + ' - BluPresenter'}</title>
-      <PageTitle value={t('list.title')} />
       <OrganizationBar
         organizations={organizations}
         selected={list.selectedOrganizations}

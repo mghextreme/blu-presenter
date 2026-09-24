@@ -16,7 +16,6 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { EditSongForm, EditSongFormHandle } from "@/components/app/songs/edit-form";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent } from "@/components/shared/page-content";
 import { PreviewIcon } from "@/components/icons/preview";
 import { parseSongText } from "@/lib/songs";
@@ -67,7 +66,6 @@ export function ImportSong() {
   return (
     <>
       <title>{t('title.import') + ' - BluPresenter'}</title>
-      <PageTitle value={t('import.title')} />
       <OrganizationBar
         organizations={organizationsToAddTo}
         selected={selectedOrganizations}

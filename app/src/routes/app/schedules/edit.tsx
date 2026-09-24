@@ -14,7 +14,6 @@ import { SearchProvider } from "@/hooks/search.provider";
 import { PlanPanel } from "@/components/controller/plan-panel";
 import { SchedulePanel } from "@/components/controller/schedule-panel";
 import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent } from "@/components/shared/page-content";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -86,7 +85,6 @@ export function EditSchedule({
   return (
     <>
       <title>{(edit ? t('title.edit', { name: data.title }) : t('title.add')) + ' - BluPresenter'}</title>
-      <PageTitle value={edit ? t('edit.title') : t('add.title')} />
       <OrganizationBar
         organizations={edit ? [data.organization ?? null] : organizationsToAddTo}
         selected={selectedOrganizations}

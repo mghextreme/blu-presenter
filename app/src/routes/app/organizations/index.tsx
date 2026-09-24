@@ -21,7 +21,6 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import { TFunction } from "i18next";
 import { IOrganizationInvitation, IOrganizationUser, OrganizationRoleOptions, isRoleHigherOrEqualThan } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PageTitle } from "@/components/shared/page-title";
 import { OrganizationBar } from "@/components/app/organization-bar";
 import { PageContent } from "@/components/shared/page-content";
 import { useAuth } from "@/hooks/useAuth";
@@ -307,7 +306,6 @@ export function EditOrganization({
   return (
     <div>
       <title>{t('title.edit', {organization: data.name || t('defaultName')}) + ' - BluPresenter'}</title>
-      <PageTitle value={t(edit ? 'edit.title' : 'add.title')} />
       <OrganizationBar
         organizations={edit ? [data] : []}
         selected={edit ? [data] : []}

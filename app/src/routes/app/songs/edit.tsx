@@ -9,7 +9,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { EditSongForm, EditSongFormHandle } from "@/components/app/songs/edit-form";
 import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent } from "@/components/shared/page-content";
 import { PreviewIcon } from "@/components/icons/preview";
 import { ControllerProvider } from "@/hooks/controller.provider";
@@ -98,7 +97,6 @@ export function EditSong({
   return (
     <>
       <title>{(edit ? t('title.edit', { title: data.title, artist: data.artist }) : t('title.add')) + ' - BluPresenter'}</title>
-      <PageTitle value={edit ? t('edit.title') : t('add.title')} />
       <OrganizationBar
         organizations={edit ? [data.organization ?? null] : organizationsToAddTo}
         selected={selectedOrganizations}

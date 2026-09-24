@@ -12,7 +12,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useServices } from "@/hooks/useServices";
 import { ControllerProvider } from "@/hooks/controller.provider";
 import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent } from "@/components/shared/page-content";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -221,7 +220,6 @@ export function EditSession({
   return (
     <>
       <title>{(edit ? t('title.edit', { name: data.default ? t('session.defaultName') : data.name }) : t('title.add')) + ' - BluPresenter'}</title>
-      <PageTitle value={edit ? t('edit.title') : t('add.title')} />
       <OrganizationBar
         organizations={edit ? [data.organization ?? null] : organizationsToAddTo}
         selected={selectedOrganizations}

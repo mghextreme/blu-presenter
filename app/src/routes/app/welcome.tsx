@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useServices } from "@/hooks/useServices";
 import { useAuth } from "@/hooks/useAuth";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent } from "@/components/shared/page-content";
 import { ListItemCard } from "@/components/shared/list-item-card";
 import { IOrganizationInvitation } from "@/types";
@@ -80,7 +79,6 @@ export function Welcome() {
   return (
     <PageContent className="flex flex-col gap-6">
       <title>{t('welcome.message') + ' - BluPresenter'}</title>
-      <PageTitle value={t('welcome.message')} />
 
       <section>
         <div className="flex flex-wrap items-center justify-between gap-2 mb-4">

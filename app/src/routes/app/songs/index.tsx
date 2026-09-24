@@ -10,7 +10,6 @@ import { AdvancedSearchForm } from "@/components/app/search/advanced-search-form
 import { SongSearchResultsList } from "@/components/app/search/song-search-results-list";
 import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
 import { filterToSelection, selectionToFilter, useOrganizationFilter } from "@/hooks/use-organization-filter";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent } from "@/components/shared/page-content";
 import { FiltersActiveNotice } from "@/components/shared/filters-active-notice";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,6 @@ export function Songs() {
   return (
     <>
       <title>{t('title.list') + ' - BluPresenter'}</title>
-      <PageTitle value={t('title.list')} />
       <SearchProvider
         songsService={songsService}
         defaultValue={data}

@@ -11,7 +11,6 @@ import PrinterIcon from "@heroicons/react/24/solid/PrinterIcon";
 import { RehearsalNav } from "@/components/app/schedules/rehearsal-nav";
 import { SongViewer } from "@/components/app/songs/song-viewer";
 import { OrganizationBar } from "@/components/app/organization-bar";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent, pageContentColumn } from "@/components/shared/page-content";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -94,7 +93,6 @@ export function RehearsalSchedule() {
     return (
       <>
         <title>{t("rehearsal.title") + " - " + data.title + " - BluPresenter"}</title>
-        <PageTitle value={t("rehearsal.title") + " - " + data.title} />
         <OrganizationBar organizations={[data.organization ?? null]} subtitle={data.title}>
           <Button type="button" size="sm" title={t("actions.view")} asChild>
             <Link to={getViewLink()}>
@@ -119,7 +117,6 @@ export function RehearsalSchedule() {
   return (
     <>
       <title>{t("rehearsal.title") + " - " + data.title + " - BluPresenter"}</title>
-      <PageTitle value={t("rehearsal.title") + " - " + data.title} />
       <OrganizationBar organizations={[data.organization ?? null]} subtitle={data.title}>
         <Button type="button" size="sm" title={t("rehearsal.print")} asChild>
           <Link to={getPrintLink()}>

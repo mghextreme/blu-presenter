@@ -4,7 +4,6 @@ import {useForm} from "react-hook-form";
 import {z} from "zod";
 
 import { useServices } from "@/hooks/useServices";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent } from "@/components/shared/page-content";
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Button} from "@/components/ui/button";
@@ -82,7 +81,6 @@ export function InviteOrganizationMember() {
   return (
     <PageContent>
       <title>{t('title.invite', {organization: data.name || t('defaultName')}) + ' - BluPresenter'}</title>
-      <PageTitle value={t('invite.title')} />
       <h2 className="text mb-4 opacity-50">{data.name || t('defaultName')}</h2>
       <Form {...form}>
         <form

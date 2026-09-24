@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 import { useServices } from "@/hooks/useServices";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent } from "@/components/shared/page-content";
 import { Button } from "@/components/ui/button";
 import { Link, useLoaderData, useNavigate } from "react-router-dom";
@@ -60,7 +59,6 @@ export function TransferOrganization() {
   return (
     <PageContent>
       <title>{t('title.transfer', {organization: data.name || t('defaultName')}) + ' - BluPresenter'}</title>
-      <PageTitle value={t('transfer.title')} />
       <div className="max-w-lg space-y-3">
         <Label data-slot="form-label">{t('input.transferMember')}</Label>
         <div>

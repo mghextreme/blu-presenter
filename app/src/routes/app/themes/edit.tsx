@@ -19,7 +19,6 @@ import { ThemePreviewSongForm } from "@/components/app/themes/theme-preview-song
 import { ThemeSchema } from "@/types/schemas/theme.schema";
 import { ThemeConfigForm } from "@/components/app/themes/theme-config-form";
 import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent } from "@/components/shared/page-content";
 
 type EditThemeProps = {
@@ -128,7 +127,6 @@ export function EditTheme({
   return (
     <>
       <title>{(edit ? t('title.edit', { name: data.name }) : t('title.add')) + ' - BluPresenter'}</title>
-      <PageTitle value={edit ? t('edit.title') : t('add.title')} />
       <OrganizationBar
         organizations={edit ? [data.organization ?? null] : organizationsToAddTo}
         selected={selectedOrganizations}

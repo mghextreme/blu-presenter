@@ -12,7 +12,6 @@ import { PreviewIcon } from "@/components/icons/preview";
 import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
 import { SongViewer } from "@/components/app/songs/song-viewer";
 import { OrganizationBar } from "@/components/app/organization-bar";
-import { PageTitle } from "@/components/shared/page-title";
 import { pageContentColumn } from "@/components/shared/page-content";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -53,7 +52,6 @@ export function ViewSong() {
   return (
     <>
       <title>{t('title.view', { title: data.title, artist: data.artist }) + ' - BluPresenter'}</title>
-      <PageTitle value={data.title} />
       <OrganizationBar organizations={[data.organization ?? null]}>
         {isLoggedIn && <CopySongToOrganization songId={data.id} title={data.title} artist={data.artist} sourceOrgId={data.organization?.id} variant="default" />}
         <Button

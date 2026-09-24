@@ -14,7 +14,6 @@ import { getLocaleConfig } from "@/components/ui/date-picker";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { OrganizationBar } from "@/components/app/organization-bar";
-import { PageTitle } from "@/components/shared/page-title";
 import { PageContent } from "@/components/shared/page-content";
 
 export function ViewSchedule() {
@@ -80,7 +79,6 @@ export function ViewSchedule() {
   return (
     <>
       <title>{t("title.view", { name: data.title }) + " - BluPresenter"}</title>
-      <PageTitle value={data.title} />
       <OrganizationBar organizations={[data.organization ?? null]}>
         <Button
           type="button"

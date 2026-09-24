@@ -7,7 +7,6 @@ import { AppNavbar } from "@/components/app/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { useServices } from "@/hooks/useServices";
 import { useAuth } from "@/hooks/useAuth";
-import { PageTitleProvider } from "@/hooks/page-title.provider";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
@@ -23,8 +22,7 @@ export function AppSharedLayout() {
   }, []);
 
   return (
-    <PageTitleProvider>
-      <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden">
         <div className="relative flex flex-1 flex-col overflow-hidden">
           <AppNavbar>
             {isLoggedIn ? (
@@ -48,6 +46,5 @@ export function AppSharedLayout() {
           <Toaster />
         </div>
       </div>
-    </PageTitleProvider>
   );
 }
