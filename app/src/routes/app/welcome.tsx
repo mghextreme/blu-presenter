@@ -22,12 +22,13 @@ export function Welcome() {
 
   const { revalidate } = useRevalidator();
 
-  const { organizationsService } = useServices();
+  const { organizationsService, authService } = useServices();
   const { organizations } = useAuth();
 
   const acceptInvitation = async (invitationId: number) => {
     try {
       await organizationsService.acceptInvitation(invitationId);
+      await authService.refreshOrganizations();
       revalidate();
 
       toast.success(t('message.acceptInvitation.title'), {

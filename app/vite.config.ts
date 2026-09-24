@@ -56,8 +56,6 @@ export default defineConfig({
           // Data fetching and state management
           'vendor-data': [
             '@tanstack/react-query',
-            '@tanstack/react-table',
-            '@tanstack/match-sorter-utils',
             'zustand',
           ],
           
