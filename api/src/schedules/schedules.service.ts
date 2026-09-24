@@ -76,6 +76,7 @@ export class SchedulesService {
     const schedules = await this.schedulesRepository.find({
       select: {
         id: true,
+        orgId: true,
         title: true,
         date: true,
         secret: true,

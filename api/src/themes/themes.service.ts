@@ -65,6 +65,7 @@ export class ThemesService {
     const theme = await this.themesRepository.findOne({
       select: {
         id: true,
+        orgId: true,
         name: true,
         extends: true,
         config: true,
@@ -138,6 +139,7 @@ export class ThemesService {
     const themes = await this.themesRepository.find({
       select: {
         id: true,
+        orgId: true,
         name: true,
         extends: true,
         config: true,

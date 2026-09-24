@@ -278,6 +278,7 @@ export class SessionsServiceWithRequest extends SessionsService {
     const sessions = await this.sessionsRepository.find({
       select: {
         id: true,
+        orgId: true,
         name: true,
         secret: true,
         language: true,
@@ -325,7 +326,7 @@ export class SessionsServiceWithRequest extends SessionsService {
     });
   }
 
-  async findAllForUserOrgs(): Promise<Session[] | null> {
+  async findAllForUserOrgs(): Promise<SessionWithRole[]> {
     const userOrgs = await this.getUserOrgs();
     // Only include orgs where the user is a member or above. Guests must not see
     // sessions in the cross-org listing — this mirrors the role checks on the
@@ -338,9 +339,10 @@ export class SessionsServiceWithRequest extends SessionsService {
       return [];
     }
 
-    return await this.sessionsRepository.find({
+    const sessions = await this.sessionsRepository.find({
       select: {
         id: true,
+        orgId: true,
         name: true,
         secret: true,
         language: true,
@@ -357,6 +359,27 @@ export class SessionsServiceWithRequest extends SessionsService {
       where: {
         orgId: In(userOrgIds),
       },
+    });
+
+    const userOrgsMap: { [key: number]: Partial<OrganizationUser> } = {};
+    for (const org of userOrgs) {
+      userOrgsMap[org.organization.id] = org;
+    }
+
+    return sessions.map((session) => {
+      const orgUser = userOrgsMap[session.orgId];
+      return {
+        ...session,
+        organization: orgUser
+          ? {
+              ...orgUser.organization,
+              role: orgUser.role as OrganizationRoleOptions,
+            }
+          : {
+              ...session.organization,
+              role: undefined,
+            },
+      } as SessionWithRole;
     });
   }
 }

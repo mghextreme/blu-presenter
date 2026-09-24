@@ -102,7 +102,20 @@ describe('SessionsServiceWithRequest', () => {
 
       const result = await service.findAllForUserOrgs();
 
-      expect(result).toEqual(sessions);
+      expect(result).toEqual([
+        {
+          ...sessions[0],
+          organization: { id: 1, name: 'Owned Org', role: 'owner' },
+        },
+        {
+          ...sessions[1],
+          organization: { id: 2, name: 'Admin Org', role: 'admin' },
+        },
+        {
+          ...sessions[2],
+          organization: { id: 3, name: 'Member Org', role: 'member' },
+        },
+      ]);
       expect(mockUsersService.findUserOrganizations).toHaveBeenCalledWith(42);
       expect(mockSessionsRepository.find).toHaveBeenCalledWith(
         expect.objectContaining({
