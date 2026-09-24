@@ -21,6 +21,20 @@
   "invitations": {
     "title": "Convites pendentes"
   },
+  "organizations": {
+    "title": "Suas organizações"
+  },
+  "actions": {
+    "loadMore": "Carregar mais",
+    "search": "Buscar",
+    "manage": "Gerenciar",
+    "accept": "Aceitar",
+    "reject": "Negar"
+  },
+  "filters": {
+    "active": "Você tem filtros ativos. Alguns itens podem estar ocultos.",
+    "reset": "Redefinir filtros"
+  },
   "input": {
     "orgName": "Organização",
     "role": "Permissões"
@@ -28,7 +42,7 @@
   "message": {
     "acceptInvitation": {
       "title": "Convite aceito",
-      "description": "Para acessar a organização, use o seletor no topo direito."
+      "description": "Você já pode gerenciá-la em \"Suas organizações\" na página inicial."
     },
     "rejectInvitation": {
       "title": "Convite negado"

@@ -1,5 +1,12 @@
 "use client"
 
+/**
+ * @deprecated The DataTable is being phased out in favor of the card list
+ * pattern (ListItemCard + OrgBadge + LoadMoreButton). It is currently kept
+ * only for the organization members and invitations tables. Do not use it
+ * for new content lists.
+ */
+
 import { useState, ReactNode } from "react";
 
 import {
@@ -58,11 +65,11 @@ export const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
 export const fuzzySort: SortingFn<any> = (rowA, rowB, columnId) => {
   let dir = 0
 
-  if (rowA.columnFiltersMeta[columnId]) {
-    dir = compareItems(
-      rowA.columnFiltersMeta[columnId]?.itemRank!,
-      rowB.columnFiltersMeta[columnId]?.itemRank!
-    )
+  const aRank = rowA.columnFiltersMeta[columnId]?.itemRank
+  const bRank = rowB.columnFiltersMeta[columnId]?.itemRank
+
+  if (aRank && bRank) {
+    dir = compareItems(aRank, bRank)
   }
 
   return dir === 0 ? sortingFns.alphanumeric(rowA, rowB, columnId) : dir

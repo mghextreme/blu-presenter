@@ -21,6 +21,9 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/column-header"
 import { TFunction } from "i18next";
 import { IOrganizationInvitation, IOrganizationUser, OrganizationRoleOptions, isRoleHigherOrEqualThan } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PageTitle } from "@/components/shared/page-title";
+import { OrganizationBar } from "@/components/app/organization-bar";
+import { PageContent } from "@/components/shared/page-content";
 import { useAuth } from "@/hooks/useAuth";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
@@ -34,7 +37,7 @@ type EditOrganizationProps = {
   edit?: boolean
 }
 
-const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, revalidate: () => void) => {
+const buildColumns = (t: TFunction, orgId: number, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, revalidate: () => void) => {
   const columns: ColumnDef<IOrganizationUser>[] = [
     {
       accessorKey: "name",
@@ -77,7 +80,7 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
                   size="sm"
                   title={t('actions.editMember')}
                   asChild>
-                  <Link to={`/app/organization/member/${row.original.id}`}>
+                  <Link to={`/app/organization/${orgId}/member/${row.original.id}`}>
                     <PencilIcon className="size-3" />
                   </Link>
                 </Button>
@@ -88,7 +91,7 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
                   title={t('actions.removeMember')}
                   onClick={async () => {
                     try {
-                      await organizationsService.removeMember(row.original.id);
+                      await organizationsService.removeMember(row.original.id, orgId);
                       revalidate();
                     } catch (e: any) {
                       toast.error(t('actions.removeMember'), {
@@ -109,7 +112,7 @@ const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: Org
   return columns;
 }
 
-const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, revalidate: () => void) => {
+const buildInvitationColumns = (t: TFunction, orgId: number, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, revalidate: () => void) => {
   const copyLink = (id: number, secret: string) => {
     const link = `${window.location.origin}/signup?id=${id}&secret=${secret}`;
     navigator.clipboard.writeText(link)
@@ -187,7 +190,7 @@ const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, use
                 disabled={userRole !== 'owner' && userEmail !== row.original?.inviter?.email}
                 onClick={async () => {
                   try {
-                    await organizationsService.cancelInvitation(row.original.id);
+                    await organizationsService.cancelInvitation(row.original.id, orgId);
                     revalidate();
                   } catch (e: any) {
                     toast.error(t('actions.removeInvitation'), {
@@ -213,6 +216,8 @@ export function EditOrganization({
 
   const { t } = useTranslation("organizations");
 
+  const navigate = useNavigate();
+
   const loadedData = useLoaderData() as IOrganization;
   const data = edit ? loadedData : {
     id: 0,
@@ -221,10 +226,9 @@ export function EditOrganization({
 
   const isPersonalSpace = edit && (data.name == null || data?.name == '');
 
-  const navigate = useNavigate();
   const { revalidate } = useRevalidator();
 
-  const { user, organization, setOrganizationById } = useAuth();
+  const { user, setOrganizationById } = useAuth();
   const { organizationsService, authService } = useServices();
 
   if (!data) {
@@ -247,7 +251,7 @@ export function EditOrganization({
     if (edit) {
       action = organizationsService.update({
         ...values,
-      });
+      }, data.id);
     } else {
       action = organizationsService.add({
         ...values,
@@ -258,7 +262,7 @@ export function EditOrganization({
         if (!edit && result) {
           authService.getAndSetOrganizations(result.id);
         }
-        navigate("/app/organization", { replace: true });
+        navigate(`/app/organization/${edit ? data.id : result?.id}`, { replace: true });
       })
       .catch((e) => {
         toast.error(t('update.failed'), {
@@ -273,7 +277,7 @@ export function EditOrganization({
   const onLeaveOrganization = async () => {
     try {
       setLoading(true);
-      await organizationsService.leave();
+      await organizationsService.leave(data.id);
       setOrganizationById();
       navigate("/app", { replace: true });
     } finally {
@@ -284,7 +288,7 @@ export function EditOrganization({
   const onDeleteOrganization = async () => {
     try {
       setLoading(true);
-      await organizationsService.delete();
+      await organizationsService.delete(data.id);
       setOrganizationById();
       navigate("/app", { replace: true });
     } finally {
@@ -292,15 +296,8 @@ export function EditOrganization({
     }
   }
 
-  const columns = buildColumns(t, user?.email, loadedData?.role, organizationsService, revalidate);
-  const invitationColumns = buildInvitationColumns(t, user?.email, loadedData?.role, organizationsService, revalidate);
-
-  useEffect(() => {
-    if (edit) {
-      organizationsService.clearCache();
-      revalidate();
-    }
-  }, [organization, revalidate]);
+  const columns = buildColumns(t, data.id, user?.email, loadedData?.role, organizationsService, revalidate);
+  const invitationColumns = buildInvitationColumns(t, data.id, user?.email, loadedData?.role, organizationsService, revalidate);
 
   useEffect(() => {
     form.setValue('id', data.id);
@@ -308,8 +305,15 @@ export function EditOrganization({
   }, [loadedData]);
 
   return (
-    <div className="p-2 sm:p-8">
-      <title>{t('title.edit', {organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
+    <div>
+      <title>{t('title.edit', {organization: data.name || t('defaultName')}) + ' - BluPresenter'}</title>
+      <PageTitle value={t(edit ? 'edit.title' : 'add.title')} />
+      <OrganizationBar
+        organizations={edit ? [data] : []}
+        selected={edit ? [data] : []}
+        subtitle={edit ? undefined : t('add.title')}
+      />
+      <PageContent>
       {isPersonalSpace ? (
         <Alert>
           <AlertTitle>{t('warning.personalSpace.title')}</AlertTitle>
@@ -319,7 +323,6 @@ export function EditOrganization({
         </Alert>
       ) : (
         <>
-          <h1 className="text-3xl mb-4">{t(edit ? 'edit.title' : 'add.title')}</h1>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
               <FormField
@@ -352,7 +355,7 @@ export function EditOrganization({
               <h2 className="text-xl mt-6 mb-4">{t('edit.members')}</h2>
               <DataTable columns={columns} data={loadedData.users ?? []} addButton={(
                 isRoleHigherOrEqualThan(loadedData?.role, 'admin') ? (
-                  <Button asChild><Link to={`/app/organization/invite`}>{t('actions.inviteMember')}</Link></Button>
+                  <Button asChild><Link to={`/app/organization/${data.id}/invite`}>{t('actions.inviteMember')}</Link></Button>
                 ) : null
               )}></DataTable>
               {(loadedData?.invitations?.length ?? 0) > 0 && (
@@ -370,11 +373,11 @@ export function EditOrganization({
               {loadedData?.role === 'owner' && (
                 <>
                   <Button className="flex-0" type="button" asChild>
-                    <Link to={'/app/organization/transfer'}>{t('button.transfer')}</Link>
+                    <Link to={`/app/organization/${data.id}/transfer`}>{t('button.transfer')}</Link>
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button className="flex-0" variant="destructive" disabled={true || isLoading}>
+                      <Button className="flex-0" variant="destructive" disabled>
                         {isLoading && (
                           <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
                         )}
@@ -421,6 +424,7 @@ export function EditOrganization({
           )}
         </>
       )}
+      </PageContent>
     </div>
   );
 }

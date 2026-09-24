@@ -8,6 +8,8 @@ import { IProfile } from "@/types";
 import { IUserIdentitiesResponse } from "@/types/auth";
 import { useServices } from "@/hooks/useServices";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { PageTitle } from "@/components/shared/page-title";
+import { PageContent } from "@/components/shared/page-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useLoaderData } from "react-router-dom";
@@ -205,9 +207,9 @@ export function Profile() {
   }
 
   return (
-    <div className="p-2 sm:p-8">
+    <PageContent>
       <title>{t('title') + ' - BluPresenter'}</title>
-      <h1 className="text-3xl mb-4">{t('update.title')}</h1>
+      <PageTitle value={t('update.title')} />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
           <FormField
@@ -404,6 +406,6 @@ export function Profile() {
           </Form>
         </>
       )}
-    </div>
+    </PageContent>
   );
 }

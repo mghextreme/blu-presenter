@@ -4,7 +4,8 @@ import {useForm} from "react-hook-form";
 import {z} from "zod";
 
 import { useServices } from "@/hooks/useServices";
-import { useAuth } from "@/hooks/useAuth";
+import { PageTitle } from "@/components/shared/page-title";
+import { PageContent } from "@/components/shared/page-content";
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
@@ -20,8 +21,8 @@ import {Command, CommandGroup, CommandItem, CommandList} from "@/components/ui/c
 import {cn} from "@/lib/utils";
 import { toast } from "sonner";
 
-export async function loader({organizationsService}: { organizationsService: OrganizationsService }) {
-  return await organizationsService.getCurrent();
+export async function loader({organizationsService, orgId}: { organizationsService: OrganizationsService, orgId: number }) {
+  return await organizationsService.getCurrent(orgId);
 }
 
 const formSchema = z.object({
@@ -35,14 +36,8 @@ export function InviteOrganizationMember() {
 
   const navigate = useNavigate();
 
-  const { organization } = useAuth();
-
   const { organizationsService } = useServices();
   const data = useLoaderData() as IOrganization;
-  
-  if (!isRoleHigherOrEqualThan(data.role, 'admin')) {
-    throw new Error(t('error.noPermission'));
-  }
 
   const [isLoading, setLoading] = useState<boolean>(false);
 
@@ -63,9 +58,9 @@ export function InviteOrganizationMember() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
-    organizationsService.inviteMember(values.email, values.role)
+    organizationsService.inviteMember(values.email, values.role, data.id)
       .then(() => {
-        navigate("/app/organization", {replace: true});
+        navigate(`/app/organization/${data.id}`, {replace: true});
       })
       .catch((e) => {
         toast.error(t('error.inviteMember'), {
@@ -80,10 +75,14 @@ export function InviteOrganizationMember() {
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);
   const roleSelectorListId = "invite-role-selector-list";
 
+  if (!isRoleHigherOrEqualThan(data.role, 'admin')) {
+    throw new Error(t('error.noPermission'));
+  }
+
   return (
-    <div className="p-2 sm:p-8">
-      <title>{t('title.invite', {organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
-      <h1 className="text-3xl mb-2">{t('invite.title')}</h1>
+    <PageContent>
+      <title>{t('title.invite', {organization: data.name || t('defaultName')}) + ' - BluPresenter'}</title>
+      <PageTitle value={t('invite.title')} />
       <h2 className="text mb-4 opacity-50">{data.name || t('defaultName')}</h2>
       <Form {...form}>
         <form
@@ -174,11 +173,11 @@ export function InviteOrganizationMember() {
               {t('button.invite')}
             </Button>
             <Button className="flex-0" type="button" variant="secondary" asChild>
-              <Link to={`/app/organization`}>{t('button.cancel')}</Link>
+              <Link to={`/app/organization/${data.id}`}>{t('button.cancel')}</Link>
             </Button>
           </div>
         </form>
       </Form>
-    </div>
+    </PageContent>
   );
 }

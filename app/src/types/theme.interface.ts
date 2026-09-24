@@ -1,3 +1,5 @@
+import { OrganizationRoleOptions } from "./organization-user.interface";
+
 export const BASE_THEME_TYPES = ['lyrics', 'subtitles', 'teleprompter'] as const;
 export type BaseTheme = typeof BASE_THEME_TYPES[number];
 
@@ -53,5 +55,6 @@ export interface ITheme {
   organization?: {
     id: number
     name: string
+    role?: OrganizationRoleOptions
   }
 }

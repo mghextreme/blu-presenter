@@ -7,6 +7,7 @@
   },
   "singular": "Organização",
   "plural": "Organizações",
+  "all": "Todas as organizações",
   "defaultName": "Espaço individual",
   "publicArchive": "Acervo público",
   "input": {
@@ -17,6 +18,7 @@
     "transferMember": "Transferir para..."
   },
   "actions": {
+    "create": "Nova organização",
     "inviteMember": "Convidar membro",
     "editMember": "Edit member",
     "removeMember": "Remove member",
@@ -75,7 +77,7 @@
   "warning": {
     "personalSpace": {
       "title": "Está é um espaço individual",
-      "message": "Para convidar outros e compartilhar músicas, você precisa criar uma organização. Você pode criar uma organização com o seletor no topo direito."
+      "message": "Para convidar outros e compartilhar músicas, você precisa criar uma organização. Você pode criar uma pelo botão \"Nova organização\" em \"Suas organizações\" na página inicial."
     }
   },
   "error": {
@@ -94,5 +96,7 @@
       "title": "Excluir organização",
       "message": "Tem certeza que deseja remover esta organização? Todas as músicas e dados associados a organização serão excluídos.\nEsta ação não pode ser revertida."
     }
-  }
+  },
+  "searchPlaceholder": "Pesquisar...",
+  "searchNoneFound": "Nenhuma organização encontrada"
 }

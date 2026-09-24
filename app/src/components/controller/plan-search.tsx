@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useAuth } from "@/hooks/useAuth";
 import { ISongWithRole } from "@/types";
 import { useServices } from "@/hooks/useServices";
 import { useController } from "@/hooks/useController";
@@ -20,25 +19,11 @@ export function PlanSearch({ showOpen = true }: PlanSearchProps) {
 
   const { t } = useTranslation("controller");
 
-  const { organizations } = useAuth();
   const { songsService } = useServices();
   const {
     addToSchedule,
     setScheduleItem,
   } = useController();
-
-  const orgIndexMap: {[orgId: number]: number} = {};
-  for (let i = 0; i < organizations.length; i++) {
-    orgIndexMap[organizations[i].id] = i;
-  }
-
-  const getButtonOrgIndex = (item: ISongWithRole) => {
-    if (!item.organization) {
-      return -1;
-    }
-
-    return orgIndexMap[item.organization.id];
-  }
 
   const getButtonActions = (item: ISongWithRole) => {
     return (
@@ -75,7 +60,7 @@ export function PlanSearch({ showOpen = true }: PlanSearchProps) {
       <hr className="border-t border-[1px] my-3" />
       <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col gap-3">
-          <SearchResultsList getActions={getButtonActions} getColorIndex={getButtonOrgIndex} />
+          <SearchResultsList getActions={getButtonActions} />
         </div>
       </div>
     </>

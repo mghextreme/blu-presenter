@@ -85,7 +85,8 @@
     "title": "Músicas"
   },
   "add": {
-    "title": "Adicionar música"
+    "title": "Adicionar música",
+    "to": "Adicionar música a:"
   },
   "import": {
     "title": "Importar música"

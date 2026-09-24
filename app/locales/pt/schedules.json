@@ -1,6 +1,6 @@
 {
   "title": {
-    "list": "Programações - {{organization}}",
+    "list": "Programações",
     "add": "Adicionar - Programações",
     "edit": "{{name}} - Programações",
     "view": "{{name}} - Visualizar - Programações"
@@ -29,8 +29,12 @@
   "list": {
     "title": "Programações"
   },
+  "search": {
+    "placeholder": "Buscar programações..."
+  },
   "add": {
-    "title": "Adicionar programação"
+    "title": "Adicionar programação",
+    "to": "Adicionar programação em:"
   },
   "edit": {
     "title": "Editar programação"
@@ -56,7 +60,8 @@
   },
   "error": {
     "deleteSchedule": "Erro ao remover programação",
-    "noPermission": "Você não tem permissão para gerenciar programações"
+    "noPermission": "Você não tem permissão para gerenciar programações",
+    "search": "Erro ao buscar programações"
   },
   "message": {
     "share": {

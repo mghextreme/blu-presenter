@@ -63,13 +63,12 @@ const SingleSlideVisualizerContent = forwardRef((
 
   const [toShow, setToShow] = useState<ISlideContent[]>([]);
   const updateContent = () => {
-    let content: ISlideContent[] = [];
     if (overrideSlide !== undefined) {
       setToShow(overrideSlide.content ?? []);
       return
     }
 
-    content = selectedSlide?.content ?? [];
+    const content = selectedSlide?.content ?? [];
 
     if (theme.extends === 'subtitles') {
       setToShow(content.length > 0 ? [content[selection.part ?? 0]] : []);

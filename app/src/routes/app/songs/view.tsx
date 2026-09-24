@@ -12,6 +12,9 @@ import { PreviewIcon } from "@/components/icons/preview";
 import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
 import { SongViewer } from "@/components/app/songs/song-viewer";
 import { OrganizationBar } from "@/components/app/organization-bar";
+import { PageTitle } from "@/components/shared/page-title";
+import { pageContentColumn } from "@/components/shared/page-content";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export function ViewSong() {
@@ -50,8 +53,9 @@ export function ViewSong() {
   return (
     <>
       <title>{t('title.view', { title: data.title, artist: data.artist }) + ' - BluPresenter'}</title>
-      <OrganizationBar organizations={[data.organization]}>
-        {isLoggedIn && <CopySongToOrganization songId={data.id} title={data.title} artist={data.artist} variant="default" />}
+      <PageTitle value={data.title} />
+      <OrganizationBar organizations={[data.organization ?? null]}>
+        {isLoggedIn && <CopySongToOrganization songId={data.id} title={data.title} artist={data.artist} sourceOrgId={data.organization?.id} variant="default" />}
         <Button
           type="button"
           size="sm"
@@ -94,7 +98,7 @@ export function ViewSong() {
         </ControllerProvider>}
       </OrganizationBar>
       <SongViewer song={data} />
-      {isLoggedIn && <div className="flex flex-row align-start space-x-2 px-2 sm:px-8 pb-8">
+      {isLoggedIn && <div className={cn(pageContentColumn, "pb-8 flex flex-row align-start space-x-2")}>
         <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/songs'}>{t('button.back')}</Link></Button>
       </div>}
     </>

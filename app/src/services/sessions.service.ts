@@ -7,11 +7,15 @@ export class SessionsService extends ApiService {
     this.queryClient.removeQueries({ queryKey: ['sessions'] });
   }
 
-  public async getAll(): Promise<ISession[]> {
-    return await this.getOrFetch({
-      queryKey: ['sessions', 'all'],
-      queryFn: async () => await this.getRequest('/sessions') as ISession[],
-    });
+  public async search(payload: {
+    query?: string;
+    organizations?: number[];
+    page?: number;
+    itemsPerPage?: number;
+  }): Promise<ISession[]> {
+    return await this.postRequest('/sessions/search', JSON.stringify(payload), {
+      'content-type': 'application/json',
+    }) as ISession[];
   }
 
   public async getAllForUser(): Promise<ISession[]> {
@@ -44,24 +48,28 @@ export class SessionsService extends ApiService {
     });
   }
 
-  public async add(value: ISession): Promise<ISession | null> {
+  public async add(value: ISession, orgId: number): Promise<ISession | null> {
     const response = await this.postRequest('/sessions', JSON.stringify(value), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     }) as ISession;
     this.clearCache();
     return response;
   }
 
-  public async update(id: number, value: ISession): Promise<ISession | null> {
+  public async update(id: number, value: ISession, orgId: number): Promise<ISession | null> {
     const response = await this.putRequest(`/sessions/${id}`, JSON.stringify(value), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     }) as ISession;
     this.clearCache();
     return response;
   }
 
-  public async delete(sessionId: number): Promise<void> {
-    await this.deleteRequest(`/sessions/${sessionId}`);
+  public async delete(sessionId: number, orgId: number): Promise<void> {
+    await this.deleteRequest(`/sessions/${sessionId}`, {
+      'Organization': orgId.toString(),
+    });
     this.clearCache();
   }
 

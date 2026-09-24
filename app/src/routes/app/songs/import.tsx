@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import i18next from "i18next";
 import { useTranslation } from "react-i18next";
-import { SupportedLanguage } from "@/types";
+import { SupportedLanguage, isRoleHigherOrEqualThan } from "@/types";
 import { SongSchema } from "@/types/schemas/song.schema";
 import { ImportSongSchema } from "@/types/schemas/import-song.schema";
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -15,15 +15,27 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { EditSongForm, EditSongFormHandle } from "@/components/app/songs/edit-form";
 import { SongPreview } from "@/components/app/songs/song-preview";
-import { OrganizationBar } from "@/components/app/organization-bar";
+import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
+import { PageTitle } from "@/components/shared/page-title";
+import { PageContent } from "@/components/shared/page-content";
 import { PreviewIcon } from "@/components/icons/preview";
 import { parseSongText } from "@/lib/songs";
 
 export function ImportSong() {
 
   const { t } = useTranslation("songs");
-  const { organization } = useAuth();
+  const { organization, organizations } = useAuth();
   const curLang = (i18next.resolvedLanguage || 'en') as SupportedLanguage;
+
+  const organizationsToAddTo = organizations.filter(
+    (org) => isRoleHigherOrEqualThan(org.role, 'member')
+  );
+
+  const [selectedOrganizations, setSelectedOrganizations] = useState<OptionalOrganization[]>(() => {
+    const initial = organizationsToAddTo.find((org) => org.id === organization?.id)
+      ?? organizationsToAddTo[0];
+    return initial ? [initial] : [];
+  });
 
   const [step, setStep] = useState<number>(1);
 
@@ -55,7 +67,14 @@ export function ImportSong() {
   return (
     <>
       <title>{t('title.import') + ' - BluPresenter'}</title>
-      <OrganizationBar organizations={[organization]}>
+      <PageTitle value={t('import.title')} />
+      <OrganizationBar
+        organizations={organizationsToAddTo}
+        selected={selectedOrganizations}
+        editable
+        subtitle={t('add.to')}
+        onOrganizationsChange={setSelectedOrganizations}
+      >
         {step === 2 && (
           <ControllerProvider>
             <SongPreview getSong={() => editFormRef.current?.getFormValues()}>
@@ -69,8 +88,7 @@ export function ImportSong() {
           </ControllerProvider>
         )}
       </OrganizationBar>
-      <div className="p-2 sm:p-8">
-        <h1 className="text-3xl mb-4">{t('import.title')}</h1>
+      <PageContent>
         {step === 1 && (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmitStep1)} className="flex flex-col space-y-3">
@@ -101,13 +119,14 @@ export function ImportSong() {
           <EditSongForm
             edit={false}
             formValues={initialFormValues ?? undefined}
+            organizationId={selectedOrganizations[0]?.id}
             ref={editFormRef}
             additionalSubmitButtons={(
               <Button className="flex-0" type="button" variant="secondary" onClick={() => setStep(1)}>{t('button.back')}</Button>
             )}
           />
         )}
-      </div>
+      </PageContent>
     </>
   );
 }

@@ -67,6 +67,7 @@ import { loader as allSchedulesLoader } from "./app/schedules/all.loader";
 
 import { EditOrganization } from "./app/organizations/index";
 import { loader as editOrganizationLoader } from "./app/organizations/index.loader"
+import { OrganizationRedirect } from "./app/organizations/redirect";
 import { InviteOrganizationMember, loader as inviteOrganizationMemberLoader } from "./app/organizations/invite";
 import { EditMember, loader as editMemberLoader } from "./app/organizations/editMember";
 import { TransferOrganization } from "./app/organizations/transfer";
@@ -111,10 +112,11 @@ export function AppRouter() {
             <Route path=":id/edit" element={<EditSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
           </Route>
           <Route path="organization">
-            <Route index={true} element={<EditOrganization />} loader={() => editOrganizationLoader({ organizationsService: services.organizationsService })} />
-            <Route path="invite" element={<InviteOrganizationMember />} loader={() => inviteOrganizationMemberLoader({ organizationsService: services.organizationsService })} />
-            <Route path="member/:id" element={<EditMember />} loader={(loader: LoaderFunctionArgs) => editMemberLoader({ params: loader.params, organizationsService: services.organizationsService })} />
-            <Route path="transfer" element={<TransferOrganization />} loader={() => editOrganizationLoader({ organizationsService: services.organizationsService })} />
+            <Route index={true} element={<OrganizationRedirect />} />
+            <Route path=":orgId" element={<EditOrganization />} loader={(loader: LoaderFunctionArgs) => editOrganizationLoader({ organizationsService: services.organizationsService, orgId: Number(loader.params.orgId) })} />
+            <Route path=":orgId/invite" element={<InviteOrganizationMember />} loader={(loader: LoaderFunctionArgs) => inviteOrganizationMemberLoader({ organizationsService: services.organizationsService, orgId: Number(loader.params.orgId) })} />
+            <Route path=":orgId/member/:id" element={<EditMember />} loader={(loader: LoaderFunctionArgs) => editMemberLoader({ params: loader.params, organizationsService: services.organizationsService, orgId: Number(loader.params.orgId) })} />
+            <Route path=":orgId/transfer" element={<TransferOrganization />} loader={(loader: LoaderFunctionArgs) => editOrganizationLoader({ organizationsService: services.organizationsService, orgId: Number(loader.params.orgId) })} />
           </Route>
           <Route path="organizations">
             <Route path="add" element={<EditOrganization edit={false} />} />

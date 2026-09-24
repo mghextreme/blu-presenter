@@ -33,9 +33,13 @@ export function AppSidebar() {
   const [expanded, setExpanded] = useState(false);
 
   const {
-    organization,
+    organizations,
   } = useAuth();
   const closeSidebar = () => setExpanded(false);
+
+  const canManageSessions = organizations.some(
+    (org) => isRoleHigherOrEqualThan(org.role, 'admin')
+  );
 
   return (
     <>
@@ -54,7 +58,7 @@ export function AppSidebar() {
             <SidebarMenuItem to="/app/songs" content={t('menu.songs')} onSelect={closeSidebar} />
             <SidebarMenuItem to="/app/schedules" content={t('menu.schedules')} onSelect={closeSidebar} />
             <SidebarMenuItem to="/app/themes" content={t('menu.themes')} onSelect={closeSidebar} />
-            <SidebarMenuItem to="/app/sessions" content={t('menu.sessions')} disabled={!isRoleHigherOrEqualThan(organization?.role, 'admin')} onSelect={closeSidebar} />
+            <SidebarMenuItem to="/app/sessions" content={t('menu.sessions')} disabled={!canManageSessions} onSelect={closeSidebar} />
             <h3 className="mt-5 mb-1 ml-3 text-sm font-medium text-bodydark2">{t('menu.title.settings')}</h3>
             <hr />
             <SidebarMenuItem to="/app/organization" content={t('menu.organization')} onSelect={closeSidebar} />

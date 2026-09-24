@@ -10,33 +10,22 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
-import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 export function SongSearchResultsList() {
 
   const { t } = useTranslation("songs");
 
-  const { organizations } = useAuth();
-  const orgIndexMap: {[orgId: number]: number} = {};
-  for (let i = 0; i < organizations.length; i++) {
-    orgIndexMap[organizations[i].id] = i;
-  }
-
-  const getButtonOrgIndex = (item: ISongWithRole) => {
-    if (!item.organization) {
-      return -1;
-    }
-
-    return orgIndexMap[item.organization.id];
-  }
-
   const { songsService } = useServices();
   const { refresh } = useSearch();
 
-  const onDeleteSong = async (songId: number) => {
+  const onDeleteSong = async (song: ISongWithRole) => {
+    if (!song.organization?.id) {
+      return;
+    }
+
     try {
-      await songsService.delete(songId);
+      await songsService.delete(song.id, song.organization.id);
       songsService.clearCache();
       refresh();
     } catch (e: any) {
@@ -48,7 +37,8 @@ export function SongSearchResultsList() {
 
   const getButtonActions = (item: ISongWithRole) => {
     const canEdit = isRoleHigherOrEqualThan(item.organization?.role, 'member');
-    const canDelete = isRoleHigherOrEqualThan(item.organization?.role, 'admin');
+    const canDelete = isRoleHigherOrEqualThan(item.organization?.role, 'admin')
+      && !!item.organization?.id;
 
     return (
       <>
@@ -75,7 +65,7 @@ export function SongSearchResultsList() {
             <PencilIcon className="size-3" />
           )}
         </Button>
-        <CopySongToOrganization songId={item.id} title={item.title} artist={item.artist} variant="default" />
+        <CopySongToOrganization songId={item.id} title={item.title} artist={item.artist} sourceOrgId={item.organization?.id} variant="default" />
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button size="sm" className="flex-0" variant="destructive" disabled={!canDelete} title={t('actions.delete')}>
@@ -89,7 +79,7 @@ export function SongSearchResultsList() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
-              <AlertDialogAction variant="destructive" onClick={() => onDeleteSong(item.id)}>{t('button.confirm')}</AlertDialogAction>
+              <AlertDialogAction variant="destructive" onClick={() => onDeleteSong(item)}>{t('button.confirm')}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -98,6 +88,6 @@ export function SongSearchResultsList() {
   }
 
   return (
-    <SearchResultsList getActions={getButtonActions} getColorIndex={getButtonOrgIndex} />
+    <SearchResultsList getActions={getButtonActions} />
   );
 }

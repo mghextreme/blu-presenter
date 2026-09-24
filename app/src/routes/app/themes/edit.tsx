@@ -18,7 +18,9 @@ import { Controls } from "@/components/controller/controls";
 import { ThemePreviewSongForm } from "@/components/app/themes/theme-preview-song-form";
 import { ThemeSchema } from "@/types/schemas/theme.schema";
 import { ThemeConfigForm } from "@/components/app/themes/theme-config-form";
-import { OrganizationBar } from "@/components/app/organization-bar";
+import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
+import { PageTitle } from "@/components/shared/page-title";
+import { PageContent } from "@/components/shared/page-content";
 
 type EditThemeProps = {
   edit?: boolean
@@ -30,7 +32,7 @@ export function EditTheme({
 
   const { t } = useTranslation("themes");
   const navigate = useNavigate();
-  const { organization } = useAuth();
+  const { organization, organizations } = useAuth();
   const { themesService } = useServices();
 
   const loadedData = useLoaderData() as ITheme;
@@ -45,9 +47,29 @@ export function EditTheme({
     throw new Error("Can't find theme");
   }
 
-  if (!isRoleHigherOrEqualThan(organization?.role, 'member')) {
+  const organizationsToAddTo = organizations.filter(
+    (org) => isRoleHigherOrEqualThan(org.role, 'member')
+  );
+
+  const [selectedOrganizations, setSelectedOrganizations] = useState<OptionalOrganization[]>(() => {
+    if (edit) {
+      return [data.organization ?? null];
+    }
+
+    const initial = organizationsToAddTo.find((org) => org.id === organization?.id)
+      ?? organizationsToAddTo[0];
+    return initial ? [initial] : [];
+  });
+
+  if (edit && !isRoleHigherOrEqualThan(data.organization?.role, 'member')) {
     throw new Error(t('error.noPermission'));
   }
+
+  if (!edit && organizationsToAddTo.length === 0) {
+    throw new Error(t('error.noPermission'));
+  }
+
+  const organizationId = edit ? data.organization?.id : selectedOrganizations[0]?.id;
 
   const form = useForm<z.infer<typeof ThemeSchema>>({
     resolver: zodResolver(ThemeSchema),
@@ -82,12 +104,14 @@ export function EditTheme({
   const [isLoading, setLoading] = useState<boolean>(false);
 
   const onSubmit = async (values: z.infer<typeof ThemeSchema>) => {
+    if (!organizationId) return;
+
     setLoading(true);
     let action;
     if (edit) {
-      action = themesService.update(values.id, values);
+      action = themesService.update(values.id, values, organizationId);
     } else {
-      action = themesService.add(values);
+      action = themesService.add(values, organizationId);
     }
     action
       .then(() => {
@@ -101,14 +125,18 @@ export function EditTheme({
       });
   }
 
-  const orgName = organization?.name || t("organizations.defaultName");
-
   return (
     <>
-      <title>{(edit ? t('title.edit', { name: data.name }) : t('title.add')) + ' - ' + orgName + ' - BluPresenter'}</title>
-      <OrganizationBar organizations={[data.organization ?? organization]} />
-      <div className="p-2 sm:p-8">
-        <h1 className="text-3xl mb-4">{edit ? t('edit.title') : t('add.title')}</h1>
+      <title>{(edit ? t('title.edit', { name: data.name }) : t('title.add')) + ' - BluPresenter'}</title>
+      <PageTitle value={edit ? t('edit.title') : t('add.title')} />
+      <OrganizationBar
+        organizations={edit ? [data.organization ?? null] : organizationsToAddTo}
+        selected={selectedOrganizations}
+        editable={!edit}
+        subtitle={edit ? undefined : t('add.to')}
+        onOrganizationsChange={setSelectedOrganizations}
+      />
+      <PageContent>
         <ControllerProvider>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-row-reverse flex-wrap gap-3 justify-end">
@@ -173,7 +201,7 @@ export function EditTheme({
             </form>
           </Form>
         </ControllerProvider>
-      </div>
+      </PageContent>
     </>
   );
 }

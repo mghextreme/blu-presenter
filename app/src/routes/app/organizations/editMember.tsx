@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useServices } from "@/hooks/useServices";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Link, Params, useLoaderData, useNavigate } from "react-router-dom";
+import { Link, Params, useLoaderData, useNavigate, useParams } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { CheckIcon } from "@radix-ui/react-icons";
@@ -19,9 +19,11 @@ import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { PageTitle } from "@/components/shared/page-title";
+import { PageContent } from "@/components/shared/page-content";
 
-export async function loader({ params, organizationsService }: { params: Params, organizationsService: OrganizationsService }) {
-  return await organizationsService.getMember(Number(params.id));
+export async function loader({ params, organizationsService, orgId }: { params: Params, organizationsService: OrganizationsService, orgId: number }) {
+  return await organizationsService.getMember(Number(params.id), orgId);
 }
 
 export function EditMember() {
@@ -31,12 +33,11 @@ export function EditMember() {
   const navigate = useNavigate();
 
   const { organizationsService } = useServices();
-  const { organization, user } = useAuth();
+  const { organizations, user } = useAuth();
   const data = useLoaderData() as IOrganizationUser;
 
-  if (!isRoleHigherOrEqualThan(organization?.role, 'admin')) {
-    throw new Error(t('error.noPermissions'));
-  }
+  const { orgId } = useParams();
+  const organization = organizations.find((org) => org.id === Number(orgId));
 
   const [isLoading, setLoading] = useState<boolean>(false);
 
@@ -60,9 +61,9 @@ export function EditMember() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
-    organizationsService.editMember(data.id, values.role)
+    organizationsService.editMember(data.id, values.role, organization?.id ?? 0)
       .then(() => {
-        navigate("/app/organization", { replace: true });
+        navigate(`/app/organization/${organization?.id ?? 0}`, { replace: true });
       })
       .catch((e) => {
         toast.error(t('error.editMember'), {
@@ -78,10 +79,14 @@ export function EditMember() {
   const roleSelectorListId = "edit-member-role-selector-list";
   const canEdit = data.role !== 'owner' && data.email != user?.email; // TODO: Use internal users ID to compare instead of email
 
+  if (!isRoleHigherOrEqualThan(organization?.role, 'admin')) {
+    throw new Error(t('error.noPermissions'));
+  }
+
   return (
-    <div className="p-2 sm:p-8">
+    <PageContent>
       <title>{t('title.member', {member: data.name || data.email, organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
-      <h1 className="text-3xl mb-4">{t('editMember.title')}</h1>
+      <PageTitle value={t('editMember.title')} />
       <Form {...form}>
         {/*
         // @ts-expect-error //TODO investigar  */}
@@ -101,8 +106,7 @@ export function EditMember() {
             </FormItem>
           ) : (
             <FormField
-              //TODO investigate
-              // @ts-expect-error
+              // @ts-expect-error TODO investigate react-hook-form typing
               control={form.control}
               name="role"
               render={({ field }) => (
@@ -170,10 +174,10 @@ export function EditMember() {
               )}
               {t('button.update')}
             </Button>
-            <Button className="flex-0" type="button" variant="secondary" asChild><Link to={`/app/organization`}>{t('button.cancel')}</Link></Button>
+            <Button className="flex-0" type="button" variant="secondary" asChild><Link to={`/app/organization/${organization?.id ?? 0}`}>{t('button.cancel')}</Link></Button>
           </div>
         </form>
       </Form>
-    </div>
+    </PageContent>
   );
 }

@@ -90,3 +90,9 @@ if (typeof document !== 'undefined' && !document.elementFromPoint) {
   })
 }
 
+// jsdom doesn't implement scrollIntoView; cmdk (Command) calls it when items
+// become selected. Stub it as a no-op.
+if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {}
+}
+

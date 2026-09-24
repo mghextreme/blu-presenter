@@ -21,6 +21,20 @@
   "invitations": {
     "title": "Pending invitations"
   },
+  "organizations": {
+    "title": "Your organizations"
+  },
+  "actions": {
+    "loadMore": "Load more",
+    "search": "Search",
+    "manage": "Manage",
+    "accept": "Accept",
+    "reject": "Reject"
+  },
+  "filters": {
+    "active": "You have filters active. Some items might be hidden.",
+    "reset": "Reset filters"
+  },
   "input": {
     "orgName": "Organization",
     "role": "Role"
@@ -28,7 +42,7 @@
   "message": {
     "acceptInvitation": {
       "title": "Invitation accepted",
-      "description": "To go to the organization, select it in the top right."
+      "description": "You can now manage it from \"Your organizations\" on the home page."
     },
     "rejectInvitation": {
       "title": "Invitation rejected"

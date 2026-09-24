@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLoaderData, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
@@ -11,7 +11,9 @@ import { SessionSchema } from "@/types/schemas/session.schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useServices } from "@/hooks/useServices";
 import { ControllerProvider } from "@/hooks/controller.provider";
-import { OrganizationBar } from "@/components/app/organization-bar";
+import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
+import { PageTitle } from "@/components/shared/page-title";
+import { PageContent } from "@/components/shared/page-content";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -48,7 +50,7 @@ export function EditSession({
 
   const { t } = useTranslation("sessions");
   const navigate = useNavigate();
-  const { organization } = useAuth();
+  const { organization, organizations } = useAuth();
   const { sessionsService, themesService } = useServices();
 
   const loadedData = useLoaderData() as ISession;
@@ -64,9 +66,19 @@ export function EditSession({
     throw new Error("Can't find session");
   }
 
-  if (!isRoleHigherOrEqualThan(organization?.role, 'admin')) {
-    throw new Error(t('error.noPermission'));
-  }
+  const organizationsToAddTo = organizations.filter(
+    (org) => isRoleHigherOrEqualThan(org.role, 'admin')
+  );
+
+  const [selectedOrganizations, setSelectedOrganizations] = useState<OptionalOrganization[]>(() => {
+    if (edit) {
+      return [data.organization ?? null];
+    }
+
+    const initial = organizationsToAddTo.find((org) => org.id === organization?.id)
+      ?? organizationsToAddTo[0];
+    return initial ? [initial] : [];
+  });
 
   const selectedTheme = !data.theme ? undefined : (data.theme as BaseTheme) || Number(data.theme);
   const form = useForm<z.infer<typeof SessionSchema>>({
@@ -79,9 +91,13 @@ export function EditSession({
     },
   });
 
+  const organizationId = edit ? data.organization?.id : selectedOrganizations[0]?.id;
+
   const [isLoading, setLoading] = useState<boolean>(false);
 
   const onSubmit = async (values: z.infer<typeof SessionSchema>) => {
+    if (!organizationId) return;
+
     setLoading(true);
 
     const fixedValues = {
@@ -91,9 +107,9 @@ export function EditSession({
 
     let action;
     if (edit) {
-      action = sessionsService.update(values.id, fixedValues);
+      action = sessionsService.update(values.id, fixedValues, organizationId);
     } else {
-      action = sessionsService.add(fixedValues);
+      action = sessionsService.add(fixedValues, organizationId);
     }
     action
       .then(() => {
@@ -107,14 +123,12 @@ export function EditSession({
       });
   }
 
-  const orgName = organization?.name || t("organizations.defaultName");
-
   const [openLanguageSelector, setOpenLanguageSelector] = useState(false);
   const [openThemeSelector, setOpenThemeSelector] = useState(false);
   const languageSelectorListId = "session-language-selector-list";
   const themeSelectorListId = "session-theme-selector-list";
   
-  const defaultThemeOptions: {label: string; value: BaseTheme | number}[] = [
+  const defaultThemeOptions = useMemo<{label: string; value: BaseTheme | number}[]>(() => [
     {
       value: "lyrics",
       label: t('theme.lyrics'),
@@ -127,7 +141,7 @@ export function EditSession({
       value: "teleprompter",
       label: t('theme.teleprompter'),
     },
-  ];
+  ], [t]);
 
   const nameFromTheme = (item?: {label: string; value: BaseTheme | number} | BaseTheme | number | null) => {
     if (!item) return t('theme.letUserPick');
@@ -144,7 +158,11 @@ export function EditSession({
 
   const [consolidatedOptions, setConsolidatedOptions] = useState<{label: string; value: BaseTheme | number}[]>(defaultThemeOptions);
   useEffect(() => {
-    themesService.getAll()
+    if (!organizationId) {
+      return;
+    }
+
+    themesService.search({ organizations: [organizationId], itemsPerPage: 100 })
       .then((customThemes: ITheme[]) => {
         setConsolidatedOptions([
           ...customThemes.map((theme: ITheme) => ({
@@ -154,7 +172,7 @@ export function EditSession({
           ...defaultThemeOptions,
         ]);
       });
-  }, [organization]);
+  }, [organizationId, themesService, defaultThemeOptions]);
 
   const watchedTheme = form.watch('theme');
   const [selectedThemeName, setSelectedThemeName] = useState<string>(() => nameFromTheme(selectedTheme));
@@ -192,12 +210,26 @@ export function EditSession({
     }
   }
 
+  if (edit && !isRoleHigherOrEqualThan(data.organization?.role, 'admin')) {
+    throw new Error(t('error.noPermission'));
+  }
+
+  if (!edit && organizationsToAddTo.length === 0) {
+    throw new Error(t('error.noPermission'));
+  }
+
   return (
     <>
-      <title>{(edit ? t('title.edit', { name: data.default ? t('session.defaultName') : data.name }) : t('title.add')) + ' - ' + orgName + ' - BluPresenter'}</title>
-      <OrganizationBar organizations={[data.organization ?? organization]} />
-      <div className="p-2 sm:p-8">
-        <h1 className="text-3xl mb-4">{edit ? t('edit.title') : t('add.title')}</h1>
+      <title>{(edit ? t('title.edit', { name: data.default ? t('session.defaultName') : data.name }) : t('title.add')) + ' - BluPresenter'}</title>
+      <PageTitle value={edit ? t('edit.title') : t('add.title')} />
+      <OrganizationBar
+        organizations={edit ? [data.organization ?? null] : organizationsToAddTo}
+        selected={selectedOrganizations}
+        editable={!edit}
+        subtitle={edit ? undefined : t('add.to')}
+        onOrganizationsChange={setSelectedOrganizations}
+      />
+      <PageContent>
         <ControllerProvider>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
@@ -403,7 +435,7 @@ export function EditSession({
             </form>
           </Form>
         </ControllerProvider>
-      </div>
+      </PageContent>
     </>
   );
 }

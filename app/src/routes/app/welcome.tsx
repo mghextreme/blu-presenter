@@ -1,76 +1,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/ui/button";
-import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
-import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
+import { Badge } from "@/components/ui/badge";
 import { useServices } from "@/hooks/useServices";
+import { useAuth } from "@/hooks/useAuth";
+import { PageTitle } from "@/components/shared/page-title";
+import { PageContent } from "@/components/shared/page-content";
+import { ListItemCard } from "@/components/shared/list-item-card";
 import { IOrganizationInvitation } from "@/types";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import { ColumnDef } from "@tanstack/react-table";
-import { TFunction } from "i18next";
+import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import { useTranslation } from "react-i18next";
-import { useLoaderData, useRevalidator } from "react-router-dom";
+import { Link, useLoaderData, useRevalidator } from "react-router-dom";
 import { toast } from "sonner";
-
-const buildColumns = (t: TFunction, acceptInvitation: (id: number) => void, rejectInvitation: (id: number) => void) => {
-  const columns: ColumnDef<IOrganizationInvitation>[] = [
-    {
-      accessorKey: "organization.name",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.orgName')} />
-      ),
-      filterFn: fuzzyFilter,
-      sortingFn: fuzzySort,
-    },
-    {
-      accessorKey: "role",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.role')} />
-      ),
-      cell: ({ row }) => {
-        const role = row.getValue("role");
-        return (
-          t('role.' + role)
-        )
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        return (
-          <div className="flex justify-end space-x-2 -m-1">
-            <Button
-              type="button"
-              size="sm"
-              title={t('actions.accept')}
-              onClick={() => acceptInvitation(row.original.id)}>
-              <CheckIcon className="size-3" />
-            </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              title={t('actions.reject')}
-              onClick={() => rejectInvitation(row.original.id)}>
-              <TrashIcon className="size-3" />
-            </Button>
-          </div>
-        )
-      }
-    },
-  ];
-
-  return columns;
-}
 
 export function Welcome() {
 
   const { t } = useTranslation('app');
+  const { t: tOrg } = useTranslation('organizations');
 
   const data = useLoaderData() as IOrganizationInvitation[] || [];
 
   const { revalidate } = useRevalidator();
-  
+
   const { organizationsService } = useServices();
+  const { organizations } = useAuth();
 
   const acceptInvitation = async (invitationId: number) => {
     try {
@@ -102,18 +56,80 @@ export function Welcome() {
     }
   }
 
-  const columns = buildColumns(t, acceptInvitation, rejectInvitation);
+  const getInvitationActions = (invitation: IOrganizationInvitation) => {
+    return (
+      <>
+        <Button
+          type="button"
+          size="sm"
+          title={t('actions.accept')}
+          onClick={() => acceptInvitation(invitation.id)}>
+          <CheckIcon className="size-3" />
+        </Button>
+        <Button
+          size="sm"
+          variant="destructive"
+          title={t('actions.reject')}
+          onClick={() => rejectInvitation(invitation.id)}>
+          <TrashIcon className="size-3" />
+        </Button>
+      </>
+    );
+  }
 
   return (
-    <div className="p-2 sm:p-8">
+    <PageContent className="flex flex-col gap-6">
       <title>{t('welcome.message') + ' - BluPresenter'}</title>
-      <h1 className="text-3xl">{t('welcome.message')}</h1>
+      <PageTitle value={t('welcome.message')} />
+
+      <section>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <h2 className="text-xl">{t('organizations.title')}</h2>
+          <Button asChild>
+            <Link to="/app/organizations/add">{tOrg('actions.create')}</Link>
+          </Button>
+        </div>
+        <ul className="space-y-2">
+          {organizations.map((org) => (
+            <li key={org.id}>
+              <ListItemCard
+                title={org.name || tOrg('defaultName')}
+                organization={org}
+                additionalBadges={org.role && (
+                  <Badge variant="secondary" className="me-3 my-auto">{t('role.' + org.role)}</Badge>
+                )}
+                actions={(
+                  <Button type="button" size="sm" title={t('actions.manage')} asChild>
+                    <Link to={`/app/organization/${org.id}`}>
+                      <PencilIcon className="size-3" />
+                    </Link>
+                  </Button>
+                )}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {data.length > 0 && (
-        <>
-          <h2 className="text-xl mt-6 mb-4">{t('invitations.title')}</h2>
-          <DataTable columns={columns} data={data ?? []}></DataTable>
-        </>
+        <section>
+          <h2 className="text-xl mb-4">{t('invitations.title')}</h2>
+          <ul className="space-y-2">
+            {data.map((invitation) => (
+              <li key={invitation.id}>
+                <ListItemCard
+                  title={invitation.organization?.name || tOrg('defaultName')}
+                  organization={invitation.organization}
+                  additionalBadges={(
+                    <Badge variant="secondary" className="me-3 my-auto">{t('role.' + invitation.role)}</Badge>
+                  )}
+                  actions={getInvitationActions(invitation)}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
-    </div>
+    </PageContent>
   );
 }

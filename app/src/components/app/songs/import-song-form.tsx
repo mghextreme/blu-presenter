@@ -93,7 +93,7 @@ export const ImportSongForm = forwardRef<ImportSongFormHandle, ImportSongFormPro
   const setPartEnabled = (index: number, to: boolean) => updatePart(index, { enabled: to });
 
   const expandPartSlashColon = (index: number, part: IImportLine) => {
-    let repeatType = part.type;
+    const repeatType = part.type;
     let beginRepetition: number | undefined = undefined;
     let beginBlock: number | undefined = undefined;
 

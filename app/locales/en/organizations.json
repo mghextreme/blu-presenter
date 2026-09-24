@@ -7,6 +7,7 @@
   },
   "singular": "Organization",
   "plural": "Organizations",
+  "all": "All organizations",
   "defaultName": "Personal space",
   "publicArchive": "Public archive",
   "input": {
@@ -17,6 +18,7 @@
     "transferMember": "Transfer to..."
   },
   "actions": {
+    "create": "New organization",
     "inviteMember": "Invite member",
     "editMember": "Edit member",
     "removeMember": "Remove member",
@@ -75,7 +77,7 @@
   "warning": {
     "personalSpace": {
       "title": "This is a Personal space",
-      "message": "To invite others and share songs, you need to create an organization. You can create an organization from the dropdown in the top right."
+      "message": "To invite others and share songs, you need to create an organization. You can create one using the \"New organization\" button in \"Your organizations\" on the home page."
     }
   },
   "error": {
@@ -94,5 +96,7 @@
       "title": "Delete organization",
       "message": "Are you sure you want to remove this organization? All songs and associated data will be removed.\nThis action cannot be undone."
     }
-  }
+  },
+  "searchPlaceholder": "Search...",
+  "searchNoneFound": "No organizations found"
 }

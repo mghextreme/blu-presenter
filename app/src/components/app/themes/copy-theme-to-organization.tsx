@@ -16,11 +16,12 @@ import { isRoleHigherOrEqualThan } from "@/types";
 interface CopyThemeToOrganizationProps {
   themeId: number;
   name: string;
+  sourceOrgId?: number;
   variant?: "default" | "secondary";
 }
 
 export function CopyThemeToOrganization({
-  themeId, name, variant = "secondary"
+  themeId, name, sourceOrgId, variant = "secondary"
 }: CopyThemeToOrganizationProps) {
 
   const { t } = useTranslation("themes");
@@ -45,12 +46,12 @@ export function CopyThemeToOrganization({
   const organizationListId = "copy-theme-organization-list";
 
   const onSubmit = async () => {
-    if (!selectedOrg) {
+    if (!selectedOrg || !sourceOrgId) {
       return;
     }
 
     setLoading(true);
-    themesService.copyToOrganization(themeId, selectedOrg)
+    themesService.copyToOrganization(themeId, selectedOrg, sourceOrgId)
       .catch((e) => {
         toast.error(t('error.copyToOrganization'), {
           description: e?.message || '',
@@ -64,7 +65,7 @@ export function CopyThemeToOrganization({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button size="sm" className="flex-0" variant={variant} title={t('actions.copyToOrganization')}>
+        <Button size="sm" className="flex-0" variant={variant} disabled={!sourceOrgId} title={t('actions.copyToOrganization')}>
           <DocumentDuplicateIcon className="size-3" />
         </Button>
       </AlertDialogTrigger>

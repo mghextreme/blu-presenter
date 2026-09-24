@@ -13,7 +13,9 @@ import { ControllerProvider } from "@/hooks/controller.provider";
 import { SearchProvider } from "@/hooks/search.provider";
 import { PlanPanel } from "@/components/controller/plan-panel";
 import { SchedulePanel } from "@/components/controller/schedule-panel";
-import { OrganizationBar } from "@/components/app/organization-bar";
+import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
+import { PageTitle } from "@/components/shared/page-title";
+import { PageContent } from "@/components/shared/page-content";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
@@ -33,7 +35,7 @@ export function EditSchedule({
 
   const { t } = useTranslation("schedules");
   const navigate = useNavigate();
-  const { organization } = useAuth();
+  const { organization, organizations } = useAuth();
   const { schedulesService, songsService } = useServices();
 
   const loadedData = useLoaderData() as ISchedule;
@@ -48,9 +50,29 @@ export function EditSchedule({
     throw new Error("Can't find schedule");
   }
 
-  if (!isRoleHigherOrEqualThan(organization?.role, 'member')) {
+  const organizationsToAddTo = organizations.filter(
+    (org) => isRoleHigherOrEqualThan(org.role, 'member')
+  );
+
+  const [selectedOrganizations, setSelectedOrganizations] = useState<OptionalOrganization[]>(() => {
+    if (edit) {
+      return [data.organization ?? null];
+    }
+
+    const initial = organizationsToAddTo.find((org) => org.id === organization?.id)
+      ?? organizationsToAddTo[0];
+    return initial ? [initial] : [];
+  });
+
+  if (edit && !isRoleHigherOrEqualThan(data.organization?.role, 'member')) {
     throw new Error(t('error.noPermission'));
   }
+
+  if (!edit && organizationsToAddTo.length === 0) {
+    throw new Error(t('error.noPermission'));
+  }
+
+  const organizationId = edit ? data.organization?.id : selectedOrganizations[0]?.id;
 
   const form = useForm<z.infer<typeof ScheduleSchema>>({
     resolver: zodResolver(ScheduleSchema),
@@ -61,12 +83,17 @@ export function EditSchedule({
     },
   });
 
-  const orgName = organization?.name || t("organizations.defaultName");
-
   return (
     <>
-      <title>{(edit ? t('title.edit', { name: data.title }) : t('title.add')) + ' - ' + orgName + ' - BluPresenter'}</title>
-      <OrganizationBar organizations={[organization]}>
+      <title>{(edit ? t('title.edit', { name: data.title }) : t('title.add')) + ' - BluPresenter'}</title>
+      <PageTitle value={edit ? t('edit.title') : t('add.title')} />
+      <OrganizationBar
+        organizations={edit ? [data.organization ?? null] : organizationsToAddTo}
+        selected={selectedOrganizations}
+        editable={!edit}
+        subtitle={edit ? undefined : t('add.to')}
+        onOrganizationsChange={setSelectedOrganizations}
+      >
         {edit && (
           <Button
             type="button"
@@ -79,14 +106,14 @@ export function EditSchedule({
           </Button>
         )}
       </OrganizationBar>
-      <div className="p-2 sm:p-8 flex flex-col flex-1 overflow-hidden">
-        <h1 className="text-3xl mb-4">{edit ? t('edit.title') : t('add.title')}</h1>
+      <PageContent className="flex flex-col flex-1 overflow-hidden">
         <ControllerProvider>
           <SearchProvider songsService={songsService}>
             <EditScheduleForm
               form={form}
               edit={edit}
               data={data}
+              organizationId={organizationId}
               schedulesService={schedulesService}
               songsService={songsService}
               navigate={navigate}
@@ -94,7 +121,7 @@ export function EditSchedule({
             />
           </SearchProvider>
         </ControllerProvider>
-      </div>
+      </PageContent>
     </>
   );
 }
@@ -103,6 +130,7 @@ function EditScheduleForm({
   form,
   edit,
   data,
+  organizationId,
   schedulesService,
   songsService,
   navigate,
@@ -111,6 +139,7 @@ function EditScheduleForm({
   form: ReturnType<typeof useForm<z.infer<typeof ScheduleSchema>>>,
   edit: boolean,
   data: ISchedule,
+  organizationId: number | undefined,
   schedulesService: ReturnType<typeof useServices>['schedulesService'],
   songsService: ReturnType<typeof useServices>['songsService'],
   navigate: ReturnType<typeof useNavigate>,
@@ -118,8 +147,8 @@ function EditScheduleForm({
 }) {
   const { schedule, replaceSchedule } = useController();
   const [isLoading, setLoading] = useState<boolean>(false);
-  const [addItemOpen, setAddItemOpen] = useState(false);
-  const [initialized, setInitialized] = useState(false);
+  const [addItemOpen, setAddItemOpen] = useState<boolean>(false);
+  const [initialized, setInitialized] = useState<boolean>(false);
 
   useEffect(() => {
     if (!initialized && data.items && data.items.length > 0) {
@@ -129,6 +158,8 @@ function EditScheduleForm({
   }, [data.items]);
 
   const onSubmit = async (values: z.infer<typeof ScheduleSchema>) => {
+    if (!organizationId) return;
+
     setLoading(true);
 
     const items = schedule.map((item: IScheduleItem) => {
@@ -152,9 +183,9 @@ function EditScheduleForm({
 
     let action;
     if (edit) {
-      action = schedulesService.update(values.id, payload);
+      action = schedulesService.update(values.id, payload, organizationId);
     } else {
-      action = schedulesService.add(payload);
+      action = schedulesService.add(payload, organizationId);
     }
     action
       .then((savedSchedule: ISchedule | null) => {

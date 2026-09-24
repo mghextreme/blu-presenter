@@ -35,33 +35,38 @@ export class SongsService extends ApiService {
     }) as ISongWithRole[];
   }
 
-  public async add(value: ISong): Promise<ISong | null> {
+  public async add(value: ISong, orgId: number): Promise<ISong | null> {
     const response = await this.postRequest('/songs', JSON.stringify(value), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     }) as ISong;
     this.clearCache();
     return response;
   }
 
-  public async copyToOrganization(id: number, toOrganizationId: number): Promise<void> {
+  public async copyToOrganization(id: number, toOrganizationId: number, sourceOrgId: number): Promise<void> {
     await this.postRequest('/songs/copyToOrganization', JSON.stringify({
       songId: id,
       organizationId: toOrganizationId,
     }), {
       'content-type': 'application/json',
+      'Organization': sourceOrgId.toString(),
     });
   }
 
-  public async update(id: number, value: ISong): Promise<ISong | null> {
+  public async update(id: number, value: ISong, orgId: number): Promise<ISong | null> {
     const response = await this.putRequest(`/songs/${id}`, JSON.stringify(value), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     }) as ISong;
     this.clearCache();
     return response;
   }
 
-  public async delete(songId: number): Promise<void> {
-    await this.deleteRequest(`/songs/${songId}`);
+  public async delete(songId: number, orgId: number): Promise<void> {
+    await this.deleteRequest(`/songs/${songId}`, {
+      'Organization': orgId.toString(),
+    });
     this.clearCache();
   }
 

@@ -1,8 +1,8 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "@/hooks/useAuth";
 import { useSearch } from "@/hooks/search.provider";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -12,14 +12,11 @@ import { SupportedLanguage, supportedLanguagesMap } from "@/types";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import { cn } from "@/lib/utils";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 const advancedSearchFormSchema = z.object({
   query: z.string().optional(),
   languages: z.array(z.string().min(2).max(2)).optional(),
-  organizations: z.array(z.string()).optional(),
-  searchPublicArchive: z.boolean(),
 });
 
 interface AdvancedSearchFormProps {
@@ -35,25 +32,26 @@ export function AdvancedSearchForm({
     formValues,
     advancedSearch,
     isSearching,
+    filtersResetAt,
   } = useSearch();
-
-  const { organizations } = useAuth();
 
   const form = useForm<z.infer<typeof advancedSearchFormSchema>>({
     resolver: zodResolver(advancedSearchFormSchema),
     defaultValues: {
       query: '',
       languages: formValues.languages || [],
-      organizations: formValues.organizations?.map(id => id.toString()) || organizations?.map(o => o.id.toString()) || [],
-      searchPublicArchive: formValues.searchPublicArchive || true,
     },
   });
+
+  useEffect(() => {
+    if (filtersResetAt > 0) {
+      form.reset({ query: '', languages: [] });
+    }
+  }, [filtersResetAt, form]);
 
   const onSubmit = async (values: z.infer<typeof advancedSearchFormSchema>) => {
     advancedSearch(values.query, {
       languages: values.languages as SupportedLanguage[],
-      organizations: values.organizations?.length === organizations.length ? undefined : (values.organizations?.map(x => parseInt(x)) || []),
-      searchPublicArchive: values.searchPublicArchive,
       includeBlocks,
     })
       .catch((e) => {
@@ -117,48 +115,6 @@ export function AdvancedSearchForm({
                   )}
                 >
                 </MultiSelect>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}></FormField>
-
-        <FormField
-          control={form.control}
-          name="organizations"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('searchInput.organizations')}</FormLabel>
-              <FormControl>
-                <MultiSelect
-                  selected={field.value?.map(x => x.toString()) || []}
-                  onChange={field.onChange}
-                  options={
-                    organizations?.map(o => ({
-                      value: o.id.toString(),
-                      label: o.name || t('organizations.defaultName'),
-                    })) || []
-                  }
-                  placeholder={t('searchInput.organizationsPlaceholder')}
-                  searchText={t('searchInput.organizationsSearch')}
-                  emptyText={t('searchInput.organizationsEmpty')}
-                  className="min-w-48"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}></FormField>
-
-        <FormField
-          control={form.control}
-          name="searchPublicArchive"
-          render={({ field }) => (
-            <FormItem className="flex-row items-center sm:items-start sm:flex-col mt-2 sm:mt-0 justify-between">
-              <FormLabel>{t('searchInput.searchPublicArchive')}</FormLabel>
-              <FormControl className="my-auto">
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
               </FormControl>
               <FormMessage />
             </FormItem>

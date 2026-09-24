@@ -17,11 +17,12 @@ interface CopySongToOrganizationProps {
   songId: number;
   title: string;
   artist?: string;
+  sourceOrgId?: number;
   variant?: "default" | "secondary";
 }
 
 export function CopySongToOrganization({
-  songId, title, artist, variant = "secondary"
+  songId, title, artist, sourceOrgId, variant = "secondary"
 }: CopySongToOrganizationProps) {
 
   const { t } = useTranslation("songs");
@@ -46,12 +47,12 @@ export function CopySongToOrganization({
   const organizationListId = "copy-song-organization-list";
 
   const onSubmit = async () => {
-    if (!selectedOrg) {
+    if (!selectedOrg || !sourceOrgId) {
       return;
     }
 
     setLoading(true);
-    songsService.copyToOrganization(songId, selectedOrg)
+    songsService.copyToOrganization(songId, selectedOrg, sourceOrgId)
       .catch((e) => {
         toast.error(t('error.copyToOrganization'), {
           description: e?.message || '',
@@ -65,7 +66,7 @@ export function CopySongToOrganization({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button size="sm" className="flex-0" variant={variant} title={t('actions.copyToOrganization')}>
+        <Button size="sm" className="flex-0" variant={variant} disabled={!sourceOrgId} title={t('actions.copyToOrganization')}>
           <DocumentDuplicateIcon className="size-3" />
         </Button>
       </AlertDialogTrigger>

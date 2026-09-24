@@ -85,7 +85,8 @@
     "title": "Songs"
   },
   "add": {
-    "title": "Add song"
+    "title": "Add song",
+    "to": "Add song to:"
   },
   "import": {
     "title": "Import song"

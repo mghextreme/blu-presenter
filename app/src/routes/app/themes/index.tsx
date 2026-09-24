@@ -1,100 +1,55 @@
-import { Link, useLoaderData, useRevalidator } from "react-router-dom";
-import { ColumnDef } from "@tanstack/react-table"
+import { Link, useLoaderData } from "react-router-dom";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import { IOrganization, isRoleHigherOrEqualThan, ITheme } from "@/types";
-import { Button } from "@/components/ui/button";
-import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
-import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
+import { isRoleHigherOrEqualThan, ITheme } from "@/types";
 import { useServices } from "@/hooks/useServices";
-import { useTranslation } from "react-i18next";
-import { TFunction } from "i18next";
-import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useFilteredList } from "@/hooks/use-filtered-list";
+import { filterToSelection } from "@/hooks/use-organization-filter";
+import { OrganizationBar } from "@/components/app/organization-bar";
+import { PageTitle } from "@/components/shared/page-title";
+import { PageContent } from "@/components/shared/page-content";
+import { ListItemCard } from "@/components/shared/list-item-card";
+import { QuerySearchForm } from "@/components/shared/query-search-form";
+import { LoadMoreButton } from "@/components/shared/load-more";
+import { FiltersActiveNotice } from "@/components/shared/filters-active-notice";
+import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { CopyThemeToOrganization } from "@/components/app/themes/copy-theme-to-organization";
-
-const buildColumns = (t: TFunction, organization: IOrganization | null, onDeleteTheme: (themeId: number) => void) => {
-  const canDelete = isRoleHigherOrEqualThan(organization?.role, 'admin');
-  const canEdit = isRoleHigherOrEqualThan(organization?.role, 'member');
-
-  const columns: ColumnDef<ITheme>[] = [
-    {
-      accessorKey: "name",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.name')} />
-      ),
-      filterFn: fuzzyFilter,
-      sortingFn: fuzzySort,
-    },
-    {
-      accessorKey: "extends",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.baseTheme')} />
-      ),
-      filterFn: fuzzyFilter,
-      sortingFn: fuzzySort,
-      cell: ({ row }) => {
-        return <>{t(`theme.${row.original.extends}`)}</>;
-      }
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        return (
-          <div className="flex justify-end space-x-2 -m-1">
-            <Button
-              type="button"
-              size="sm"
-              title={t('actions.edit')}
-              disabled={!canEdit}
-              asChild>
-              <Link to={`/app/themes/${row.original.id}/edit`}>
-                <PencilIcon className="size-3" />
-              </Link>
-            </Button>
-            <CopyThemeToOrganization themeId={row.original.id} name={row.original.name} />
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button size="sm" className="flex-0" variant="destructive" disabled={!canDelete} title={t('actions.delete')}>
-                  <TrashIcon className="size-3" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t('message.deleteTheme.title')}</AlertDialogTitle>
-                  <AlertDialogDescription>{t('message.deleteTheme.description', {name: row.original.name})}</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" onClick={() => onDeleteTheme(row.original.id)}>{t('button.confirm')}</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        )
-      }
-    },
-  ];
-
-  return columns;
-}
 
 export function Themes() {
 
   const { t } = useTranslation("themes");
-  const { organization } = useAuth();
+  const { organizations } = useAuth();
 
   const data = useLoaderData() as ITheme[];
-  const { revalidate } = useRevalidator();
   const { themesService } = useServices();
 
-  const onDeleteTheme = async (themeId: number) => {
+  const list = useFilteredList<ITheme>({
+    defaultValue: data,
+    initialOrganizations: filterToSelection(organizations),
+    search: (payload) => themesService.search(payload),
+    onError: (e) => {
+      toast.error(t('error.search'), {
+        description: e?.message || '',
+      });
+    },
+  });
+
+  const filtersActive = list.selectedOrganizations.length > 0
+    && list.selectedOrganizations.length < organizations.length;
+
+  const onDeleteTheme = async (theme: ITheme) => {
+    if (!theme.organization?.id) {
+      return;
+    }
+
     try {
-      await themesService.delete(themeId);
+      await themesService.delete(theme.id, theme.organization.id);
       themesService.clearCache();
-      revalidate();
+      list.refresh();
     } catch (e: any) {
       toast.error(
         t('error.deleteTheme'),
@@ -102,23 +57,86 @@ export function Themes() {
     }
   }
 
-  const columns = buildColumns(t, organization, onDeleteTheme);
+  const getCardActions = (theme: ITheme) => {
+    const canEdit = isRoleHigherOrEqualThan(theme.organization?.role, 'member');
+    const canDelete = isRoleHigherOrEqualThan(theme.organization?.role, 'admin');
 
-  useEffect(() => {
-    themesService.clearCache();
-    revalidate();
-  }, [organization]);
+    return (
+      <>
+        <Button
+          type="button"
+          size="sm"
+          title={t('actions.edit')}
+          asChild={canEdit}
+          disabled={!canEdit}>
+          {canEdit ? (
+            <Link to={`/app/themes/${theme.id}/edit`}>
+              <PencilIcon className="size-3" />
+            </Link>
+          ) : (
+            <PencilIcon className="size-3" />
+          )}
+        </Button>
+        <CopyThemeToOrganization themeId={theme.id} name={theme.name} sourceOrgId={theme.organization?.id} />
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button size="sm" className="flex-0" variant="destructive" disabled={!canDelete} title={t('actions.delete')}>
+              <TrashIcon className="size-3" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('message.deleteTheme.title')}</AlertDialogTitle>
+              <AlertDialogDescription>{t('message.deleteTheme.description', {name: theme.name})}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
+              <AlertDialogAction variant="destructive" onClick={() => onDeleteTheme(theme)}>{t('button.confirm')}</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
+    );
+  };
 
   return (
-    <div className="p-2 sm:p-8">
-      <title>{t('title.list', {organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
-      <h1 className="text-3xl mb-2">{t('list.title')}</h1>
-      <h2 className="text-lg mb-4 opacity-50">{organization?.name || t('organizations.defaultName')}</h2>
-      <DataTable columns={columns} data={data ?? []} addButton={(
-        <>
-          <Button asChild><Link to="/app/themes/add">{t('actions.create')}</Link></Button>
-        </>
-      )}></DataTable>
-    </div>
+    <>
+      <title>{t('title.list') + ' - BluPresenter'}</title>
+      <PageTitle value={t('list.title')} />
+      <OrganizationBar
+        organizations={organizations}
+        selected={list.selectedOrganizations}
+        multiselect
+        onOrganizationsChange={list.setOrganizations}
+      >
+        <Button asChild><Link to="/app/themes/add">{t('actions.create')}</Link></Button>
+      </OrganizationBar>
+      <PageContent className="flex flex-col gap-4">
+        <QuerySearchForm
+          onSearch={list.setQuery}
+          isLoading={list.isLoading}
+          placeholder={t('list.search.placeholder')}
+          className="max-w-xl"
+        />
+        {filtersActive && <FiltersActiveNotice onReset={list.resetOrganizations} />}
+        <ul className="space-y-2">
+          {list.results.map((theme) => (
+            <li key={theme.id}>
+              <ListItemCard
+                title={theme.name}
+                description={t(`theme.${theme.extends}`)}
+                organization={theme.organization}
+                actions={getCardActions(theme)}
+              />
+            </li>
+          ))}
+          {list.hasMore && (
+            <li>
+              <LoadMoreButton onClick={list.loadMore} isLoading={list.isLoading} />
+            </li>
+          )}
+        </ul>
+      </PageContent>
+    </>
   );
 }

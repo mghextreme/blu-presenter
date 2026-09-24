@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
@@ -88,7 +88,7 @@ export function PlanConfiguration() {
   const sessionSelectorListId = "plan-configuration-session-selector-list";
   const sessionUrlThemeSelectorListId = "plan-configuration-session-url-theme-selector-list";
 
-  const defaultThemeOptions: {label: string; value: BaseTheme | number}[] = [
+  const defaultThemeOptions = useMemo<{label: string; value: BaseTheme | number}[]>(() => [
     {
       value: "lyrics",
       label: t('theme.lyrics'),
@@ -101,7 +101,7 @@ export function PlanConfiguration() {
       value: "teleprompter",
       label: t('theme.teleprompter'),
     },
-  ];
+  ], [t]);
 
   const [consolidatedOptions, setConsolidatedOptions] = useState<{label: string; value: BaseTheme | number}[]>(defaultThemeOptions);
   const [selectedUrlTheme, setSelectedUrlTheme] = useState<{label: string; value: BaseTheme | number} | undefined>(undefined);
@@ -111,7 +111,7 @@ export function PlanConfiguration() {
       return;
     }
 
-    themesService.getAll(session.orgId)
+    themesService.search({ organizations: session.orgId ? [session.orgId] : undefined, itemsPerPage: 100 })
       .then((customThemes: ITheme[]) => {
         setConsolidatedOptions([
           ...customThemes.map((theme: ITheme) => ({
@@ -121,7 +121,7 @@ export function PlanConfiguration() {
           ...defaultThemeOptions,
         ]);
       });
-  }, [session]);
+  }, [session, themesService, defaultThemeOptions]);
   
   useEffect(() => {
     const theUrlTheme = consolidatedOptions.find((theme) => theme.value == form.getValues('broadcastSessionUrlTheme')?.value);

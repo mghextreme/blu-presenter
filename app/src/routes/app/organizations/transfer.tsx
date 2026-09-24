@@ -1,7 +1,8 @@
 import { useState } from "react";
 
 import { useServices } from "@/hooks/useServices";
-import { useAuth } from "@/hooks/useAuth";
+import { PageTitle } from "@/components/shared/page-title";
+import { PageContent } from "@/components/shared/page-content";
 import { Button } from "@/components/ui/button";
 import { Link, useLoaderData, useNavigate } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
@@ -24,12 +25,7 @@ export function TransferOrganization() {
   const [selectedMember, setSelectedMember] = useState<IOrganizationUser | undefined>(undefined);
 
   const navigate = useNavigate();
-  const { organization } = useAuth();
   const { organizationsService } = useServices();
-
-  if (!isRoleHigherOrEqualThan(data.role, 'owner')) {
-    throw new Error(t('error.noPermission'));
-  }
 
   const [isLoading, setLoading] = useState<boolean>(false);
 
@@ -40,9 +36,9 @@ export function TransferOrganization() {
     }
 
     setLoading(true);
-    organizationsService.transferOwnership(selectedMember.id)
+    organizationsService.transferOwnership(selectedMember.id, data.id)
       .then(() => {
-        navigate("/app/organization", { replace: true });
+        navigate(`/app/organization/${data.id}`, { replace: true });
       })
       .catch((e) => {
         toast.error(t('error.transfer'), {
@@ -57,10 +53,14 @@ export function TransferOrganization() {
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);
   const memberSelectorListId = "transfer-member-selector-list";
 
+  if (!isRoleHigherOrEqualThan(data.role, 'owner')) {
+    throw new Error(t('error.noPermission'));
+  }
+
   return (
-    <div className="p-2 sm:p-8">
-      <title>{t('title.transfer', {organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
-      <h1 className="text-3xl mb-4">{t('transfer.title')}</h1>
+    <PageContent>
+      <title>{t('title.transfer', {organization: data.name || t('defaultName')}) + ' - BluPresenter'}</title>
+      <PageTitle value={t('transfer.title')} />
       <div className="max-w-lg space-y-3">
         <Label data-slot="form-label">{t('input.transferMember')}</Label>
         <div>
@@ -126,9 +126,9 @@ export function TransferOrganization() {
             )}
             {t('button.transfer')}
           </Button>
-          <Button className="flex-0" type="button" variant="secondary" asChild><Link to={`/app/organization`}>{t('button.cancel')}</Link></Button>
+          <Button className="flex-0" type="button" variant="secondary" asChild><Link to={`/app/organization/${data.id}`}>{t('button.cancel')}</Link></Button>
         </div>
       </div>
-    </div>
+    </PageContent>
   );
 }
