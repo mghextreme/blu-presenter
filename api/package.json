@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "license": "GPL-3.0-or-later",
-  "packageManager": "pnpm@10.11.0",
+  "packageManager": "pnpm@11.28.1",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

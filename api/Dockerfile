@@ -8,13 +8,14 @@
 
 FROM node:24-slim AS builder
 
-RUN npm install -g pnpm@11
+RUN npm install -g pnpm@11.28.1
 
 WORKDIR /workspace
 
 # Copy workspace manifests first for better layer caching.
 COPY pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY api/package.json ./api/
+COPY app/package.json ./app/
 
 # Install all workspace deps (frozen lockfile required in CI by default).
 RUN pnpm install --frozen-lockfile

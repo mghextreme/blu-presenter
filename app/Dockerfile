@@ -15,7 +15,7 @@ ENV NODE_ENV=${NODE_ENV}
 ENV VITE_API_HOST=${VITE_API_HOST}
 ENV VITE_API_PORT=${VITE_API_PORT}
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@11.28.1
 
 WORKDIR /workspace
 
