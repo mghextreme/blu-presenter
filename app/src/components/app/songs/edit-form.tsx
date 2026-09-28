@@ -41,6 +41,7 @@ function LanguageAndIcon({ t, language }: { t: TFunction, language: ILanguage["v
 interface EditSongFormProps {
   edit?: boolean
   formValues?: z.infer<typeof SongSchema>
+  organizationId?: number
   additionalSubmitButtons?: ReactNode
 }
 
@@ -54,6 +55,7 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
   {
     edit = true,
     formValues,
+    organizationId,
     additionalSubmitButtons = null,
   }: EditSongFormProps,
   ref,
@@ -66,6 +68,7 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
     <EditSongFormContent
       edit={edit}
       formValues={formValues}
+      organizationId={organizationId}
       additionalSubmitButtons={additionalSubmitButtons}
       ref={ref}
     />
@@ -76,6 +79,7 @@ const EditSongFormContent = forwardRef<EditSongFormHandle, EditSongFormProps>((
   {
     edit = true,
     formValues,
+    organizationId,
     additionalSubmitButtons = null,
   }: EditSongFormProps,
   ref,
@@ -98,13 +102,14 @@ const EditSongFormContent = forwardRef<EditSongFormHandle, EditSongFormProps>((
 
   const onSubmit = async (values: z.infer<typeof SongSchema>) => {
     if (hasUppercaseWarning && !ignoreWarning) return;
+    if (!organizationId) return;
 
     setLoading(true);
     let action;
     if (edit) {
-      action = songsService.update(values.id, values);
+      action = songsService.update(values.id, values, organizationId);
     } else {
-      action = songsService.add(values);
+      action = songsService.add(values, organizationId);
     }
     action
       .then((newSong: ISong) => {

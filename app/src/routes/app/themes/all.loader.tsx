@@ -1,5 +1,12 @@
 import { ThemesService } from "@/services";
+import { PAGE_SIZE } from "@/lib/pagination";
+import { resolveFilter } from "@/hooks/use-organization-filter";
+import { useAuth } from "@/hooks/useAuth";
 
 export async function loader({ themesService }: { themesService: ThemesService }) {
-  return await themesService.getAll();
+  const { organizations } = resolveFilter(useAuth.getState().organizations);
+  return await themesService.search({
+    itemsPerPage: PAGE_SIZE,
+    organizations,
+  });
 }

@@ -11,8 +11,15 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { Server } from 'socket.io';
 import { SessionsService } from './sessions.service';
 import { AuthenticatedSocket, ISelection } from 'src/types';
-import { OptionalWebsocketGuard, WebsocketGuard } from 'src/supabase/supabase.guard';
-import { sanitizeSchedule, sanitizeScheduleItem, sanitizeSelection } from 'src/utils/sanitizer';
+import {
+  OptionalWebsocketGuard,
+  WebsocketGuard,
+} from 'src/supabase/supabase.guard';
+import {
+  sanitizeSchedule,
+  sanitizeScheduleItem,
+  sanitizeSelection,
+} from 'src/utils/sanitizer';
 
 interface JoinSessionDto {
   orgId: number;
@@ -49,9 +56,7 @@ export class SessionsGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
 
-  constructor(
-    private readonly sessionsService: SessionsService,
-  ) {}
+  constructor(private readonly sessionsService: SessionsService) {}
 
   async handleConnection(client: AuthenticatedSocket) {
     client.emit('connected', {
@@ -67,19 +72,32 @@ export class SessionsGateway implements OnGatewayConnection {
     @MessageBody() data: JoinSessionDto,
   ) {
     if (!data.orgId) {
-      client.emit('error', { code: 'missing.orgId', message: 'Organization id is required' });
+      client.emit('error', {
+        code: 'missing.orgId',
+        message: 'Organization id is required',
+      });
       return;
     }
 
     if (!data.sessionId) {
-      client.emit('error', { code: 'missing.sessionId', message: 'Session id is required' });
+      client.emit('error', {
+        code: 'missing.sessionId',
+        message: 'Session id is required',
+      });
       return;
     }
 
     try {
-      const session = await this.sessionsService.findOneBySecret(data.orgId, data.sessionId, data.secret);
+      const session = await this.sessionsService.findOneBySecret(
+        data.orgId,
+        data.sessionId,
+        data.secret,
+      );
       if (!session) {
-        client.emit('error', { code: 'session.notFound', message: 'Session not found' });
+        client.emit('error', {
+          code: 'session.notFound',
+          message: 'Session not found',
+        });
         return;
       }
 
@@ -100,9 +118,11 @@ export class SessionsGateway implements OnGatewayConnection {
         scheduleItem: session.scheduleItem,
         selection: session.selection,
       });
-
     } catch (error) {
-      client.emit('error', { code: 'join.failed', message: 'Failed to join session' });
+      client.emit('error', {
+        code: 'join.failed',
+        message: 'Failed to join session',
+      });
     }
   }
 
@@ -123,9 +143,11 @@ export class SessionsGateway implements OnGatewayConnection {
       }
 
       client.emit('leftSession', { id: data.sessionId });
-
     } catch (error) {
-      client.emit('error', { code: 'leave.failed', message: 'Failed to leave session' });
+      client.emit('error', {
+        code: 'leave.failed',
+        message: 'Failed to leave session',
+      });
     }
   }
 
@@ -136,7 +158,12 @@ export class SessionsGateway implements OnGatewayConnection {
     @MessageBody() data: SetScheduleDto,
   ) {
     try {
-      if (!client.userId || !client.orgId || !client.sessionId || client.sessionId != data.sessionId) {
+      if (
+        !client.userId ||
+        !client.orgId ||
+        !client.sessionId ||
+        client.sessionId != data.sessionId
+      ) {
         client.emit('error', { code: 'unauthorized', message: 'Unauthorized' });
         return;
       }
@@ -148,15 +175,24 @@ export class SessionsGateway implements OnGatewayConnection {
 
       const sessionRoom = `session:${data.sessionId}`;
       if (!client.rooms.has(sessionRoom)) {
-        client.emit('error', { code: 'notInSession', message: 'You must join the session before setting the schedule' });
+        client.emit('error', {
+          code: 'notInSession',
+          message: 'You must join the session before setting the schedule',
+        });
         return;
       }
 
       this.server.to(sessionRoom).emit('schedule', schedule);
-      await this.sessionsService.setSchedule(client.orgId, data.sessionId, schedule);
-
+      await this.sessionsService.setSchedule(
+        client.orgId,
+        data.sessionId,
+        schedule,
+      );
     } catch (error) {
-      client.emit('error', { code: 'data.failed', message: 'Failed to set schedule' });
+      client.emit('error', {
+        code: 'data.failed',
+        message: 'Failed to set schedule',
+      });
     }
   }
 
@@ -167,23 +203,37 @@ export class SessionsGateway implements OnGatewayConnection {
     @MessageBody() data: SetScheduleItemDto,
   ) {
     try {
-      if (!client.userId || !client.orgId || !client.sessionId || client.sessionId != data.sessionId) {
+      if (
+        !client.userId ||
+        !client.orgId ||
+        !client.sessionId ||
+        client.sessionId != data.sessionId
+      ) {
         client.emit('error', { code: 'unauthorized', message: 'Unauthorized' });
         return;
       }
 
       const sessionRoom = `session:${data.sessionId}`;
       if (!client.rooms.has(sessionRoom)) {
-        client.emit('error', { code: 'notInSession', message: 'You must join the session before setting the schedule item' });
+        client.emit('error', {
+          code: 'notInSession',
+          message: 'You must join the session before setting the schedule item',
+        });
         return;
       }
 
       const scheduleItem = sanitizeScheduleItem(data.scheduleItem);
       this.server.to(sessionRoom).emit('scheduleItem', scheduleItem);
-      await this.sessionsService.setScheduleItem(client.orgId, data.sessionId, scheduleItem);
-
+      await this.sessionsService.setScheduleItem(
+        client.orgId,
+        data.sessionId,
+        scheduleItem,
+      );
     } catch (error) {
-      client.emit('error', { code: 'data.failed', message: 'Failed to set schedule item' });
+      client.emit('error', {
+        code: 'data.failed',
+        message: 'Failed to set schedule item',
+      });
     }
   }
 
@@ -194,23 +244,37 @@ export class SessionsGateway implements OnGatewayConnection {
     @MessageBody() data: SetSelectionDto,
   ) {
     try {
-      if (!client.userId || !client.orgId || !client.sessionId || client.sessionId != data.sessionId) {
+      if (
+        !client.userId ||
+        !client.orgId ||
+        !client.sessionId ||
+        client.sessionId != data.sessionId
+      ) {
         client.emit('error', { code: 'unauthorized', message: 'Unauthorized' });
         return;
       }
 
       const sessionRoom = `session:${data.sessionId}`;
       if (!client.rooms.has(sessionRoom)) {
-        client.emit('error', { code: 'notInSession', message: 'You must join the session before setting the selection' });
+        client.emit('error', {
+          code: 'notInSession',
+          message: 'You must join the session before setting the selection',
+        });
         return;
       }
 
       const selection = sanitizeSelection(data.selection);
       this.server.to(sessionRoom).emit('selection', selection);
-      await this.sessionsService.setSelection(client.orgId, data.sessionId, selection);
-
+      await this.sessionsService.setSelection(
+        client.orgId,
+        data.sessionId,
+        selection,
+      );
     } catch (error) {
-      client.emit('error', { code: 'data.failed', message: 'Failed to set selection' });
+      client.emit('error', {
+        code: 'data.failed',
+        message: 'Failed to set selection',
+      });
     }
   }
 }

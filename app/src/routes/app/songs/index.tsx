@@ -1,133 +1,96 @@
-import { Link, useLoaderData, useRevalidator } from "react-router-dom";
-import { ColumnDef } from "@tanstack/react-table"
-import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
-import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
-import { IOrganization, ISong, isRoleHigherOrEqualThan } from "@/types";
-import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
-import { Button } from "@/components/ui/button";
-import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
-import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
-import { useServices } from "@/hooks/useServices";
+import { Link, useLoaderData } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { TFunction } from "i18next";
-import { useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useState } from "react";
 import { toast } from "sonner";
-
-const buildColumns = (t: TFunction, organization: IOrganization | null, onDeleteSong: (songId: number) => void) => {
-  const canDelete = isRoleHigherOrEqualThan(organization?.role, 'admin');
-  const canEdit = isRoleHigherOrEqualThan(organization?.role, 'member');
-
-  const columns: ColumnDef<ISong>[] = [
-    {
-      accessorKey: "title",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.title')} />
-      ),
-      filterFn: fuzzyFilter,
-      sortingFn: fuzzySort,
-    },
-    {
-      accessorKey: "artist",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.artist')} />
-      ),
-      filterFn: fuzzyFilter,
-      sortingFn: fuzzySort,
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        return (
-          <div className="flex justify-end space-x-2 -m-1">
-            <Button
-              type="button"
-              size="sm"
-              title={t('actions.view')}
-              asChild>
-              <Link to={`/app/songs/${row.original.id}/view`}>
-                <EyeIcon className="size-3" />
-              </Link>
-            </Button>
-            {canEdit && (
-              <Button
-                type="button"
-                size="sm"
-                title={t('actions.edit')}
-                asChild>
-                <Link to={`/app/songs/${row.original.id}/edit`}>
-                  <PencilIcon className="size-3" />
-                </Link>
-              </Button>
-            )}
-            <CopySongToOrganization songId={row.original.id} title={row.original.title} artist={row.original.artist} />
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button size="sm" className="flex-0" variant="destructive" disabled={!canDelete} title={t('actions.delete')}>
-                  <TrashIcon className="size-3" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t('message.deleteSong.title')}</AlertDialogTitle>
-                  <AlertDialogDescription>{t('message.deleteSong.description', {title: row.original.title, artist: row.original.artist})}</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" onClick={() => onDeleteSong(row.original.id)}>{t('button.confirm')}</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        )
-      }
-    },
-  ];
-
-  return columns;
-}
+import { IOrganization, ISongWithRole } from "@/types";
+import { useServices } from "@/hooks/useServices";
+import { useAuth } from "@/hooks/useAuth";
+import { SearchProvider, useSearch } from "@/hooks/search.provider";
+import { AdvancedSearchForm } from "@/components/app/search/advanced-search-form";
+import { SongSearchResultsList } from "@/components/app/search/song-search-results-list";
+import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
+import { filterToSelection, selectionToFilter, useOrganizationFilter } from "@/hooks/use-organization-filter";
+import { PageContent } from "@/components/shared/page-content";
+import { FiltersActiveNotice } from "@/components/shared/filters-active-notice";
+import { Button } from "@/components/ui/button";
 
 export function Songs() {
 
   const { t } = useTranslation("songs");
-  const { organization } = useAuth();
 
-  const data = useLoaderData() as ISong[];
-  const { revalidate } = useRevalidator();
   const { songsService } = useServices();
+  const { organizations } = useAuth();
 
-  const onDeleteSong = async (songId: number) => {
-    try {
-      await songsService.delete(songId);
-      songsService.clearCache();
-      revalidate();
-    } catch (e: any) {
-      toast.error(
-        t('error.deleteSong'),
-      );
-    }
-  }
-
-  const columns = buildColumns(t, organization, onDeleteSong);
-
-  useEffect(() => {
-    songsService.clearCache();
-    revalidate();
-  }, [organization]);
+  const data = useLoaderData() as ISongWithRole[];
 
   return (
-    <div className="p-2 sm:p-8">
-      <title>{t('title.list', {organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
-      <h1 className="text-3xl mb-2">{t('list.title')}</h1>
-      <h2 className="text-lg mb-4 opacity-50">{organization?.name || t('organizations.defaultName')}</h2>
-      <DataTable columns={columns} data={data ?? []} addButton={(
-        <>
-          <Button asChild><Link to="/app/songs/add">{t('actions.create')}</Link></Button>
-          <Button asChild><Link to="/app/songs/import">{t('actions.import')}</Link></Button>
-        </>
-      )}></DataTable>
-    </div>
+    <>
+      <title>{t('title.list') + ' - BluPresenter'}</title>
+      <SearchProvider
+        songsService={songsService}
+        defaultValue={data}
+        initialOrganizationFilter={useOrganizationFilter.getState()}
+      >
+        <SongsContent userOrganizations={organizations} />
+      </SearchProvider>
+    </>
+  );
+}
+
+function SongsContent({ userOrganizations }: { userOrganizations: IOrganization[] }) {
+
+  const { t } = useTranslation("songs");
+
+  const { formValues, setOrganizationFilter, resetFilters } = useSearch();
+  const options: OptionalOrganization[] = [...userOrganizations, null];
+  const [selectedOrganizations, setSelectedOrganizations] = useState<OptionalOrganization[]>(() => filterToSelection(userOrganizations));
+
+  const filtersActive = (selectedOrganizations.length > 0 && selectedOrganizations.length < options.length)
+    || (formValues.languages?.length ?? 0) > 0;
+
+  const handleOrganizationsChange = (orgs: OptionalOrganization[]) => {
+    const filter = selectionToFilter(orgs);
+    setSelectedOrganizations(orgs);
+    useOrganizationFilter.getState().setFilter(filter);
+
+    setOrganizationFilter(filter)
+      .catch((e) => {
+        toast.error(t('errors.search'), {
+          description: e?.message || '',
+        });
+      });
+  };
+
+  const handleResetFilters = () => {
+    setSelectedOrganizations([]);
+    useOrganizationFilter.getState().reset();
+
+    resetFilters()
+      .catch((e) => {
+        toast.error(t('errors.search'), {
+          description: e?.message || '',
+        });
+      });
+  };
+
+  return (
+    <>
+      <OrganizationBar
+        organizations={options}
+        selected={selectedOrganizations}
+        multiselect
+        onOrganizationsChange={handleOrganizationsChange}
+      >
+        <Button asChild><Link to="/app/songs/add">{t('actions.create')}</Link></Button>
+        <Button asChild><Link to="/app/songs/import">{t('actions.import')}</Link></Button>
+      </OrganizationBar>
+      <PageContent>
+        <AdvancedSearchForm />
+        {filtersActive && <FiltersActiveNotice onReset={handleResetFilters} />}
+        <ul className="mt-4 space-y-2">
+          <SongSearchResultsList />
+        </ul>
+      </PageContent>
+    </>
   );
 }

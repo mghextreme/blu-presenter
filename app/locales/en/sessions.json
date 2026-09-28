@@ -1,6 +1,6 @@
 {
   "title": {
-    "list": "Sessions - {{organization}}",
+    "list": "Sessions",
     "add": "Add - Sessions",
     "edit": "{{name}} - Sessions"
   },
@@ -24,10 +24,14 @@
     "publicUrl": "Public URL"
   },
   "list": {
-    "title": "Sessions"
+    "title": "Sessions",
+    "search": {
+      "placeholder": "Search sessions..."
+    }
   },
   "add": {
-    "title": "Add session"
+    "title": "Add session",
+    "to": "Add session to:"
   },
   "edit": {
     "title": "Edit session"
@@ -48,7 +52,9 @@
   },
   "error": {
     "deleteTheme": "Error deleting session",
-    "noPermission": "You don't have permission to access this session"
+    "deleteSession": "Error deleting session",
+    "noPermission": "You don't have permission to access this session",
+    "search": "Error searching sessions"
   },
   "language": {
     "search": "Search languages...",
@@ -61,6 +67,10 @@
     "share": {
       "title": "Link copied",
       "description": "A shareable link to the session has been copied to the clipboard."
+    },
+    "deleteSession": {
+      "title": "Delete session",
+      "description": "Are you sure you want to delete the session \"{{name}}\"? This action cannot be undone."
     }
   }
 }

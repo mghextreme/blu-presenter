@@ -1,3 +1,4 @@
+import { IOrganization } from './organization.interface';
 import { IScheduleItem } from './schedule-item.interface';
 
 export interface ISchedule {
@@ -6,4 +7,5 @@ export interface ISchedule {
   date?: string | null;
   items: IScheduleItem[];
   secret?: string;
+  organization?: IOrganization;
 }

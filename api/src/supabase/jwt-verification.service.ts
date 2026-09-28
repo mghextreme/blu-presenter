@@ -18,7 +18,8 @@ interface JWKS {
 @Injectable()
 export class JwtVerificationService {
   private readonly logger = new Logger(JwtVerificationService.name);
-  private jwksCache: { keys: Map<string, string>; timestamp: number } | null = null;
+  private jwksCache: { keys: Map<string, string>; timestamp: number } | null =
+    null;
   private readonly CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
   private readonly jwtSecret: string;
@@ -66,7 +67,10 @@ export class JwtVerificationService {
     const now = Date.now();
 
     // Check cache
-    if (this.jwksCache && (now - this.jwksCache.timestamp) < this.CACHE_DURATION) {
+    if (
+      this.jwksCache &&
+      now - this.jwksCache.timestamp < this.CACHE_DURATION
+    ) {
       const cached = this.jwksCache.keys.get(kid);
       if (cached) {
         return cached;
@@ -78,7 +82,9 @@ export class JwtVerificationService {
     try {
       const response = await fetch(this.jwksUrl);
       if (!response.ok) {
-        throw new Error(`Failed to fetch JWKS: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch JWKS: ${response.status} ${response.statusText}`,
+        );
       }
 
       const jwks: JWKS = await response.json();
@@ -87,10 +93,15 @@ export class JwtVerificationService {
       for (const jwk of jwks.keys) {
         try {
           const publicKey = createPublicKey({ key: jwk as any, format: 'jwk' });
-          const pem = publicKey.export({ type: 'spki', format: 'pem' }) as string;
+          const pem = publicKey.export({
+            type: 'spki',
+            format: 'pem',
+          }) as string;
           keysMap.set(jwk.kid, pem);
         } catch (error) {
-          this.logger.warn(`Failed to convert JWK to PEM for kid ${jwk.kid}: ${error.message}`);
+          this.logger.warn(
+            `Failed to convert JWK to PEM for kid ${jwk.kid}: ${error.message}`,
+          );
         }
       }
 

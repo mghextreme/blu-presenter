@@ -72,7 +72,13 @@ export class OrganizationsService extends OrganizationsBaseService {
     protected readonly organizationInvitationsRepository: Repository<OrganizationInvitation>,
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {
-    super(dataSource, organizationsRepository, organizationUsersRepository, usersRepository, organizationInvitationsRepository);
+    super(
+      dataSource,
+      organizationsRepository,
+      organizationUsersRepository,
+      usersRepository,
+      organizationInvitationsRepository,
+    );
   }
 
   async findOne(id: number): Promise<Organization | null> {
@@ -180,8 +186,7 @@ export class OrganizationsService extends OrganizationsBaseService {
     const ownerUser = this.request.user['internal'];
 
     await this.dataSource.transaction(async (manager) => {
-      const organizationsRepository =
-        manager.getRepository(Organization);
+      const organizationsRepository = manager.getRepository(Organization);
       const organizationUsersRepository =
         manager.getRepository(OrganizationUser);
 
@@ -194,7 +199,7 @@ export class OrganizationsService extends OrganizationsBaseService {
           role: 'owner',
         },
       );
-      
+
       if (promoteNewOwner.affected < 1) {
         throw new NotFoundException('User not found in organization');
       }
@@ -209,15 +214,18 @@ export class OrganizationsService extends OrganizationsBaseService {
         },
       );
 
-      await organizationsRepository.update({
-        id: organization,
-      }, {
-        ownerId: toUserId,
-      });
+      await organizationsRepository.update(
+        {
+          id: organization,
+        },
+        {
+          ownerId: toUserId,
+        },
+      );
     });
   }
 
-  async delete(id: number): Promise<void> {
+  async delete(): Promise<void> {
     if (this.request.user['role'] !== 'owner') {
       throw new ForbiddenException();
     }
@@ -276,7 +284,9 @@ export class OrganizationsService extends OrganizationsBaseService {
       );
     }
 
-    if (isRoleHigherOrEqualThan(editMemberDto.role, this.request.user['role'])) {
+    if (
+      isRoleHigherOrEqualThan(editMemberDto.role, this.request.user['role'])
+    ) {
       throw new ForbiddenException(
         `You cannot change this members role because your role is ${this.request.user['role']}`,
       );
@@ -388,7 +398,10 @@ export class OrganizationsService extends OrganizationsBaseService {
     return invitation;
   }
 
-  async associateInvite(userAuthId: string, invite: AuthInvitationDataDto): Promise<OrganizationInvitation> {
+  async associateInvite(
+    userAuthId: string,
+    invite: AuthInvitationDataDto,
+  ): Promise<OrganizationInvitation> {
     const invitation = await this.organizationInvitationsRepository.findOneBy({
       id: invite.id,
       secret: invite.secret,
@@ -400,7 +413,7 @@ export class OrganizationsService extends OrganizationsBaseService {
 
     const user = await this.usersRepository.findOneBy({
       authId: userAuthId,
-    })
+    });
 
     if (!user) {
       throw new NotFoundException('User not found');
@@ -411,7 +424,10 @@ export class OrganizationsService extends OrganizationsBaseService {
     return invitation;
   }
 
-  private async internalAssociateInvite(invitation: OrganizationInvitation, user: User) {
+  private async internalAssociateInvite(
+    invitation: OrganizationInvitation,
+    user: User,
+  ) {
     const existingOrgUser = await this.organizationUsersRepository.findOneBy({
       orgId: invitation.orgId,
       userId: user.id,
@@ -496,9 +512,7 @@ export class OrganizationsService extends OrganizationsBaseService {
       throw new NotFoundException('Member not found');
     }
 
-    if (
-      isRoleHigherOrEqualThan(member.role, this.request.user['role'])
-    ) {
+    if (isRoleHigherOrEqualThan(member.role, this.request.user['role'])) {
       throw new UnprocessableEntityException(
         'You cannot remove this member from the organization',
       );

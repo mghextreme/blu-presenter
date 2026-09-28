@@ -78,9 +78,9 @@ export function ErrorLayout() {
           {!isAuthError && (
             <div>
               <h4 className="text-md mb-1">{t('details')}</h4>
-              <p className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground">
                 {errorLayout(error)}
-              </p>
+              </div>
             </div>
           )}
         </div>

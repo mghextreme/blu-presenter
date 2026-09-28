@@ -7,11 +7,15 @@ export class SchedulesService extends ApiService {
     this.queryClient.removeQueries({ queryKey: ['schedules'] });
   }
 
-  public async getAll(): Promise<ISchedule[]> {
-    return await this.getOrFetch({
-      queryKey: ['schedules', 'all'],
-      queryFn: async () => await this.getRequest('/schedules') as ISchedule[],
-    });
+  public async search(payload: {
+    query?: string;
+    organizations?: number[];
+    page?: number;
+    itemsPerPage?: number;
+  }): Promise<ISchedule[]> {
+    return await this.postRequest('/schedules/search', JSON.stringify(payload), {
+      'content-type': 'application/json',
+    }) as ISchedule[];
   }
 
   public async getById(scheduleId: number, secret?: string, force = false): Promise<ISchedule | null> {
@@ -34,24 +38,28 @@ export class SchedulesService extends ApiService {
     return this.getById(scheduleId, secret, true);
   }
 
-  public async add(value: Partial<ISchedule>): Promise<ISchedule | null> {
+  public async add(value: Partial<ISchedule>, orgId: number): Promise<ISchedule | null> {
     const response = await this.postRequest('/schedules', JSON.stringify(value), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     }) as ISchedule;
     this.clearCache();
     return response;
   }
 
-  public async update(id: number, value: Partial<ISchedule>): Promise<ISchedule | null> {
+  public async update(id: number, value: Partial<ISchedule>, orgId: number): Promise<ISchedule | null> {
     const response = await this.putRequest(`/schedules/${id}`, JSON.stringify(value), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     }) as ISchedule;
     this.clearCache();
     return response;
   }
 
-  public async delete(scheduleId: number): Promise<void> {
-    await this.deleteRequest(`/schedules/${scheduleId}`);
+  public async delete(scheduleId: number, orgId: number): Promise<void> {
+    await this.deleteRequest(`/schedules/${scheduleId}`, {
+      'Organization': orgId.toString(),
+    });
     this.clearCache();
   }
 

@@ -7,8 +7,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 export class Supabase implements OnModuleInit {
   private client: SupabaseClient;
 
-  constructor(private readonly configService: ConfigService) {
-  }
+  constructor(private readonly configService: ConfigService) {}
 
   onModuleInit() {
     this.client = createClient(

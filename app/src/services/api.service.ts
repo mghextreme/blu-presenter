@@ -15,10 +15,6 @@ export abstract class ApiService {
     this.url = config.url;
   }
 
-  private get organization() {
-    return useAuth.getState().organization?.id;
-  }
-
   private get session() {
     return useAuth.getState().session;
   }
@@ -84,12 +80,6 @@ export abstract class ApiService {
     const session = this.session;
     if (session) {
       result['Authorization'] = 'Bearer ' + session.access_token;
-    }
-
-    let orgId: number | string | undefined = baseHeaders['Organization'];
-    orgId = orgId && orgId.length > 0 ? orgId : this.organization;
-    if (orgId) {
-      result['Organization'] = orgId.toString();
     }
 
     return result;

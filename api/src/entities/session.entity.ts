@@ -65,6 +65,10 @@ export class Session {
   @JoinColumn({ name: 'orgId' })
   organization: Organization;
 
-  @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
+  @UpdateDateColumn({
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP(6)',
+    onUpdate: 'CURRENT_TIMESTAMP(6)',
+  })
   updatedAt: Date;
 }

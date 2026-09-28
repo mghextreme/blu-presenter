@@ -1,8 +1,1 @@
-export const SupportedLanguages = [
-  'en',
-  'fr',
-  'es',
-  'pt',
-  'de',
-  'it',
-];
+export const SupportedLanguages = ['en', 'fr', 'es', 'pt', 'de', 'it'];

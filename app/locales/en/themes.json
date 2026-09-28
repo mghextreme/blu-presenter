@@ -1,6 +1,6 @@
 {
   "title": {
-    "list": "Themes - {{organization}}",
+    "list": "Themes",
     "add": "Add - Themes",
     "edit": "{{name}} - Themes"
   },
@@ -72,10 +72,14 @@
     }
   },
   "list": {
-    "title": "Themes"
+    "title": "Themes",
+    "search": {
+      "placeholder": "Search themes..."
+    }
   },
   "add": {
-    "title": "Add theme"
+    "title": "Add theme",
+    "to": "Add theme to:"
   },
   "edit": {
     "title": "Edit theme"
@@ -136,6 +140,7 @@
   "error": {
     "deleteTheme": "Error deleting theme",
     "copyToOrganization": "Error copying theme",
-    "noPermission": "You don't have permission to access this theme"
+    "noPermission": "You don't have permission to access this theme",
+    "search": "Error searching themes"
   }
 }

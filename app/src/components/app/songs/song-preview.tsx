@@ -49,7 +49,7 @@ export function SongPreview({
   useEffect(() => {
     if (!song) return;
 
-    let slides = songsService.toScheduleSong(song);
+    const slides = songsService.toScheduleSong(song);
     slides.slides = slides.slides.slice(0, -1);
     setScheduleItem(slides);
 

@@ -11,7 +11,13 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { Theme } from 'src/entities';
-import { CreateThemeDto, UpdateThemeDto, CopyThemeToOrganizationDto } from 'src/types';
+import {
+  CreateThemeDto,
+  SearchThemeDto,
+  UpdateThemeDto,
+  CopyThemeToOrganizationDto,
+} from 'src/types';
+import { ThemeWithRoleViewModel } from 'src/models/theme-with-role.view-model';
 import { ThemesService } from './themes.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
 import { Public } from 'src/supabase/public.decorator';
@@ -25,23 +31,23 @@ import { Public } from 'src/supabase/public.decorator';
   required: false,
 })
 export class ThemesController {
-  constructor(
-    private readonly themesService: ThemesService,
-  ) {}
+  constructor(private readonly themesService: ThemesService) {}
 
-  @Get()
-  @OrganizationRole('owner', 'admin', 'member')
-  async findAll(@Headers('Organization') orgId: number): Promise<Theme[]> {
-    return await this.themesService.findAll(orgId);
+  @Post('search')
+  async search(
+    @Body() searchThemeDto: SearchThemeDto,
+  ): Promise<ThemeWithRoleViewModel[]> {
+    return await this.themesService.search(searchThemeDto);
+  }
+
+  @Get('user/all')
+  async findAllForUser(): Promise<Theme[]> {
+    return await this.themesService.findAllForUserOrgs();
   }
 
   @Get(':id')
-  @OrganizationRole('owner', 'admin', 'member', 'guest')
-  async findOne(
-    @Headers('Organization') orgId: number,
-    @Param('id') id: number,
-  ): Promise<Theme | null> {
-    return await this.themesService.findOne(orgId, id);
+  async findOne(@Param('id') id: number): Promise<ThemeWithRoleViewModel> {
+    return await this.themesService.findOneInAnyOrg(id);
   }
 
   @Post()
@@ -58,7 +64,10 @@ export class ThemesController {
   async copyToOrganization(
     @Body() copyThemeDto: CopyThemeToOrganizationDto,
   ): Promise<void> {
-    await this.themesService.copyToOrganization(copyThemeDto.themeId, copyThemeDto.organizationId);
+    await this.themesService.copyToOrganization(
+      copyThemeDto.themeId,
+      copyThemeDto.organizationId,
+    );
   }
 
   @Put(':id')
@@ -78,11 +87,6 @@ export class ThemesController {
     @Param('id') id: number,
   ): Promise<void> {
     return await this.themesService.delete(orgId, id);
-  }
-
-  @Get('user/all')
-  async findAllForUser(): Promise<Theme[]> {
-    return await this.themesService.findAllForUserOrgs();
   }
 
   @Public()
@@ -117,6 +121,10 @@ export class ThemesController {
     @Param('themeId') themeId: number,
     @Query('secret') secret: string,
   ): Promise<Theme> {
-    return await this.themesService.findOneInOrgBySecret(orgId, themeId, secret);
+    return await this.themesService.findOneInOrgBySecret(
+      orgId,
+      themeId,
+      secret,
+    );
   }
 }

@@ -11,11 +11,13 @@ export class OrganizationsService extends ApiService {
     this.queryClient.removeQueries({ queryKey: ['user', 'organizations'] });
   }
 
-  public async getCurrent(): Promise<IOrganization | null> {
+  public async getCurrent(orgId: number): Promise<IOrganization | null> {
     return await this.getOrFetch({
-      queryKey: ['organizations', 'self'],
+      queryKey: ['organizations', 'self', orgId],
       queryFn: async () => {
-        const response = await this.getRequest('/organizations/self');
+        const response = await this.getRequest('/organizations/self', {
+          'Organization': orgId.toString(),
+        });
         return this.parseOrganization(response);
       },
     });
@@ -31,9 +33,10 @@ export class OrganizationsService extends ApiService {
     return result;
   }
 
-  public async update(value: IOrganization): Promise<IOrganization | null> {
+  public async update(value: IOrganization, orgId: number): Promise<IOrganization | null> {
     const result = await this.putRequest('/organizations/self', JSON.stringify(value), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     }) as IOrganization;
 
     this.clearCache();
@@ -41,27 +44,31 @@ export class OrganizationsService extends ApiService {
     return result;
   }
 
-  public async transferOwnership(toUserId: number): Promise<void> {
+  public async transferOwnership(toUserId: number, orgId: number): Promise<void> {
     await this.postRequest('/organizations/transferOwnership', JSON.stringify({
       userId: toUserId,
     }), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     }) as IOrganization;
   }
 
-  public async delete(): Promise<void> {
+  public async delete(orgId: number): Promise<void> {
     await this.deleteRequest(`/organizations`, {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     });
 
     this.clearCache();
   }
 
-  public async getMember(id: number): Promise<IOrganizationUser> {
+  public async getMember(id: number, orgId: number): Promise<IOrganizationUser> {
     return await this.getOrFetch({
-      queryKey: ['organizations', 'members', id],
+      queryKey: ['organizations', orgId, 'members', id],
       queryFn: async () => {
-        const response = await this.getRequest(`/organizations/members/${id}`);
+        const response = await this.getRequest(`/organizations/members/${id}`, {
+          'Organization': orgId.toString(),
+        });
         return {
           id: response.user.id,
           name: response.user?.name,
@@ -72,12 +79,13 @@ export class OrganizationsService extends ApiService {
     });
   }
 
-  public async inviteMember(email: string, role: OrganizationRoleOptions): Promise<IOrganizationInvitation> {
+  public async inviteMember(email: string, role: OrganizationRoleOptions, orgId: number): Promise<IOrganizationInvitation> {
     const result = await this.postRequest('/organizations/members', JSON.stringify({
       email,
       role,
     }), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     }) as IOrganizationInvitation;
 
     this.clearCache();
@@ -85,11 +93,12 @@ export class OrganizationsService extends ApiService {
     return result;
   }
 
-  public async editMember(id: number, role: OrganizationRoleOptions) {
+  public async editMember(id: number, role: OrganizationRoleOptions, orgId: number) {
     await this.putRequest(`/organizations/members/${id}`, JSON.stringify({
       role,
     }), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     });
 
     this.clearCache();
@@ -124,25 +133,28 @@ export class OrganizationsService extends ApiService {
     this.clearCache();
   }
 
-  public async cancelInvitation(id: number): Promise<void> {
+  public async cancelInvitation(id: number, orgId: number): Promise<void> {
     await this.deleteRequest(`/organizations/invitations/${id}`, {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     });
 
     this.clearCache();
   }
 
-  public async leave() {
+  public async leave(orgId: number) {
     await this.postRequest(`/organizations/leave`, undefined, {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     });
 
     this.clearCache();
   }
 
-  public async removeMember(id: number): Promise<void> {
+  public async removeMember(id: number, orgId: number): Promise<void> {
     await this.deleteRequest(`/organizations/members/${id}`, {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     });
 
     this.clearCache();

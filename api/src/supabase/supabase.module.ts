@@ -6,7 +6,10 @@ import { SupabaseGuard } from './supabase.guard';
 import { JwtVerificationService } from './jwt-verification.service';
 import { Supabase } from './supabase';
 import { UsersService, UsersBaseService } from '../users/users.service';
-import { OrganizationsService, OrganizationsBaseService } from '../organizations/organizations.service';
+import {
+  OrganizationsService,
+  OrganizationsBaseService,
+} from '../organizations/organizations.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import {

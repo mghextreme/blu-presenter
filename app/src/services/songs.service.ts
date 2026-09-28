@@ -8,13 +8,6 @@ export class SongsService extends ApiService {
     this.queryClient.removeQueries({ queryKey: ['songs'] });
   }
 
-  public async getAll(): Promise<ISong[]> {
-    return await this.getOrFetch({
-      queryKey: ['songs', 'all'],
-      queryFn: async () => await this.getRequest('/songs') as ISong[],
-    });
-  }
-
   public async getById(songId: number, secret?: string): Promise<ISong | null> {
     const hasSecret = secret && secret.length > 0;
     const secretParam = hasSecret ? `?secret=${secret}` : '';
@@ -25,48 +18,55 @@ export class SongsService extends ApiService {
     });
   }
 
-  public async advancedSearch(
+  public async search(
     payload: {
-      query: string;
+      query?: string | undefined;
       queryLanguage?: string | undefined;
       organizations?: number[];
       languages?: string[] | undefined;
       searchPublicArchive?: boolean;
       includeBlocks?: boolean;
+      page?: number;
+      itemsPerPage?: number;
     }
   ): Promise<ISongWithRole[]> {
-    return await this.postRequest('/songs/advancedSearch', JSON.stringify(payload), {
+    return await this.postRequest('/songs/search', JSON.stringify(payload), {
       'content-type': 'application/json',
     }) as ISongWithRole[];
   }
 
-  public async add(value: ISong): Promise<ISong | null> {
+  public async add(value: ISong, orgId: number): Promise<ISong | null> {
     const response = await this.postRequest('/songs', JSON.stringify(value), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     }) as ISong;
     this.clearCache();
     return response;
   }
 
-  public async copyToOrganization(id: number, toOrganizationId: number): Promise<void> {
+  public async copyToOrganization(id: number, toOrganizationId: number, sourceOrgId: number): Promise<void> {
     await this.postRequest('/songs/copyToOrganization', JSON.stringify({
       songId: id,
       organizationId: toOrganizationId,
     }), {
       'content-type': 'application/json',
+      'Organization': sourceOrgId.toString(),
     });
   }
 
-  public async update(id: number, value: ISong): Promise<ISong | null> {
+  public async update(id: number, value: ISong, orgId: number): Promise<ISong | null> {
     const response = await this.putRequest(`/songs/${id}`, JSON.stringify(value), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     }) as ISong;
     this.clearCache();
     return response;
   }
 
-  public async delete(songId: number): Promise<void> {
-    await this.deleteRequest(`/songs/${songId}`);
+  public async delete(songId: number, orgId: number): Promise<void> {
+    await this.deleteRequest(`/songs/${songId}`, {
+      'Organization': orgId.toString(),
+    });
     this.clearCache();
   }
 

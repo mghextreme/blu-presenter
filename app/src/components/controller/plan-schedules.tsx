@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { format, parse } from "date-fns";
 import { useServices } from "@/hooks/useServices";
@@ -8,6 +8,8 @@ import { getLocaleConfig } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { LoadMoreButton } from "@/components/shared/load-more";
+import { PAGE_SIZE } from "@/lib/pagination";
 import { Card, CardContent, CardDescription, CardHeader, CardHeaderActions, CardHeaderText, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -29,7 +31,10 @@ export function PlanSchedules() {
 
   const [allSchedules, setAllSchedules] = useState<ISchedule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [search, setSearch] = useState("");
+  const pageRef = useRef<number>(1);
 
   const lang = i18n.language?.substring(0, 2) ?? "en";
   const { dateFns, formatStr } = getLocaleConfig(lang);
@@ -38,11 +43,29 @@ export function PlanSchedules() {
   useEffect(() => {
     setLoading(true);
     schedulesService
-      .getAll()
-      .then((data) => setAllSchedules(data ?? []))
+      .search({})
+      .then((data) => {
+        pageRef.current = 1;
+        setAllSchedules(data ?? []);
+        setHasMore((data?.length ?? 0) === PAGE_SIZE);
+      })
       .catch(() => setAllSchedules([]))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleLoadMore = () => {
+    setLoadingMore(true);
+    const nextPage = pageRef.current + 1;
+    schedulesService
+      .search({ page: nextPage })
+      .then((data) => {
+        pageRef.current = nextPage;
+        setAllSchedules((prev) => [...prev, ...(data ?? [])]);
+        setHasMore((data?.length ?? 0) === PAGE_SIZE);
+      })
+      .catch(() => { /* keep current results */ })
+      .finally(() => setLoadingMore(false));
+  };
 
   const formatDate = (dateStr: string | null | undefined): string => {
     if (!dateStr) return "";
@@ -139,6 +162,9 @@ export function PlanSchedules() {
                 t={t}
               />
             ))}
+            {hasMore && (
+              <LoadMoreButton onClick={handleLoadMore} isLoading={loadingMore} />
+            )}
           </div>
         )}
       </div>

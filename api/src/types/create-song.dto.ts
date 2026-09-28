@@ -1,4 +1,12 @@
-import { IsArray, IsIn, IsNotEmpty, IsObject, IsOptional, IsString, Length } from 'class-validator';
+import {
+  IsArray,
+  IsIn,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+  Length,
+} from 'class-validator';
 import { SongPartDto } from './song-part.dto';
 import { SupportedLanguages } from './supported-languages';
 import { SongReferenceDto } from './song-reference.dto';

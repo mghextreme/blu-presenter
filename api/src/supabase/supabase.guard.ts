@@ -1,9 +1,18 @@
-import { CanActivate, ExecutionContext, Injectable, Scope, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  Scope,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from './public.decorator';
 import { UsersService, UsersBaseService } from '../users/users.service';
-import { OrganizationsService, OrganizationsBaseService } from '../organizations/organizations.service';
+import {
+  OrganizationsService,
+  OrganizationsBaseService,
+} from '../organizations/organizations.service';
 import { ORGANIZATION_ROLE_KEY } from '../auth/organization-role.decorator';
 import { AuthenticatedSocket, isRoleHigherOrEqualThan } from 'src/types';
 import { SessionsService } from 'src/sessions/sessions.service';
@@ -84,15 +93,18 @@ export class WebsocketGuard implements CanActivate {
     const data = context.switchToWs().getData();
 
     if (!!client.userId && !!client.orgId && !!client.sessionId) {
-      if (!data.sessionId || (data.sessionId === client.sessionId && data.orgId === client.orgId)) {
+      if (
+        !data.sessionId ||
+        (data.sessionId === client.sessionId && data.orgId === client.orgId)
+      ) {
         return true;
       }
     }
 
-    const token = 
-      data?.token || 
-      client.handshake.auth?.token || 
-      client.handshake.query?.token as string;
+    const token =
+      data?.token ||
+      client.handshake.auth?.token ||
+      (client.handshake.query?.token as string);
 
     let authPayload;
     try {
@@ -106,7 +118,10 @@ export class WebsocketGuard implements CanActivate {
       return false;
     }
 
-    const session = await this.sessionService.findOne(data.orgId, data.sessionId);
+    const session = await this.sessionService.findOne(
+      data.orgId,
+      data.sessionId,
+    );
     if (!session) {
       return false;
     }
@@ -128,10 +143,8 @@ export class WebsocketGuard implements CanActivate {
 
 @Injectable()
 export class OptionalWebsocketGuard extends WebsocketGuard {
-
   public async canActivate(context: ExecutionContext): Promise<boolean> {
     await super.canActivate(context);
     return true;
   }
-
 }

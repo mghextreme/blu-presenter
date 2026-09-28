@@ -3,7 +3,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { OrganizationsService } from "@/services";
 import { useServices } from "@/hooks/useServices";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -15,12 +14,12 @@ import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import { ClipboardCopyIcon } from "@radix-ui/react-icons";
 import { useTranslation } from "react-i18next";
 import { IOrganization } from "@/types/organization.interface";
-import { ColumnDef } from "@tanstack/react-table"
-import { DataTable, fuzzyFilter, fuzzySort } from "@/components/ui/data-table";
-import { DataTableColumnHeader } from "@/components/ui/data-table/column-header";
-import { TFunction } from "i18next";
-import { IOrganizationInvitation, IOrganizationUser, OrganizationRoleOptions, isRoleHigherOrEqualThan } from "@/types";
+import { IOrganizationInvitation, IOrganizationUser, isRoleHigherOrEqualThan } from "@/types";
+import { ListItemCard } from "@/components/shared/list-item-card";
+import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { OrganizationBar } from "@/components/app/organization-bar";
+import { PageContent } from "@/components/shared/page-content";
 import { useAuth } from "@/hooks/useAuth";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
@@ -34,184 +33,13 @@ type EditOrganizationProps = {
   edit?: boolean
 }
 
-const buildColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, revalidate: () => void) => {
-  const columns: ColumnDef<IOrganizationUser>[] = [
-    {
-      accessorKey: "name",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.name')} />
-      ),
-      filterFn: fuzzyFilter,
-      sortingFn: fuzzySort,
-    },
-    {
-      accessorKey: "email",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.email')} />
-      ),
-      filterFn: fuzzyFilter,
-      sortingFn: fuzzySort,
-    },
-    {
-      accessorKey: "role",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.role')} />
-      ),
-      cell: ({ row }) => {
-        const role = row.getValue("role");
-        return (
-          t('role.' + role)
-        )
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const canDelete = isRoleHigherOrEqualThan(userRole, row.original.role) && row.original.email !== userEmail;
-        return (
-          <div className="flex justify-end space-x-2 -m-1">
-            {isRoleHigherOrEqualThan(userRole, 'admin') && (
-              <>
-                <Button
-                  type="button"
-                  size="sm"
-                  title={t('actions.editMember')}
-                  asChild>
-                  <Link to={`/app/organization/member/${row.original.id}`}>
-                    <PencilIcon className="size-3" />
-                  </Link>
-                </Button>
-                <Button
-                  disabled={!canDelete}
-                  size="sm"
-                  variant={canDelete ? 'destructive' : 'secondary'}
-                  title={t('actions.removeMember')}
-                  onClick={async () => {
-                    try {
-                      await organizationsService.removeMember(row.original.id);
-                      revalidate();
-                    } catch (e: any) {
-                      toast.error(t('actions.removeMember'), {
-                        description: e?.message || '',
-                      });
-                    }
-                  }}>
-                  <TrashIcon className="size-3" />
-                </Button>
-              </>
-            )}
-          </div>
-        )
-      }
-    },
-  ];
-
-  return columns;
-}
-
-const buildInvitationColumns = (t: TFunction, userEmail: string | undefined, userRole: OrganizationRoleOptions | undefined, organizationsService: OrganizationsService, revalidate: () => void) => {
-  const copyLink = (id: number, secret: string) => {
-    const link = `${window.location.origin}/signup?id=${id}&secret=${secret}`;
-    navigator.clipboard.writeText(link)
-      .then(
-        () => {
-          toast.success(t('invite.success'), {
-            description: t('invite.linkCopied'),
-          });
-        },
-        (e) => {
-          toast.error(t('error.copyToClipboard'), {
-            description: e?.message || '',
-          });
-        }
-      );
-  }
-
-  const columns: ColumnDef<IOrganizationInvitation>[] = [
-    {
-      accessorKey: "email",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.email')} />
-      ),
-      filterFn: fuzzyFilter,
-      sortingFn: fuzzySort,
-    },
-    {
-      accessorKey: "role",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.role')} />
-      ),
-      cell: ({ row }) => {
-        const role = row.getValue("role");
-        return (
-          t('role.' + role)
-        )
-      },
-    },
-    {
-      accessorKey: "inviter",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={t('input.invitedBy')} />
-      ),
-      cell: ({ row }) => {
-        const name = row.original.inviter?.name ?? '';
-        const email = row.original.inviter?.email;
-        return (
-          <>
-            {name}
-            {email && (
-              <span className="opacity-50 ms-1">({email.toString()})</span>
-            )}
-          </>
-        );
-      },
-      filterFn: fuzzyFilter,
-      sortingFn: fuzzySort,
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        return (
-          <div className="flex justify-end space-x-2 -m-1">
-            <Button
-              size="sm"
-              title={t('actions.copyLink')}
-              onClick={() => copyLink(row.original.id, row.original.secret)}>
-              <ClipboardCopyIcon className="size-3" />
-            </Button>
-            {isRoleHigherOrEqualThan(userRole, 'admin') && (
-              <Button
-                size="sm"
-                variant="destructive"
-                title={t('actions.removeInvitation')}
-                disabled={userRole !== 'owner' && userEmail !== row.original?.inviter?.email}
-                onClick={async () => {
-                  try {
-                    await organizationsService.cancelInvitation(row.original.id);
-                    revalidate();
-                  } catch (e: any) {
-                    toast.error(t('actions.removeInvitation'), {
-                      description: e?.message || '',
-                    });
-                  }
-                }}>
-                <TrashIcon className="size-3" />
-              </Button>
-            )}
-          </div>
-        )
-      }
-    },
-  ];
-
-  return columns;
-}
-
 export function EditOrganization({
   edit = true
 }: EditOrganizationProps) {
 
   const { t } = useTranslation("organizations");
+
+  const navigate = useNavigate();
 
   const loadedData = useLoaderData() as IOrganization;
   const data = edit ? loadedData : {
@@ -221,10 +49,9 @@ export function EditOrganization({
 
   const isPersonalSpace = edit && (data.name == null || data?.name == '');
 
-  const navigate = useNavigate();
   const { revalidate } = useRevalidator();
 
-  const { user, organization, setOrganizationById } = useAuth();
+  const { user, setOrganizationById } = useAuth();
   const { organizationsService, authService } = useServices();
 
   if (!data) {
@@ -232,6 +59,7 @@ export function EditOrganization({
   }
 
   const [isLoading, setLoading] = useState<boolean>(false);
+  const [memberQuery, setMemberQuery] = useState<string>('');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -247,7 +75,7 @@ export function EditOrganization({
     if (edit) {
       action = organizationsService.update({
         ...values,
-      });
+      }, data.id);
     } else {
       action = organizationsService.add({
         ...values,
@@ -258,7 +86,7 @@ export function EditOrganization({
         if (!edit && result) {
           authService.getAndSetOrganizations(result.id);
         }
-        navigate("/app/organization", { replace: true });
+        navigate(`/app/organization/${edit ? data.id : result?.id}`, { replace: true });
       })
       .catch((e) => {
         toast.error(t('update.failed'), {
@@ -273,7 +101,7 @@ export function EditOrganization({
   const onLeaveOrganization = async () => {
     try {
       setLoading(true);
-      await organizationsService.leave();
+      await organizationsService.leave(data.id);
       setOrganizationById();
       navigate("/app", { replace: true });
     } finally {
@@ -284,7 +112,7 @@ export function EditOrganization({
   const onDeleteOrganization = async () => {
     try {
       setLoading(true);
-      await organizationsService.delete();
+      await organizationsService.delete(data.id);
       setOrganizationById();
       navigate("/app", { replace: true });
     } finally {
@@ -292,15 +120,101 @@ export function EditOrganization({
     }
   }
 
-  const columns = buildColumns(t, user?.email, loadedData?.role, organizationsService, revalidate);
-  const invitationColumns = buildInvitationColumns(t, user?.email, loadedData?.role, organizationsService, revalidate);
+  const memberQueryLower = memberQuery.trim().toLowerCase();
+  const filteredUsers = (loadedData.users ?? []).filter((member) =>
+    !memberQueryLower
+    || member.name?.toLowerCase().includes(memberQueryLower)
+    || member.email?.toLowerCase().includes(memberQueryLower));
 
-  useEffect(() => {
-    if (edit) {
-      organizationsService.clearCache();
-      revalidate();
+  const getMemberActions = (member: IOrganizationUser) => {
+    const canDelete = isRoleHigherOrEqualThan(loadedData?.role, member.role) && member.email !== user?.email;
+    return (
+      <>
+        <Button
+          type="button"
+          size="sm"
+          title={t('actions.editMember')}
+          asChild>
+          <Link to={`/app/organization/${data.id}/member/${member.id}`}>
+            <PencilIcon className="size-3" />
+          </Link>
+        </Button>
+        <Button
+          disabled={!canDelete}
+          size="sm"
+          variant={canDelete ? 'destructive' : 'secondary'}
+          title={t('actions.removeMember')}
+          onClick={async () => {
+            try {
+              await organizationsService.removeMember(member.id, data.id);
+              revalidate();
+            } catch (e: any) {
+              toast.error(t('actions.removeMember'), {
+                description: e?.message || '',
+              });
+            }
+          }}>
+          <TrashIcon className="size-3" />
+        </Button>
+      </>
+    );
+  };
+
+  const getInvitationActions = (invitation: IOrganizationInvitation) => {
+    const copyLink = () => {
+      const link = `${window.location.origin}/signup?id=${invitation.id}&secret=${invitation.secret}`;
+      navigator.clipboard.writeText(link)
+        .then(
+          () => {
+            toast.success(t('invite.success'), {
+              description: t('invite.linkCopied'),
+            });
+          },
+          (e) => {
+            toast.error(t('error.copyToClipboard'), {
+              description: e?.message || '',
+            });
+          }
+        );
     }
-  }, [organization, revalidate]);
+
+    return (
+      <>
+        <Button
+          size="sm"
+          title={t('actions.copyLink')}
+          onClick={copyLink}>
+          <ClipboardCopyIcon className="size-3" />
+        </Button>
+        <Button
+          size="sm"
+          variant="destructive"
+          title={t('actions.removeInvitation')}
+          disabled={loadedData?.role !== 'owner' && user?.email !== invitation?.inviter?.email}
+          onClick={async () => {
+            try {
+              await organizationsService.cancelInvitation(invitation.id, data.id);
+              revalidate();
+            } catch (e: any) {
+              toast.error(t('actions.removeInvitation'), {
+                description: e?.message || '',
+              });
+            }
+          }}>
+          <TrashIcon className="size-3" />
+        </Button>
+      </>
+    );
+  };
+
+  const getInvitationDescription = (invitation: IOrganizationInvitation) => {
+    const name = invitation.inviter?.name;
+    const email = invitation.inviter?.email;
+    if (!name && !email) {
+      return undefined;
+    }
+    return [name, email && `(${email})`].filter(Boolean).join(' ');
+  };
 
   useEffect(() => {
     form.setValue('id', data.id);
@@ -308,8 +222,14 @@ export function EditOrganization({
   }, [loadedData]);
 
   return (
-    <div className="p-2 sm:p-8">
-      <title>{t('title.edit', {organization: organization?.name || t('organizations.defaultName')}) + ' - BluPresenter'}</title>
+    <div>
+      <title>{t('title.edit', {organization: data.name || t('defaultName')}) + ' - BluPresenter'}</title>
+      <OrganizationBar
+        organizations={edit ? [data] : []}
+        selected={edit ? [data] : []}
+        subtitle={edit ? undefined : t('add.title')}
+      />
+      <PageContent>
       {isPersonalSpace ? (
         <Alert>
           <AlertTitle>{t('warning.personalSpace.title')}</AlertTitle>
@@ -319,7 +239,6 @@ export function EditOrganization({
         </Alert>
       ) : (
         <>
-          <h1 className="text-3xl mb-4">{t(edit ? 'edit.title' : 'add.title')}</h1>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
               <FormField
@@ -350,15 +269,49 @@ export function EditOrganization({
           {edit && isRoleHigherOrEqualThan(loadedData?.role, 'admin') && (
             <>
               <h2 className="text-xl mt-6 mb-4">{t('edit.members')}</h2>
-              <DataTable columns={columns} data={loadedData.users ?? []} addButton={(
-                isRoleHigherOrEqualThan(loadedData?.role, 'admin') ? (
-                  <Button asChild><Link to={`/app/organization/invite`}>{t('actions.inviteMember')}</Link></Button>
-                ) : null
-              )}></DataTable>
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <Input
+                  placeholder={t('members.searchPlaceholder')}
+                  value={memberQuery}
+                  onChange={(e) => setMemberQuery(e.target.value)}
+                  className="max-w-sm"
+                />
+                <Button asChild><Link to={`/app/organization/${data.id}/invite`}>{t('actions.inviteMember')}</Link></Button>
+              </div>
+              <ul className="space-y-2">
+                {filteredUsers.map((member) => (
+                  <li key={member.id}>
+                    <ListItemCard
+                      title={member.name}
+                      description={member.email}
+                      additionalBadges={(
+                        <Badge variant="secondary" className="me-3 my-auto">{t('role.' + member.role)}</Badge>
+                      )}
+                      actions={getMemberActions(member)}
+                    />
+                  </li>
+                ))}
+                {filteredUsers.length === 0 && (
+                  <li className="text-sm opacity-50">{t('members.searchNoneFound')}</li>
+                )}
+              </ul>
               {(loadedData?.invitations?.length ?? 0) > 0 && (
                 <>
                   <h2 className="text-xl mt-6 mb-4">{t('edit.pendingInvitations')}</h2>
-                  <DataTable columns={invitationColumns} data={loadedData.invitations ?? []}></DataTable>
+                  <ul className="space-y-2">
+                    {(loadedData?.invitations ?? []).map((invitation) => (
+                      <li key={invitation.id}>
+                        <ListItemCard
+                          title={invitation.email}
+                          description={getInvitationDescription(invitation)}
+                          additionalBadges={(
+                            <Badge variant="secondary" className="me-3 my-auto">{t('role.' + invitation.role)}</Badge>
+                          )}
+                          actions={getInvitationActions(invitation)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
                 </>
               )}
             </>
@@ -370,11 +323,11 @@ export function EditOrganization({
               {loadedData?.role === 'owner' && (
                 <>
                   <Button className="flex-0" type="button" asChild>
-                    <Link to={'/app/organization/transfer'}>{t('button.transfer')}</Link>
+                    <Link to={`/app/organization/${data.id}/transfer`}>{t('button.transfer')}</Link>
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button className="flex-0" variant="destructive" disabled={true || isLoading}>
+                      <Button className="flex-0" variant="destructive" disabled>
                         {isLoading && (
                           <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
                         )}
@@ -421,6 +374,7 @@ export function EditOrganization({
           )}
         </>
       )}
+      </PageContent>
     </div>
   );
 }

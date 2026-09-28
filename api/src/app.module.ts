@@ -28,10 +28,12 @@ import { RestOnlyThrottlerGuard } from './guards/rest-only-throttler.guard';
     TypeOrmModule.forRootAsync({
       useClass: DatabaseConfigService,
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 60,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 60,
+      },
+    ]),
     PassportModule,
     SupabaseModule,
     UsersModule,

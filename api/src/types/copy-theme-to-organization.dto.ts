@@ -4,7 +4,7 @@ export class CopyThemeToOrganizationDto {
   @IsNotEmpty()
   @Min(1)
   themeId: number;
-  
+
   @IsNotEmpty()
   @Min(1)
   organizationId: number;

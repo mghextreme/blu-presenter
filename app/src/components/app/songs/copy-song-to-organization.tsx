@@ -17,24 +17,20 @@ interface CopySongToOrganizationProps {
   songId: number;
   title: string;
   artist?: string;
+  sourceOrgId?: number;
   variant?: "default" | "secondary";
-  /** The organization the song belongs to. When provided, that org is excluded
-   *  from the copy targets instead of the currently active org. */
-  organizationId?: number;
 }
 
 export function CopySongToOrganization({
-  songId, title, artist, variant = "secondary", organizationId
+  songId, title, artist, sourceOrgId, variant = "secondary"
 }: CopySongToOrganizationProps) {
 
   const { t } = useTranslation("songs");
-  const { organizations, organization } = useAuth();
+  const { organizations } = useAuth();
   const { songsService } = useServices();
 
-  const sourceOrgId = organizationId ?? organization?.id;
-
   const possibleOrgs = organizations.filter(
-    org => org.id !== sourceOrgId && isRoleHigherOrEqualThan(organization?.role, "member")
+    org => isRoleHigherOrEqualThan(org?.role, "member")
   ).map((org) => {
     if (!org.name) {
       org.name = t('message.copyToOrganization.defaultName');
@@ -51,12 +47,12 @@ export function CopySongToOrganization({
   const organizationListId = "copy-song-organization-list";
 
   const onSubmit = async () => {
-    if (!selectedOrg) {
+    if (!selectedOrg || !sourceOrgId) {
       return;
     }
 
     setLoading(true);
-    songsService.copyToOrganization(songId, selectedOrg)
+    songsService.copyToOrganization(songId, selectedOrg, sourceOrgId)
       .catch((e) => {
         toast.error(t('error.copyToOrganization'), {
           description: e?.message || '',
@@ -70,7 +66,7 @@ export function CopySongToOrganization({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button size="sm" className="flex-0" variant={variant} title={t('actions.copyToOrganization')}>
+        <Button size="sm" className="flex-0" variant={variant} disabled={!sourceOrgId} title={t('actions.copyToOrganization')}>
           <DocumentDuplicateIcon className="size-3" />
         </Button>
       </AlertDialogTrigger>

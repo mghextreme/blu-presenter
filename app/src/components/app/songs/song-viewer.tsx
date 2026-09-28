@@ -4,6 +4,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { renderSongPartLines } from "@/lib/songs";
 import { cn } from "@/lib/utils";
 import { ReferencePlayer } from "@/components/app/songs/reference-player";
+import { PageContent } from "@/components/shared/page-content";
 import { useTranslation } from "react-i18next";
 import { useSongViewConfig } from "@/hooks/useSongViewConfig";
 
@@ -21,7 +22,7 @@ export function SongViewer({ song, showReferences = true, children }: SongViewer
   const hasChords = song.blocks?.some(block => block.lines?.some(line => line.type === 'chords'));
 
   return (
-    <div className="p-2 sm:p-8 max-w-3xl">
+    <PageContent>
       <h1 className="text-3xl mb-2">{song.title}</h1>
       <h2 className="text-lg mb-2 opacity-50">{song.artist}</h2>
       {children}
@@ -50,6 +51,6 @@ export function SongViewer({ song, showReferences = true, children }: SongViewer
           </div>
         ))}
       </div>
-    </div>
+    </PageContent>
   );
 }

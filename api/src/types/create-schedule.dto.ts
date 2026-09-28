@@ -1,4 +1,10 @@
-import { IsArray, IsDateString, IsNotEmpty, IsOptional, Length } from 'class-validator';
+import {
+  IsArray,
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  Length,
+} from 'class-validator';
 
 export class CreateScheduleDto {
   @IsNotEmpty()

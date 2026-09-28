@@ -1,5 +1,5 @@
 import path from "path"
-import { defineConfig, preview } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import i18nextLoader from 'vite-plugin-i18next-loader'
 
@@ -56,8 +56,6 @@ export default defineConfig({
           // Data fetching and state management
           'vendor-data': [
             '@tanstack/react-query',
-            '@tanstack/react-table',
-            '@tanstack/match-sorter-utils',
             'zustand',
           ],
           

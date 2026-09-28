@@ -1,6 +1,6 @@
 {
   "title": {
-    "list": "Temas - {{organization}}",
+    "list": "Temas",
     "add": "Adicionar - Temas",
     "edit": "{{name}} - Temas"
   },
@@ -72,10 +72,14 @@
     }
   },
   "list": {
-    "title": "Temas"
+    "title": "Temas",
+    "search": {
+      "placeholder": "Buscar temas..."
+    }
   },
   "add": {
-    "title": "Adicionar tema"
+    "title": "Adicionar tema",
+    "to": "Adicionar tema a:"
   },
   "edit": {
     "title": "Editar tema"
@@ -136,6 +140,7 @@
   "error": {
     "deleteTheme": "Erro ao remover tema",
     "copyToOrganization": "Erro ao copiar tema",
-    "noPermission": "Você não tem permissão para acessar este tema"
+    "noPermission": "Você não tem permissão para acessar este tema",
+    "search": "Erro ao buscar temas"
   }
 }

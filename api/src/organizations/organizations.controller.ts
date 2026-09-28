@@ -73,8 +73,7 @@ export class OrganizationsController {
   @Delete()
   @OrganizationRole('owner')
   async delete(): Promise<void> {
-    const usersOrg = this.request.user['organization'];
-    return await this.organizationsService.delete(usersOrg);
+    return await this.organizationsService.delete();
   }
 
   @Get('members/:id')

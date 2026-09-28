@@ -10,6 +10,9 @@ import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import PrinterIcon from "@heroicons/react/24/solid/PrinterIcon";
 import { RehearsalNav } from "@/components/app/schedules/rehearsal-nav";
 import { SongViewer } from "@/components/app/songs/song-viewer";
+import { OrganizationBar } from "@/components/app/organization-bar";
+import { PageContent, pageContentColumn } from "@/components/shared/page-content";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export function RehearsalSchedule() {
@@ -90,17 +93,14 @@ export function RehearsalSchedule() {
     return (
       <>
         <title>{t("rehearsal.title") + " - " + data.title + " - BluPresenter"}</title>
-        <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
-          <span className="text-sm">{data.title}</span>
-          <div className="buttons flex-1 flex justify-end gap-x-2">
-            <Button type="button" size="sm" title={t("actions.view")} asChild>
-              <Link to={getViewLink()}>
-                <EyeIcon className="size-3" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-        <div className="p-2 sm:p-8">
+        <OrganizationBar organizations={[data.organization ?? null]} subtitle={data.title}>
+          <Button type="button" size="sm" title={t("actions.view")} asChild>
+            <Link to={getViewLink()}>
+              <EyeIcon className="size-3" />
+            </Link>
+          </Button>
+        </OrganizationBar>
+        <PageContent>
           <p className="text-muted-foreground">{t('rehearsal.noSongs')}</p>
           {isLoggedIn && (
             <div className="flex flex-row align-start space-x-2 mt-4">
@@ -109,7 +109,7 @@ export function RehearsalSchedule() {
               </Button>
             </div>
           )}
-        </div>
+        </PageContent>
       </>
     );
   }
@@ -117,36 +117,33 @@ export function RehearsalSchedule() {
   return (
     <>
       <title>{t("rehearsal.title") + " - " + data.title + " - BluPresenter"}</title>
-      <div className="flex items-center px-2 sm:px-8 py-3 bg-slate-200 dark:bg-slate-900 gap-x-2">
-        <span className="text-sm">{data.title}</span>
-        <div className="buttons flex-1 flex justify-end gap-x-2">
-          <Button type="button" size="sm" title={t("rehearsal.print")} asChild>
-            <Link to={getPrintLink()}>
-              <PrinterIcon className="size-3" />
+      <OrganizationBar organizations={[data.organization ?? null]} subtitle={data.title}>
+        <Button type="button" size="sm" title={t("rehearsal.print")} asChild>
+          <Link to={getPrintLink()}>
+            <PrinterIcon className="size-3" />
+          </Link>
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          title={t("actions.share")}
+          onClick={copyShareableUrlToClipboard}
+        >
+          <ShareIcon className="size-3" />
+        </Button>
+        <Button type="button" size="sm" title={t("actions.view")} asChild>
+          <Link to={getViewLink()}>
+            <EyeIcon className="size-3" />
+          </Link>
+        </Button>
+        {isLoggedIn && (
+          <Button type="button" size="sm" title={t("actions.edit")} asChild>
+            <Link to={`/app/schedules/${data.id}/edit`}>
+              <PencilIcon className="size-3" />
             </Link>
           </Button>
-          <Button
-            type="button"
-            size="sm"
-            title={t("actions.share")}
-            onClick={copyShareableUrlToClipboard}
-          >
-            <ShareIcon className="size-3" />
-          </Button>
-          <Button type="button" size="sm" title={t("actions.view")} asChild>
-            <Link to={getViewLink()}>
-              <EyeIcon className="size-3" />
-            </Link>
-          </Button>
-          {isLoggedIn && (
-            <Button type="button" size="sm" title={t("actions.edit")} asChild>
-              <Link to={`/app/schedules/${data.id}/edit`}>
-                <PencilIcon className="size-3" />
-              </Link>
-            </Button>
-          )}
-        </div>
-      </div>
+        )}
+      </OrganizationBar>
 
       <RehearsalNav
         items={data.items}
@@ -173,7 +170,7 @@ export function RehearsalSchedule() {
       />
 
       {isLoggedIn && (
-        <div className="flex flex-row align-start space-x-2 px-2 sm:px-8 pb-8">
+        <div className={cn(pageContentColumn, "pb-8 flex flex-row align-start space-x-2")}>
           <Button className="flex-0" type="button" variant="secondary" asChild>
             <Link to={`/app/schedules/${data.id}/view`}>{t('button.back')}</Link>
           </Button>

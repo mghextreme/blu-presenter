@@ -23,26 +23,28 @@ export function AppSharedLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-        <AppNavbar>
-          {isLoggedIn ? (
-            <Button asChild>
-              <Link to="/app">{t('button.openDashboard')}</Link>
-            </Button>
-          ) : (
-            <>
-              <Button variant="outline" asChild>
-                <Link to="/login">{t('button.login')}</Link>
-              </Button>
+        <div className="relative flex flex-1 flex-col overflow-hidden">
+          <AppNavbar>
+            {isLoggedIn ? (
               <Button asChild>
-                <Link to="/signup">{t('button.signUp')}</Link>
+                <Link to="/app">{t('button.openDashboard')}</Link>
               </Button>
-            </>
-          )}
-        </AppNavbar>
-        <Outlet />
-        <Toaster />
+            ) : (
+              <>
+                <Button variant="outline" asChild>
+                  <Link to="/login">{t('button.login')}</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/signup">{t('button.signUp')}</Link>
+                </Button>
+              </>
+            )}
+          </AppNavbar>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <Outlet />
+          </div>
+          <Toaster />
+        </div>
       </div>
-    </div>
   );
 }

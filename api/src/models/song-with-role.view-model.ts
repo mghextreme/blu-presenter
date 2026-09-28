@@ -1,5 +1,5 @@
-import { SongPart } from "src/entities";
-import { OrganizationRoleOptions } from "src/types";
+import { SongPart } from 'src/entities';
+import { OrganizationRoleOptions } from 'src/types';
 
 export interface SongWithRoleViewModel {
   id: number;

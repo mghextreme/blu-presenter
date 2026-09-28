@@ -8,13 +8,15 @@ export class ThemesService extends ApiService {
     this.queryClient.removeQueries({ queryKey: ['themes'] });
   }
 
-  public async getAll(orgId?: number): Promise<ITheme[]> {
-    const themes = await this.getOrFetch({
-      queryKey: ['themes', 'all', orgId ?? null],
-      queryFn: async () => await this.getRequest('/themes', {
-        'Organization': orgId ? orgId.toString() : '',
-      }) as ITheme[],
-    });
+  public async search(payload: {
+    query?: string;
+    organizations?: number[];
+    page?: number;
+    itemsPerPage?: number;
+  }): Promise<ITheme[]> {
+    const themes = await this.postRequest('/themes/search', JSON.stringify(payload), {
+      'content-type': 'application/json',
+    }) as ITheme[];
     return themes.map(mergeTheme);
   }
 
@@ -55,33 +57,38 @@ export class ThemesService extends ApiService {
     return theme ? mergeTheme(theme) : null;
   }
 
-  public async add(value: ITheme): Promise<ITheme | null> {
+  public async add(value: ITheme, orgId: number): Promise<ITheme | null> {
     const response = await this.postRequest('/themes', JSON.stringify(value), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     }) as ITheme;
     this.clearCache();
     return response;
   }
 
-  public async update(id: number, value: ITheme): Promise<ITheme | null> {
+  public async update(id: number, value: ITheme, orgId: number): Promise<ITheme | null> {
     const response = await this.putRequest(`/themes/${id}`, JSON.stringify(value), {
       'content-type': 'application/json',
+      'Organization': orgId.toString(),
     }) as ITheme;
     this.clearCache();
     return response;
   }
 
-  public async delete(themeId: number): Promise<void> {
-    await this.deleteRequest(`/themes/${themeId}`);
+  public async delete(themeId: number, orgId: number): Promise<void> {
+    await this.deleteRequest(`/themes/${themeId}`, {
+      'Organization': orgId.toString(),
+    });
     this.clearCache();
   }
 
-  public async copyToOrganization(id: number, toOrganizationId: number): Promise<void> {
+  public async copyToOrganization(id: number, toOrganizationId: number, sourceOrgId: number): Promise<void> {
     await this.postRequest('/themes/copyToOrganization', JSON.stringify({
       themeId: id,
       organizationId: toOrganizationId,
     }), {
       'content-type': 'application/json',
+      'Organization': sourceOrgId.toString(),
     });
   }
 
