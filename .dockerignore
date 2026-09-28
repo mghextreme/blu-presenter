@@ -1,17 +1,31 @@
-node_modules
+# VCS & CI metadata
 .git
 .gitignore
-.env*
-dist
-coverage
-*.log
+.github
+
+# Dependencies at any depth (bare "node_modules" only matches the root,
+# which would upload app/node_modules and api/node_modules as context)
+**/node_modules
+
+# Build outputs at any depth (images build these inside the container)
+**/dist
+**/coverage
+
+# Env files & secrets at any depth
+**/.env*
+!**/.env.sample
+
+# Logs at any depth
+**/*.log
+
+# Docs & tooling not needed inside images
 .vscode
 .idea
-supabase
-docs
-app
 .dockerignore
+Dockerfile*
 LICENSE.md
 README.md
 AGENTS.md
 skills-lock.json
+supabase
+docs

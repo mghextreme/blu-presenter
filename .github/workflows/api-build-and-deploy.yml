@@ -6,6 +6,11 @@ on:
     branches: [ "master" ]
     paths:
       - 'api/**'
+      # Root files that define the api image contents: the workspace
+      # lockfile, the workspace manifest, and the Docker build context.
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.dockerignore'
 
 jobs:
 

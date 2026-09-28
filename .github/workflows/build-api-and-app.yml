@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ "master" ]
 
+# Cancel superseded runs on the same PR/branch to save runner minutes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
   lockfile-check:
@@ -17,7 +22,7 @@ jobs:
     - name: Set up pnpm
       uses: pnpm/action-setup@v6
       with:
-        version: 11
+        version: 11.28.1
 
     - name: Setup Node.js
       uses: actions/setup-node@v6
@@ -43,7 +48,7 @@ jobs:
     - name: Set up pnpm
       uses: pnpm/action-setup@v6
       with:
-        version: 11
+        version: 11.28.1
 
     - name: Setup Node.js
       uses: actions/setup-node@v6
@@ -54,6 +59,9 @@ jobs:
 
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
+
+    - name: Lint API
+      run: pnpm --filter blu-presenter-api lint
 
     - name: Run tests
       run: pnpm --filter blu-presenter-api test
@@ -72,7 +80,7 @@ jobs:
     - name: Set up pnpm
       uses: pnpm/action-setup@v6
       with:
-        version: 11
+        version: 11.28.1
 
     - name: Setup Node.js
       uses: actions/setup-node@v6
@@ -84,8 +92,28 @@ jobs:
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
 
+    - name: Lint App
+      run: pnpm --filter blu-presenter-app lint
+
     - name: Run tests
       run: pnpm --filter blu-presenter-app test run
 
     - name: Build App
       run: pnpm --filter blu-presenter-app build
+
+  docker-build-api:
+    name: Build API Docker image
+    runs-on: ubuntu-latest
+    needs: lockfile-check
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Build API Docker image
+      # Same image build as api-build-and-deploy.yml (without the ECR push).
+      # The container install runs with only the workspace manifests copied
+      # into the context, so it validates things a full checkout cannot:
+      # .dockerignore vs the manifests, and that pnpm-lock.yaml's importers
+      # all resolve against the copied package.json files (pnpm >= 11.28
+      # fails "frozen-lockfile" if any importer's manifest is missing).
+      run: docker build -f api/Dockerfile . -t blu-presenter-api:ci

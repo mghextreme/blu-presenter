@@ -15,7 +15,7 @@ ENV NODE_ENV=${NODE_ENV}
 ENV VITE_API_HOST=${VITE_API_HOST}
 ENV VITE_API_PORT=${VITE_API_PORT}
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@11.28.1
 
 WORKDIR /workspace
 
@@ -25,7 +25,12 @@ COPY api/package.json ./api/
 COPY app/package.json ./app/
 
 # Install all workspace deps (frozen lockfile enforced by pnpm in CI).
-RUN pnpm install --frozen-lockfile
+# The pnpm content-addressable store is cached across builds via a BuildKit
+# cache mount. --store-dir must point INTO the mount: without an explicit
+# store dir, pnpm relocates the store next to the project when hard links
+# fail across the mount boundary, which would defeat the cache.
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --store-dir=/pnpm/store
 
 # Copy app source and build.
 COPY app ./app

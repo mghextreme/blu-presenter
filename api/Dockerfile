@@ -8,16 +8,22 @@
 
 FROM node:24-slim AS builder
 
-RUN npm install -g pnpm@11
+RUN npm install -g pnpm@11.28.1
 
 WORKDIR /workspace
 
 # Copy workspace manifests first for better layer caching.
 COPY pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY api/package.json ./api/
+COPY app/package.json ./app/
 
 # Install all workspace deps (frozen lockfile required in CI by default).
-RUN pnpm install --frozen-lockfile
+# The pnpm content-addressable store is cached across builds via a BuildKit
+# cache mount. --store-dir must point INTO the mount: without an explicit
+# store dir, pnpm relocates the store next to the project when hard links
+# fail across the mount boundary, which would defeat the cache.
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --store-dir=/pnpm/store
 
 # Copy api source and build.
 COPY api ./api
@@ -27,7 +33,9 @@ RUN pnpm --filter blu-presenter-api build
 # --legacy: required since pnpm v10 unless inject-workspace-packages=true.
 # `pnpm deploy` does not include build artifacts (dist is gitignored and
 # not in `files`), so copy dist explicitly into the deploy bundle.
-RUN pnpm deploy --legacy --filter=blu-presenter-api --prod /deploy && \
+# Same cache mount so the deploy's pruned install reuses the warm store.
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm deploy --legacy --filter=blu-presenter-api --prod /deploy --store-dir=/pnpm/store && \
     cp -r api/dist /deploy/dist
 
 FROM node:24-slim
