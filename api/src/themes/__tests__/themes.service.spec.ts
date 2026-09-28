@@ -54,6 +54,8 @@ describe('ThemesService', () => {
 
   const mockOrganizationsService = {
     userRole: jest.fn(),
+    isFeatureEnabledInOrg: jest.fn().mockResolvedValue(true),
+    assertFeatureEnabled: jest.fn().mockResolvedValue(undefined),
   };
 
   const mockSessionsService = {
@@ -394,6 +396,69 @@ describe('ThemesService', () => {
       mockThemesRepository.findOneBy.mockResolvedValue(null);
 
       await expect(service.delete(1, 999)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('feature gating (themes disabled per organization)', () => {
+    it('should exclude orgs with the themes feature disabled from search', async () => {
+      mockUsersService.findUserOrganizations.mockResolvedValue([
+        { organization: { id: 1, name: 'Enabled Org' }, role: 'member' },
+        {
+          organization: {
+            id: 2,
+            name: 'Disabled Org',
+            disabledFeatures: ['themes'],
+          },
+          role: 'owner',
+        },
+      ]);
+      mockThemesRepository.find.mockResolvedValue([]);
+
+      await service.search({});
+
+      expect(mockThemesRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ orgId: In([1]) }),
+        }),
+      );
+    });
+
+    it('should throw ForbiddenException from findOneInAnyOrg when the themes feature is disabled', async () => {
+      mockUsersService.findUserOrganizations.mockResolvedValue([
+        { organization: { id: 1, name: 'Org 1' }, role: 'member' },
+      ]);
+      mockThemesRepository.findOne.mockResolvedValue(mockTheme);
+      mockOrganizationsService.isFeatureEnabledInOrg.mockResolvedValue(false);
+
+      await expect(service.findOneInAnyOrg(1)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('should assert the themes feature is enabled on create', async () => {
+      mockThemesRepository.insert.mockResolvedValue({
+        raw: [{ id: 1 }],
+      });
+      mockThemesRepository.findOne.mockResolvedValue(mockTheme);
+
+      await service.create(1, { name: 'New Theme' } as any);
+
+      expect(
+        mockOrganizationsService.assertFeatureEnabled,
+      ).toHaveBeenCalledWith(1, 'themes');
+    });
+
+    it('should assert the themes feature on the source organization when copying', async () => {
+      mockOrganizationsService.assertFeatureEnabled.mockRejectedValue(
+        new NotFoundException('Themes not found'),
+      );
+
+      await expect(service.copyToOrganization(1, 2)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(
+        mockOrganizationsService.assertFeatureEnabled,
+      ).toHaveBeenCalledWith(1, 'themes', { notFound: true });
     });
   });
 });

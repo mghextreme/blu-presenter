@@ -14,8 +14,11 @@ import {
   CreateOrganizationDto,
   EditMemberDto,
   InviteMemberDto,
+  isFeatureEnabled,
   isRoleHigherOrEqualThan,
   isRoleHigherThan,
+  ORGANIZATION_FEATURE_LABELS,
+  OrganizationFeature,
   OrganizationRoleOptions,
   UpdateOrganizationDto,
 } from 'src/types';
@@ -56,6 +59,35 @@ export class OrganizationsBaseService {
 
     return orgUserRecord.role;
   }
+
+  async getDisabledFeatures(orgId: number): Promise<OrganizationFeature[]> {
+    const org = await this.organizationsRepository.findOne({
+      where: { id: orgId },
+      select: { disabledFeatures: true },
+    });
+    return org?.disabledFeatures ?? [];
+  }
+
+  async isFeatureEnabledInOrg(
+    orgId: number,
+    feature: OrganizationFeature,
+  ): Promise<boolean> {
+    return isFeatureEnabled(await this.getDisabledFeatures(orgId), feature);
+  }
+
+  async assertFeatureEnabled(
+    orgId: number,
+    feature: OrganizationFeature,
+    options: { notFound?: boolean } = {},
+  ): Promise<void> {
+    if (await this.isFeatureEnabledInOrg(orgId, feature)) return;
+
+    const label = ORGANIZATION_FEATURE_LABELS[feature];
+    if (options.notFound) {
+      throw new NotFoundException(`${label} not found`);
+    }
+    throw new ForbiddenException(`${label} are disabled for this organization`);
+  }
 }
 
 @Injectable({ scope: Scope.REQUEST })
@@ -90,6 +122,7 @@ export class OrganizationsService extends OrganizationsBaseService {
       select: {
         id: true,
         name: true,
+        disabledFeatures: true,
         owner: {
           id: true,
           name: true,
@@ -172,6 +205,10 @@ export class OrganizationsService extends OrganizationsBaseService {
   ): Promise<Organization> {
     const organization = await this.organizationsRepository.findOneBy({ id });
     organization.name = updateOrgDto.name;
+
+    if (updateOrgDto.disabledFeatures !== undefined) {
+      organization.disabledFeatures = updateOrgDto.disabledFeatures;
+    }
 
     const result = await this.organizationsRepository.save(organization);
     return result as Organization;

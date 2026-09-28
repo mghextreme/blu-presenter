@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { In } from 'typeorm';
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { SchedulesService } from '../schedules.service';
 import { Schedule, Song } from '../../entities';
 import { UsersService } from '../../users/users.service';
+import { OrganizationsBaseService } from '../../organizations/organizations.service';
 
 describe('SchedulesService', () => {
   let service: SchedulesService;
@@ -48,6 +49,11 @@ describe('SchedulesService', () => {
     findUserOrganizations: jest.fn(),
   };
 
+  const mockOrganizationsBaseService = {
+    isFeatureEnabledInOrg: jest.fn().mockResolvedValue(true),
+    assertFeatureEnabled: jest.fn().mockResolvedValue(undefined),
+  };
+
   const buildModule = async (
     request: any = mockRequest,
   ): Promise<TestingModule> =>
@@ -65,6 +71,10 @@ describe('SchedulesService', () => {
         {
           provide: UsersService,
           useValue: mockUsersService,
+        },
+        {
+          provide: OrganizationsBaseService,
+          useValue: mockOrganizationsBaseService,
         },
         {
           provide: REQUEST,
@@ -160,6 +170,96 @@ describe('SchedulesService', () => {
         name: 'Guest Org',
         role: 'guest',
       });
+    });
+  });
+
+  describe('feature gating (schedules disabled per organization)', () => {
+    it('should exclude orgs with the schedules feature disabled from search', async () => {
+      mockUsersService.findUserOrganizations.mockResolvedValue([
+        { organization: { id: 1, name: 'Enabled Org' }, role: 'member' },
+        {
+          organization: {
+            id: 2,
+            name: 'Disabled Org',
+            disabledFeatures: ['schedules'],
+          },
+          role: 'member',
+        },
+      ]);
+      mockSchedulesRepository.find.mockResolvedValue([]);
+
+      await service.search({});
+
+      expect(mockSchedulesRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ orgId: In([1]) }),
+        }),
+      );
+    });
+
+    it('should silently exclude explicitly selected orgs with the schedules feature disabled', async () => {
+      mockUsersService.findUserOrganizations.mockResolvedValue([
+        { organization: { id: 1, name: 'Enabled Org' }, role: 'member' },
+        {
+          organization: {
+            id: 2,
+            name: 'Disabled Org',
+            disabledFeatures: ['schedules'],
+          },
+          role: 'owner',
+        },
+      ]);
+      mockSchedulesRepository.find.mockResolvedValue([]);
+
+      await service.search({ organizations: [1, 2] });
+
+      expect(mockSchedulesRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ orgId: In([1]) }),
+        }),
+      );
+    });
+
+    it('should throw ForbiddenException from findOneInAnyOrgOrBySecret for authenticated users when disabled', async () => {
+      mockSchedulesRepository.findOne.mockResolvedValue(
+        mockSchedule({ id: 10, orgId: 1 }),
+      );
+      mockOrganizationsBaseService.isFeatureEnabledInOrg.mockResolvedValue(
+        false,
+      );
+
+      await expect(service.findOneInAnyOrgOrBySecret(10)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('should throw NotFoundException from findOneInAnyOrgOrBySecret for anonymous callers when disabled', async () => {
+      const moduleWithoutUser = await buildModule({ user: undefined });
+      const serviceWithoutUser =
+        await moduleWithoutUser.resolve<SchedulesService>(SchedulesService);
+
+      mockSchedulesRepository.findOne.mockResolvedValue(
+        mockSchedule({ id: 10, orgId: 1 }),
+      );
+      mockOrganizationsBaseService.isFeatureEnabledInOrg.mockResolvedValue(
+        false,
+      );
+
+      await expect(
+        serviceWithoutUser.findOneInAnyOrgOrBySecret(10, 'secret'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should assert the schedules feature is enabled on create', async () => {
+      mockSchedulesRepository.insert.mockResolvedValue({
+        raw: [{ id: 99 }],
+      });
+
+      await service.create(1, { title: 'New Schedule' } as any);
+
+      expect(
+        mockOrganizationsBaseService.assertFeatureEnabled,
+      ).toHaveBeenCalledWith(1, 'schedules');
     });
   });
 });

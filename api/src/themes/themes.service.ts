@@ -8,7 +8,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, In, Repository } from 'typeorm';
-import { CreateThemeDto, SearchThemeDto, UpdateThemeDto } from 'src/types';
+import {
+  CreateThemeDto,
+  isFeatureEnabled,
+  SearchThemeDto,
+  UpdateThemeDto,
+} from 'src/types';
 import { isRoleHigherOrEqualThan } from 'src/types/organization-role.type';
 import { OrganizationRoleOptions } from 'src/types';
 import { OrganizationUser, Theme } from 'src/entities';
@@ -87,6 +92,8 @@ export class ThemesService {
       throw new NotFoundException();
     }
 
+    await this.assertFeatureEnabledForOrg(theme.orgId);
+
     const orgUser = userOrgs.find((org) => org.organization.id === theme.orgId);
     return {
       ...theme,
@@ -100,6 +107,14 @@ export class ThemesService {
             role: undefined,
           },
     } as ThemeWithRoleViewModel;
+  }
+
+  private async assertFeatureEnabledForOrg(orgId: number): Promise<void> {
+    const featureEnabled =
+      await this.organizationsService.isFeatureEnabledInOrg(orgId, 'themes');
+    if (!featureEnabled) {
+      throw new ForbiddenException('Themes are disabled for this organization');
+    }
   }
 
   async search(searchDto: SearchThemeDto): Promise<ThemeWithRoleViewModel[]> {
@@ -128,6 +143,17 @@ export class ThemesService {
     } else {
       orgIds = memberOrgIds;
     }
+
+    // Exclude organizations which disabled the themes feature
+    const orgFeaturesById = new Map(
+      userOrgs.map((org) => [
+        org.organization.id,
+        org.organization.disabledFeatures,
+      ]),
+    );
+    orgIds = orgIds.filter((orgId) =>
+      isFeatureEnabled(orgFeaturesById.get(orgId), 'themes'),
+    );
 
     if (orgIds.length === 0) {
       return [];
@@ -194,7 +220,11 @@ export class ThemesService {
 
     const user = this.request.user['internal'];
     userOrgs = await this.usersService.findUserOrganizations(user.id);
-    userOrgIds = userOrgs.map((org) => org.organization.id);
+    userOrgIds = userOrgs
+      .filter((org) =>
+        isFeatureEnabled(org.organization?.disabledFeatures, 'themes'),
+      )
+      .map((org) => org.organization.id);
 
     return await this.themesRepository.find({
       select: {
@@ -217,6 +247,10 @@ export class ThemesService {
   }
 
   async findAllInOrgBySecret(orgId: number, secret: string): Promise<Theme[]> {
+    await this.organizationsService.assertFeatureEnabled(orgId, 'themes', {
+      notFound: true,
+    });
+
     return await this.themesRepository.find({
       select: {
         id: true,
@@ -281,6 +315,10 @@ export class ThemesService {
     id: number,
     secret: string,
   ): Promise<Theme> {
+    await this.organizationsService.assertFeatureEnabled(orgId, 'themes', {
+      notFound: true,
+    });
+
     const theme = await this.themesRepository.findOne({
       select: {
         id: true,
@@ -308,6 +346,8 @@ export class ThemesService {
   }
 
   async create(orgId: number, createThemeDto: CreateThemeDto): Promise<Theme> {
+    await this.organizationsService.assertFeatureEnabled(orgId, 'themes');
+
     const result = await this.themesRepository.insert({
       name: createThemeDto.name,
       extends: createThemeDto.extends,
@@ -324,6 +364,8 @@ export class ThemesService {
     id: number,
     updateThemeDto: UpdateThemeDto,
   ): Promise<Theme> {
+    await this.organizationsService.assertFeatureEnabled(orgId, 'themes');
+
     const theme = await this.themesRepository.findOneBy({ id, orgId });
     if (!theme) {
       throw new NotFoundException();
@@ -338,6 +380,8 @@ export class ThemesService {
   }
 
   async delete(orgId: number, id: number): Promise<void> {
+    await this.organizationsService.assertFeatureEnabled(orgId, 'themes');
+
     const theme = await this.themesRepository.findOneBy({ id, orgId });
     if (!theme) {
       throw new NotFoundException();
@@ -351,6 +395,11 @@ export class ThemesService {
     organizationId: number,
   ): Promise<void> {
     const orgId = this.request.user['organization'];
+
+    await this.organizationsService.assertFeatureEnabled(orgId, 'themes', {
+      notFound: true,
+    });
+
     const theme = await this.findOne(orgId, themeId);
     if (!theme) {
       throw new NotFoundException('Theme not found');

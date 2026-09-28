@@ -18,7 +18,7 @@ import { IOrganizationInvitation, IOrganizationUser, isRoleHigherOrEqualThan } f
 import { ListItemCard } from "@/components/shared/list-item-card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { OrganizationBar } from "@/components/app/organization-bar";
+import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
 import { PageContent } from "@/components/shared/page-content";
 import { useAuth } from "@/hooks/useAuth";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -51,7 +51,7 @@ export function EditOrganization({
 
   const { revalidate } = useRevalidator();
 
-  const { user, setOrganizationById } = useAuth();
+  const { user, setOrganizationById, organizations } = useAuth();
   const { organizationsService, authService } = useServices();
 
   if (!data) {
@@ -97,6 +97,13 @@ export function EditOrganization({
         setLoading(false);
       });
   }
+
+  const onOrganizationSelected = (orgs: OptionalOrganization[]) => {
+    const org = orgs[0];
+    if (org && org.id !== data.id) {
+      navigate(`/app/organization/${org.id}`);
+    }
+  };
 
   const onLeaveOrganization = async () => {
     try {
@@ -225,9 +232,11 @@ export function EditOrganization({
     <div>
       <title>{t('title.edit', {organization: data.name || t('defaultName')}) + ' - BluPresenter'}</title>
       <OrganizationBar
-        organizations={edit ? [data] : []}
+        organizations={edit ? organizations : []}
         selected={edit ? [data] : []}
+        editable={edit}
         subtitle={edit ? undefined : t('add.title')}
+        onOrganizationsChange={edit ? onOrganizationSelected : undefined}
       />
       <PageContent>
       {isPersonalSpace ? (

@@ -11,6 +11,7 @@ import { ILike, In, IsNull, Or, Repository } from 'typeorm';
 import {
   CreateScheduleDto,
   IScheduleItem,
+  isFeatureEnabled,
   OrganizationRoleOptions,
   SearchScheduleDto,
   UpdateScheduleDto,
@@ -20,6 +21,7 @@ import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 import { generateRandomSecret } from 'src/utils/secret';
 import { UsersService } from 'src/users/users.service';
+import { OrganizationsBaseService } from 'src/organizations/organizations.service';
 import { ScheduleWithRoleViewModel } from 'src/models/schedule-with-role.view-model';
 
 type ScheduleWithRole = Schedule & {
@@ -39,6 +41,8 @@ export class SchedulesService {
     private readonly songsRepository: Repository<Song>,
     @Inject(UsersService)
     private readonly usersService: UsersService,
+    @Inject(OrganizationsBaseService)
+    private readonly organizationsBaseService: OrganizationsBaseService,
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {}
 
@@ -65,6 +69,17 @@ export class SchedulesService {
     } else {
       orgIds = userOrgIds;
     }
+
+    // Exclude organizations which disabled the schedules feature
+    const orgFeaturesById = new Map(
+      userOrgs.map((org) => [
+        org.organization.id,
+        org.organization.disabledFeatures,
+      ]),
+    );
+    orgIds = orgIds.filter((orgId) =>
+      isFeatureEnabled(orgFeaturesById.get(orgId), 'schedules'),
+    );
 
     if (orgIds.length === 0) {
       return [];
@@ -200,6 +215,22 @@ export class SchedulesService {
       return null;
     }
 
+    if (schedule.orgId != null) {
+      const featureEnabled =
+        await this.organizationsBaseService.isFeatureEnabledInOrg(
+          schedule.orgId,
+          'schedules',
+        );
+      if (!featureEnabled) {
+        if (this.request.user) {
+          throw new ForbiddenException(
+            'Schedules are disabled for this organization',
+          );
+        }
+        throw new NotFoundException('Schedule not found');
+      }
+    }
+
     if (schedule.items?.length) {
       schedule.items = await this.resolveSongReferences(schedule.items);
     }
@@ -282,6 +313,11 @@ export class SchedulesService {
       throw new UnauthorizedException();
     }
 
+    await this.organizationsBaseService.assertFeatureEnabled(
+      orgId,
+      'schedules',
+    );
+
     const user = this.request.user['internal'];
 
     const result = await this.schedulesRepository.insert({
@@ -305,6 +341,11 @@ export class SchedulesService {
     if (this.request.user === undefined) {
       throw new UnauthorizedException();
     }
+
+    await this.organizationsBaseService.assertFeatureEnabled(
+      orgId,
+      'schedules',
+    );
 
     const schedule = await this.schedulesRepository.findOneBy({ id, orgId });
     if (!schedule) {
@@ -335,6 +376,11 @@ export class SchedulesService {
     if (this.request.user === undefined) {
       throw new UnauthorizedException();
     }
+
+    await this.organizationsBaseService.assertFeatureEnabled(
+      orgId,
+      'schedules',
+    );
 
     const schedule = await this.schedulesRepository.findOneBy({ id, orgId });
     if (!schedule) {

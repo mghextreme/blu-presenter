@@ -19,6 +19,7 @@ export * from './update-schedule.dto';
 export * from './search-schedule.dto';
 
 export * from './organization-role.type';
+export * from './organization-feature.type';
 export * from './create-organization.dto';
 export * from './update-organization.dto';
 export * from './transfer-organization.dto';

@@ -1,4 +1,16 @@
-import { IsInt, IsNotEmpty, Length, Min } from 'class-validator';
+import {
+  IsArray,
+  IsIn,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  Length,
+  Min,
+} from 'class-validator';
+import {
+  ORGANIZATION_FEATURES,
+  OrganizationFeature,
+} from './organization-feature.type';
 
 export class UpdateOrganizationDto {
   @IsInt()
@@ -8,4 +20,9 @@ export class UpdateOrganizationDto {
   @IsNotEmpty()
   @Length(2, 255)
   name: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsIn(ORGANIZATION_FEATURES as string[], { each: true })
+  disabledFeatures?: OrganizationFeature[];
 }

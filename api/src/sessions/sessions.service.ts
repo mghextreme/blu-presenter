@@ -13,9 +13,13 @@ import { OrganizationUser, Session } from 'src/entities';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 import { UsersService } from 'src/users/users.service';
-import { OrganizationsService } from 'src/organizations/organizations.service';
+import {
+  OrganizationsBaseService,
+  OrganizationsService,
+} from 'src/organizations/organizations.service';
 import {
   CreateSessionDto,
+  isFeatureEnabled,
   OrganizationRoleOptions,
   SearchSessionDto,
   UpdateSessionDto,
@@ -35,6 +39,7 @@ export class SessionsService {
   constructor(
     @InjectRepository(Session)
     protected readonly sessionsRepository: Repository<Session>,
+    protected readonly organizationsBaseService: OrganizationsBaseService,
   ) {}
 
   async findOne(orgId: number, id: number): Promise<Session | null> {
@@ -101,6 +106,12 @@ export class SessionsService {
   }
 
   async findOneBySecret(orgId: number, id: number, secret: string) {
+    await this.organizationsBaseService.assertFeatureEnabled(
+      orgId,
+      'sessions',
+      { notFound: true },
+    );
+
     return this.sessionsRepository.findOne({
       select: {
         id: true,
@@ -125,6 +136,8 @@ export class SessionsService {
     orgId: number,
     createSessionDto: CreateSessionDto,
   ): Promise<Session> {
+    await this.organizationsBaseService.assertFeatureEnabled(orgId, 'sessions');
+
     const result = await this.sessionsRepository.insert({
       name: createSessionDto.name,
       orgId,
@@ -139,6 +152,8 @@ export class SessionsService {
     id: number,
     updateSessionDto: UpdateSessionDto,
   ): Promise<Session> {
+    await this.organizationsBaseService.assertFeatureEnabled(orgId, 'sessions');
+
     const session = await this.sessionsRepository.findOneBy({ id, orgId });
     if (!session) {
       throw new NotFoundException();
@@ -155,6 +170,8 @@ export class SessionsService {
   }
 
   async delete(orgId: number, id: number): Promise<void> {
+    await this.organizationsBaseService.assertFeatureEnabled(orgId, 'sessions');
+
     const theme = await this.sessionsRepository.findOneBy({ id, orgId });
     if (!theme) {
       throw new NotFoundException();
@@ -173,12 +190,13 @@ export class SessionsServiceWithRequest extends SessionsService {
   constructor(
     @InjectRepository(Session)
     protected readonly sessionsRepository: Repository<Session>,
+    organizationsBaseService: OrganizationsBaseService,
     @Inject(OrganizationsService)
     protected readonly organizationsService: OrganizationsService,
     @Inject(UsersService) protected readonly usersService: UsersService,
     @Inject(REQUEST) private readonly request: ExpRequest,
   ) {
-    super(sessionsRepository);
+    super(sessionsRepository, organizationsBaseService);
   }
 
   private async getUserOrgs(): Promise<Partial<OrganizationUser>[]> {
@@ -225,6 +243,8 @@ export class SessionsServiceWithRequest extends SessionsService {
       throw new NotFoundException();
     }
 
+    await this.assertFeatureEnabledForOrg(session.orgId);
+
     const orgUser = userOrgs.find(
       (org) => org.organization.id === session.orgId,
     );
@@ -240,6 +260,19 @@ export class SessionsServiceWithRequest extends SessionsService {
             role: undefined,
           },
     } as SessionWithRole;
+  }
+
+  private async assertFeatureEnabledForOrg(orgId: number): Promise<void> {
+    const featureEnabled =
+      await this.organizationsBaseService.isFeatureEnabledInOrg(
+        orgId,
+        'sessions',
+      );
+    if (!featureEnabled) {
+      throw new ForbiddenException(
+        'Sessions are disabled for this organization',
+      );
+    }
   }
 
   async search(searchDto: SearchSessionDto): Promise<Session[]> {
@@ -267,6 +300,17 @@ export class SessionsServiceWithRequest extends SessionsService {
     } else {
       orgIds = memberOrgIds;
     }
+
+    // Exclude organizations which disabled the sessions feature
+    const orgFeaturesById = new Map(
+      userOrgs.map((org) => [
+        org.organization.id,
+        org.organization.disabledFeatures,
+      ]),
+    );
+    orgIds = orgIds.filter((orgId) =>
+      isFeatureEnabled(orgFeaturesById.get(orgId), 'sessions'),
+    );
 
     if (orgIds.length === 0) {
       return [];
@@ -332,7 +376,11 @@ export class SessionsServiceWithRequest extends SessionsService {
     // sessions in the cross-org listing — this mirrors the role checks on the
     // per-org session endpoints (see SessionsController).
     const userOrgIds = userOrgs
-      .filter((org) => isRoleHigherOrEqualThan(org.role, 'member'))
+      .filter(
+        (org) =>
+          isRoleHigherOrEqualThan(org.role, 'member') &&
+          isFeatureEnabled(org.organization?.disabledFeatures, 'sessions'),
+      )
       .map((org) => org.organization.id);
 
     if (userOrgIds.length === 0) {

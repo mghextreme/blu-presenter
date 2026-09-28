@@ -12,6 +12,7 @@ import { OrganizationInvitation } from './organization-invitation.entity';
 import type { Song } from './song.entity';
 import type { Theme } from './theme.entity';
 import type { Session } from './session.entity';
+import type { OrganizationFeature } from '../types/organization-feature.type';
 
 @Entity({ name: 'organizations' })
 export class Organization {
@@ -60,4 +61,12 @@ export class Organization {
     length: 32,
   })
   secret: string;
+
+  @Column({
+    type: 'json',
+    array: false,
+    default: () => "'[]'",
+    nullable: false,
+  })
+  disabledFeatures: OrganizationFeature[];
 }
