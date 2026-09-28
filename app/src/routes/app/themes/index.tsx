@@ -1,7 +1,7 @@
 import { Link, useLoaderData } from "react-router-dom";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import { isRoleHigherOrEqualThan, ITheme } from "@/types";
+import { filterOrganizationsByFeature, isRoleHigherOrEqualThan, ITheme } from "@/types";
 import { useServices } from "@/hooks/useServices";
 import { useAuth } from "@/hooks/useAuth";
 import { useFilteredList } from "@/hooks/use-filtered-list";
@@ -26,9 +26,11 @@ export function Themes() {
   const data = useLoaderData() as ITheme[];
   const { themesService } = useServices();
 
+  const availableOrganizations = filterOrganizationsByFeature(organizations, 'themes');
+
   const list = useFilteredList<ITheme>({
     defaultValue: data,
-    initialOrganizations: filterToSelection(organizations),
+    initialOrganizations: filterToSelection(availableOrganizations),
     search: (payload) => themesService.search(payload),
     onError: (e) => {
       toast.error(t('error.search'), {
@@ -38,7 +40,7 @@ export function Themes() {
   });
 
   const filtersActive = list.selectedOrganizations.length > 0
-    && list.selectedOrganizations.length < organizations.length;
+    && list.selectedOrganizations.length < availableOrganizations.length;
 
   const onDeleteTheme = async (theme: ITheme) => {
     if (!theme.organization?.id) {
@@ -102,7 +104,7 @@ export function Themes() {
     <>
       <title>{t('title.list') + ' - BluPresenter'}</title>
       <OrganizationBar
-        organizations={organizations}
+        organizations={availableOrganizations}
         selected={list.selectedOrganizations}
         multiselect
         onOrganizationsChange={list.setOrganizations}

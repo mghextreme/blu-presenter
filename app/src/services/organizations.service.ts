@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IOrganization } from "@/types/organization.interface";
 import { ApiService } from "./api.service";
-import { IOrganizationInvitation, IOrganizationUser, OrganizationRoleOptions, UserOrganization } from "@/types";
+import { IOrganizationInvitation, IOrganizationUser, OrganizationFeature, OrganizationRoleOptions, UserOrganization } from "@/types";
 import { FetchQueryOptions } from "@tanstack/react-query";
 
 export class OrganizationsService extends ApiService {
@@ -173,7 +173,8 @@ export class OrganizationsService extends ApiService {
           id: number,
           role: OrganizationRoleOptions,
           name?: string,
-        }) => new UserOrganization(x.id, x.role, x.name));
+          disabledFeatures?: OrganizationFeature[],
+        }) => new UserOrganization(x.id, x.role, x.name, x.disabledFeatures));
 
         return mappedOrgs;
       },
@@ -185,6 +186,7 @@ export class OrganizationsService extends ApiService {
       id: response.id,
       name: response?.name,
       role: response?.role,
+      disabledFeatures: response?.disabledFeatures ?? [],
       owner: {
         id: response.owner.id,
         name: response.owner?.name,

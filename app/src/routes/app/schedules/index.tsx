@@ -3,7 +3,7 @@ import { format, parse } from "date-fns";
 import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import { ISchedule, isRoleHigherOrEqualThan } from "@/types";
+import { ISchedule, filterOrganizationsByFeature, isRoleHigherOrEqualThan } from "@/types";
 import { getLocaleConfig } from "@/components/ui/date-picker";
 import { useServices } from "@/hooks/useServices";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,9 +28,11 @@ export function Schedules() {
   const data = useLoaderData() as ISchedule[];
   const { schedulesService } = useServices();
 
+  const availableOrganizations = filterOrganizationsByFeature(organizations, 'schedules');
+
   const list = useFilteredList<ISchedule>({
     defaultValue: data,
-    initialOrganizations: filterToSelection(organizations),
+    initialOrganizations: filterToSelection(availableOrganizations),
     search: (payload) => schedulesService.search(payload),
     onError: (e) => {
       toast.error(t('error.search'), {
@@ -40,7 +42,7 @@ export function Schedules() {
   });
 
   const filtersActive = list.selectedOrganizations.length > 0
-    && list.selectedOrganizations.length < organizations.length;
+    && list.selectedOrganizations.length < availableOrganizations.length;
 
   const lang = i18n.language?.substring(0, 2) ?? "en";
   const { dateFns, formatStr } = getLocaleConfig(lang);
@@ -124,7 +126,7 @@ export function Schedules() {
     <>
       <title>{t('title.list') + ' - BluPresenter'}</title>
       <OrganizationBar
-        organizations={organizations}
+        organizations={availableOrganizations}
         selected={list.selectedOrganizations}
         multiselect
         onOrganizationsChange={list.setOrganizations}

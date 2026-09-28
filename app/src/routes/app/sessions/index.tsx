@@ -2,7 +2,7 @@ import { Link, useLoaderData } from "react-router-dom";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import { Badge } from "@/components/ui/badge";
-import { ISession, isRoleHigherOrEqualThan } from "@/types";
+import { ISession, filterOrganizationsByFeature, isRoleHigherOrEqualThan } from "@/types";
 import { useServices } from "@/hooks/useServices";
 import { useAuth } from "@/hooks/useAuth";
 import { useFilteredList } from "@/hooks/use-filtered-list";
@@ -26,9 +26,11 @@ export function Sessions() {
   const data = useLoaderData() as ISession[];
   const { sessionsService } = useServices();
 
+  const availableOrganizations = filterOrganizationsByFeature(organizations, 'sessions');
+
   const list = useFilteredList<ISession>({
     defaultValue: data,
-    initialOrganizations: filterToSelection(organizations),
+    initialOrganizations: filterToSelection(availableOrganizations),
     search: (payload) => sessionsService.search(payload),
     onError: (e) => {
       toast.error(t('error.search'), {
@@ -38,7 +40,7 @@ export function Sessions() {
   });
 
   const filtersActive = list.selectedOrganizations.length > 0
-    && list.selectedOrganizations.length < organizations.length;
+    && list.selectedOrganizations.length < availableOrganizations.length;
 
   const getSessionName = (session: ISession) => {
     if (session.default) {
@@ -107,7 +109,7 @@ export function Sessions() {
     <>
       <title>{t('title.list') + ' - BluPresenter'}</title>
       <OrganizationBar
-        organizations={organizations}
+        organizations={availableOrganizations}
         selected={list.selectedOrganizations}
         multiselect
         onOrganizationsChange={list.setOrganizations}

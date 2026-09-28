@@ -1,5 +1,6 @@
 import { IOrganizationInvitation } from "./organization-invitation.interface"
 import { IOrganizationUser, OrganizationRoleOptions } from "./organization-user.interface"
+import { OrganizationFeature } from "./organization-feature.type"
 
 export interface IOrganization {
   id: number
@@ -8,4 +9,5 @@ export interface IOrganization {
   users?: IOrganizationUser[]
   invitations?: IOrganizationInvitation[]
   role?: OrganizationRoleOptions
+  disabledFeatures?: OrganizationFeature[]
 }

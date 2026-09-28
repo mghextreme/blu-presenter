@@ -7,6 +7,7 @@ import { useServices } from "@/hooks/useServices";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Link, useLoaderData, useNavigate, useRevalidator } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
@@ -14,7 +15,7 @@ import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import { ClipboardCopyIcon } from "@radix-ui/react-icons";
 import { useTranslation } from "react-i18next";
 import { IOrganization } from "@/types/organization.interface";
-import { IOrganizationInvitation, IOrganizationUser, isRoleHigherOrEqualThan } from "@/types";
+import { IOrganizationInvitation, IOrganizationUser, isRoleHigherOrEqualThan, ORGANIZATION_FEATURES, OrganizationFeature } from "@/types";
 import { ListItemCard } from "@/components/shared/list-item-card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -59,7 +60,9 @@ export function EditOrganization({
   }
 
   const [isLoading, setLoading] = useState<boolean>(false);
+  const [isSavingFeatures, setSavingFeatures] = useState<boolean>(false);
   const [memberQuery, setMemberQuery] = useState<string>('');
+  const [disabledFeatures, setDisabledFeatures] = useState<OrganizationFeature[]>(data.disabledFeatures ?? []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -85,6 +88,10 @@ export function EditOrganization({
       .then((result: IOrganization | null) => {
         if (!edit && result) {
           authService.getAndSetOrganizations(result.id);
+        }
+        if (edit) {
+          // Keep the locally stored organizations (with their features) in sync
+          authService.refreshOrganizations();
         }
         navigate(`/app/organization/${edit ? data.id : result?.id}`, { replace: true });
       })
@@ -226,7 +233,34 @@ export function EditOrganization({
   useEffect(() => {
     form.setValue('id', data.id);
     form.setValue('name', data?.name ?? '');
+    setDisabledFeatures(data?.disabledFeatures ?? []);
   }, [loadedData]);
+
+  const isFeaturesUnchanged = (loadedData?.disabledFeatures ?? []).length === disabledFeatures.length
+    && disabledFeatures.every((feature) => (loadedData?.disabledFeatures ?? []).includes(feature));
+
+  const onFeaturesSubmit = async () => {
+    setSavingFeatures(true);
+    organizationsService.update({
+      id: data.id,
+      name: data.name ?? '',
+      disabledFeatures,
+    }, data.id)
+      .then(() => {
+        toast.success(t('features.updateSuccess'));
+        // Keep the locally stored organizations (with their features) in sync
+        authService.refreshOrganizations();
+        revalidate();
+      })
+      .catch((e) => {
+        toast.error(t('error.update'), {
+          description: e?.message || '',
+        });
+      })
+      .finally(() => {
+        setSavingFeatures(false);
+      });
+  }
 
   return (
     <div>
@@ -322,6 +356,45 @@ export function EditOrganization({
                     ))}
                   </ul>
                 </>
+              )}
+                </>
+              )}
+          {edit && (
+            <>
+              <h2 className="text-xl mt-6 mb-4">{t('edit.features')}</h2>
+              <p className="text-sm text-muted-foreground mb-4">{t('edit.featuresDescription')}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {ORGANIZATION_FEATURES.map((feature: OrganizationFeature) => (
+                  <div key={feature} className="flex items-center justify-between gap-4 rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <div className="text-base font-medium">{t('features.' + feature)}</div>
+                      <div className="text-sm text-muted-foreground">{t('features.' + feature + 'Description')}</div>
+                    </div>
+                    <Switch
+                      checked={!disabledFeatures.includes(feature)}
+                      disabled={!isRoleHigherOrEqualThan(loadedData?.role, 'admin')}
+                      onCheckedChange={(checked) => {
+                        setDisabledFeatures((current) =>
+                          checked
+                            ? current.filter((f) => f !== feature)
+                            : [...current, feature]
+                        );
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              {isRoleHigherOrEqualThan(loadedData?.role, 'admin') && (
+                <Button
+                  className="mt-4"
+                  type="button"
+                  disabled={isSavingFeatures || isFeaturesUnchanged}
+                  onClick={onFeaturesSubmit}>
+                  {isSavingFeatures && (
+                    <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+                  )}
+                  {t('button.update')}
+                </Button>
               )}
             </>
           )}

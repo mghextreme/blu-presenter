@@ -6,6 +6,7 @@ export const ORGANIZATION_FEATURES = [
   'themes',
 ] as OrganizationFeature[];
 
+/** A feature is enabled unless the organization explicitly disabled it. */
 export const isFeatureEnabled = (
   disabledFeatures: unknown,
   feature: OrganizationFeature,

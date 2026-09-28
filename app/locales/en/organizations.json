@@ -42,7 +42,18 @@
     "title": "Edit organization",
     "members": "Members",
     "pendingInvitations": "Pending invitations",
-    "manage": "Manage"
+    "manage": "Manage",
+    "features": "Features",
+    "featuresDescription": "Disable a feature to hide its content from this organization"
+  },
+  "features": {
+    "schedules": "Schedules",
+    "schedulesDescription": "Organize playlists for events, rehearsal, and sharing",
+    "sessions": "Sessions",
+    "sessionsDescription": "Live control of presentations",
+    "themes": "Themes",
+    "themesDescription": "Custom looks for songs and lyrics",
+    "updateSuccess": "Features updated"
   },
   "editMember": {
     "title": "Edit member"

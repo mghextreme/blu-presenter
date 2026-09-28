@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLoaderData, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { BaseTheme, isRoleHigherOrEqualThan, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
+import { BaseTheme, filterOrganizationsByFeature, isRoleHigherOrEqualThan, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useServices } from "@/hooks/useServices";
 import { Button } from "@/components/ui/button";
@@ -46,7 +46,7 @@ export function EditTheme({
     throw new Error("Can't find theme");
   }
 
-  const organizationsToAddTo = organizations.filter(
+  const organizationsToAddTo = filterOrganizationsByFeature(organizations, 'themes').filter(
     (org) => isRoleHigherOrEqualThan(org.role, 'member')
   );
 
