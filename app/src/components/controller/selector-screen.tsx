@@ -104,6 +104,31 @@ export function SelectorScreen({
     setCustomThemeOptions(themeOptions);
   }, [themeOptions]);
 
+  const [customThemesByOrg, setCustomThemesByOrg] = useState<{ key: string; name: string; themes: ITheme[] }[]>([]);
+  useEffect(() => {
+    const defaultOrgName = t('organizations.defaultName');
+    const sortedThemes = [...customThemeOptions].sort((a, b) => {
+      const orgA = a.organization?.name ?? defaultOrgName;
+      const orgB = b.organization?.name ?? defaultOrgName;
+      return orgA.localeCompare(orgB) || a.name.localeCompare(b.name);
+    });
+    const groups: { key: string; name: string; themes: ITheme[] }[] = [];
+    const byKey = new Map<string, { key: string; name: string; themes: ITheme[] }>();
+    for (const theme of sortedThemes) {
+      const key = theme.organization ? `org-${theme.organization.id}` : 'personal';
+      const name = theme.organization?.name ?? defaultOrgName;
+      let group = byKey.get(key);
+      if (!group) {
+        group = { key, name, themes: [] };
+        byKey.set(key, group);
+        groups.push(group);
+      }
+      group.themes.push(theme);
+    }
+
+    setCustomThemesByOrg(groups);
+  }, [customThemeOptions, t]);
+
   return (
     <>
       <title>{(selectedTheme ? (selectedTheme.id === 0 ? t('theme.' + selectedTheme.name) : selectedTheme.name) + ' - ' : '') + t('watch.title') + ' - BluPresenter'}</title>
@@ -124,14 +149,26 @@ export function SelectorScreen({
           ) : (
             <>
               <h3 className="mb-4">{t('watch.themeSelector.title')}</h3>
-              {customThemeOptions.map(theme => (
-                <Button key={theme.id} onClick={() => setThemeAndMode(theme)}>
-                  {theme.name} <span className="text-sm opacity-60">({theme.organization?.name ? theme.organization?.name : t('organizations.defaultName')})</span>
-                </Button>
+              {customThemesByOrg.map(group => (
+                <div key={group.key} className="flex flex-col gap-3">
+                  <h4 className="text-[2.5vh] opacity-60">{group.name}</h4>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {group.themes.map(theme => (
+                      <Button key={theme.id} size="none" onClick={() => setThemeAndMode(theme)} className="text-[3.5vh] px-[2.5vh] py-[0.75vh]">
+                        {theme.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               ))}
-              <Button key="lyrics" onClick={() => setThemeAndMode(LyricsTheme)}>{t('theme.lyrics')} - {t('theme.description.lyrics')} <span className="text-sm opacity-60">({t('organizations.blupresenter')})</span></Button>
-              <Button key="subtitles" onClick={() => setThemeAndMode(SubtitlesTheme)}>{t('theme.subtitles')} - {t('theme.description.subtitles')} <span className="text-sm opacity-60">({t('organizations.blupresenter')})</span></Button>
-              <Button key="teleprompter" onClick={() => setThemeAndMode(TeleprompterTheme)}>{t('theme.teleprompter')} - {t('theme.description.teleprompter')} <span className="text-sm opacity-60">({t('organizations.blupresenter')})</span></Button>
+              <div className="mt-4 pt-4 border-t border-white/15 flex flex-col gap-2">
+                <h4 className="text-[2vh] opacity-50">{t('watch.themeSelector.builtIn')}</h4>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Button variant="link" size="none" className="text-[2vh] px-[1vh] py-[0.25vh]" onClick={() => setThemeAndMode(LyricsTheme)}>{t('theme.lyrics')} - {t('theme.description.lyrics')}</Button>
+                  <Button variant="link" size="none" className="text-[2vh] px-[1vh] py-[0.25vh]" onClick={() => setThemeAndMode(SubtitlesTheme)}>{t('theme.subtitles')} - {t('theme.description.subtitles')}</Button>
+                  <Button variant="link" size="none" className="text-[2vh] px-[1vh] py-[0.25vh]" onClick={() => setThemeAndMode(TeleprompterTheme)}>{t('theme.teleprompter')} - {t('theme.description.teleprompter')}</Button>
+                </div>
+              </div>
             </>
           )}
         </div>
