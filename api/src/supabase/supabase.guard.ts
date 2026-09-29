@@ -126,6 +126,15 @@ export class WebsocketGuard implements CanActivate {
       return false;
     }
 
+    if (
+      !(await this.organizationService.isFeatureEnabledInOrg(
+        session.orgId,
+        'sessions',
+      ))
+    ) {
+      return false;
+    }
+
     const roleInOrganization = await this.organizationService.userRole(
       session.orgId,
       internalUser.id,

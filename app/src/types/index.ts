@@ -5,6 +5,7 @@ export * from './controller-mode.type';
 export * from './controller-selection.interface';
 export * from './line-style.interface';
 export * from './organization.interface';
+export * from './organization-feature.type';
 export * from './organization-user.interface';
 export * from './organization-invitation.interface';
 export * from './profile.interface';

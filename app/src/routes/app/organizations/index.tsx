@@ -7,6 +7,7 @@ import { useServices } from "@/hooks/useServices";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Link, useLoaderData, useNavigate, useRevalidator } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
@@ -14,11 +15,11 @@ import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import { ClipboardCopyIcon } from "@radix-ui/react-icons";
 import { useTranslation } from "react-i18next";
 import { IOrganization } from "@/types/organization.interface";
-import { IOrganizationInvitation, IOrganizationUser, isRoleHigherOrEqualThan } from "@/types";
+import { IOrganizationInvitation, IOrganizationUser, isRoleHigherOrEqualThan, ORGANIZATION_FEATURES, OrganizationFeature } from "@/types";
 import { ListItemCard } from "@/components/shared/list-item-card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { OrganizationBar } from "@/components/app/organization-bar";
+import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
 import { PageContent } from "@/components/shared/page-content";
 import { useAuth } from "@/hooks/useAuth";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -51,7 +52,7 @@ export function EditOrganization({
 
   const { revalidate } = useRevalidator();
 
-  const { user, setOrganizationById } = useAuth();
+  const { user, setOrganizationById, organizations } = useAuth();
   const { organizationsService, authService } = useServices();
 
   if (!data) {
@@ -59,7 +60,9 @@ export function EditOrganization({
   }
 
   const [isLoading, setLoading] = useState<boolean>(false);
+  const [isSavingFeatures, setSavingFeatures] = useState<boolean>(false);
   const [memberQuery, setMemberQuery] = useState<string>('');
+  const [disabledFeatures, setDisabledFeatures] = useState<OrganizationFeature[]>(data.disabledFeatures ?? []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -86,6 +89,10 @@ export function EditOrganization({
         if (!edit && result) {
           authService.getAndSetOrganizations(result.id);
         }
+        if (edit) {
+          // Keep the locally stored organizations (with their features) in sync
+          authService.refreshOrganizations();
+        }
         navigate(`/app/organization/${edit ? data.id : result?.id}`, { replace: true });
       })
       .catch((e) => {
@@ -97,6 +104,13 @@ export function EditOrganization({
         setLoading(false);
       });
   }
+
+  const onOrganizationSelected = (orgs: OptionalOrganization[]) => {
+    const org = orgs[0];
+    if (org && org.id !== data.id) {
+      navigate(`/app/organization/${org.id}`);
+    }
+  };
 
   const onLeaveOrganization = async () => {
     try {
@@ -219,42 +233,72 @@ export function EditOrganization({
   useEffect(() => {
     form.setValue('id', data.id);
     form.setValue('name', data?.name ?? '');
+    setDisabledFeatures(data?.disabledFeatures ?? []);
   }, [loadedData]);
+
+  const isFeaturesUnchanged = (loadedData?.disabledFeatures ?? []).length === disabledFeatures.length
+    && disabledFeatures.every((feature) => (loadedData?.disabledFeatures ?? []).includes(feature));
+
+  const onFeaturesSubmit = async () => {
+    setSavingFeatures(true);
+    // Name is omitted on purpose: saving features must never touch the
+    // organization name (which personal spaces don't have).
+    organizationsService.update({
+      id: data.id,
+      disabledFeatures,
+    }, data.id)
+      .then(() => {
+        toast.success(t('features.updateSuccess'));
+        // Keep the locally stored organizations (with their features) in sync
+        authService.refreshOrganizations();
+        revalidate();
+      })
+      .catch((e) => {
+        toast.error(t('error.update'), {
+          description: e?.message || '',
+        });
+      })
+      .finally(() => {
+        setSavingFeatures(false);
+      });
+  }
 
   return (
     <div>
       <title>{t('title.edit', {organization: data.name || t('defaultName')}) + ' - BluPresenter'}</title>
       <OrganizationBar
-        organizations={edit ? [data] : []}
+        organizations={edit ? organizations : []}
         selected={edit ? [data] : []}
+        editable={edit}
         subtitle={edit ? undefined : t('add.title')}
+        onOrganizationsChange={edit ? onOrganizationSelected : undefined}
       />
       <PageContent>
-      {isPersonalSpace ? (
-        <Alert>
+      {isPersonalSpace && (
+        <Alert className="mb-6">
           <AlertTitle>{t('warning.personalSpace.title')}</AlertTitle>
           <AlertDescription>
             {t('warning.personalSpace.message')}
           </AlertDescription>
         </Alert>
-      ) : (
-        <>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('input.name')}</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled={isPersonalSpace || (edit && !isRoleHigherOrEqualThan(loadedData?.role, 'admin'))} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}></FormField>
-              <div className="flex flex-row align-start space-x-2">
-                {(!isPersonalSpace && isRoleHigherOrEqualThan(loadedData?.role, 'admin') || !edit) && (
+      )}
+      {!isPersonalSpace && (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('input.name')}</FormLabel>
+                  <FormControl>
+                    <Input {...field} disabled={edit && !isRoleHigherOrEqualThan(loadedData?.role, 'admin')} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}></FormField>
+            <div className="flex flex-row align-start space-x-2">
+                {(isRoleHigherOrEqualThan(loadedData?.role, 'admin') || !edit) && (
                   <Button className="flex-0" type="submit" disabled={isLoading}>
                     {isLoading && (
                       <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
@@ -265,8 +309,9 @@ export function EditOrganization({
                 <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app'}>{t('button.cancel')}</Link></Button>
               </div>
             </form>
-          </Form>
-          {edit && isRoleHigherOrEqualThan(loadedData?.role, 'admin') && (
+        </Form>
+      )}
+          {edit && !isPersonalSpace && isRoleHigherOrEqualThan(loadedData?.role, 'admin') && (
             <>
               <h2 className="text-xl mt-6 mb-4">{t('edit.members')}</h2>
               <div className="flex items-center justify-between gap-2 mb-4">
@@ -314,9 +359,48 @@ export function EditOrganization({
                   </ul>
                 </>
               )}
+                </>
+              )}
+          {edit && (
+            <>
+              <h2 className="text-xl mt-6 mb-4">{t('edit.features')}</h2>
+              <p className="text-sm text-muted-foreground mb-4">{t('edit.featuresDescription')}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {ORGANIZATION_FEATURES.map((feature: OrganizationFeature) => (
+                  <div key={feature} className="flex items-center justify-between gap-4 rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <div className="text-base font-medium">{t('features.' + feature)}</div>
+                      <div className="text-sm text-muted-foreground">{t('features.' + feature + 'Description')}</div>
+                    </div>
+                    <Switch
+                      checked={!disabledFeatures.includes(feature)}
+                      disabled={!isRoleHigherOrEqualThan(loadedData?.role, 'admin')}
+                      onCheckedChange={(checked) => {
+                        setDisabledFeatures((current) =>
+                          checked
+                            ? current.filter((f) => f !== feature)
+                            : [...current, feature]
+                        );
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+              {isRoleHigherOrEqualThan(loadedData?.role, 'admin') && (
+                <Button
+                  className="mt-4"
+                  type="button"
+                  disabled={isSavingFeatures || isFeaturesUnchanged}
+                  onClick={onFeaturesSubmit}>
+                  {isSavingFeatures && (
+                    <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
+                  )}
+                  {t('button.update')}
+                </Button>
+              )}
             </>
           )}
-          {edit && (
+          {edit && !isPersonalSpace && (
             <>
             <h2 className="text-xl mt-6 mb-4">{t('edit.manage')}</h2>
               <div className="flex flex-row align-start space-x-2">
@@ -372,8 +456,6 @@ export function EditOrganization({
               </div>
             </>
           )}
-        </>
-      )}
       </PageContent>
     </div>
   );

@@ -42,7 +42,18 @@
     "title": "Editar organização",
     "members": "Membros",
     "pendingInvitations": "Convites pendentes",
-    "manage": "Gerenciar"
+    "manage": "Gerenciar",
+    "features": "Funcionalidades",
+    "featuresDescription": "Desative uma funcionalidade para ocultar o conteúdo desta organização"
+  },
+  "features": {
+    "schedules": "Programações",
+    "schedulesDescription": "Organize playlists para eventos, ensaios, e compartilhamento",
+    "sessions": "Sessões",
+    "sessionsDescription": "Controle ao vivo de apresentações",
+    "themes": "Temas",
+    "themesDescription": "Aparência personalizada para músicas e letras",
+    "updateSuccess": "Funcionalidades atualizadas"
   },
   "editMember": {
     "title": "Editar membro"

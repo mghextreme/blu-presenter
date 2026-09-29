@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { TFunction } from "i18next";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BaseTheme, ILanguage, ISession, isRoleHigherOrEqualThan, ITheme, supportedLanguagesMap, SupportedUILanguage } from "@/types";
+import { BaseTheme, ILanguage, ISession, filterOrganizationsByFeature, isRoleHigherOrEqualThan, ITheme, supportedLanguagesMap, SupportedUILanguage } from "@/types";
 import { SessionSchema } from "@/types/schemas/session.schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useServices } from "@/hooks/useServices";
@@ -65,7 +65,7 @@ export function EditSession({
     throw new Error("Can't find session");
   }
 
-  const organizationsToAddTo = organizations.filter(
+  const organizationsToAddTo = filterOrganizationsByFeature(organizations, 'sessions').filter(
     (org) => isRoleHigherOrEqualThan(org.role, 'admin')
   );
 

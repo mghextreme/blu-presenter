@@ -49,6 +49,7 @@ export class UsersBaseService {
         organization: {
           id: true,
           name: true,
+          disabledFeatures: true,
         },
         role: true,
       },

@@ -11,6 +11,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { Server } from 'socket.io';
 import { SessionsService } from './sessions.service';
 import { AuthenticatedSocket, ISelection } from 'src/types';
+import { OrganizationsBaseService } from 'src/organizations/organizations.service';
 import {
   OptionalWebsocketGuard,
   WebsocketGuard,
@@ -56,7 +57,10 @@ export class SessionsGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly sessionsService: SessionsService) {}
+  constructor(
+    private readonly sessionsService: SessionsService,
+    private readonly organizationsBaseService: OrganizationsBaseService,
+  ) {}
 
   async handleConnection(client: AuthenticatedSocket) {
     client.emit('connected', {
@@ -83,6 +87,19 @@ export class SessionsGateway implements OnGatewayConnection {
       client.emit('error', {
         code: 'missing.sessionId',
         message: 'Session id is required',
+      });
+      return;
+    }
+
+    if (
+      !(await this.organizationsBaseService.isFeatureEnabledInOrg(
+        data.orgId,
+        'sessions',
+      ))
+    ) {
+      client.emit('error', {
+        code: 'session.disabled',
+        message: 'Sessions are disabled for this organization',
       });
       return;
     }

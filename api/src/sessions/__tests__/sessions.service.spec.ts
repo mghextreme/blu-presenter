@@ -6,7 +6,10 @@ import { REQUEST } from '@nestjs/core';
 import { SessionsServiceWithRequest } from '../sessions.service';
 import { Session } from '../../entities';
 import { UsersService } from '../../users/users.service';
-import { OrganizationsService } from '../../organizations/organizations.service';
+import {
+  OrganizationsBaseService,
+  OrganizationsService,
+} from '../../organizations/organizations.service';
 
 describe('SessionsServiceWithRequest', () => {
   let service: SessionsServiceWithRequest;
@@ -28,6 +31,11 @@ describe('SessionsServiceWithRequest', () => {
 
   const mockSessionsRepository = {
     find: jest.fn(),
+    findOne: jest.fn(),
+    findOneBy: jest.fn(),
+    insert: jest.fn(),
+    save: jest.fn(),
+    delete: jest.fn(),
   };
 
   const mockUsersService = {
@@ -36,6 +44,11 @@ describe('SessionsServiceWithRequest', () => {
 
   const mockOrganizationsService = {
     userRole: jest.fn(),
+  };
+
+  const mockOrganizationsBaseService = {
+    isFeatureEnabledInOrg: jest.fn().mockResolvedValue(true),
+    assertFeatureEnabled: jest.fn().mockResolvedValue(undefined),
   };
 
   const buildModule = async (
@@ -55,6 +68,10 @@ describe('SessionsServiceWithRequest', () => {
         {
           provide: OrganizationsService,
           useValue: mockOrganizationsService,
+        },
+        {
+          provide: OrganizationsBaseService,
+          useValue: mockOrganizationsBaseService,
         },
         {
           provide: REQUEST,
@@ -252,6 +269,85 @@ describe('SessionsServiceWithRequest', () => {
         name: 'Admin Org',
         role: 'admin',
       });
+    });
+  });
+
+  describe('feature gating (sessions disabled per organization)', () => {
+    it('should exclude orgs with the sessions feature disabled from findAllForUserOrgs', async () => {
+      mockUsersService.findUserOrganizations.mockResolvedValue([
+        { organization: { id: 1, name: 'Enabled Org' }, role: 'member' },
+        {
+          organization: {
+            id: 2,
+            name: 'Disabled Org',
+            disabledFeatures: ['sessions'],
+          },
+          role: 'member',
+        },
+      ]);
+      mockSessionsRepository.find.mockResolvedValue([
+        mockSession({ id: 10, orgId: 1 }),
+      ]);
+
+      await service.findAllForUserOrgs();
+
+      expect(mockSessionsRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { orgId: In([1]) },
+        }),
+      );
+    });
+
+    it('should silently exclude explicitly selected orgs with the sessions feature disabled from search', async () => {
+      mockUsersService.findUserOrganizations.mockResolvedValue([
+        { organization: { id: 1, name: 'Enabled Org' }, role: 'member' },
+        {
+          organization: {
+            id: 2,
+            name: 'Disabled Org',
+            disabledFeatures: ['sessions'],
+          },
+          role: 'owner',
+        },
+      ]);
+      mockSessionsRepository.find.mockResolvedValue([]);
+
+      await service.search({ organizations: [1, 2] });
+
+      expect(mockSessionsRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ orgId: In([1]) }),
+        }),
+      );
+    });
+
+    it('should throw ForbiddenException from findOneInAnyOrg when the sessions feature is disabled', async () => {
+      mockUsersService.findUserOrganizations.mockResolvedValue([
+        { organization: { id: 1, name: 'Org' }, role: 'member' },
+      ]);
+      mockSessionsRepository.findOne.mockResolvedValue(
+        mockSession({ id: 10, orgId: 1 }),
+      );
+      mockOrganizationsBaseService.isFeatureEnabledInOrg.mockResolvedValue(
+        false,
+      );
+
+      await expect(service.findOneInAnyOrg(10)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('should throw ForbiddenException from create when the sessions feature is disabled', async () => {
+      mockOrganizationsBaseService.assertFeatureEnabled.mockRejectedValue(
+        new ForbiddenException('Sessions are disabled for this organization'),
+      );
+
+      await expect(
+        service.create(1, { name: 'New Session' } as any),
+      ).rejects.toThrow(ForbiddenException);
+      expect(
+        mockOrganizationsBaseService.assertFeatureEnabled,
+      ).toHaveBeenCalledWith(1, 'sessions');
     });
   });
 });

@@ -5,6 +5,7 @@ import {
   User,
 } from 'src/entities';
 import { OrganizationRoleOptions } from './organization-role.type';
+import { OrganizationFeature } from './organization-feature.type';
 
 export class OrganizationViewModel {
   id: number;
@@ -13,6 +14,7 @@ export class OrganizationViewModel {
   users?: OrganizationUser[];
   invitations?: OrganizationInvitation[];
   role: OrganizationRoleOptions;
+  disabledFeatures: OrganizationFeature[];
 
   constructor(org: Organization, role: OrganizationRoleOptions) {
     this.id = org.id;
@@ -21,5 +23,6 @@ export class OrganizationViewModel {
     this.users = org.users;
     this.invitations = org.invitations;
     this.role = role;
+    this.disabledFeatures = org.disabledFeatures ?? [];
   }
 }

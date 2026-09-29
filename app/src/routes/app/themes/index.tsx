@@ -1,7 +1,7 @@
 import { Link, useLoaderData } from "react-router-dom";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import { isRoleHigherOrEqualThan, ITheme } from "@/types";
+import { filterOrganizationsByFeature, isRoleHigherOrEqualThan, ITheme } from "@/types";
 import { useServices } from "@/hooks/useServices";
 import { useAuth } from "@/hooks/useAuth";
 import { useFilteredList } from "@/hooks/use-filtered-list";
@@ -12,6 +12,7 @@ import { ListItemCard } from "@/components/shared/list-item-card";
 import { QuerySearchForm } from "@/components/shared/query-search-form";
 import { LoadMoreButton } from "@/components/shared/load-more";
 import { FiltersActiveNotice } from "@/components/shared/filters-active-notice";
+import { EmptyList } from "@/components/shared/empty-list";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useTranslation } from "react-i18next";
@@ -26,9 +27,11 @@ export function Themes() {
   const data = useLoaderData() as ITheme[];
   const { themesService } = useServices();
 
+  const availableOrganizations = filterOrganizationsByFeature(organizations, 'themes');
+
   const list = useFilteredList<ITheme>({
     defaultValue: data,
-    initialOrganizations: filterToSelection(organizations),
+    initialOrganizations: filterToSelection(availableOrganizations),
     search: (payload) => themesService.search(payload),
     onError: (e) => {
       toast.error(t('error.search'), {
@@ -38,7 +41,7 @@ export function Themes() {
   });
 
   const filtersActive = list.selectedOrganizations.length > 0
-    && list.selectedOrganizations.length < organizations.length;
+    && list.selectedOrganizations.length < availableOrganizations.length;
 
   const onDeleteTheme = async (theme: ITheme) => {
     if (!theme.organization?.id) {
@@ -102,7 +105,7 @@ export function Themes() {
     <>
       <title>{t('title.list') + ' - BluPresenter'}</title>
       <OrganizationBar
-        organizations={organizations}
+        organizations={availableOrganizations}
         selected={list.selectedOrganizations}
         multiselect
         onOrganizationsChange={list.setOrganizations}
@@ -134,6 +137,9 @@ export function Themes() {
             </li>
           )}
         </ul>
+        {!list.isLoading && list.results.length === 0 && (
+          <EmptyList className="mt-2" />
+        )}
       </PageContent>
     </>
   );

@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { useSearch } from "@/hooks/search.provider";
 import { SearchResultItem, SearchResultItemProps } from "./search-result-item";
 import { LoadMoreButton } from "@/components/shared/load-more";
+import { EmptyList } from "@/components/shared/empty-list";
 
 export function SearchResultsList(props: SearchResultItemProps) {
 
@@ -30,6 +31,9 @@ export function SearchResultsList(props: SearchResultItemProps) {
       ))}
       {hasMore && (
         <LoadMoreButton onClick={handleLoadMore} isLoading={isSearching} />
+      )}
+      {!isSearching && results.length === 0 && (
+        <EmptyList className="mt-2" />
       )}
     </>
   );

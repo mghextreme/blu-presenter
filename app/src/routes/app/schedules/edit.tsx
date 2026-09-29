@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ISchedule, IScheduleItem, isRoleHigherOrEqualThan } from "@/types";
+import { ISchedule, IScheduleItem, filterOrganizationsByFeature, isRoleHigherOrEqualThan } from "@/types";
 import { ScheduleSchema } from "@/types/schemas/schedule.schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useServices } from "@/hooks/useServices";
@@ -49,7 +49,7 @@ export function EditSchedule({
     throw new Error("Can't find schedule");
   }
 
-  const organizationsToAddTo = organizations.filter(
+  const organizationsToAddTo = filterOrganizationsByFeature(organizations, 'schedules').filter(
     (org) => isRoleHigherOrEqualThan(org.role, 'member')
   );
 
