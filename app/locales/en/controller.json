@@ -108,7 +108,8 @@
       "display": "Display"
     },
     "themeSelector": {
-      "title": "Select theme"
+      "title": "Select theme",
+      "builtIn": "BluPresenter themes"
     }
   },
   "preview": {

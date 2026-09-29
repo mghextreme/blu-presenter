@@ -108,7 +108,8 @@
       "display": "Tela"
     },
     "themeSelector": {
-      "title": "Selecione o tema"
+      "title": "Selecione o tema",
+      "builtIn": "Temas do BluPresenter"
     }
   },
   "preview": {
