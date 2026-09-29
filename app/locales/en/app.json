@@ -61,5 +61,8 @@
     "admin": "Admin",
     "member": "Member",
     "guest": "Guest"
+  },
+  "list": {
+    "empty": "Nothing to show here"
   }
 }

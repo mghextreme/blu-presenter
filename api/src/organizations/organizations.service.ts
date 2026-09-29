@@ -204,7 +204,10 @@ export class OrganizationsService extends OrganizationsBaseService {
     updateOrgDto: UpdateOrganizationDto,
   ): Promise<Organization> {
     const organization = await this.organizationsRepository.findOneBy({ id });
-    organization.name = updateOrgDto.name;
+
+    if (updateOrgDto.name !== undefined) {
+      organization.name = updateOrgDto.name;
+    }
 
     if (updateOrgDto.disabledFeatures !== undefined) {
       organization.disabledFeatures = updateOrgDto.disabledFeatures;

@@ -241,9 +241,10 @@ export function EditOrganization({
 
   const onFeaturesSubmit = async () => {
     setSavingFeatures(true);
+    // Name is omitted on purpose: saving features must never touch the
+    // organization name (which personal spaces don't have).
     organizationsService.update({
       id: data.id,
-      name: data.name ?? '',
       disabledFeatures,
     }, data.id)
       .then(() => {
@@ -273,31 +274,31 @@ export function EditOrganization({
         onOrganizationsChange={edit ? onOrganizationSelected : undefined}
       />
       <PageContent>
-      {isPersonalSpace ? (
-        <Alert>
+      {isPersonalSpace && (
+        <Alert className="mb-6">
           <AlertTitle>{t('warning.personalSpace.title')}</AlertTitle>
           <AlertDescription>
             {t('warning.personalSpace.message')}
           </AlertDescription>
         </Alert>
-      ) : (
-        <>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('input.name')}</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled={isPersonalSpace || (edit && !isRoleHigherOrEqualThan(loadedData?.role, 'admin'))} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}></FormField>
-              <div className="flex flex-row align-start space-x-2">
-                {(!isPersonalSpace && isRoleHigherOrEqualThan(loadedData?.role, 'admin') || !edit) && (
+      )}
+      {!isPersonalSpace && (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('input.name')}</FormLabel>
+                  <FormControl>
+                    <Input {...field} disabled={edit && !isRoleHigherOrEqualThan(loadedData?.role, 'admin')} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}></FormField>
+            <div className="flex flex-row align-start space-x-2">
+                {(isRoleHigherOrEqualThan(loadedData?.role, 'admin') || !edit) && (
                   <Button className="flex-0" type="submit" disabled={isLoading}>
                     {isLoading && (
                       <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
@@ -308,8 +309,9 @@ export function EditOrganization({
                 <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app'}>{t('button.cancel')}</Link></Button>
               </div>
             </form>
-          </Form>
-          {edit && isRoleHigherOrEqualThan(loadedData?.role, 'admin') && (
+        </Form>
+      )}
+          {edit && !isPersonalSpace && isRoleHigherOrEqualThan(loadedData?.role, 'admin') && (
             <>
               <h2 className="text-xl mt-6 mb-4">{t('edit.members')}</h2>
               <div className="flex items-center justify-between gap-2 mb-4">
@@ -398,7 +400,7 @@ export function EditOrganization({
               )}
             </>
           )}
-          {edit && (
+          {edit && !isPersonalSpace && (
             <>
             <h2 className="text-xl mt-6 mb-4">{t('edit.manage')}</h2>
               <div className="flex flex-row align-start space-x-2">
@@ -454,8 +456,6 @@ export function EditOrganization({
               </div>
             </>
           )}
-        </>
-      )}
       </PageContent>
     </div>
   );

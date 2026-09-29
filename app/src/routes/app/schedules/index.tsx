@@ -15,6 +15,7 @@ import { ListItemCard } from "@/components/shared/list-item-card";
 import { QuerySearchForm } from "@/components/shared/query-search-form";
 import { LoadMoreButton } from "@/components/shared/load-more";
 import { FiltersActiveNotice } from "@/components/shared/filters-active-notice";
+import { EmptyList } from "@/components/shared/empty-list";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useTranslation } from "react-i18next";
@@ -158,6 +159,9 @@ export function Schedules() {
             </li>
           )}
         </ul>
+        {!list.isLoading && list.results.length === 0 && (
+          <EmptyList className="mt-2" />
+        )}
       </PageContent>
     </>
   );

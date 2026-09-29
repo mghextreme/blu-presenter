@@ -17,9 +17,14 @@ export class UpdateOrganizationDto {
   @Min(1)
   id: number;
 
+  /**
+   * Optional so that organizations without a name (e.g. the personal space)
+   * can still update other fields (e.g. features) without renaming.
+   */
+  @IsOptional()
   @IsNotEmpty()
   @Length(2, 255)
-  name: string;
+  name?: string;
 
   @IsOptional()
   @IsArray()
