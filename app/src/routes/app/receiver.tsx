@@ -160,7 +160,7 @@ export function Receiver() {
   useEffect(() => {
     if (!session?.theme && !params.theme) return;
 
-    const toTheme = session?.theme ?? params.theme;
+    const toTheme = params.theme ?? session?.theme;
 
     switch (toTheme) {
       case 'lyrics':
@@ -184,7 +184,7 @@ export function Receiver() {
         }
         break;
     }
-  }, [themes, session]);
+  }, [themes, session, params]);
 
   return (
     <>
