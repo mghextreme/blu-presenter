@@ -16,8 +16,10 @@ export class Song {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  orgId: number;
+  @Column({
+    nullable: true,
+  })
+  orgId: number | null;
 
   @Column()
   title: string;
@@ -31,7 +33,7 @@ export class Song {
     type: 'char',
     length: 2,
   })
-  language: string;
+  language: string | null;
 
   @Column({
     type: 'json',
@@ -63,7 +65,7 @@ export class Song {
     type: 'varchar',
     length: 32,
   })
-  secret: string;
+  secret: string | null;
 
   @Column({ type: 'tsvector', select: false, insert: false, update: false })
   searchVector: string;

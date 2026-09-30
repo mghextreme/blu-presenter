@@ -15,6 +15,7 @@ import { AuthModule } from './auth/auth.module';
 import { ThemesModule } from './themes/themes.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { SchedulesModule } from './schedules/schedules.module';
+import { VcsSyncModule } from './vcs-sync/vcs-sync.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { RestOnlyThrottlerGuard } from './guards/rest-only-throttler.guard';
 
@@ -43,6 +44,7 @@ import { RestOnlyThrottlerGuard } from './guards/rest-only-throttler.guard';
     AuthModule,
     SessionsModule,
     SchedulesModule,
+    VcsSyncModule,
   ],
   exports: [TypeOrmModule],
   controllers: [AppController],
