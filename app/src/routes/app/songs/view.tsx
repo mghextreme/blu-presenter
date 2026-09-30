@@ -10,6 +10,7 @@ import { ControllerProvider } from "@/hooks/controller.provider";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { PreviewIcon } from "@/components/icons/preview";
 import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
+import { ExportSongDialog } from "@/components/app/songs/export-song-dialog";
 import { SongViewer } from "@/components/app/songs/song-viewer";
 import { OrganizationBar } from "@/components/app/organization-bar";
 import { pageContentColumn } from "@/components/shared/page-content";
@@ -61,6 +62,7 @@ export function ViewSong() {
           onClick={copyShareableUrlToClipboard}>
           <ShareIcon className="size-3" />
         </Button>
+        <ExportSongDialog songId={data.id} title={data.title} artist={data.artist} secret={params.secret} variant="default" />
         <Button
           type="button"
           size="sm"

@@ -65,6 +65,7 @@
     "preview": "Preview song",
     "print": "Print",
     "share": "Share",
+    "export": "Export song",
     "close": "Close",
     "increaseFont": "Increase font size",
     "resetFont": "Reset font size",
@@ -79,7 +80,9 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "back": "Back",
-    "continue": "Continue"
+    "continue": "Continue",
+    "download": "Download",
+    "copy": "Copy"
   },
   "list": {
     "title": "Songs"
@@ -118,11 +121,25 @@
     "share": {
       "title": "Link copied",
       "description": "A shareable link to the song has been copied to the clipboard."
+    },
+    "export": {
+      "title": "Export song",
+      "songDescription": "\"{{title}}\" by \"{{artist}}\"",
+      "loading": "Loading...",
+      "copiedTitle": "Copied",
+      "copiedDescription": "The data has been copied to the clipboard."
+    },
+    "import": {
+      "successTitle": "Song imported",
+      "successDescription": "The song was created from the exported text.",
+      "fallbackTitle": "BluPresenter format not recognized",
+      "fallbackDescription": "Continuing with the standard import flow."
     }
   },
   "error": {
     "deleteSong": "Error deleting song",
     "copyToOrganization": "Error copying song",
+    "export": "Error exporting song",
     "noPermission": "You don't have permission to access this song",
     "search": "Search failed"
   },

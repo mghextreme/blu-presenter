@@ -8,6 +8,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/**
+ * Slugifies a string the same way the API does for export filenames
+ * (NFD-normalize, strip diacritics, non-alphanumerics to dashes).
+ */
+export function slugify(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export function isTokenExpired(token: string | undefined | null): boolean {
   if (!token) return true;
   try {

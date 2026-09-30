@@ -65,6 +65,7 @@
     "preview": "Pré-visualizar música",
     "print": "Imprimir",
     "share": "Compartilhar",
+    "export": "Exportar música",
     "close": "Fechar",
     "increaseFont": "Aumentar fonte",
     "resetFont": "Redefinir fonte",
@@ -79,7 +80,9 @@
     "cancel": "Cancelar",
     "confirm": "Confirmar",
     "back": "Voltar",
-    "continue": "Continuar"
+    "continue": "Continuar",
+    "download": "Baixar",
+    "copy": "Copiar"
   },
   "list": {
     "title": "Músicas"
@@ -118,11 +121,25 @@
     "share": {
       "title": "Link copiado",
       "description": "Um link compartilhável para a música foi copiado para a área de transferência."
+    },
+    "export": {
+      "title": "Exportar música",
+      "songDescription": "\"{{title}}\" do artista \"{{artist}}\"",
+      "loading": "Carregando...",
+      "copiedTitle": "Copiado",
+      "copiedDescription": "Os dados foram copiados para a área de transferência."
+    },
+    "import": {
+      "successTitle": "Música importada",
+      "successDescription": "A música foi criada a partir do texto exportado.",
+      "fallbackTitle": "Formato BluPresenter não reconhecido",
+      "fallbackDescription": "Continuando com o fluxo de importação padrão."
     }
   },
   "error": {
     "deleteSong": "Erro ao remover música",
     "copyToOrganization": "Erro ao copiar música",
+    "export": "Erro ao exportar música",
     "noPermission": "Você não tem permissão para acessar esta música",
     "search": "Busca falhou"
   },
