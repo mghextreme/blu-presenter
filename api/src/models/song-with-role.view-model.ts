@@ -1,4 +1,4 @@
-import { SongPart } from 'src/entities';
+import { SongPart, SongReference } from 'src/entities';
 import { OrganizationRoleOptions } from 'src/types';
 
 export interface SongWithRoleViewModel {
@@ -7,6 +7,7 @@ export interface SongWithRoleViewModel {
   artist: string;
   language: string;
   blocks: SongPart[];
+  references: SongReference[];
   organization: {
     id: number;
     name: string;

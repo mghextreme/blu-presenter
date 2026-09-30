@@ -4,12 +4,20 @@ import {
   Delete,
   Get,
   Headers,
+  NotFoundException,
   Param,
   Post,
   Put,
   Query,
+  Res,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiHeader,
+  ApiProduces,
+} from '@nestjs/swagger';
+import { Response } from 'express';
 import { Song } from 'src/entities';
 import {
   SearchSongDto,
@@ -18,9 +26,11 @@ import {
   UpdateSongDto,
 } from 'src/types';
 import { SongsService } from './songs.service';
+import { SongTextFormatService } from './text-format/song-text-format.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
 import { SongWithRoleViewModel } from 'src/models/song-with-role.view-model';
 import { Public } from 'src/supabase/public.decorator';
+import { slugify } from 'src/utils/slug';
 
 @Controller('songs')
 @ApiTags('songs')
@@ -31,7 +41,10 @@ import { Public } from 'src/supabase/public.decorator';
   required: false,
 })
 export class SongsController {
-  constructor(private readonly songsService: SongsService) {}
+  constructor(
+    private readonly songsService: SongsService,
+    private readonly songTextFormat: SongTextFormatService,
+  ) {}
 
   @Public()
   @Get(':id')
@@ -40,6 +53,28 @@ export class SongsController {
     @Query('secret') secret?: string,
   ): Promise<SongWithRoleViewModel | null> {
     return await this.songsService.findOneInAnyOrgOrBySecret(id, secret);
+  }
+
+  @Public()
+  @Get(':id/export')
+  @ApiProduces('text/markdown')
+  async export(
+    @Param('id') id: number,
+    @Res() res: Response,
+    @Query('secret') secret?: string,
+  ): Promise<void> {
+    const song = await this.songsService.findOneInAnyOrgOrBySecret(id, secret);
+    if (!song) {
+      throw new NotFoundException();
+    }
+
+    const filename = `${slugify(`${song.artist}-${song.title}`) || `song-${song.id}`}.md`;
+    res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`,
+    );
+    res.send(this.songTextFormat.encode(song));
   }
 
   @Post(['search', 'advancedSearch'])

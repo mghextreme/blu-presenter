@@ -18,6 +18,13 @@ export class SongsService extends ApiService {
     });
   }
 
+  public async exportSong(songId: number, secret?: string): Promise<string> {
+    const hasSecret = secret && secret.length > 0;
+    const secretParam = hasSecret ? `?secret=${secret}` : '';
+
+    return await this.getTextRequest(`/songs/${songId}/export${secretParam}`);
+  }
+
   public async search(
     payload: {
       query?: string | undefined;

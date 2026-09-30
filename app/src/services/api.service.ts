@@ -89,6 +89,23 @@ export abstract class ApiService {
     return await this.internalFetch(path, 'GET', undefined, headers, refreshAuth);
   }
 
+  protected getTextRequest = async (path: string, headers: {[key: string]: string} = {}, refreshAuth: boolean = true): Promise<string> => {
+    const headersWithAuth = this.getHeaders(headers);
+    const response = await fetch(this.url + path, {
+      method: 'GET',
+      headers: headersWithAuth,
+    });
+
+    if (response.ok) {
+      return await response.text();
+    } else if (refreshAuth && (response.status === 401 || response.status === 403) && headersWithAuth['Authorization']) {
+      await this.refreshSession();
+      return await this.getTextRequest(path, headers, false);
+    } else {
+      throw new ApiError(response.status, `API Error: ${response.status}`, response)
+    }
+  }
+
   protected postRequest = async (path: string, body?: string, headers: {[key: string]: string} = {}, refreshAuth: boolean = true): Promise<any> => {
     return await this.internalFetch(path, 'POST', body, headers, refreshAuth);
   }
