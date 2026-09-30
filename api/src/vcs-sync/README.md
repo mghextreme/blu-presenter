@@ -26,7 +26,7 @@ GITHUB_TOKEN=github_pat_...
 
 Without a token GitHub allows only 60 requests/hour; with one, 5,000.
 
-## Creating a GitHub token
+### Creating a GitHub token
 
 1. Go to https://github.com/settings/personal-access-tokens/new
    (Settings → Developer settings → Personal access tokens → Fine-grained tokens).
@@ -75,7 +75,7 @@ Flags:
 | `--basePath` | Only files under this folder are considered (patterns match *relative to it*) |
 | `--public` / `--org <id>` | Target: public archive (`orgId IS NULL`) or an organization |
 | `--include` | Comma-separated allowlist globs (default `**/*.md`) |
-| `--exclude` | Comma-separated blocklist globs |
+| `--exclude` | Comma-separated blocklist globs (default `README.md`) |
 | `--actions` | What the sync may do: `add`, `update`, `remove` (default all three) |
 
 Pattern semantics: a path is synced when it matches **at least one include

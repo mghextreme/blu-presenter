@@ -60,7 +60,7 @@ describe('VcsSourcesService', () => {
         orgId: null,
         branch: 'main',
         includePatterns: ['**/*.md'],
-        excludePatterns: [],
+        excludePatterns: ['README.md'],
         allowedActions: ['add', 'update', 'remove'],
         enabled: true,
       });
