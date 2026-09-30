@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { z } from "zod";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import i18next from "i18next";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ import { SongSchema } from "@/types/schemas/song.schema";
 import { ImportSongSchema } from "@/types/schemas/import-song.schema";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useAuth } from "@/hooks/useAuth";
+import { useServices } from "@/hooks/useServices";
 import { ControllerProvider } from "@/hooks/controller.provider";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +20,7 @@ import { OrganizationBar, OptionalOrganization } from "@/components/app/organiza
 import { PageContent } from "@/components/shared/page-content";
 import { PreviewIcon } from "@/components/icons/preview";
 import { parseSongText } from "@/lib/songs";
+import { toast } from "sonner";
 
 export function ImportSong() {
 
@@ -38,6 +40,9 @@ export function ImportSong() {
 
   const [step, setStep] = useState<number>(1);
 
+  const navigate = useNavigate();
+  const { songsService } = useServices();
+
   const form = useForm<z.infer<typeof ImportSongSchema>>({
     resolver: zodResolver(ImportSongSchema),
     defaultValues: {
@@ -46,7 +51,26 @@ export function ImportSong() {
     },
   });
 
-  const onSubmitStep1 = (data: z.infer<typeof ImportSongSchema>) => {
+  const onSubmitStep1 = async (data: z.infer<typeof ImportSongSchema>) => {
+    const text = data.fullText.trim();
+    const orgId = selectedOrganizations[0]?.id;
+
+    if (text.startsWith('---') && !!orgId) {
+      const song = await songsService.importText(text, orgId).catch(() => null);
+
+      if (song) {
+        toast.success(t('message.import.successTitle'), {
+          description: t('message.import.successDescription'),
+        });
+        navigate(`/app/songs/${song.id}/edit`);
+        return;
+      }
+
+      toast.warning(t('message.import.fallbackTitle'), {
+        description: t('message.import.fallbackDescription'),
+      });
+    }
+
     const parsed = parseSongText(data.fullText);
     setInitialFormValues({
       id: 0,

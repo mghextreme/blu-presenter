@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -29,6 +30,11 @@ import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 import { SongWithRoleViewModel } from 'src/models/song-with-role.view-model';
 import { generateRandomSecret } from 'src/utils/secret';
+import {
+  SongExportData,
+  SongTextFormatError,
+  SongTextFormatService,
+} from './text-format/song-text-format.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class SongsService {
@@ -38,6 +44,7 @@ export class SongsService {
     private readonly organizationsService: OrganizationsService,
     @Inject(UsersService) private readonly usersService: UsersService,
     @Inject(REQUEST) private readonly request: ExpRequest,
+    private readonly songTextFormat: SongTextFormatService,
   ) {}
 
   private async findOne(orgId: number, id: number): Promise<Song | null> {
@@ -261,6 +268,26 @@ export class SongsService {
     const songId = result.raw[0].id;
 
     return this.findOne(orgId, songId);
+  }
+
+  async importText(orgId: number, text: string): Promise<Song> {
+    let data: SongExportData;
+    try {
+      data = this.songTextFormat.decode(text);
+    } catch (error) {
+      if (error instanceof SongTextFormatError) {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
+    }
+
+    return await this.create(orgId, {
+      title: data.title,
+      artist: data.artist,
+      language: data.language ?? undefined,
+      blocks: data.blocks,
+      references: data.references,
+    });
   }
 
   async update(

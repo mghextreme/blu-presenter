@@ -128,6 +128,12 @@
       "loading": "Loading...",
       "copiedTitle": "Copied",
       "copiedDescription": "The data has been copied to the clipboard."
+    },
+    "import": {
+      "successTitle": "Song imported",
+      "successDescription": "The song was created from the exported text.",
+      "fallbackTitle": "BluPresenter format not recognized",
+      "fallbackDescription": "Continuing with the standard import flow."
     }
   },
   "error": {

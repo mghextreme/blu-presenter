@@ -23,6 +23,7 @@ import {
   SearchSongDto,
   CopySongToOrganizationDto,
   CreateSongDto,
+  ImportSongTextDto,
   UpdateSongDto,
 } from 'src/types';
 import { SongsService } from './songs.service';
@@ -91,6 +92,15 @@ export class SongsController {
     @Body() createSongDto: CreateSongDto,
   ): Promise<Song> {
     return await this.songsService.create(orgId, createSongDto);
+  }
+
+  @Post('importText')
+  @OrganizationRole('owner', 'admin', 'member')
+  async importText(
+    @Headers('Organization') orgId: number,
+    @Body() importTextDto: ImportSongTextDto,
+  ): Promise<Song> {
+    return await this.songsService.importText(orgId, importTextDto.text);
   }
 
   @Post('copyToOrganization')

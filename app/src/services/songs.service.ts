@@ -25,6 +25,15 @@ export class SongsService extends ApiService {
     return await this.getTextRequest(`/songs/${songId}/export${secretParam}`);
   }
 
+  public async importText(text: string, orgId: number): Promise<ISong | null> {
+    const response = await this.postRequest('/songs/importText', JSON.stringify({ text }), {
+      'content-type': 'application/json',
+      'Organization': orgId.toString(),
+    }) as ISong;
+    this.clearCache();
+    return response;
+  }
+
   public async search(
     payload: {
       query?: string | undefined;
