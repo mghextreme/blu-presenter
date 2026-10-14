@@ -16,7 +16,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/jest/bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "sync:vcs": "ts-node -r tsconfig-paths/register src/scripts/sync-vcs.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.21",
@@ -39,6 +40,7 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.21.0",
+    "picomatch": "^4.0.7",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "socket.io": "^4.8.3",
@@ -54,6 +56,7 @@
     "@types/jest": "^29.5.14",
     "@types/node": "^22.19.19",
     "@types/passport-jwt": "^4.0.1",
+    "@types/picomatch": "^4.0.3",
     "@types/supertest": "^6.0.3",
     "@typescript-eslint/eslint-plugin": "^8.59.4",
     "@typescript-eslint/parser": "^8.59.4",

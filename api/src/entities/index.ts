@@ -8,3 +8,6 @@ export * from './song-reference.entity';
 export * from './song.entity';
 export * from './theme.entity';
 export * from './schedule.entity';
+export * from './vcs-source.entity';
+export * from './song-vcs-file.entity';
+export * from './vcs-sync-run.entity';
