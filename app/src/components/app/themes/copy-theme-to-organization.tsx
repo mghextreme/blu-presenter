@@ -52,6 +52,9 @@ export function CopyThemeToOrganization({
 
     setLoading(true);
     themesService.copyToOrganization(themeId, selectedOrg, sourceOrgId)
+      .then(() => {
+        toast.success(t('message.copyToOrganization.success'));
+      })
       .catch((e) => {
         toast.error(t('error.copyToOrganization'), {
           description: e?.message || '',

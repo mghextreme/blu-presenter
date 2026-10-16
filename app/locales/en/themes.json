@@ -79,7 +79,12 @@
   },
   "add": {
     "title": "Add theme",
-    "to": "Add theme to:"
+    "to": "Add theme to:",
+    "noOrganization": {
+      "title": "You can't add themes",
+      "description": "Themes are disabled for all of your organizations, or you don't have permissions to create them. An admin can enable Themes in the organization settings, or you can create a new organization.",
+      "create": "New organization"
+    }
   },
   "edit": {
     "title": "Edit theme"
@@ -134,13 +139,15 @@
       "selectOrg": "Select organization",
       "searchOrgs": "Search organizations",
       "noOrgFound": "No organization found",
-      "defaultName": "Personal space"
+      "defaultName": "Personal space",
+      "success": "Theme copied to organization"
     }
   },
   "error": {
     "deleteTheme": "Error deleting theme",
     "copyToOrganization": "Error copying theme",
     "noPermission": "You don't have permission to access this theme",
+    "save": "Error saving theme",
     "search": "Error searching themes"
   }
 }

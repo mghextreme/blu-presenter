@@ -20,6 +20,8 @@ import { ThemeSchema } from "@/types/schemas/theme.schema";
 import { ThemeConfigForm } from "@/components/app/themes/theme-config-form";
 import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
 import { PageContent } from "@/components/shared/page-content";
+import { NoOrganizationNotice } from "@/components/shared/no-organization-notice";
+import { toast } from "sonner";
 
 type EditThemeProps = {
   edit?: boolean
@@ -64,10 +66,6 @@ export function EditTheme({
     throw new Error(t('error.noPermission'));
   }
 
-  if (!edit && organizationsToAddTo.length === 0) {
-    throw new Error(t('error.noPermission'));
-  }
-
   const organizationId = edit ? data.organization?.id : selectedOrganizations[0]?.id;
 
   const form = useForm<z.infer<typeof ThemeSchema>>({
@@ -102,6 +100,20 @@ export function EditTheme({
 
   const [isLoading, setLoading] = useState<boolean>(false);
 
+  if (!edit && organizationsToAddTo.length === 0) {
+    return (
+      <>
+        <title>{t('title.add') + ' - BluPresenter'}</title>
+        <NoOrganizationNotice
+          title={t('add.noOrganization.title')}
+          description={t('add.noOrganization.description')}
+          actionLabel={t('add.noOrganization.create')}
+          actionTo="/app/organizations/add"
+        />
+      </>
+    );
+  }
+
   const onSubmit = async (values: z.infer<typeof ThemeSchema>) => {
     if (!organizationId) return;
 
@@ -118,6 +130,7 @@ export function EditTheme({
       })
       .catch((err) => {
         console.error(err);
+        toast.error(t('error.save'));
       })
       .finally(() => {
         setLoading(false);

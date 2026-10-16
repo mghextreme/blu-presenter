@@ -18,6 +18,7 @@ import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import { TFunction } from "i18next";
 import { SongEditor, SongEditorHandle } from "@/components/app/songs/song-editor";
 import { SongSchema } from "@/types/schemas/song.schema";
+import { toast } from "sonner";
 import { z } from "zod";
 import { EditSongReferences } from "@/components/app/songs/edit-references";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -117,6 +118,7 @@ const EditSongFormContent = forwardRef<EditSongFormHandle, EditSongFormProps>((
       })
       .catch((err) => {
         console.error(err);
+        toast.error(t('error.save'));
       })
       .finally(() => {
         setLoading(false);

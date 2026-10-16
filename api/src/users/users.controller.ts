@@ -53,6 +53,7 @@ export class UsersController {
         id: item.organization.id,
         name: item.organization.name,
         role: item.role,
+        disabledFeatures: item.organization.disabledFeatures,
       } as OrganizationUserViewModel;
     });
   }

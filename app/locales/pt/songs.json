@@ -116,7 +116,8 @@
       "selectOrg": "Selecione uma organização",
       "searchOrgs": "Pesquisar organizações...",
       "noOrgFound": "Nenhuma organização encontrada",
-      "defaultName": "Espaço pessoal"
+      "defaultName": "Espaço individual",
+      "success": "Música copiada para a organização"
     },
     "share": {
       "title": "Link copiado",
@@ -141,6 +142,7 @@
     "copyToOrganization": "Erro ao copiar música",
     "export": "Erro ao exportar música",
     "noPermission": "Você não tem permissão para acessar esta música",
+    "save": "Erro ao salvar música",
     "search": "Busca falhou"
   },
   "warning": {

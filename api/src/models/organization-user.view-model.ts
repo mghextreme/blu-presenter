@@ -1,7 +1,9 @@
-import { OrganizationRoleOptions } from 'src/types';
+import { OrganizationFeature, OrganizationRoleOptions } from 'src/types';
 
 export interface OrganizationUserViewModel {
   id: number;
-  name: string;
+  /** Optional so that personal spaces (organizations without a name) map correctly. */
+  name?: string;
   role: OrganizationRoleOptions;
+  disabledFeatures?: OrganizationFeature[];
 }
