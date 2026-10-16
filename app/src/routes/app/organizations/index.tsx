@@ -143,7 +143,7 @@ export function EditOrganization({
   }
 
   const memberQueryLower = memberQuery.trim().toLowerCase();
-  const filteredUsers = (loadedData.users ?? []).filter((member) =>
+  const filteredUsers = (loadedData?.users ?? []).filter((member) =>
     !memberQueryLower
     || member.name?.toLowerCase().includes(memberQueryLower)
     || member.email?.toLowerCase().includes(memberQueryLower));
