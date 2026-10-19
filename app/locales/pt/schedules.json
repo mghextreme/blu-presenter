@@ -30,11 +30,20 @@
     "title": "Programações"
   },
   "search": {
-    "placeholder": "Buscar programações..."
+    "placeholder": "Buscar programações...",
+    "dateRange": {
+      "placeholder": "Filtrar por data...",
+      "clear": "Limpar filtro de datas"
+    }
   },
   "add": {
     "title": "Adicionar programação",
-    "to": "Adicionar programação em:"
+    "to": "Adicionar programação em:",
+    "noOrganization": {
+      "title": "Não é possível adicionar programações",
+      "description": "As programações estão desativadas em todas as suas organizações, ou você não tem permissões para criá-las. Um administrador pode ativar Programações nas configurações da organização, ou você pode criar uma nova organização.",
+      "create": "Nova organização"
+    }
   },
   "edit": {
     "title": "Editar programação"
@@ -56,11 +65,12 @@
     "date": "Data"
   },
   "organizations": {
-    "defaultName": "Espaço pessoal"
+    "defaultName": "Espaço individual"
   },
   "error": {
     "deleteSchedule": "Erro ao remover programação",
     "noPermission": "Você não tem permissão para gerenciar programações",
+    "save": "Erro ao salvar programação",
     "search": "Erro ao buscar programações"
   },
   "message": {

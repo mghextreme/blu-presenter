@@ -15,11 +15,13 @@ import { PlanPanel } from "@/components/controller/plan-panel";
 import { SchedulePanel } from "@/components/controller/schedule-panel";
 import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
 import { PageContent } from "@/components/shared/page-content";
+import { NoOrganizationNotice } from "@/components/shared/no-organization-notice";
 import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
 import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
@@ -67,10 +69,6 @@ export function EditSchedule({
     throw new Error(t('error.noPermission'));
   }
 
-  if (!edit && organizationsToAddTo.length === 0) {
-    throw new Error(t('error.noPermission'));
-  }
-
   const organizationId = edit ? data.organization?.id : selectedOrganizations[0]?.id;
 
   const form = useForm<z.infer<typeof ScheduleSchema>>({
@@ -81,6 +79,20 @@ export function EditSchedule({
       date: data.date || '',
     },
   });
+
+  if (!edit && organizationsToAddTo.length === 0) {
+    return (
+      <>
+        <title>{t('title.add') + ' - BluPresenter'}</title>
+        <NoOrganizationNotice
+          title={t('add.noOrganization.title')}
+          description={t('add.noOrganization.description')}
+          actionLabel={t('add.noOrganization.create')}
+          actionTo="/app/organizations/add"
+        />
+      </>
+    );
+  }
 
   return (
     <>
@@ -191,6 +203,7 @@ function EditScheduleForm({
       })
       .catch((err) => {
         console.error(err);
+        toast.error(t('error.save'));
       })
       .finally(() => {
         setLoading(false);

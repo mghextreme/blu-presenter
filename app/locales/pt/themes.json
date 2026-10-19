@@ -79,7 +79,12 @@
   },
   "add": {
     "title": "Adicionar tema",
-    "to": "Adicionar tema a:"
+    "to": "Adicionar tema a:",
+    "noOrganization": {
+      "title": "Não é possível adicionar temas",
+      "description": "Os temas estão desativados em todas as suas organizações, ou você não tem permissões para criá-los. Um administrador pode ativar Temas nas configurações da organização, ou você pode criar uma nova organização.",
+      "create": "Nova organização"
+    }
   },
   "edit": {
     "title": "Editar tema"
@@ -121,7 +126,7 @@
     "24withSeconds": "24 horas com segundos"
   },
   "organizations": {
-    "defaultName": "Espaço pessoal"
+    "defaultName": "Espaço individual"
   },
   "message": {
     "deleteTheme": {
@@ -134,13 +139,15 @@
       "selectOrg": "Selecione uma organização",
       "searchOrgs": "Pesquisar organizações...",
       "noOrgFound": "Nenhuma organização encontrada",
-      "defaultName": "Espaço pessoal"
+      "defaultName": "Espaço individual",
+      "success": "Tema copiado para a organização"
     }
   },
   "error": {
     "deleteTheme": "Erro ao remover tema",
     "copyToOrganization": "Erro ao copiar tema",
     "noPermission": "Você não tem permissão para acessar este tema",
+    "save": "Erro ao salvar tema",
     "search": "Erro ao buscar temas"
   }
 }

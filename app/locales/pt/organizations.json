@@ -96,6 +96,10 @@
     "copyToClipboard": "Erro ao copiar para a área de transferência",
     "inviteMember": "Erro ao convidar membro",
     "editMember": "Erro ao atualizar membro",
+    "removeMember": "Erro ao remover membro",
+    "removeInvitation": "Erro ao remover convite",
+    "leaveOrganization": "Erro ao sair da organização",
+    "deleteOrganization": "Erro ao remover organização",
     "noPermissions": "Sem permissões suficientes"
   },
   "message": {

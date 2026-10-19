@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { format, parse } from "date-fns";
 import { useServices } from "@/hooks/useServices";
 import { useController } from "@/hooks/useController";
+import { useFilteredList } from "@/hooks/use-filtered-list";
 import { ISchedule } from "@/types";
 import { getLocaleConfig } from "@/components/ui/date-picker";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { QuerySearchForm } from "@/components/shared/query-search-form";
 import { LoadMoreButton } from "@/components/shared/load-more";
-import { PAGE_SIZE } from "@/lib/pagination";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Card, CardContent, CardDescription, CardHeader, CardHeaderActions, CardHeaderText, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -29,43 +30,14 @@ export function PlanSchedules() {
   const { schedulesService, songsService } = useServices();
   const { schedule, replaceSchedule } = useController();
 
-  const [allSchedules, setAllSchedules] = useState<ISchedule[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [search, setSearch] = useState("");
-  const pageRef = useRef<number>(1);
+  const list = useFilteredList<ISchedule>({
+    auto: true,
+    search: (payload) => schedulesService.search(payload),
+  });
 
   const lang = i18n.language?.substring(0, 2) ?? "en";
   const { dateFns, formatStr } = getLocaleConfig(lang);
   const todayString = getTodayString();
-
-  useEffect(() => {
-    setLoading(true);
-    schedulesService
-      .search({})
-      .then((data) => {
-        pageRef.current = 1;
-        setAllSchedules(data ?? []);
-        setHasMore((data?.length ?? 0) === PAGE_SIZE);
-      })
-      .catch(() => setAllSchedules([]))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const handleLoadMore = () => {
-    setLoadingMore(true);
-    const nextPage = pageRef.current + 1;
-    schedulesService
-      .search({ page: nextPage })
-      .then((data) => {
-        pageRef.current = nextPage;
-        setAllSchedules((prev) => [...prev, ...(data ?? [])]);
-        setHasMore((data?.length ?? 0) === PAGE_SIZE);
-      })
-      .catch(() => { /* keep current results */ })
-      .finally(() => setLoadingMore(false));
-  };
 
   const formatDate = (dateStr: string | null | undefined): string => {
     if (!dateStr) return "";
@@ -77,24 +49,10 @@ export function PlanSchedules() {
     }
   };
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return allSchedules;
-
-    const query = search.toLowerCase();
-    return allSchedules.filter((s) => {
-      const titleMatch = s.title.toLowerCase().includes(query);
-      const dateMatch = s.date
-        ? formatDate(s.date).toLowerCase().includes(query) ||
-          s.date.toLowerCase().includes(query)
-        : false;
-      return titleMatch || dateMatch;
-    });
-  }, [allSchedules, search, lang]);
-
   const { todaySchedules, otherSchedules } = useMemo(() => {
     const today: ISchedule[] = [];
     const other: ISchedule[] = [];
-    for (const s of filtered) {
+    for (const s of list.results) {
       if (s.date === todayString) {
         today.push(s);
       } else {
@@ -102,7 +60,7 @@ export function PlanSchedules() {
       }
     }
     return { todaySchedules: today, otherSchedules: other };
-  }, [filtered, todayString]);
+  }, [list.results, todayString]);
 
   const handleLoad = async (scheduleId: number) => {
     const fullSchedule = await schedulesService.fetchById(scheduleId);
@@ -115,21 +73,28 @@ export function PlanSchedules() {
 
   return (
     <div className="flex flex-col h-full gap-3">
-      <Input
+      <QuerySearchForm
+        onSearch={list.setQuery}
+        isLoading={list.isLoading}
         placeholder={t("plan.schedules.search")}
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        debounceMs={300}
+      />
+      <DateRangePicker
+        value={list.dateRange}
+        onChange={list.setDateRange}
+        placeholder={t("plan.schedules.dateRange.placeholder")}
+        clearLabel={t("plan.schedules.dateRange.clear")}
       />
       <div className="flex-1 overflow-y-auto">
-        {loading && (
+        {list.isLoading && list.results.length === 0 && (
           <div className="text-sm text-muted-foreground text-center py-4">...</div>
         )}
-        {!loading && filtered.length === 0 && (
+        {!list.isLoading && list.results.length === 0 && (
           <div className="text-sm text-muted-foreground text-center py-4">
             {t("plan.schedules.noResults")}
           </div>
         )}
-        {!loading && (
+        {list.results.length > 0 && (
           <div className="flex flex-col gap-3">
             {todaySchedules.length > 0 && (
               <>
@@ -162,8 +127,8 @@ export function PlanSchedules() {
                 t={t}
               />
             ))}
-            {hasMore && (
-              <LoadMoreButton onClick={handleLoadMore} isLoading={loadingMore} />
+            {list.hasMore && (
+              <LoadMoreButton onClick={list.loadMore} isLoading={list.isLoading} />
             )}
           </div>
         )}

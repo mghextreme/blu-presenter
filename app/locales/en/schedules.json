@@ -30,11 +30,20 @@
     "title": "Schedules"
   },
   "search": {
-    "placeholder": "Search schedules..."
+    "placeholder": "Search schedules...",
+    "dateRange": {
+      "placeholder": "Filter by date...",
+      "clear": "Clear date filter"
+    }
   },
   "add": {
     "title": "Add schedule",
-    "to": "Add schedule to:"
+    "to": "Add schedule to:",
+    "noOrganization": {
+      "title": "You can't add schedules",
+      "description": "Schedules are disabled for all of your organizations, or you don't have permissions to create them. An admin can enable Schedules in the organization settings, or you can create a new organization.",
+      "create": "New organization"
+    }
   },
   "edit": {
     "title": "Edit schedule"
@@ -61,6 +70,7 @@
   "error": {
     "deleteSchedule": "Error deleting schedule",
     "noPermission": "You don't have permission to manage schedules",
+    "save": "Error saving schedule",
     "search": "Error searching schedules"
   },
   "message": {

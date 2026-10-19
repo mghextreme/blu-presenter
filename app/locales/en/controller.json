@@ -53,6 +53,10 @@
     },
     "schedules": {
       "search": "Search schedules...",
+      "dateRange": {
+        "placeholder": "Filter by date...",
+        "clear": "Clear date filter"
+      },
       "today": "Today",
       "load": "Load schedule",
       "noResults": "No schedules found",

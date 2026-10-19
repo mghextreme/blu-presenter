@@ -116,7 +116,8 @@
       "selectOrg": "Select organization",
       "searchOrgs": "Search organizations",
       "noOrgFound": "No organization found",
-      "defaultName": "Personal space"
+      "defaultName": "Personal space",
+      "success": "Song copied to organization"
     },
     "share": {
       "title": "Link copied",
@@ -141,6 +142,7 @@
     "copyToOrganization": "Error copying song",
     "export": "Error exporting song",
     "noPermission": "You don't have permission to access this song",
+    "save": "Error saving song",
     "search": "Search failed"
   },
   "warning": {

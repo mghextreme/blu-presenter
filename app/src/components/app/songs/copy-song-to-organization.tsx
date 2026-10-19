@@ -53,6 +53,9 @@ export function CopySongToOrganization({
 
     setLoading(true);
     songsService.copyToOrganization(songId, selectedOrg, sourceOrgId)
+      .then(() => {
+        toast.success(t('message.copyToOrganization.success'));
+      })
       .catch((e) => {
         toast.error(t('error.copyToOrganization'), {
           description: e?.message || '',

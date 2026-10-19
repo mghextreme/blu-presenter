@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { In } from 'typeorm';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { SchedulesService } from '../schedules.service';
 import { Schedule, Song } from '../../entities';
@@ -32,7 +35,6 @@ describe('SchedulesService', () => {
   };
 
   const mockSchedulesRepository = {
-    find: jest.fn(),
     findOne: jest.fn(),
     findOneBy: jest.fn(),
     insert: jest.fn(),
@@ -53,6 +55,42 @@ describe('SchedulesService', () => {
     isFeatureEnabledInOrg: jest.fn().mockResolvedValue(true),
     assertFeatureEnabled: jest.fn().mockResolvedValue(undefined),
   };
+
+  type QueryBuilderMock = ReturnType<typeof mockQueryBuilder>;
+
+  const mockQueryBuilder = () => {
+    const builder: {
+      select: jest.Mock;
+      addSelect: jest.Mock;
+      leftJoin: jest.Mock;
+      where: jest.Mock;
+      andWhere: jest.Mock;
+      orderBy: jest.Mock;
+      addOrderBy: jest.Mock;
+      skip: jest.Mock;
+      take: jest.Mock;
+      getMany: jest.Mock;
+    } = {
+      select: jest.fn(),
+      addSelect: jest.fn(),
+      leftJoin: jest.fn(),
+      where: jest.fn(),
+      andWhere: jest.fn(),
+      orderBy: jest.fn(),
+      addOrderBy: jest.fn(),
+      skip: jest.fn(),
+      take: jest.fn(),
+      getMany: jest.fn(),
+    };
+    for (const method of Object.keys(builder)) {
+      if (method === 'getMany') continue;
+      builder[method as keyof typeof builder].mockReturnValue(builder);
+    }
+    builder.getMany.mockResolvedValue([]);
+    return builder;
+  };
+
+  let queryBuilder: QueryBuilderMock;
 
   const buildModule = async (
     request: any = mockRequest,
@@ -84,6 +122,9 @@ describe('SchedulesService', () => {
     }).compile();
 
   beforeEach(async () => {
+    queryBuilder = mockQueryBuilder();
+    mockSchedulesRepository.createQueryBuilder.mockReturnValue(queryBuilder);
+
     const module = await buildModule();
     service = await module.resolve<SchedulesService>(SchedulesService);
   });
@@ -103,7 +144,7 @@ describe('SchedulesService', () => {
         { organization: { id: 2, name: 'Guest Org' }, role: 'guest' },
       ]);
       const schedules = [mockSchedule({ id: 10, orgId: 1 })];
-      mockSchedulesRepository.find.mockResolvedValue(schedules);
+      queryBuilder.getMany.mockResolvedValue(schedules);
 
       const result = await service.search({});
 
@@ -113,10 +154,9 @@ describe('SchedulesService', () => {
           organization: { id: 1, name: 'Member Org', role: 'member' },
         },
       ]);
-      expect(mockSchedulesRepository.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({ orgId: In([1, 2]) }),
-        }),
+      expect(queryBuilder.where).toHaveBeenCalledWith(
+        '"schedule"."orgId" IN (:...orgIds)',
+        { orgIds: [1, 2] },
       );
     });
 
@@ -125,14 +165,12 @@ describe('SchedulesService', () => {
         { organization: { id: 1, name: 'Member Org' }, role: 'member' },
         { organization: { id: 2, name: 'Guest Org' }, role: 'guest' },
       ]);
-      mockSchedulesRepository.find.mockResolvedValue([]);
 
       await service.search({ organizations: [2] });
 
-      expect(mockSchedulesRepository.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({ orgId: In([2]) }),
-        }),
+      expect(queryBuilder.where).toHaveBeenCalledWith(
+        '"schedule"."orgId" IN (:...orgIds)',
+        { orgIds: [2] },
       );
     });
 
@@ -152,14 +190,14 @@ describe('SchedulesService', () => {
       const result = await service.search({});
 
       expect(result).toEqual([]);
-      expect(mockSchedulesRepository.find).not.toHaveBeenCalled();
+      expect(mockSchedulesRepository.createQueryBuilder).not.toHaveBeenCalled();
     });
 
     it('should map the user role into each schedule organization', async () => {
       mockUsersService.findUserOrganizations.mockResolvedValue([
         { organization: { id: 1, name: 'Guest Org' }, role: 'guest' },
       ]);
-      mockSchedulesRepository.find.mockResolvedValue([
+      queryBuilder.getMany.mockResolvedValue([
         mockSchedule({ id: 10, orgId: 1 }),
       ]);
 
@@ -170,6 +208,91 @@ describe('SchedulesService', () => {
         name: 'Guest Org',
         role: 'guest',
       });
+    });
+
+    it('should filter by title when a query is given', async () => {
+      mockUsersService.findUserOrganizations.mockResolvedValue([
+        { organization: { id: 1, name: 'Member Org' }, role: 'member' },
+      ]);
+
+      await service.search({ query: 'worship' });
+
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        '"schedule"."title" ILIKE :query',
+        { query: '%worship%' },
+      );
+    });
+
+    it('should not filter by title when no query is given', async () => {
+      mockUsersService.findUserOrganizations.mockResolvedValue([
+        { organization: { id: 1, name: 'Member Org' }, role: 'member' },
+      ]);
+
+      await service.search({});
+
+      expect(queryBuilder.andWhere).not.toHaveBeenCalled();
+    });
+
+    it('should filter by both date range bounds when given', async () => {
+      mockUsersService.findUserOrganizations.mockResolvedValue([
+        { organization: { id: 1, name: 'Member Org' }, role: 'member' },
+      ]);
+
+      await service.search({ dateFrom: '2026-01-01', dateTo: '2026-01-31' });
+
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        '"schedule"."date" >= :dateFrom',
+        { dateFrom: '2026-01-01' },
+      );
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        '"schedule"."date" <= :dateTo',
+        { dateTo: '2026-01-31' },
+      );
+    });
+
+    it('should filter by only the bound that is given', async () => {
+      mockUsersService.findUserOrganizations.mockResolvedValue([
+        { organization: { id: 1, name: 'Member Org' }, role: 'member' },
+      ]);
+
+      await service.search({ dateFrom: '2026-01-01' });
+
+      expect(queryBuilder.andWhere).toHaveBeenCalledTimes(1);
+      expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+        '"schedule"."date" >= :dateFrom',
+        { dateFrom: '2026-01-01' },
+      );
+    });
+
+    it('should throw BadRequestException when the date range is inverted', async () => {
+      mockUsersService.findUserOrganizations.mockResolvedValue([
+        { organization: { id: 1, name: 'Member Org' }, role: 'member' },
+      ]);
+
+      await expect(
+        service.search({ dateFrom: '2026-02-01', dateTo: '2026-01-01' }),
+      ).rejects.toThrow(BadRequestException);
+      expect(queryBuilder.where).not.toHaveBeenCalled();
+    });
+
+    it('should order by the date with a creation date fallback and paginate', async () => {
+      mockUsersService.findUserOrganizations.mockResolvedValue([
+        { organization: { id: 1, name: 'Member Org' }, role: 'member' },
+      ]);
+
+      await service.search({ page: 2, itemsPerPage: 10 });
+
+      expect(queryBuilder.addSelect).toHaveBeenCalledWith(
+        'COALESCE("schedule"."date", CAST("schedule"."createdAt" AS DATE))',
+        'date_sort',
+      );
+      expect(queryBuilder.orderBy).toHaveBeenCalledWith('date_sort', 'DESC');
+      expect(queryBuilder.addOrderBy).toHaveBeenCalledWith(
+        'schedule.id',
+        'DESC',
+      );
+      expect(queryBuilder.skip).toHaveBeenCalledWith(10);
+      expect(queryBuilder.take).toHaveBeenCalledWith(10);
     });
   });
 
@@ -186,14 +309,12 @@ describe('SchedulesService', () => {
           role: 'member',
         },
       ]);
-      mockSchedulesRepository.find.mockResolvedValue([]);
 
       await service.search({});
 
-      expect(mockSchedulesRepository.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({ orgId: In([1]) }),
-        }),
+      expect(queryBuilder.where).toHaveBeenCalledWith(
+        '"schedule"."orgId" IN (:...orgIds)',
+        { orgIds: [1] },
       );
     });
 
@@ -209,14 +330,12 @@ describe('SchedulesService', () => {
           role: 'owner',
         },
       ]);
-      mockSchedulesRepository.find.mockResolvedValue([]);
 
       await service.search({ organizations: [1, 2] });
 
-      expect(mockSchedulesRepository.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({ orgId: In([1]) }),
-        }),
+      expect(queryBuilder.where).toHaveBeenCalledWith(
+        '"schedule"."orgId" IN (:...orgIds)',
+        { orgIds: [1] },
       );
     });
 

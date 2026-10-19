@@ -10,6 +10,8 @@ export class SchedulesService extends ApiService {
   public async search(payload: {
     query?: string;
     organizations?: number[];
+    dateFrom?: string;
+    dateTo?: string;
     page?: number;
     itemsPerPage?: number;
   }): Promise<ISchedule[]> {

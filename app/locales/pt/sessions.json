@@ -31,7 +31,12 @@
   },
   "add": {
     "title": "Adicionar sessão",
-    "to": "Adicionar sessão em:"
+    "to": "Adicionar sessão em:",
+    "noOrganization": {
+      "title": "Não é possível adicionar sessões",
+      "description": "As sessões estão desativadas em todas as suas organizações, ou você não tem permissões para criá-las. Um administrador pode ativar Sessões nas configurações da organização, ou você pode criar uma nova organização.",
+      "create": "Nova organização"
+    }
   },
   "edit": {
     "title": "Editar sessão"
@@ -48,12 +53,13 @@
     "defaultName": "Principal"
   },
   "organizations": {
-    "defaultName": "Espaço pessoal"
+    "defaultName": "Espaço individual"
   },
   "error": {
     "deleteTheme": "Erro ao remover sessão",
     "deleteSession": "Erro ao remover sessão",
     "noPermission": "Você não tem permissão para acessar esta sessão",
+    "save": "Erro ao salvar sessão",
     "search": "Erro ao buscar sessões"
   },
   "language": {

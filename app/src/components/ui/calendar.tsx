@@ -199,6 +199,9 @@ function CalendarDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
+      // Day buttons may render inside forms (e.g. date pickers embedded in
+      // QuerySearchForm); without an explicit type they would submit it.
+      type="button"
       data-day={day.date.toLocaleDateString(locale?.code)}
       data-selected-single={
         modifiers.selected &&

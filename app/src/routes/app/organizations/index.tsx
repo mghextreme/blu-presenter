@@ -118,6 +118,10 @@ export function EditOrganization({
       await organizationsService.leave(data.id);
       setOrganizationById();
       navigate("/app", { replace: true });
+    } catch (e: any) {
+      toast.error(t('error.leaveOrganization'), {
+        description: e?.message || '',
+      });
     } finally {
       setLoading(false);
     }
@@ -129,13 +133,17 @@ export function EditOrganization({
       await organizationsService.delete(data.id);
       setOrganizationById();
       navigate("/app", { replace: true });
+    } catch (e: any) {
+      toast.error(t('error.deleteOrganization'), {
+        description: e?.message || '',
+      });
     } finally {
       setLoading(false);
     }
   }
 
   const memberQueryLower = memberQuery.trim().toLowerCase();
-  const filteredUsers = (loadedData.users ?? []).filter((member) =>
+  const filteredUsers = (loadedData?.users ?? []).filter((member) =>
     !memberQueryLower
     || member.name?.toLowerCase().includes(memberQueryLower)
     || member.email?.toLowerCase().includes(memberQueryLower));
@@ -163,7 +171,7 @@ export function EditOrganization({
               await organizationsService.removeMember(member.id, data.id);
               revalidate();
             } catch (e: any) {
-              toast.error(t('actions.removeMember'), {
+              toast.error(t('error.removeMember'), {
                 description: e?.message || '',
               });
             }
@@ -210,7 +218,7 @@ export function EditOrganization({
               await organizationsService.cancelInvitation(invitation.id, data.id);
               revalidate();
             } catch (e: any) {
-              toast.error(t('actions.removeInvitation'), {
+              toast.error(t('error.removeInvitation'), {
                 description: e?.message || '',
               });
             }

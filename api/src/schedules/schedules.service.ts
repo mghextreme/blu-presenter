@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Inject,
   Injectable,
@@ -7,7 +8,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, In, IsNull, Or, Repository } from 'typeorm';
+import { In, IsNull, Or, Repository } from 'typeorm';
 import {
   CreateScheduleDto,
   IScheduleItem,
@@ -88,34 +89,70 @@ export class SchedulesService {
     const pageSize = searchDto.itemsPerPage ?? 20;
     const page = searchDto.page ?? 1;
 
-    const schedules = await this.schedulesRepository.find({
-      select: {
-        id: true,
-        orgId: true,
-        title: true,
-        date: true,
-        secret: true,
-        createdBy: true,
-        createdAt: true,
-        updatedAt: true,
-        organization: {
-          id: true,
-          name: true,
-        },
-      },
-      relations: {
-        organization: true,
-      },
-      where: {
-        orgId: In(orgIds),
-        ...(searchDto.query ? { title: ILike(`%${searchDto.query}%`) } : {}),
-      },
-      order: {
-        createdAt: 'DESC',
-      },
-      skip: pageSize * (page - 1),
-      take: pageSize,
-    });
+    if (
+      searchDto.dateFrom &&
+      searchDto.dateTo &&
+      searchDto.dateFrom > searchDto.dateTo
+    ) {
+      throw new BadRequestException(
+        'dateFrom must be earlier than or equal to dateTo',
+      );
+    }
+
+    const queryBuilder = this.schedulesRepository
+      .createQueryBuilder('schedule')
+      .select([
+        'schedule.id',
+        'schedule.orgId',
+        'schedule.title',
+        'schedule.date',
+        'schedule.secret',
+        'schedule.createdBy',
+        'schedule.createdAt',
+        'schedule.updatedAt',
+        'organization.id',
+        'organization.name',
+      ])
+      .leftJoin('schedule.organization', 'organization')
+      .where('"schedule"."orgId" IN (:...orgIds)', { orgIds });
+
+    // The sort key is selected under an alias because ORDER BY expressions
+    // cannot reference raw SQL when the query is paginated and joined
+    // (TypeORM then applies ordering through a "distinctAlias" subquery,
+    // which only accepts entity property paths or select aliases). The
+    // alias is lowercase so Postgres resolves it case-insensitively in the
+    // non-paginated path too.
+    queryBuilder.addSelect(
+      'COALESCE("schedule"."date", CAST("schedule"."createdAt" AS DATE))',
+      'date_sort',
+    );
+
+    if (searchDto.query) {
+      queryBuilder.andWhere('"schedule"."title" ILIKE :query', {
+        query: `%${searchDto.query}%`,
+      });
+    }
+
+    if (searchDto.dateFrom) {
+      queryBuilder.andWhere('"schedule"."date" >= :dateFrom', {
+        dateFrom: searchDto.dateFrom,
+      });
+    }
+
+    if (searchDto.dateTo) {
+      queryBuilder.andWhere('"schedule"."date" <= :dateTo', {
+        dateTo: searchDto.dateTo,
+      });
+    }
+
+    // Sort by the schedule date, falling back to the creation date when the
+    // schedule has no date set.
+    const schedules = await queryBuilder
+      .orderBy('date_sort', 'DESC')
+      .addOrderBy('schedule.id', 'DESC')
+      .skip(pageSize * (page - 1))
+      .take(pageSize)
+      .getMany();
 
     const userOrgsMap: { [key: number]: Partial<OrganizationUser> } = {};
     for (const org of userOrgs) {

@@ -31,7 +31,12 @@
   },
   "add": {
     "title": "Add session",
-    "to": "Add session to:"
+    "to": "Add session to:",
+    "noOrganization": {
+      "title": "You can't add sessions",
+      "description": "Sessions are disabled for all of your organizations, or you don't have permissions to create them. An admin can enable Sessions in the organization settings, or you can create a new organization.",
+      "create": "New organization"
+    }
   },
   "edit": {
     "title": "Edit session"
@@ -54,6 +59,7 @@
     "deleteTheme": "Error deleting session",
     "deleteSession": "Error deleting session",
     "noPermission": "You don't have permission to access this session",
+    "save": "Error saving session",
     "search": "Error searching sessions"
   },
   "language": {

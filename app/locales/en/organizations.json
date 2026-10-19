@@ -96,6 +96,10 @@
     "copyToClipboard": "Failed to copy to clipboard",
     "inviteMember": "Failed to invite member",
     "editMember": "Failed to update member",
+    "removeMember": "Failed to remove member",
+    "removeInvitation": "Failed to remove invitation",
+    "leaveOrganization": "Failed to leave organization",
+    "deleteOrganization": "Failed to delete organization",
     "noPermissions": "Not enough permissions"
   },
   "message": {

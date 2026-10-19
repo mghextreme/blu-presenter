@@ -13,6 +13,7 @@ import { useServices } from "@/hooks/useServices";
 import { ControllerProvider } from "@/hooks/controller.provider";
 import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
 import { PageContent } from "@/components/shared/page-content";
+import { NoOrganizationNotice } from "@/components/shared/no-organization-notice";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -116,6 +117,7 @@ export function EditSession({
       })
       .catch((err) => {
         console.error(err);
+        toast.error(t('error.save'));
       })
       .finally(() => {
         setLoading(false);
@@ -214,7 +216,17 @@ export function EditSession({
   }
 
   if (!edit && organizationsToAddTo.length === 0) {
-    throw new Error(t('error.noPermission'));
+    return (
+      <>
+        <title>{t('title.add') + ' - BluPresenter'}</title>
+        <NoOrganizationNotice
+          title={t('add.noOrganization.title')}
+          description={t('add.noOrganization.description')}
+          actionLabel={t('add.noOrganization.create')}
+          actionTo="/app/organizations/add"
+        />
+      </>
+    );
   }
 
   return (
