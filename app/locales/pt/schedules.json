@@ -30,7 +30,11 @@
     "title": "Programações"
   },
   "search": {
-    "placeholder": "Buscar programações..."
+    "placeholder": "Buscar programações...",
+    "dateRange": {
+      "placeholder": "Filtrar por data...",
+      "clear": "Limpar filtro de datas"
+    }
   },
   "add": {
     "title": "Adicionar programação",

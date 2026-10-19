@@ -125,6 +125,126 @@ describe("useFilteredList", () => {
     expect(result.current.results).toEqual([...page1, ...page2]);
   });
 
+  it("runs an initial search on mount when auto is set", async () => {
+    const search = buildSearchMock();
+
+    const { result } = renderHook(() =>
+      useFilteredList({ search, auto: true }),
+    );
+
+    await act(async () => {});
+
+    expect(search).toHaveBeenCalledWith({
+      page: 1,
+      itemsPerPage: PAGE_SIZE,
+    });
+    expect(result.current.results).toEqual(makeItems(PAGE_SIZE));
+  });
+
+  it("does not run a search on mount by default", async () => {
+    const search = buildSearchMock();
+
+    renderHook(() =>
+      useFilteredList({ search }),
+    );
+
+    await act(async () => {});
+
+    expect(search).not.toHaveBeenCalled();
+  });
+
+  it("sends the date range filter and resets to page 1", async () => {
+    const search = buildSearchMock();
+
+    const { result } = renderHook(() =>
+      useFilteredList({ search, initialOrganizations: [{ id: 5, name: "Org" }] }),
+    );
+
+    await act(async () => {
+      result.current.loadMore();
+    });
+
+    await act(async () => {
+      result.current.setDateRange({ from: "2026-01-01", to: "2026-01-31" });
+    });
+
+    expect(search).toHaveBeenLastCalledWith({
+      organizations: [5],
+      dateFrom: "2026-01-01",
+      dateTo: "2026-01-31",
+      page: 1,
+      itemsPerPage: PAGE_SIZE,
+    });
+  });
+
+  it("supports a partial date range with only the start date", async () => {
+    const search = buildSearchMock();
+
+    const { result } = renderHook(() =>
+      useFilteredList({ search }),
+    );
+
+    await act(async () => {
+      result.current.setDateRange({ from: "2026-01-01", to: null });
+    });
+
+    expect(search).toHaveBeenLastCalledWith(
+      expect.objectContaining({ dateFrom: "2026-01-01" }),
+    );
+    expect(search).toHaveBeenLastCalledWith(
+      expect.not.objectContaining({ dateTo: expect.anything() }),
+    );
+    expect(result.current.dateRange).toEqual({ from: "2026-01-01", to: null });
+  });
+
+  it("clears the date range filter", async () => {
+    const search = buildSearchMock();
+
+    const { result } = renderHook(() =>
+      useFilteredList({ search }),
+    );
+
+    await act(async () => {
+      result.current.setDateRange({ from: "2026-01-01", to: "2026-01-31" });
+    });
+
+    await act(async () => {
+      result.current.setDateRange(null);
+    });
+
+    expect(search).toHaveBeenLastCalledWith(
+      expect.not.objectContaining({ dateFrom: expect.anything() }),
+    );
+    expect(search).toHaveBeenLastCalledWith(
+      expect.not.objectContaining({ dateTo: expect.anything() }),
+    );
+    expect(result.current.dateRange).toBeNull();
+  });
+
+  it("keeps the date range filter when refreshing", async () => {
+    const search = buildSearchMock();
+
+    const { result } = renderHook(() =>
+      useFilteredList({ search }),
+    );
+
+    await act(async () => {
+      result.current.setDateRange({ from: "2026-01-01", to: "2026-01-31" });
+    });
+
+    await act(async () => {
+      result.current.refresh();
+    });
+
+    expect(search).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        dateFrom: "2026-01-01",
+        dateTo: "2026-01-31",
+        page: 1,
+      }),
+    );
+  });
+
   it("stops offering more results when a page is not full", async () => {
     const search = vi.fn()
       .mockResolvedValueOnce(makeItems(PAGE_SIZE))

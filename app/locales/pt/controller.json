@@ -53,6 +53,10 @@
     },
     "schedules": {
       "search": "Buscar programações...",
+      "dateRange": {
+        "placeholder": "Filtrar por data...",
+        "clear": "Limpar filtro de datas"
+      },
       "today": "Hoje",
       "load": "Carregar programação",
       "noResults": "Nenhuma programação encontrada",

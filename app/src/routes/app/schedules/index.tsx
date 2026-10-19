@@ -16,6 +16,7 @@ import { QuerySearchForm } from "@/components/shared/query-search-form";
 import { LoadMoreButton } from "@/components/shared/load-more";
 import { FiltersActiveNotice } from "@/components/shared/filters-active-notice";
 import { EmptyList } from "@/components/shared/empty-list";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useTranslation } from "react-i18next";
@@ -139,8 +140,17 @@ export function Schedules() {
           onSearch={list.setQuery}
           isLoading={list.isLoading}
           placeholder={t('search.placeholder')}
-          className="max-w-xl"
-        />
+          className="max-w-3xl"
+        >
+          <DateRangePicker
+            value={list.dateRange}
+            onChange={list.setDateRange}
+            placeholder={t('search.dateRange.placeholder')}
+            clearLabel={t('search.dateRange.clear')}
+            numberOfMonths={2}
+            className="w-44 sm:w-72"
+          />
+        </QuerySearchForm>
         {filtersActive && <FiltersActiveNotice onReset={list.resetOrganizations} />}
         <ul className="space-y-2">
           {list.results.map((schedule) => (

@@ -30,7 +30,11 @@
     "title": "Schedules"
   },
   "search": {
-    "placeholder": "Search schedules..."
+    "placeholder": "Search schedules...",
+    "dateRange": {
+      "placeholder": "Filter by date...",
+      "clear": "Clear date filter"
+    }
   },
   "add": {
     "title": "Add schedule",
