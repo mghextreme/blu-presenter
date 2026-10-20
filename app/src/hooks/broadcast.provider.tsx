@@ -2,6 +2,7 @@ import { createContext, useEffect, useMemo, useState } from "react"
 import { BaseTheme, IBroadcastSession } from "@/types"
 import { useAuth } from "./useAuth"
 import { useController } from "./useController"
+import { useServices } from "./useServices"
 import { useSessionSocket, JoinSessionParams } from "./useSessionSocket"
 import { STORAGE_KEYS } from "@/lib/storage-keys"
 
@@ -36,6 +37,8 @@ export function BroadcastProvider({
     session: authSession,
   } = useAuth();
 
+  const { broadcastService } = useServices();
+
   const {
     schedule,
     scheduleItem,
@@ -52,9 +55,7 @@ export function BroadcastProvider({
   });
 
   const {
-    connectedSessionId,
-    switchSession,
-    emit
+    switchSession
   } = useSessionSocket({
     auth: {
       token: authSession?.access_token,
@@ -62,26 +63,34 @@ export function BroadcastProvider({
     // Values used in onJoinedSession are always fresh because useSessionSocket
     // calls callbacks via configRef, which is kept in sync every render.
     onJoinedSession: (data) => {
-      emit('setSchedule', {
-        sessionId: data.id,
-        schedule: schedule ?? [],
-      });
-
-      if (scheduleItem) {
-        emit('setScheduleItem', {
-          sessionId: data.id,
-          scheduleItem: scheduleItem,
-        });
-
-        if (selection) {
-          emit('setSelection', {
-            sessionId: data.id,
-            selection: selection,
-          });
-        }
-      }
+      // Push the controller's full state after every (re)join. This seeds
+      // listeners on session switch and re-syncs them after a reconnect.
+      broadcastState(data.id);
     },
   });
+
+  /**
+   * Push the controller's current state to the session via the REST write
+   * path. Each call carries the current access token (auto-refreshed on
+   * 401 by ApiService) — failures are logged instead of silently dropped.
+   */
+  const broadcastState = (sessionId: number) => {
+    const orgId = session?.orgId;
+    if (!orgId) return;
+
+    broadcastService.setSchedule(sessionId, orgId, schedule ?? [])
+      .catch((e) => console.warn('Failed to broadcast schedule:', e));
+
+    if (!scheduleItem) return;
+
+    broadcastService.setScheduleItem(sessionId, orgId, scheduleItem)
+      .catch((e) => console.warn('Failed to broadcast schedule item:', e));
+
+    if (!selection) return;
+
+    broadcastService.setSelection(sessionId, orgId, selection)
+      .catch((e) => console.warn('Failed to broadcast selection:', e));
+  };
 
   const toJoinParams = (s?: IBroadcastSession): JoinSessionParams | null => {
     if (s?.id && s.secret && s.orgId) {
@@ -117,31 +126,25 @@ export function BroadcastProvider({
   }
 
   useEffect(() => {
-    if (!session || !connectedSessionId) return;
+    if (!session?.id || !session?.orgId) return;
 
-    emit('setSchedule', {
-      sessionId: connectedSessionId,
-      schedule,
-    });
-  }, [schedule]);
+    broadcastService.setSchedule(session.id, session.orgId, schedule)
+      .catch((e) => console.warn('Failed to broadcast schedule:', e));
+  }, [broadcastService, schedule, session]);
 
   useEffect(() => {
-    if (!session || !connectedSessionId) return;
+    if (!session?.id || !session?.orgId) return;
 
-    emit('setScheduleItem', {
-      sessionId: connectedSessionId,
-      scheduleItem
-    });
-  }, [scheduleItem]);
+    broadcastService.setScheduleItem(session.id, session.orgId, scheduleItem)
+      .catch((e) => console.warn('Failed to broadcast schedule item:', e));
+  }, [broadcastService, scheduleItem, session]);
 
   useEffect(() => {
-    if (!session || !connectedSessionId) return;
+    if (!session?.id || !session?.orgId) return;
 
-    emit('setSelection', {
-      sessionId: connectedSessionId,
-      selection,
-    });
-  }, [selection]);
+    broadcastService.setSelection(session.id, session.orgId, selection)
+      .catch((e) => console.warn('Failed to broadcast selection:', e));
+  }, [broadcastService, selection, session]);
 
   const [urlTheme, setUrlTheme] = useState<BaseTheme | number | undefined>(undefined);
 

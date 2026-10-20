@@ -1,5 +1,5 @@
 import { createContext, useMemo } from "react";
-import { AuthService, OrganizationsService, SchedulesService, SessionsService, SongsService, ThemesService, UsersService } from "@/services";
+import { AuthService, BroadcastService, OrganizationsService, SchedulesService, SessionsService, SongsService, ThemesService, UsersService } from "@/services";
 import * as config from "@/lib/config";
 import { QueryClient } from "@tanstack/react-query";
 
@@ -16,6 +16,7 @@ export type ServicesProviderState = {
   themesService: ThemesService,
   sessionsService: SessionsService,
   schedulesService: SchedulesService,
+  broadcastService: BroadcastService,
 }
 
 const initialState: ServicesProviderState = {
@@ -26,6 +27,7 @@ const initialState: ServicesProviderState = {
   themesService: {} as ThemesService,
   sessionsService: {} as SessionsService,
   schedulesService: {} as SchedulesService,
+  broadcastService: {} as BroadcastService,
 }
 
 export const ServicesContext = createContext<ServicesProviderState>(initialState);
@@ -39,6 +41,7 @@ export const ServicesProvider = ({ queryClient, children }: ServicesProviderProp
   const themesService = useMemo(() => new ThemesService(queryClient, config.api), [queryClient, config]);
   const sessionsService = useMemo(() => new SessionsService(queryClient, config.api), [queryClient, config]);
   const schedulesService = useMemo(() => new SchedulesService(queryClient, config.api), [queryClient, config]);
+  const broadcastService = useMemo(() => new BroadcastService(queryClient, config.api), [queryClient, config]);
 
   const value = {
     authService,
@@ -48,6 +51,7 @@ export const ServicesProvider = ({ queryClient, children }: ServicesProviderProp
     themesService,
     sessionsService,
     schedulesService,
+    broadcastService,
   };
   return <ServicesContext.Provider value={value}>{children}</ServicesContext.Provider>;
 };

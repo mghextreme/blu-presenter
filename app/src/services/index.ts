@@ -5,3 +5,4 @@ export * from './organizations.service';
 export * from './users.service';
 export * from './sessions.service';
 export * from './schedules.service';
+export * from './broadcast.service';

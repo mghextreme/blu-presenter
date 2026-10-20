@@ -15,6 +15,7 @@ export * from './schedule-item.interface';
 export * from './create-session.dto';
 export * from './update-session.dto';
 export * from './search-session.dto';
+export * from './broadcast.dto';
 export * from './create-schedule.dto';
 export * from './update-schedule.dto';
 export * from './search-schedule.dto';
