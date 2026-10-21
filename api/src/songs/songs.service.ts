@@ -196,16 +196,36 @@ export class SongsService {
         ? searchDto.languages[0]
         : 'en';
     if (searchDto.query) {
+      // Each query token (>= 3 chars) must be word-similar to title/artist,
+      // so misspelled words still match via the trigram index.
+      const tokens = searchDto.query
+        .split(/[^a-z0-9]+/i)
+        .filter((token) => token.length >= 3);
+      const rawParams: Record<string, string> = {
+        query: searchDto.query,
+        lang: queryLang,
+      };
+      const trigramCondition = tokens
+        .map((token, i) => {
+          rawParams[`tok${i}`] = token;
+          return `searchText %> unaccent(lower(:tok${i}))`;
+        })
+        .join(' AND ');
+
       whereQuery.searchVector = Raw(
-        () => `searchVector @@ get_combined_tsquery_code(:query, :lang)`,
-        {
-          query: searchDto.query,
-          lang: queryLang,
-        },
+        () =>
+          `(
+            searchVector @@ get_combined_tsquery_code(:query, :lang)
+            ${trigramCondition ? `OR ${trigramCondition}` : ''}
+          )`,
+        rawParams,
       );
 
       songsQuery = songsQuery.addSelect(
-        'ts_rank(searchVector, get_combined_tsquery_code(:query, :lang))',
+        `GREATEST(
+          ts_rank(searchVector, get_combined_tsquery_code(:query, :lang)),
+          similarity(searchText, unaccent(lower(:query))) * 0.1
+        )`,
         'rank',
       );
     }

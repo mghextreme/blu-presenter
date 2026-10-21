@@ -17,7 +17,7 @@ export function SearchResultItem({
 }) {
 
   const { t } = useTranslation('songs');
-  const hasChords = item.blocks?.some(block => block.lines?.some(line => line.type === 'chords'));
+  const hasChords = item.hasChords ?? item.blocks?.some(block => block.lines?.some(line => line.type === 'chords')) ?? false;
 
   return (
     <ListItemCard
