@@ -11,4 +11,5 @@ export interface ISong {
   blocks?: ISongPart[]
   references?: ISongReference[]
   secret?: string
+  hasChords?: boolean
 }

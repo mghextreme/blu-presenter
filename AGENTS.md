@@ -65,7 +65,14 @@ pnpm test themes.service.spec.ts
 ```bash
 # From project root
 supabase start             # Start local Supabase instance
+supabase db reset          # Rebuild local DB: migrations + SQL seeds
+
+# From api/
+pnpm seed:songs            # Import seed songs from supabase/seeds/songs/
+                           # (run after `supabase db reset` or on a fresh DB)
 ```
+
+Song seed data uses the export/import markdown format (`supabase/seeds/songs/`), not SQL inserts.
 
 ## Code Style Guidelines
 

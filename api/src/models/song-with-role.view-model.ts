@@ -8,6 +8,7 @@ export interface SongWithRoleViewModel {
   language: string;
   blocks: SongPart[];
   references: SongReference[];
+  hasChords: boolean;
   organization: {
     id: number;
     name: string;

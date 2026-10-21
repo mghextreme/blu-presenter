@@ -6,6 +6,7 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  VirtualColumn,
 } from 'typeorm';
 import { SongPart } from './song-part.entity';
 import { Organization } from './organization.entity';
@@ -69,6 +70,15 @@ export class Song {
 
   @Column({ type: 'tsvector', select: false, insert: false, update: false })
   searchVector: string;
+
+  @Column({ type: 'text', select: false, insert: false, update: false })
+  searchText: string;
+
+  @VirtualColumn({
+    query: (alias: string) =>
+      `SELECT jsonb_path_exists(${alias}.blocks::jsonb, '$[*].lines[*] ? (@.type == "chords")')`,
+  })
+  hasChords: boolean;
 
   @CreateDateColumn({
     type: 'timestamp',
