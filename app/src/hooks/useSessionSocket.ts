@@ -99,6 +99,7 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
     socket.off('connect');
     socket.off('disconnect');
     socket.off('error');
+    socket.off('exception');
     socket.off('joinedSession');
     socket.off('leftSession');
 
@@ -158,6 +159,14 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
       configRef.current.onError?.(data);
     });
 
+    socket.on('exception', (data) => {
+      // NestJS emits 'exception' (not 'error') when a server-side guard or
+      // handler rejects a message — e.g. an expired auth token. Surface it
+      // through the same onError channel so the failure is not silent.
+      console.error('socketException', data);
+      configRef.current.onError?.({ code: 'exception', ...data });
+    });
+
     socket.on('joinedSession', (data) => {
       updateConnectedSessionId(Number(data.id));
       configRef.current.onJoinedSession?.(data);
@@ -204,7 +213,10 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
 
     const newSocket = io(config.api.url, {
       autoConnect: false,
-      auth: configRef.current.auth || {},
+      // Evaluated on every (re)connection attempt, so reconnects always carry
+      // the CURRENT auth payload (e.g. a refreshed Supabase access token)
+      // instead of the one captured when the socket was first created.
+      auth: (cb) => cb(configRef.current.auth || {}),
       path: '/socket/sessions',
       reconnection: true,
       reconnectionDelay: 1000,
@@ -284,6 +296,7 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
         socketRef.current.off('connect');
         socketRef.current.off('disconnect');
         socketRef.current.off('error');
+        socketRef.current.off('exception');
         socketRef.current.off('joinedSession');
         socketRef.current.off('leftSession');
         socketRef.current.io.off('reconnect');
