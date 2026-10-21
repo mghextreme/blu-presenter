@@ -36,14 +36,15 @@ describe('BroadcastController', () => {
     broadcastService.setSelection.mockReset().mockResolvedValue(undefined);
   });
 
-  it('PUT schedule routes to the service with numeric org and session ids', async () => {
+  it('PUT schedule routes to the service with the org header and parsed session id', async () => {
     await request(app.getHttpServer())
       .put('/sessions/7/broadcast/schedule')
       .set('Organization', '3')
       .send({ schedule: [{ id: 1, title: 'Amazing Grace' }] })
       .expect(200);
 
-    expect(broadcastService.setSchedule).toHaveBeenCalledWith(3, 7, [
+    // The Organization header arrives as a string, mirroring SessionsController
+    expect(broadcastService.setSchedule).toHaveBeenCalledWith('3', 7, [
       { id: 1, title: 'Amazing Grace' },
     ]);
   });
@@ -55,7 +56,7 @@ describe('BroadcastController', () => {
       .send({ scheduleItem: { id: 12 } })
       .expect(200);
 
-    expect(broadcastService.setScheduleItem).toHaveBeenCalledWith(3, 7, {
+    expect(broadcastService.setScheduleItem).toHaveBeenCalledWith('3', 7, {
       id: 12,
     });
   });
@@ -67,7 +68,7 @@ describe('BroadcastController', () => {
       .send({ selection: { scheduleItem: 0, slide: 1, part: 2 } })
       .expect(200);
 
-    expect(broadcastService.setSelection).toHaveBeenCalledWith(3, 7, {
+    expect(broadcastService.setSelection).toHaveBeenCalledWith('3', 7, {
       scheduleItem: 0,
       slide: 1,
       part: 2,
