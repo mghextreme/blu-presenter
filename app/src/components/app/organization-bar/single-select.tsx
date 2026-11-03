@@ -20,7 +20,7 @@ export function OrganizationBarSelector({
   selected,
   onSelectedChange,
   subtitle,
-}: OrganizationBarSelectorProps) {
+}: Readonly<OrganizationBarSelectorProps>) {
   const { t } = useTranslation("organizations");
 
   const [openSelector, setOpenSelector] = useState<boolean>(false);

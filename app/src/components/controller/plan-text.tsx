@@ -20,7 +20,7 @@ const textFormSchema = z.object({
   subtitle: z.string().optional(),
 });
 
-export function PlanText({ showOpen = true }: PlanTextProps) {
+export function PlanText({ showOpen = true }: Readonly<PlanTextProps>) {
 
   const { t } = useTranslation("controller");
 

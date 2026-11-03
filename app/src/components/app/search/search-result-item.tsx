@@ -12,9 +12,9 @@ export type SearchResultItemProps = {
 export function SearchResultItem({
   item,
   getActions,
-}: SearchResultItemProps & {
+}: Readonly<SearchResultItemProps & {
   item: ISongWithRole;
-}) {
+}>) {
 
   const { t } = useTranslation('songs');
   const hasChords = item.hasChords ?? item.blocks?.some(block => block.lines?.some(line => line.type === 'chords')) ?? false;

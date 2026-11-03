@@ -19,7 +19,7 @@ interface AllTheProvidersProps {
   children: React.ReactNode
 }
 
-const AllTheProviders = ({ children }: AllTheProvidersProps) => {
+const AllTheProviders = ({ children }: Readonly<AllTheProvidersProps>) => {
   const queryClient = createTestQueryClient()
 
   return (

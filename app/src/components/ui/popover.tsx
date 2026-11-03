@@ -5,13 +5,13 @@ import { cn } from "@/lib/utils"
 
 function Popover({
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Root>) {
+}: Readonly<React.ComponentProps<typeof PopoverPrimitive.Root>>) {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />
 }
 
 function PopoverTrigger({
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
+}: Readonly<React.ComponentProps<typeof PopoverPrimitive.Trigger>>) {
   return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
 }
 
@@ -20,7 +20,7 @@ function PopoverContent({
   align = "center",
   sideOffset = 4,
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+}: Readonly<React.ComponentProps<typeof PopoverPrimitive.Content>>) {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
@@ -39,7 +39,7 @@ function PopoverContent({
 
 function PopoverAnchor({
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Anchor>) {
+}: Readonly<React.ComponentProps<typeof PopoverPrimitive.Anchor>>) {
   return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />
 }
 

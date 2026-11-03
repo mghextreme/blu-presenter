@@ -21,7 +21,7 @@ export function EditSongReferencesItem({
   form,
   ix,
   remove,
-}: EditSongReferencesItemProps) {
+}: Readonly<EditSongReferencesItemProps>) {
 
   const { t } = useTranslation("songs");
 

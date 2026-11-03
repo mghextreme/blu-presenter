@@ -37,7 +37,7 @@ function extractRecoveryAccessToken(hash: string): string | null {
   return params.get("access_token");
 }
 
-export function ResetPasswordForm({ className, ...props }: ResetPasswordFormProps) {
+export function ResetPasswordForm({ className, ...props }: Readonly<ResetPasswordFormProps>) {
   const { t } = useTranslation("auth");
   const { authService } = useServices();
   const navigate = useNavigate();

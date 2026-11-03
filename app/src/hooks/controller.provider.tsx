@@ -95,7 +95,7 @@ export function ControllerProvider({
   storeState = false,
   children,
   ...props
-}: ControllerProviderProps) {
+}: Readonly<ControllerProviderProps>) {
   const [mode, setMode] = useState<ControllerMode>(initialState.mode);
 
   let storedSchedule: IScheduleItem[] = [];

@@ -14,7 +14,7 @@ export function ColorForm<T extends FieldValues>({
   name,
   label,
   defaultValue,
-}: ThemeConfigFormProps<T>) {
+}: Readonly<ThemeConfigFormProps<T>>) {
 
   return (
     <FormField

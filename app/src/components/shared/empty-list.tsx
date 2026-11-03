@@ -5,7 +5,7 @@ interface EmptyListProps {
   className?: string;
 }
 
-export function EmptyList({ className }: EmptyListProps) {
+export function EmptyList({ className }: Readonly<EmptyListProps>) {
   const { t } = useTranslation("app");
 
   return (

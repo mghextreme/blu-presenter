@@ -14,7 +14,7 @@ export function OrganizationBarFilter({
   organizations,
   selected,
   onOrganizationsChange,
-}: OrganizationBarFilterProps) {
+}: Readonly<OrganizationBarFilterProps>) {
   const { t } = useTranslation("organizations");
 
   const options = organizations.map((org) => (

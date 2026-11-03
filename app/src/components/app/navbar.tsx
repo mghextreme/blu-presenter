@@ -4,7 +4,7 @@ import { ProfileButton } from "./profile-button";
 import { useAuth } from "@/hooks/useAuth";
 import { BluPresenterLogo } from "../shared/logo";
 
-export function AppNavbar({ children }: { children?: React.ReactNode }) {
+export function AppNavbar({ children }: Readonly<{ children?: React.ReactNode }>) {
 
   const { isLoggedIn } = useAuth();
 

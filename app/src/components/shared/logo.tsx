@@ -5,11 +5,11 @@ export function BluPresenterLogo({
   linkTo,
   linkClassName,
   className,
-}: {
+}: Readonly<{
   linkTo: string;
   linkClassName?: string;
   className?: string;
-}) {
+}>) {
   return (
     <Link to={linkTo} className={cn('text-2xl', linkClassName)}>
       <svg viewBox="0 0 353 48" version="1.1" xmlns="http://www.w3.org/2000/svg" className={cn('py-1 h-7 w-auto', className)}>
@@ -48,9 +48,9 @@ export function BluPresenterLogo({
 
 export function BluPresenterSlashIcon({
   className,
-}: {
+}: Readonly<{
   className?: string;
-}) {
+}>) {
   return (
     <svg viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" className={cn('py-1 h-7 w-auto', className)}>
       <g transform="matrix(1,0,0,1,-15420.2,-6130)">

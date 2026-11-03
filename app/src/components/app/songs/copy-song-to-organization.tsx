@@ -23,7 +23,7 @@ interface CopySongToOrganizationProps {
 
 export function CopySongToOrganization({
   songId, title, artist, sourceOrgId, variant = "secondary"
-}: CopySongToOrganizationProps) {
+}: Readonly<CopySongToOrganizationProps>) {
 
   const { t } = useTranslation("songs");
   const { organizations } = useAuth();

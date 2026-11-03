@@ -34,7 +34,7 @@ type DatePickerProps = {
   className?: string;
 };
 
-function DatePicker({ value, onChange, placeholder, className }: DatePickerProps) {
+function DatePicker({ value, onChange, placeholder, className }: Readonly<DatePickerProps>) {
   const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
 

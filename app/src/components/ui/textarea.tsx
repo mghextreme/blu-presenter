@@ -22,7 +22,7 @@ const textareaVariants = cva(
   }
 )
 
-function Textarea({ className, variant = "default", ...props }: React.ComponentProps<"textarea"> & VariantProps<typeof textareaVariants>) {
+function Textarea({ className, variant = "default", ...props }: Readonly<React.ComponentProps<"textarea"> & VariantProps<typeof textareaVariants>>) {
   return (
     <textarea
       data-slot="textarea"

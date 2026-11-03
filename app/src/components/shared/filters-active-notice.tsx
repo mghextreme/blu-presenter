@@ -6,7 +6,7 @@ interface FiltersActiveNoticeProps {
   onReset: () => void;
 }
 
-export function FiltersActiveNotice({ onReset }: FiltersActiveNoticeProps) {
+export function FiltersActiveNotice({ onReset }: Readonly<FiltersActiveNoticeProps>) {
   const { t } = useTranslation("app");
 
   return (

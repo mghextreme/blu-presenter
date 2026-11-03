@@ -18,7 +18,7 @@ export function SelectorScreen({
   setMode,
   defaultTheme,
   themeOptions,
-}: SelectorScreenProps) {
+}: Readonly<SelectorScreenProps>) {
 
   const { t } = useTranslation("controller");
 

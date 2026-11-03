@@ -17,7 +17,7 @@ interface OrgBadgeProps {
   className?: string;
 }
 
-export function OrgBadge({ organization, className }: OrgBadgeProps) {
+export function OrgBadge({ organization, className }: Readonly<OrgBadgeProps>) {
   const { t } = useTranslation("organizations");
   const { organizations } = useAuth();
 

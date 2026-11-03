@@ -16,7 +16,7 @@ export function ListItemCard({
   organization,
   additionalBadges,
   actions,
-}: ListItemCardProps) {
+}: Readonly<ListItemCardProps>) {
   return (
     <Card>
       <CardHeader>

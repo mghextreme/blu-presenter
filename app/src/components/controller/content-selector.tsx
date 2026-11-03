@@ -17,7 +17,7 @@ export function ContentSelector({
   slideIndex,
   scheduleItemIndex = undefined,
   contentIndex,
-}: ContentSelectorParams) {
+}: Readonly<ContentSelectorParams>) {
   const {
     mode,
     setSelection,

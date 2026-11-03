@@ -26,7 +26,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { capitalizeText } from "@/lib/songs";
 
-function LanguageAndIcon({ t, language }: { t: TFunction, language: ILanguage["value"] }) {
+function LanguageAndIcon({ t, language }: Readonly<{ t: TFunction, language: ILanguage["value"] }>) {
   const lang = supportedLanguagesMap.find((lang) => lang.value === language);
   if (!lang) return null;
 
@@ -58,7 +58,7 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>((
     formValues,
     organizationId,
     additionalSubmitButtons = null,
-  }: EditSongFormProps,
+  }: Readonly<EditSongFormProps>,
   ref,
 ) => {
   if (edit && (!formValues || !formValues.id)) {
@@ -82,7 +82,7 @@ const EditSongFormContent = forwardRef<EditSongFormHandle, EditSongFormProps>((
     formValues,
     organizationId,
     additionalSubmitButtons = null,
-  }: EditSongFormProps,
+  }: Readonly<EditSongFormProps>,
   ref,
 ) => {
   const { t } = useTranslation("songs");
@@ -325,7 +325,7 @@ function SubmitButtons({
   setIgnoreWarning,
   autoFixUppercase,
   idSuffix,
-}: {
+}: Readonly<{
   t: TFunction
   edit?: boolean
   isLoading?: boolean
@@ -335,7 +335,7 @@ function SubmitButtons({
   setIgnoreWarning: (value: boolean) => void
   autoFixUppercase: () => void
   idSuffix: string
-}) {
+}>) {
   const checkboxId = `ignore-uppercase-${idSuffix}`;
   return (
     <>

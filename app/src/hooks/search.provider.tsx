@@ -67,7 +67,7 @@ const initialState: SearchProviderState = {
 
 const SearchContext = createContext<SearchProviderState>(initialState);
 
-export const SearchProvider = ({ songsService, defaultValue, initialOrganizationFilter, children }: SearchProviderProps) => {
+export const SearchProvider = ({ songsService, defaultValue, initialOrganizationFilter, children }: Readonly<SearchProviderProps>) => {
   const [results, setResults] = useState<ISongWithRole[]>(defaultValue ?? []);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState<boolean>((defaultValue?.length ?? 0) === PAGE_SIZE);

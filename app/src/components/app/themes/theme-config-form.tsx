@@ -15,7 +15,7 @@ interface ThemeConfigFormProps {
 
 export function ThemeConfigForm({
   form,
-}: ThemeConfigFormProps) {
+}: Readonly<ThemeConfigFormProps>) {
 
   const { t } = useTranslation("themes");
 

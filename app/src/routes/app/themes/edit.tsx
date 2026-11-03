@@ -29,7 +29,7 @@ type EditThemeProps = {
 
 export function EditTheme({
   edit = true,
-}: EditThemeProps) {
+}: Readonly<EditThemeProps>) {
 
   const { t } = useTranslation("themes");
   const navigate = useNavigate();

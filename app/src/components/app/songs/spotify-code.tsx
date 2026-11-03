@@ -11,7 +11,7 @@ export function SpotifyCode({
   imgWidth = 640,
   colorScheme = 'print',
   ...props
-}: SpotifyCodeProps) {
+}: Readonly<SpotifyCodeProps>) {
 
   let backgroundColor = 'ffffff';
   let foregroundColor = 'black';

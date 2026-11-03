@@ -22,7 +22,7 @@ interface CopyThemeToOrganizationProps {
 
 export function CopyThemeToOrganization({
   themeId, name, sourceOrgId, variant = "secondary"
-}: CopyThemeToOrganizationProps) {
+}: Readonly<CopyThemeToOrganizationProps>) {
 
   const { t } = useTranslation("themes");
   const { organizations } = useAuth();

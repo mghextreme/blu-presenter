@@ -25,7 +25,7 @@ export function ScheduleItem({
   index,
   buttonsOverride,
   showOpen = true,
-}: ScheduleItemParams) {
+}: Readonly<ScheduleItemParams>) {
 
   const { t } = useTranslation("controller");
 

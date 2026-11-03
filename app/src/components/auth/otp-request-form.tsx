@@ -28,7 +28,7 @@ const formSchema = z.object({
   email: z.string().email(),
 });
 
-export function OtpRequestForm({ className, ...props }: OtpRequestFormProps) {
+export function OtpRequestForm({ className, ...props }: Readonly<OtpRequestFormProps>) {
   const { t } = useTranslation("auth");
   const { authService } = useServices();
   const navigate = useNavigate();

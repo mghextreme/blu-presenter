@@ -18,7 +18,7 @@ type SocialLoginProps = {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export function SocialLogin({ isLoading, setIsLoading }: SocialLoginProps) {
+export function SocialLogin({ isLoading, setIsLoading }: Readonly<SocialLoginProps>) {
 
   const { t } = useTranslation("auth");
   const { authService } = useServices();

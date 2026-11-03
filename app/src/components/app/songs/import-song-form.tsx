@@ -32,7 +32,7 @@ export interface ImportSongFormHandle {
 export const ImportSongForm = forwardRef<ImportSongFormHandle, ImportSongFormProps>((
   {
     fullText,
-  }: ImportSongFormProps,
+  }: Readonly<ImportSongFormProps>,
   ref,
 ) => {
 

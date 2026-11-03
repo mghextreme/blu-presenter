@@ -31,7 +31,7 @@ export const BroadcastProviderContext = createContext<BroadcastProviderState>(in
 export function BroadcastProvider({
   children,
   ...props
-}: BroadcastProviderProps) {
+}: Readonly<BroadcastProviderProps>) {
 
   const {
     session: authSession,

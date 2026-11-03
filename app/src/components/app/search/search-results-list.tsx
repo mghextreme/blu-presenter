@@ -5,7 +5,7 @@ import { SearchResultItem, SearchResultItemProps } from "./search-result-item";
 import { LoadMoreButton } from "@/components/shared/load-more";
 import { EmptyList } from "@/components/shared/empty-list";
 
-export function SearchResultsList(props: SearchResultItemProps) {
+export function SearchResultsList(props: Readonly<SearchResultItemProps>) {
 
   const { t } = useTranslation('songs');
 

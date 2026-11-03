@@ -102,7 +102,7 @@ export function ThemeConfigFontForm({
   form,
   name,
   showTransform = true,
-}: ThemeConfigFontFormProps) {
+}: Readonly<ThemeConfigFontFormProps>) {
 
   const { t } = useTranslation("themes");
 

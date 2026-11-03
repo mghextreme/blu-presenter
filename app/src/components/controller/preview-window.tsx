@@ -50,7 +50,7 @@ export function PreviewWindow({
   attachControllerMode = false,
   theme = LyricsTheme,
   showThemeSelector = true,
-}: PreviewWindowProps) {
+}: Readonly<PreviewWindowProps>) {
 
   const { t } = useTranslation('controller');
 
