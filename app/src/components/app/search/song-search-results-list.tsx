@@ -5,6 +5,7 @@ import { useServices } from "@/hooks/useServices";
 import { useSearch } from "@/hooks/search.provider";
 import { SearchResultsList } from "@/components/app/search/search-results-list";
 import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
+import { SongOfflineButton } from "@/components/app/offline/song-offline-button";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
@@ -42,6 +43,7 @@ export function SongSearchResultsList() {
 
     return (
       <>
+        <SongOfflineButton song={item} />
         <Button
           type="button"
           size="sm"

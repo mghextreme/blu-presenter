@@ -8,7 +8,7 @@ import ChevronDoubleRightIcon from "@heroicons/react/24/solid/ChevronDoubleRight
 import { useAuth } from "@/hooks/useAuth";
 import { isRoleHigherOrEqualThan } from "@/types";
 
-function SidebarMenuItem({ to, content, disabled = false, onSelect }: { to: string, content: string, disabled?: boolean, onSelect: () => void }) {
+function SidebarMenuItem({ to, content, disabled = false, onSelect }: Readonly<{ to: string, content: string, disabled?: boolean, onSelect: () => void }>) {
   return (
     <li>
       <Link

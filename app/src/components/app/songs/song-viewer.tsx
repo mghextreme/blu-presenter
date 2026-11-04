@@ -14,7 +14,7 @@ interface SongViewerProps {
   children?: ReactNode;
 }
 
-export function SongViewer({ song, showReferences = true, children }: SongViewerProps) {
+export function SongViewer({ song, showReferences = true, children }: Readonly<SongViewerProps>) {
   const { t } = useTranslation("songs");
 
   const { viewMode, toggleViewMode } = useSongViewConfig();

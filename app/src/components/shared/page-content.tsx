@@ -10,7 +10,7 @@ interface PageContentProps {
 }
 
 /** Standard content container: limits the width and centers it on wide screens. */
-export function PageContent({ className, children }: PageContentProps) {
+export function PageContent({ className, children }: Readonly<PageContentProps>) {
   return (
     <div className={cn(pageContentColumn, "py-2 sm:py-8", className)}>
       {children}

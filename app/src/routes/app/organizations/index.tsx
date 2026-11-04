@@ -36,7 +36,7 @@ type EditOrganizationProps = {
 
 export function EditOrganization({
   edit = true
-}: EditOrganizationProps) {
+}: Readonly<EditOrganizationProps>) {
 
   const { t } = useTranslation("organizations");
 

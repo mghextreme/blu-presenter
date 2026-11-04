@@ -25,7 +25,7 @@ import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import QRCode from "react-qr-code";
 import { toast } from "sonner";
 
-function LanguageAndIcon({ t, language }: { t: TFunction, language?: ILanguage["value"] | null }) {
+function LanguageAndIcon({ t, language }: Readonly<{ t: TFunction, language?: ILanguage["value"] | null }>) {
   if (!language) return t('language.user');
 
   const lang = supportedLanguagesMap.find((lang) => lang.value === language);
@@ -46,7 +46,7 @@ type EditSessionProps = {
 
 export function EditSession({
   edit = true,
-}: EditSessionProps) {
+}: Readonly<EditSessionProps>) {
 
   const { t } = useTranslation("sessions");
   const navigate = useNavigate();

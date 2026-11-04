@@ -17,7 +17,7 @@ type PlanPanelProps = {
   showOpen?: boolean;
 }
 
-export function PlanPanel({ showConfiguration = true, showSchedules = true, showOpen = true }: PlanPanelProps) {
+export function PlanPanel({ showConfiguration = true, showSchedules = true, showOpen = true }: Readonly<PlanPanelProps>) {
 
   const { t } = useTranslation("controller");
 

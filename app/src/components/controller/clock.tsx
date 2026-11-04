@@ -6,7 +6,7 @@ interface ClockProps {
 
 export function Clock({
   format = "24withSeconds"
-}: ClockProps) {
+}: Readonly<ClockProps>) {
 
   const [time, setTime] = useState<string>("00:00:00");
 

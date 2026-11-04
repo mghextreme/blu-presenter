@@ -20,7 +20,7 @@ interface OtpVerifyFormProps extends HTMLAttributes<HTMLDivElement> {}
 
 const OTP_LENGTH = 6;
 
-export function OtpVerifyForm({ className, ...props }: OtpVerifyFormProps) {
+export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormProps>) {
   const { t, i18n } = useTranslation("auth");
   const { authService } = useServices();
   const location = useLocation();

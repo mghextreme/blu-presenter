@@ -11,7 +11,7 @@ interface EditSongReferencesProps {
 
 export function EditSongReferences({
   form,
-}: EditSongReferencesProps) {
+}: Readonly<EditSongReferencesProps>) {
 
   const { t } = useTranslation("songs");
 

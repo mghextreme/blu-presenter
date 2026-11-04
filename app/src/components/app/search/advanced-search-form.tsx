@@ -25,7 +25,7 @@ interface AdvancedSearchFormProps {
 
 export function AdvancedSearchForm({
   includeBlocks = false,
-}: AdvancedSearchFormProps) {
+}: Readonly<AdvancedSearchFormProps>) {
 
   const { t } = useTranslation('songs');
   const {

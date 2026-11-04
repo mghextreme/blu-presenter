@@ -12,7 +12,7 @@ type SingleSlideVisualizerProps = {
 export const SingleSlideVisualizer = forwardRef((
   {
     theme = LyricsTheme,
-  }: SingleSlideVisualizerProps,
+  }: Readonly<SingleSlideVisualizerProps>,
   ref,
 ) => {
   if (theme.extends === 'teleprompter') {
@@ -25,7 +25,7 @@ export const SingleSlideVisualizer = forwardRef((
 const SingleSlideVisualizerContent = forwardRef((
   {
     theme,
-  }: Required<SingleSlideVisualizerProps>,
+  }: Readonly<Required<SingleSlideVisualizerProps>>,
   ref,
 ) => {
 

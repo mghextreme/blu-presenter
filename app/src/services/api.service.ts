@@ -74,6 +74,18 @@ export abstract class ApiService {
     );
   }
 
+  /** True when the browser reports no network connection. */
+  protected isOffline = (): boolean =>
+    typeof navigator !== "undefined" && navigator.onLine === false;
+
+  /**
+   * Distinguishes transport failures (fetch TypeError, timeouts — i.e. the
+   * request never reached the API) from API errors (ApiError carries a
+   * status). Read paths fall back to the offline store on transport failures.
+   */
+  protected isNetworkError = (e: unknown): boolean =>
+    !(e instanceof ApiError);
+
   private getHeaders = (baseHeaders: {[key: string]: string}): {[key: string]: string} => {
     const result = {...baseHeaders};
 

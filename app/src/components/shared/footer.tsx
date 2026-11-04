@@ -8,7 +8,7 @@ import { BluPresenterLogo, BluPresenterSlashIcon } from "@/components/shared/log
 import { LanguageToggler } from "./language-toggler";
 import { ThemeToggler } from "./theme-toggler";
 
-export function Divider({ className }: { className?: string }) {
+export function Divider({ className }: Readonly<{ className?: string }>) {
   return (
     <div data-orientation="horizontal" role="separator" className={cn(
       'flex items-center align-center text-center w-full flex-row h-px',

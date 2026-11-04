@@ -27,9 +27,9 @@ vi.mock('@/components/controller/selector-screen', () => ({
 // Test component that uses the controller context
 const TestConsumer = ({
   onRender,
-}: {
+}: Readonly<{
   onRender?: (context: any) => void
-}) => {
+}>) => {
   const context = useContext(ControllerProviderContext)
 
   if (onRender) {

@@ -9,7 +9,7 @@ interface OrganizationBarLabelProps {
 export function OrganizationBarLabel({
   organizations,
   subtitle,
-}: OrganizationBarLabelProps) {
+}: Readonly<OrganizationBarLabelProps>) {
   const { t } = useTranslation("organizations");
 
   const orgNames = organizations.map((org) => {

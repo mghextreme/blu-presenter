@@ -15,7 +15,7 @@ type PlanSearchProps = {
   showOpen?: boolean;
 }
 
-export function PlanSearch({ showOpen = true }: PlanSearchProps) {
+export function PlanSearch({ showOpen = true }: Readonly<PlanSearchProps>) {
 
   const { t } = useTranslation("controller");
 

@@ -55,7 +55,7 @@ export function MultiSelect<T extends Option>({
   className,
   summaryRenderFunction = defaultSummaryRenderFunction,
   itemRenderFunction = defaultItemRenderFunction,
-}: MultiSelectProps<T>) {
+}: Readonly<MultiSelectProps<T>>) {
   const [open, setOpen] = useState(false)
   const listId = useId()
 

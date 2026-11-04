@@ -17,7 +17,7 @@ export function Controls({
   showBlank = true,
   showLogo = false,
   className,
-}: ControlsProps) {
+}: Readonly<ControlsProps>) {
 
   const { t } = useTranslation('controller');
 

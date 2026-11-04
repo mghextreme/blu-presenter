@@ -31,7 +31,7 @@ export function OrganizationBar({
   multiselect = false,
   onOrganizationsChange,
   children,
-}: OrganizationBarProps) {
+}: Readonly<OrganizationBarProps>) {
   const handleChange = (orgs: OptionalOrganization[]) => {
     if (editable && orgs[0]) {
       const org = useAuth.getState().organizations.find((o) => o.id === orgs[0]?.id);

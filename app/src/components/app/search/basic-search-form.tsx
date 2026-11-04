@@ -18,7 +18,7 @@ interface BasicSearchFormProps {
 
 export function BasicSearchForm({
   includeBlocks = false,
-}: BasicSearchFormProps) {
+}: Readonly<BasicSearchFormProps>) {
 
   const { t } = useTranslation('songs');
   const {

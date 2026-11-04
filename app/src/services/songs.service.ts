@@ -1,6 +1,7 @@
 import { ApiService } from "./api.service";
 import { IScheduleItem, IScheduleSong, IScheduleText, ISlide, ISlideContent, ISlideTextContent, ISlideTitleContent, ISong, ISongWithRole } from "@/types"
 import { pairLyricsLines } from "@/lib/songs";
+import { getOfflineSongById, searchOfflineSongs } from "@/lib/offline/reads";
 
 export class SongsService extends ApiService {
 
@@ -11,11 +12,23 @@ export class SongsService extends ApiService {
   public async getById(songId: number, secret?: string): Promise<ISong | null> {
     const hasSecret = secret && secret.length > 0;
     const secretParam = hasSecret ? `?secret=${secret}` : '';
+    const queryKey = ['songs', 'id', songId, hasSecret ? secret : null];
 
-    return await this.getOrFetch({
-      queryKey: ['songs', 'id', songId, hasSecret ? secret : null],
-      queryFn: async () => await this.getRequest(`/songs/${songId}${secretParam}`) as ISong,
-    });
+    if (this.isOffline()) {
+      return await getOfflineSongById(songId);
+    }
+
+    try {
+      return await this.getOrFetch({
+        queryKey,
+        queryFn: async () => await this.getRequest(`/songs/${songId}${secretParam}`) as ISong,
+      });
+    } catch (e) {
+      if (this.isNetworkError(e)) {
+        return await getOfflineSongById(songId);
+      }
+      throw e;
+    }
   }
 
   public async exportSong(songId: number, secret?: string): Promise<string> {
@@ -46,9 +59,20 @@ export class SongsService extends ApiService {
       itemsPerPage?: number;
     }
   ): Promise<ISongWithRole[]> {
-    return await this.postRequest('/songs/search', JSON.stringify(payload), {
-      'content-type': 'application/json',
-    }) as ISongWithRole[];
+    if (this.isOffline()) {
+      return await searchOfflineSongs(payload);
+    }
+
+    try {
+      return await this.postRequest('/songs/search', JSON.stringify(payload), {
+        'content-type': 'application/json',
+      }) as ISongWithRole[];
+    } catch (e) {
+      if (this.isNetworkError(e)) {
+        return await searchOfflineSongs(payload);
+      }
+      throw e;
+    }
   }
 
   public async add(value: ISong, orgId: number): Promise<ISong | null> {

@@ -8,7 +8,7 @@ interface LoadMoreButtonProps {
   disabled?: boolean;
 }
 
-export function LoadMoreButton({ onClick, isLoading, disabled = false }: LoadMoreButtonProps) {
+export function LoadMoreButton({ onClick, isLoading, disabled = false }: Readonly<LoadMoreButtonProps>) {
   const { t } = useTranslation("app");
 
   return (

@@ -13,7 +13,7 @@ type LanguageTogglerProps = {
 
 export function LanguageToggler({
   variant = 'outline',
-}: LanguageTogglerProps) {
+}: Readonly<LanguageTogglerProps>) {
 
   const { t } = useTranslation("navbar");
   const curLang = i18next.resolvedLanguage || 'en';

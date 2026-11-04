@@ -15,7 +15,7 @@ interface ScrollingSongVisualizerProps {
 
 export const ScrollingSongVisualizer = forwardRef(({
   theme = TeleprompterTheme,
-}: ScrollingSongVisualizerProps, ref) => {
+}: Readonly<ScrollingSongVisualizerProps>, ref) => {
 
   const { t } = useTranslation('controller');
 

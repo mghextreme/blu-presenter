@@ -1,0 +1,8 @@
+{
+  "update": {
+    "title": "Atualização disponível",
+    "description": "Uma nova versão do BluPresenter está pronta. Recarregue para aplicá-la.",
+    "action": "Recarregar",
+    "dismiss": "Mais tarde"
+  }
+}

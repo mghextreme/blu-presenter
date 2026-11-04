@@ -70,7 +70,7 @@ function loadSpotifyIFrameApi(): Promise<SpotifyIFrameAPI> {
   return spotifyApiPromise;
 }
 
-function SpotifyEmbed({ trackId }: { trackId: string }) {
+function SpotifyEmbed({ trackId }: Readonly<{ trackId: string }>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<SpotifyEmbedController | null>(null);
 
@@ -119,7 +119,7 @@ function SpotifyEmbed({ trackId }: { trackId: string }) {
   return <div ref={containerRef} className="rounded-lg overflow-hidden" />;
 }
 
-function YouTubeEmbed({ videoId }: { videoId: string }) {
+function YouTubeEmbed({ videoId }: Readonly<{ videoId: string }>) {
   return (
     <iframe
       src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`}
@@ -134,7 +134,7 @@ function YouTubeEmbed({ videoId }: { videoId: string }) {
   );
 }
 
-function DeezerEmbed({ trackId, shareUrl }: { trackId?: string; shareUrl?: string }) {
+function DeezerEmbed({ trackId, shareUrl }: Readonly<{ trackId?: string; shareUrl?: string }>) {
   const { t } = useTranslation("songs");
   const [resolvedTrackId, setResolvedTrackId] = useState<string | null>(trackId ?? null);
   const [loading, setLoading] = useState(!trackId && !!shareUrl);
@@ -177,7 +177,7 @@ function DeezerEmbed({ trackId, shareUrl }: { trackId?: string; shareUrl?: strin
   );
 }
 
-function SoundCloudEmbed({ trackUrl }: { trackUrl: string }) {
+function SoundCloudEmbed({ trackUrl }: Readonly<{ trackUrl: string }>) {
   const encodedUrl = encodeURIComponent(trackUrl);
   return (
     <iframe
@@ -193,7 +193,7 @@ function SoundCloudEmbed({ trackUrl }: { trackUrl: string }) {
   );
 }
 
-function AppleMusicEmbed({ embedUrl }: { embedUrl: string }) {
+function AppleMusicEmbed({ embedUrl }: Readonly<{ embedUrl: string }>) {
   return (
     <iframe
       src={embedUrl}
@@ -208,7 +208,7 @@ function AppleMusicEmbed({ embedUrl }: { embedUrl: string }) {
   );
 }
 
-function TidalEmbed({ trackId }: { trackId: string }) {
+function TidalEmbed({ trackId }: Readonly<{ trackId: string }>) {
   return (
     <iframe
       src={`https://embed.tidal.com/tracks/${trackId}?layout=gridify`}
@@ -226,7 +226,7 @@ interface ReferencePlayerProps {
   references: ISongReference[];
 }
 
-export function ReferencePlayer({ references }: ReferencePlayerProps) {
+export function ReferencePlayer({ references }: Readonly<ReferencePlayerProps>) {
   const { t } = useTranslation("songs");
   const [activePlayerIndex, setActivePlayerIndex] = useState<number | null>(null);
 

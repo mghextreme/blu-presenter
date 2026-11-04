@@ -32,7 +32,7 @@ type EditScheduleProps = {
 
 export function EditSchedule({
   edit = true,
-}: EditScheduleProps) {
+}: Readonly<EditScheduleProps>) {
 
   const { t } = useTranslation("schedules");
   const navigate = useNavigate();
@@ -145,7 +145,7 @@ function EditScheduleForm({
   songsService,
   navigate,
   t,
-}: {
+}: Readonly<{
   form: ReturnType<typeof useForm<z.infer<typeof ScheduleSchema>>>,
   edit: boolean,
   data: ISchedule,
@@ -154,7 +154,7 @@ function EditScheduleForm({
   songsService: ReturnType<typeof useServices>['songsService'],
   navigate: ReturnType<typeof useNavigate>,
   t: ReturnType<typeof useTranslation>['t'],
-}) {
+}>) {
   const { schedule, replaceSchedule } = useController();
   const [isLoading, setLoading] = useState<boolean>(false);
   const [addItemOpen, setAddItemOpen] = useState<boolean>(false);

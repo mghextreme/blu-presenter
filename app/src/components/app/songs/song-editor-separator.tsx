@@ -22,7 +22,7 @@ export function SongEditorSeparator({
   onDuplicate,
   onRemove,
   showRemove = true,
-}: SongEditorSeparatorProps) {
+}: Readonly<SongEditorSeparatorProps>) {
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [localName, setLocalName] = useState(name);

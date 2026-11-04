@@ -1,5 +1,6 @@
 import { ApiService } from "./api.service";
 import { ISchedule } from "@/types"
+import { getOfflineScheduleById, searchOfflineSchedules } from "@/lib/offline/reads";
 
 export class SchedulesService extends ApiService {
 
@@ -15,9 +16,20 @@ export class SchedulesService extends ApiService {
     page?: number;
     itemsPerPage?: number;
   }): Promise<ISchedule[]> {
-    return await this.postRequest('/schedules/search', JSON.stringify(payload), {
-      'content-type': 'application/json',
-    }) as ISchedule[];
+    if (this.isOffline()) {
+      return await searchOfflineSchedules(payload);
+    }
+
+    try {
+      return await this.postRequest('/schedules/search', JSON.stringify(payload), {
+        'content-type': 'application/json',
+      }) as ISchedule[];
+    } catch (e) {
+      if (this.isNetworkError(e)) {
+        return await searchOfflineSchedules(payload);
+      }
+      throw e;
+    }
   }
 
   public async getById(scheduleId: number, secret?: string, force = false): Promise<ISchedule | null> {
@@ -25,14 +37,25 @@ export class SchedulesService extends ApiService {
     const secretParam = hasSecret ? `?secret=${secret}` : '';
     const queryKey = ['schedules', 'id', scheduleId, hasSecret ? secret : null];
 
+    if (this.isOffline()) {
+      return await getOfflineScheduleById(scheduleId);
+    }
+
     if (force) {
       this.queryClient.removeQueries({ queryKey });
     }
 
-    return await this.getOrFetch({
-      queryKey,
-      queryFn: async () => await this.getRequest(`/schedules/${scheduleId}${secretParam}`) as ISchedule,
-    });
+    try {
+      return await this.getOrFetch({
+        queryKey,
+        queryFn: async () => await this.getRequest(`/schedules/${scheduleId}${secretParam}`) as ISchedule,
+      });
+    } catch (e) {
+      if (this.isNetworkError(e)) {
+        return await getOfflineScheduleById(scheduleId);
+      }
+      throw e;
+    }
   }
 
   /** Fetches a schedule from the API, bypassing and then updating the cache. */

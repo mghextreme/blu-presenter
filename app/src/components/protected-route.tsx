@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useServices } from "@/hooks/useServices";
 import { isTokenExpired } from "@/lib/utils";
 
-export function ProtectedRoute({ children }: { children: ReactNode }) {
+export function ProtectedRoute({ children }: Readonly<{ children: ReactNode }>) {
   const { isLoggedIn, session } = useAuth();
   const { authService } = useServices();
   const [isValidating, setIsValidating] = useState(() => {
@@ -17,9 +17,15 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
       return;
     }
 
-    authService.tryRefreshSession().finally(() => {
-      setIsValidating(false);
-    });
+    // A failed refresh must not block entry or log the user out when the
+    // failure is a network error (offline use): performRefresh only clears
+    // the session when the server rejects the refresh token (ApiError), and
+    // network errors keep the session as-is.
+    authService.tryRefreshSession()
+      .catch(() => { /* offline or transient failure — keep cached session */ })
+      .finally(() => {
+        setIsValidating(false);
+      });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isValidating) {

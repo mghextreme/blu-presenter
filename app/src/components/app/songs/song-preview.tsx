@@ -20,7 +20,7 @@ export function SongPreview({
   getLastFocusedBlock,
   getLastFocusedLine,
   children,
-}: SongPreviewProps) {
+}: Readonly<SongPreviewProps>) {
   const { t } = useTranslation("songs");
 
   const {

@@ -6,7 +6,7 @@ interface ConnectionIndicatorProps {
   reconnectAttempts: number;
 }
 
-export function ConnectionIndicator({ isConnected, reconnectAttempts }: ConnectionIndicatorProps) {
+export function ConnectionIndicator({ isConnected, reconnectAttempts }: Readonly<ConnectionIndicatorProps>) {
   const hasConnectedOnceRef = useRef(false);
   const [visible, setVisible] = useState(false);
 

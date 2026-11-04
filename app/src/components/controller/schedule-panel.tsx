@@ -15,7 +15,7 @@ type SchedulePanelProps = {
   showOpen?: boolean;
 }
 
-export function SchedulePanel({ showRestore = true, showOpen = true }: SchedulePanelProps) {
+export function SchedulePanel({ showRestore = true, showOpen = true }: Readonly<SchedulePanelProps>) {
 
   const { t } = useTranslation('controller');
 
@@ -76,7 +76,7 @@ export function SchedulePanel({ showRestore = true, showOpen = true }: ScheduleP
           <TrashIcon className="size-4" />
         </Button>}
       </div>
-      <Sortable
+      <Sortable<ISortableScheduleItem>
         value={schedule as ISortableScheduleItem[]}
         onDragEnd={handleDrag}
         getItemValue={(item) => item.uniqueId ?? item.id}

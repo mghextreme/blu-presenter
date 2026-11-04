@@ -11,7 +11,7 @@ type ThemeTogglerProps = {
 
 export function ThemeToggler({
   variant = 'outline',
-}: ThemeTogglerProps) {
+}: Readonly<ThemeTogglerProps>) {
 
   const { t } = useTranslation("navbar");
 

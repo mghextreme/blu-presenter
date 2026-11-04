@@ -117,7 +117,7 @@ type SortableProps<T> = DndContextProps & {
   flatCursor?: boolean;
 } & (T extends object ? GetItemValue<T> : Partial<GetItemValue<T>>);
 
-function Sortable<T>(props: SortableProps<T>) {
+function Sortable<T>(props: Readonly<SortableProps<T>>) {
   const {
     value,
     onValueChange,
@@ -545,7 +545,7 @@ interface SortableOverlayProps
     | React.ReactNode;
 }
 
-function SortableOverlay(props: SortableOverlayProps) {
+function SortableOverlay(props: Readonly<SortableOverlayProps>) {
   const { container: containerProp, children, ...overlayProps } = props;
 
   const context = useSortableContext(OVERLAY_NAME);

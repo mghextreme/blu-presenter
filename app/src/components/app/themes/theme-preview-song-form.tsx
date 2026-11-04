@@ -44,7 +44,7 @@ function buildDefaultBlocks(lyrics: string, chords: string): ISongPart[] {
   return [{ lines }];
 }
 
-export function ThemePreviewSongForm({ baseTheme }: ThemePreviewSongFormProps) {
+export function ThemePreviewSongForm({ baseTheme }: Readonly<ThemePreviewSongFormProps>) {
   const { t } = useTranslation("themes");
 
   const { setScheduleItem, setMode, selection } = useController();

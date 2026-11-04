@@ -10,7 +10,7 @@ type SlideVisualizerProps = {
 
 export function SlideVisualizer({
   theme = LyricsTheme,
-}: SlideVisualizerProps) {
+}: Readonly<SlideVisualizerProps>) {
 
   const {
     setSelection,

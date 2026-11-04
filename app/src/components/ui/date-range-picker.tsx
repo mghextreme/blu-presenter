@@ -39,7 +39,7 @@ function DateRangePicker({
   clearLabel,
   numberOfMonths = 1,
   className,
-}: DateRangePickerProps) {
+}: Readonly<DateRangePickerProps>) {
   const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   // In-progress selection: the start date is picked, the end date is pending.

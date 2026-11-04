@@ -20,7 +20,7 @@ export function WindowProvider({
   id,
   children,
   ...props
-}: WindowProviderProps) {
+}: Readonly<WindowProviderProps>) {
 
   const [externalWind, setExternalWind] = useState<Window | undefined>(undefined);
   const [externalEl, setExternalEl] = useState<HTMLElement | undefined>(undefined);

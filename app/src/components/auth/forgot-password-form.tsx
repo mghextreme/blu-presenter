@@ -27,7 +27,7 @@ const formSchema = z.object({
   email: z.string().email(),
 });
 
-export function ForgotPasswordForm({ className, ...props }: ForgotPasswordFormProps) {
+export function ForgotPasswordForm({ className, ...props }: Readonly<ForgotPasswordFormProps>) {
   const { t } = useTranslation("auth");
   const { authService } = useServices();
 

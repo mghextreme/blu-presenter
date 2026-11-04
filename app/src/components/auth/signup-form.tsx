@@ -27,7 +27,7 @@ import { captcha } from "@/lib/config";
 
 interface SignUpFormProps extends HTMLAttributes<HTMLDivElement> {}
 
-export function SignUpForm({ className, ...props }: SignUpFormProps) {
+export function SignUpForm({ className, ...props }: Readonly<SignUpFormProps>) {
 
   const { t } = useTranslation("auth");
 

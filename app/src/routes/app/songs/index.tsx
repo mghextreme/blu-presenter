@@ -37,7 +37,7 @@ export function Songs() {
   );
 }
 
-function SongsContent({ userOrganizations }: { userOrganizations: IOrganization[] }) {
+function SongsContent({ userOrganizations }: Readonly<{ userOrganizations: IOrganization[] }>) {
 
   const { t } = useTranslation("songs");
 

@@ -153,7 +153,7 @@ function ScheduleListItem({
   hasControllerItems,
   t,
   highlight = false,
-}: ScheduleListItemProps) {
+}: Readonly<ScheduleListItemProps>) {
   const [isExpanded, setExpanded] = useState(false);
   const itemCount = schedule.items?.length ?? 0;
 

@@ -16,7 +16,7 @@ interface QuerySearchFormProps {
   children?: React.ReactNode;
 }
 
-export function QuerySearchForm({ onSearch, isLoading = false, placeholder, className, debounceMs, children }: QuerySearchFormProps) {
+export function QuerySearchForm({ onSearch, isLoading = false, placeholder, className, debounceMs, children }: Readonly<QuerySearchFormProps>) {
   const { t } = useTranslation("app");
 
   const [value, setValue] = useState<string>('');

@@ -32,7 +32,7 @@ const formSchema = z.object({
   password: z.string().min(8),
 });
 
-export function LoginForm({ className, ...props }: LoginFormProps) {
+export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
 
   const { t } = useTranslation("auth");
   const { email: invitedEmail, id, secret } = useInvitation();

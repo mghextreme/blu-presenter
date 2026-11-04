@@ -17,7 +17,7 @@ export type InvitationProviderState = {
 
 const InvitationContext = createContext<InvitationProviderState>({});
 
-export const InvitationProvider = ({ id, secret, email, organization, children }: InvitationProviderProps) => {
+export const InvitationProvider = ({ id, secret, email, organization, children }: Readonly<InvitationProviderProps>) => {
   const value = {
     id,
     secret,

@@ -32,7 +32,7 @@ interface LineStyleEditorProps {
   italicId: string;
 }
 
-function LineStyleEditor({ label, style, onChange, showLabel, enabledId, boldId, italicId }: LineStyleEditorProps) {
+function LineStyleEditor({ label, style, onChange, showLabel, enabledId, boldId, italicId }: Readonly<LineStyleEditorProps>) {
   const { t } = useTranslation("songs");
   return (
     <div className="flex flex-col gap-2">

@@ -23,7 +23,7 @@ export function RehearsalNav({
   onNext,
   hasPrevious,
   hasNext,
-}: RehearsalNavProps) {
+}: Readonly<RehearsalNavProps>) {
   const { t } = useTranslation("schedules");
 
   return (

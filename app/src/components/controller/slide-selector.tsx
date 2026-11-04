@@ -17,7 +17,7 @@ export function SlideSelector({
   disabled = false,
   scheduleItemIndex = undefined,
   index,
-}: SlideSelectorParams) {
+}: Readonly<SlideSelectorParams>) {
   const {
     mode,
     selection,

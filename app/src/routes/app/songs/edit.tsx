@@ -22,7 +22,7 @@ interface EditSongProps {
 export function EditSong({
   edit = true,
   startingBlocks,
-}: EditSongProps) {
+}: Readonly<EditSongProps>) {
 
   const { t } = useTranslation("songs");
   const curLang = (i18next.resolvedLanguage || 'en') as SupportedLanguage;
