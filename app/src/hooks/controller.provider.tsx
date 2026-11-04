@@ -1,6 +1,5 @@
 import { createContext, useMemo, useState } from "react"
 import { useHotkeys } from 'react-hotkeys-hook';
-import { Key } from 'ts-key-enum';
 
 import { SelectorScreen } from "@/components/controller/selector-screen"
 import { IScheduleItem, IWindow, ISlide, ControllerMode, ISlideTextContent, ISlideImageContent, IControllerSelection } from "@/types"
@@ -543,19 +542,21 @@ export function ControllerProvider({
     config,
   ]);
 
-  useHotkeys(Key.ArrowLeft, previous);
-  useHotkeys(Key.PageUp, previous);
+  // Key names are the W3C key values accepted by react-hotkeys-hook
+  // (ts-key-enum v3 became types-only, so the dependency was dropped).
+  useHotkeys('ArrowLeft', previous);
+  useHotkeys('PageUp', previous);
 
-  useHotkeys(Key.ArrowRight, next);
-  useHotkeys(Key.PageDown, next);
+  useHotkeys('ArrowRight', next);
+  useHotkeys('PageDown', next);
 
-  useHotkeys(`${Key.Control}+${Key.ArrowLeft}`, () => previousItem());
-  useHotkeys(`${Key.Control}+${Key.PageUp}`, () => previousItem());
+  useHotkeys('Control+ArrowLeft', () => previousItem());
+  useHotkeys('Control+PageUp', () => previousItem());
 
-  useHotkeys(`${Key.Control}+${Key.ArrowRight}`, nextItem);
-  useHotkeys(`${Key.Control}+${Key.PageDown}`, nextItem);
+  useHotkeys('Control+ArrowRight', nextItem);
+  useHotkeys('Control+PageDown', nextItem);
 
-  useHotkeys(`${Key.Control}+B`, toggleBlank);
+  useHotkeys("Control+B", toggleBlank);
 
   return (
     <ControllerProviderContext.Provider {...props} value={value}>

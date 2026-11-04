@@ -40,8 +40,12 @@ async function main(): Promise<number> {
     console.log(USAGE);
     return 0;
   }
-  const dirFlag = args.includes('--dir') ? args[args.indexOf('--dir') + 1] : undefined;
-  const orgFlag = args.includes('--org') ? args[args.indexOf('--org') + 1] : undefined;
+  const dirFlag = args.includes('--dir')
+    ? args[args.indexOf('--dir') + 1]
+    : undefined;
+  const orgFlag = args.includes('--org')
+    ? args[args.indexOf('--org') + 1]
+    : undefined;
 
   const seedsDir = dirFlag
     ? path.resolve(dirFlag)

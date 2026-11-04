@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useServices } from "@/hooks/useServices";
 import { Button } from "@/components/ui/button";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -68,8 +68,12 @@ export function EditTheme({
 
   const organizationId = edit ? data.organization?.id : selectedOrganizations[0]?.id;
 
-  const form = useForm<z.infer<typeof ThemeSchema>>({
-    resolver: zodResolver(ThemeSchema),
+  // zod 4: coerced fields have `unknown` input types, so zodResolver v7
+  // infers a Resolver<Input> that no longer matches useForm<z.infer> (the
+  // output type). The resolver still validates + coerces on submit, so
+  // pin the form to the output type as zod 3 did.
+  const form = useForm<z.output<typeof ThemeSchema>>({
+    resolver: zodResolver(ThemeSchema) as Resolver<z.output<typeof ThemeSchema>>,
     defaultValues: {
       id: data.id,
       name: data.name,
