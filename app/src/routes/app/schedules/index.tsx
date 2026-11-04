@@ -12,7 +12,7 @@ import { filterToSelection } from "@/hooks/use-organization-filter";
 import { OrganizationBar } from "@/components/app/organization-bar";
 import { PageContent } from "@/components/shared/page-content";
 import { ListItemCard } from "@/components/shared/list-item-card";
-import { ScheduleOfflineBadge } from "@/components/app/offline/schedule-offline-badge";
+import { ScheduleOfflineButton } from "@/components/app/offline/schedule-offline-button";
 import { QuerySearchForm } from "@/components/shared/query-search-form";
 import { LoadMoreButton } from "@/components/shared/load-more";
 import { FiltersActiveNotice } from "@/components/shared/filters-active-notice";
@@ -160,7 +160,7 @@ export function Schedules() {
                 title={schedule.title}
                 description={formatDate(schedule.date)}
                 organization={schedule.organization}
-                additionalBadges={<ScheduleOfflineBadge schedule={schedule} />}
+                additionalBadges={<ScheduleOfflineButton schedule={schedule} />}
                 actions={getCardActions(schedule)}
               />
             </li>

@@ -1,0 +1,18 @@
+{
+  "actions": {
+    "download": "Baixar para uso offline",
+    "remove": "Remover do dispositivo"
+  },
+  "downloading": "Baixando...",
+  "downloaded": {
+    "title": "Disponível offline",
+    "success": "Disponível offline"
+  },
+  "removed": {
+    "success": "Removido do dispositivo"
+  },
+  "errors": {
+    "download": "Não foi possível baixar para uso offline",
+    "remove": "Não foi possível remover do dispositivo"
+  }
+}

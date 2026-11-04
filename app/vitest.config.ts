@@ -1,9 +1,15 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Provides the `virtual:pwa-register` modules used by PwaManager so that
+    // component tests can import it (mocked via vi.mock).
+    VitePWA({ devOptions: { enabled: false } }),
+  ],
   test: {
     globals: true,
     environment: 'jsdom',

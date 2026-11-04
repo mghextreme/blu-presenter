@@ -1,6 +1,7 @@
 import { ApiService } from "./api.service";
 import { ITheme } from "@/types"
 import { mergeTheme } from "@/lib/theme-config";
+import { getOfflineThemeById, getOfflineThemes, searchOfflineThemes } from "@/lib/offline/reads";
 
 export class ThemesService extends ApiService {
 
@@ -14,18 +15,40 @@ export class ThemesService extends ApiService {
     page?: number;
     itemsPerPage?: number;
   }): Promise<ITheme[]> {
-    const themes = await this.postRequest('/themes/search', JSON.stringify(payload), {
-      'content-type': 'application/json',
-    }) as ITheme[];
-    return themes.map(mergeTheme);
+    if (this.isOffline()) {
+      return await searchOfflineThemes(payload);
+    }
+
+    try {
+      const themes = await this.postRequest('/themes/search', JSON.stringify(payload), {
+        'content-type': 'application/json',
+      }) as ITheme[];
+      return themes.map(mergeTheme);
+    } catch (e) {
+      if (this.isNetworkError(e)) {
+        return await searchOfflineThemes(payload);
+      }
+      throw e;
+    }
   }
 
   public async getAllForUser(): Promise<ITheme[]> {
-    const themes = await this.getOrFetch({
-      queryKey: ['themes', 'allForUser'],
-      queryFn: async () => await this.getRequest('/themes/user/all') as ITheme[],
-    });
-    return themes.map(mergeTheme);
+    if (this.isOffline()) {
+      return await getOfflineThemes();
+    }
+
+    try {
+      const themes = await this.getOrFetch({
+        queryKey: ['themes', 'allForUser'],
+        queryFn: async () => await this.getRequest('/themes/user/all') as ITheme[],
+      });
+      return themes.map(mergeTheme);
+    } catch (e) {
+      if (this.isNetworkError(e)) {
+        return await getOfflineThemes();
+      }
+      throw e;
+    }
   }
 
   public async getBySessionSecret(
@@ -50,11 +73,22 @@ export class ThemesService extends ApiService {
   }
 
   public async getById(themeId: number): Promise<ITheme | null> {
-    const theme = await this.getOrFetch({
-      queryKey: ['themes', 'id', themeId],
-      queryFn: async () => await this.getRequest(`/themes/${themeId}`) as ITheme,
-    });
-    return theme ? mergeTheme(theme) : null;
+    if (this.isOffline()) {
+      return await getOfflineThemeById(themeId);
+    }
+
+    try {
+      const theme = await this.getOrFetch({
+        queryKey: ['themes', 'id', themeId],
+        queryFn: async () => await this.getRequest(`/themes/${themeId}`) as ITheme,
+      });
+      return theme ? mergeTheme(theme) : null;
+    } catch (e) {
+      if (this.isNetworkError(e)) {
+        return await getOfflineThemeById(themeId);
+      }
+      throw e;
+    }
   }
 
   public async add(value: ITheme, orgId: number): Promise<ITheme | null> {

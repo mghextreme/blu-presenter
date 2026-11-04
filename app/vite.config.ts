@@ -2,6 +2,7 @@ import path from "path"
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import i18nextLoader from 'vite-plugin-i18next-loader'
+import { VitePWA } from 'vite-plugin-pwa'
 
 import { cloudflare } from "@cloudflare/vite-plugin";
 
@@ -12,6 +13,49 @@ export default defineConfig({
     i18nextLoader({
       paths: ['./locales'],
       namespaceResolution: 'basename',
+    }),
+    VitePWA({
+      // Prompt-based updates: never hot-swap the service worker while a
+      // presentation is running. PwaManager shows a banner offering a reload.
+      registerType: 'prompt',
+      includeAssets: ['favicon.svg', 'images/sample-wallpaper.svg'],
+      manifest: {
+        name: 'BluPresenter',
+        short_name: 'BluPresenter',
+        description: 'Present lyrics, share music sheets... Anywhere. Anytime.',
+        start_url: '/',
+        display: 'standalone',
+        background_color: '#030d26',
+        theme_color: '#030d26',
+        icons: [
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icons/maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+          { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        // Precache the app shell. Fonts (~8 MB of variable TTFs) are NOT
+        // precached — they are runtime-cached CacheFirst on first use below,
+        // which keeps the initial install small while still rendering
+        // presentations offline after one online session.
+        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        navigateFallback: '/index.html',
+        runtimeCaching: [
+          {
+            urlPattern: /\.ttf$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'font-assets',
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+        ],
+      },
+      devOptions: {
+        enabled: false,
+      },
     }),
     ...(process.env.NODE_ENV === 'production' ? [cloudflare()] : []),
   ],

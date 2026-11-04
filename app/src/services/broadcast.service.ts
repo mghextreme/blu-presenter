@@ -11,6 +11,12 @@ import { ApiService } from "./api.service";
 export class BroadcastService extends ApiService {
 
   public async setSchedule(sessionId: number, orgId: number, schedule: unknown[]): Promise<void> {
+    if (this.isOffline()) {
+      // Offline presenting is local-only (popup/second screen); there are no
+      // socket listeners to reach, so skip the write silently instead of
+      // spamming network failures on every schedule/selection change.
+      return;
+    }
     await this.putRequest(`/sessions/${sessionId}/broadcast/schedule`, JSON.stringify({ schedule }), {
       'content-type': 'application/json',
       'Organization': orgId.toString(),
@@ -18,6 +24,9 @@ export class BroadcastService extends ApiService {
   }
 
   public async setScheduleItem(sessionId: number, orgId: number, scheduleItem: unknown): Promise<void> {
+    if (this.isOffline()) {
+      return;
+    }
     await this.putRequest(`/sessions/${sessionId}/broadcast/schedule-item`, JSON.stringify({ scheduleItem }), {
       'content-type': 'application/json',
       'Organization': orgId.toString(),
@@ -25,6 +34,9 @@ export class BroadcastService extends ApiService {
   }
 
   public async setSelection(sessionId: number, orgId: number, selection: unknown): Promise<void> {
+    if (this.isOffline()) {
+      return;
+    }
     await this.putRequest(`/sessions/${sessionId}/broadcast/selection`, JSON.stringify({ selection }), {
       'content-type': 'application/json',
       'Organization': orgId.toString(),
