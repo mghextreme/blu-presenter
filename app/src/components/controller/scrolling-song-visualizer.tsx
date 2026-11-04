@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { IScheduleSong, ITeleprompterThemeConfig, ITheme, TeleprompterTheme } from "@/types";
 import { useController } from "@/hooks/useController";
 import { useWindow } from "@/hooks/window.provider";
-import { IPositionableElement } from "@/types/browser";
 import { Clock } from "./clock";
 import { renderSongPartLines } from "@/lib/songs";
 import { buildFontStyle } from "@/lib/style";
@@ -69,7 +68,7 @@ export const ScrollingSongVisualizer = forwardRef(({
   const [yPartsPxOffset, setYPartsPxOffset] = useState<number>(0);
   const [selectedBlock, setSelectedBlock] = useState<number>(0);
   const updatePosition = () => {
-    const wrapper: IPositionableElement | undefined = wrapperDiv.current as IPositionableElement;
+    const wrapper: HTMLElement | undefined = wrapperDiv.current ?? undefined;
 
     const blocksLength = scheduleSong?.blocks?.length ?? -1;
     if (blocksLength < 0) return;
@@ -85,12 +84,11 @@ export const ScrollingSongVisualizer = forwardRef(({
     }
 
     setSelectedBlock(blockNumber);
-    const blockDiv = wrapperDiv.current?.children.item(blockNumber) as HTMLDivElement;
-    const block: IPositionableElement | undefined = blockDiv as IPositionableElement;
+    const blockDiv = wrapperDiv.current?.children.item(blockNumber) as HTMLDivElement | undefined;
 
-    if (!wrapper || !block) return;
+    if (!wrapper || !blockDiv) return;
 
-    const deltaFromWrapper = block.offsetTop - wrapper.offsetTop;
+    const deltaFromWrapper = blockDiv.offsetTop - wrapper.offsetTop;
     setYPxOffset(deltaFromWrapper);
 
     let selectedPart = 0;

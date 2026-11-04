@@ -2,7 +2,7 @@ import { createContext, useMemo, useState } from "react"
 import { useHotkeys } from 'react-hotkeys-hook';
 
 import { SelectorScreen } from "@/components/controller/selector-screen"
-import { IScheduleItem, IWindow, ISlide, ControllerMode, ISlideTextContent, ISlideImageContent, IControllerSelection } from "@/types"
+import { IScheduleItem, IWindow, ISlide, ControllerMode, ISlideTextContent, ISlideImageContent, IControllerSelection, ITheme } from "@/types"
 import { generateScheduleItemUniqueId } from "@/lib/utils"
 import { STORAGE_KEYS } from "@/lib/storage-keys"
 import { WindowProvider } from "./window.provider"
@@ -46,6 +46,7 @@ type ControllerProviderState = {
   addWindow: (window: IWindow) => void,
   closeWindow: (id: string) => void,
   closeAllWindows: () => void,
+  setWindowTheme: (id: string, theme?: ITheme) => void,
 
   config: IControllerConfig,
   setConfig: (config: IControllerConfig) => void,
@@ -81,6 +82,7 @@ const initialState: ControllerProviderState = {
   addWindow: () => null,
   closeWindow: () => null,
   closeAllWindows: () => null,
+  setWindowTheme: () => null,
 
   config: {
     autoAdvanceScheduleItem: false,
@@ -453,18 +455,16 @@ export function ControllerProvider({
   const [windows, setWindows] = useState<IWindow[]>([]);
 
   const addWindow = (window: IWindow) => {
-    const newValue = [
-      ...windows,
-      window
-    ];
-    setWindows(() => newValue);
+    setWindows((prev) => [...prev, window]);
   }
   const closeWindow = (id: string) => {
-    const survivingWindows = windows.filter((v) => v.id != id);
-    setWindows(survivingWindows);
+    setWindows((prev) => prev.filter((w) => w.id !== id));
   }
   const closeAllWindows = () => {
     setWindows([]);
+  }
+  const setWindowTheme = (id: string, theme?: ITheme) => {
+    setWindows((prev) => prev.map((w) => w.id === id ? { ...w, theme } : w));
   }
 
   let storedConfig: IControllerConfig = initialState.config;
@@ -527,6 +527,7 @@ export function ControllerProvider({
       addWindow,
       closeWindow,
       closeAllWindows,
+      setWindowTheme,
 
       config,
       setConfig: setAndSaveConfig,
@@ -544,26 +545,31 @@ export function ControllerProvider({
 
   // Key names are the W3C key values accepted by react-hotkeys-hook
   // (ts-key-enum v3 became types-only, so the dependency was dropped).
-  useHotkeys('ArrowLeft', previous);
-  useHotkeys('PageUp', previous);
+  // preventDefault stops the browser from scrolling the panels on
+  // PageUp/PageDown/arrow keys; the panels scroll to the selection instead.
+  useHotkeys('ArrowLeft', previous, { preventDefault: true });
+  useHotkeys('PageUp', previous, { preventDefault: true });
 
-  useHotkeys('ArrowRight', next);
-  useHotkeys('PageDown', next);
+  useHotkeys('ArrowRight', next, { preventDefault: true });
+  useHotkeys('PageDown', next, { preventDefault: true });
 
-  useHotkeys('Control+ArrowLeft', () => previousItem());
-  useHotkeys('Control+PageUp', () => previousItem());
+  useHotkeys('Control+ArrowLeft', () => previousItem(), { preventDefault: true });
+  useHotkeys('Control+PageUp', () => previousItem(), { preventDefault: true });
 
-  useHotkeys('Control+ArrowRight', nextItem);
-  useHotkeys('Control+PageDown', nextItem);
+  useHotkeys('Control+ArrowRight', nextItem, { preventDefault: true });
+  useHotkeys('Control+PageDown', nextItem, { preventDefault: true });
 
-  useHotkeys("Control+B", toggleBlank);
+  useHotkeys('Control+B', toggleBlank, { preventDefault: true });
 
   return (
     <ControllerProviderContext.Provider {...props} value={value}>
       {children}
       {windows.map((w) => (
-        <WindowProvider key={w.id} id={w.id}>
-          <SelectorScreen setMode={setMode} />
+        <WindowProvider key={w.id} id={w.id} onClose={() => closeWindow(w.id)}>
+          <SelectorScreen
+            setMode={setMode}
+            onThemeChange={(theme) => setWindowTheme(w.id, theme)}
+          />
         </WindowProvider>
       ))}
     </ControllerProviderContext.Provider>

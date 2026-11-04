@@ -11,8 +11,3 @@ export interface IBrowserWindow {
   screens: (Screen & { isExtended?: boolean })[]
   getScreenDetails: () => Promise<{screens: IScreenDetails[]}>
 }
-
-export interface IPositionableElement {
-  offsetTop: number
-  scrollTo: (options: {top: number, behavior: string}) => void
-}

@@ -6,7 +6,7 @@ import { ControllerProvider, ControllerProviderContext } from '../controller.pro
 import {
   mockScheduleItems,
 } from '@/test/mockData/scheduleItems'
-import { IWindow } from '@/types'
+import { ITheme, IWindow } from '@/types'
 import { STORAGE_KEYS } from '@/lib/storage-keys'
 
 // Mock react-hotkeys-hook
@@ -44,6 +44,7 @@ const TestConsumer = ({
         {context.scheduleItem?.title || 'none'}
       </div>
       <div data-testid="windows-count">{context.windows.length}</div>
+      <div data-testid="window-theme">{context.windows[0]?.theme?.name || 'none'}</div>
       <button onClick={() => context.addToSchedule(mockScheduleItems[0])}>
         Add Item
       </button>
@@ -69,6 +70,17 @@ const TestConsumer = ({
       </button>
       <button onClick={() => context.closeWindow('test-window')}>
         Close Window
+      </button>
+      <button
+        onClick={() =>
+          context.setWindowTheme('test-window', {
+            id: 1,
+            name: 'Test Theme',
+            extends: 'lyrics',
+          } as ITheme)
+        }
+      >
+        Set Window Theme
       </button>
       <button onClick={() => context.setMode('slide')}>Set Slide Mode</button>
       <button onClick={() => context.removeFromSchedule(0)}>
@@ -314,6 +326,29 @@ describe('ControllerProvider Integration Tests', () => {
 
       await waitFor(() => {
         expect(getByTestId('windows-count')).toHaveTextContent('0')
+      })
+    })
+
+    it('should update a window theme', async () => {
+      const user = userEvent.setup()
+      const { getByText, getByTestId } = render(
+        <ControllerProvider storeState={false}>
+          <TestConsumer />
+        </ControllerProvider>
+      )
+
+      expect(getByTestId('window-theme')).toHaveTextContent('none')
+
+      await user.click(getByText('Add Window'))
+
+      await waitFor(() => {
+        expect(getByTestId('windows-count')).toHaveTextContent('1')
+      })
+
+      await user.click(getByText('Set Window Theme'))
+
+      await waitFor(() => {
+        expect(getByTestId('window-theme')).toHaveTextContent('Test Theme')
       })
     })
   })

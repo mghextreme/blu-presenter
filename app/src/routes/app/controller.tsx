@@ -5,12 +5,10 @@ import { SchedulePanel } from "@/components/controller/schedule-panel";
 import { LivePanel } from "@/components/controller/live-panel";
 import { SearchProvider } from "@/hooks/search.provider";
 import { useServices } from "@/hooks/useServices";
+import { useControllerPanels, ControllerPanel } from "@/hooks/useControllerPanels";
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
-
-type ValidTab = 'plan' | 'schedule' | 'live';
 
 export function Controller() {
 
@@ -18,7 +16,10 @@ export function Controller() {
 
   const { songsService } = useServices();
 
-  const [activeTab, setActiveTab] = useState<ValidTab>("plan");
+  const activePanel = useControllerPanels((s) => s.activePanel);
+  const setActivePanel = useControllerPanels((s) => s.setActivePanel);
+  const planTab = useControllerPanels((s) => s.planTab);
+  const setPlanTab = useControllerPanels((s) => s.setPlanTab);
 
   return (
     <>
@@ -27,26 +28,26 @@ export function Controller() {
         <SearchProvider songsService={songsService}>
           <div className={cn(
             'hidden lg:block w-full lg:w-1/3 bg-background rounded overflow-hidden',
-            activeTab === 'plan' && 'block'
+            activePanel === 'plan' && 'block'
           )}>
-            <PlanPanel />
+            <PlanPanel value={planTab} onValueChange={setPlanTab} />
           </div>
           <div className={cn(
             'hidden lg:block w-full lg:w-1/3 bg-background rounded overflow-hidden',
-            activeTab === 'schedule' && 'block'
+            activePanel === 'schedule' && 'block'
           )}>
             <SchedulePanel />
           </div>
           <div className={cn(
             'hidden lg:block w-full lg:w-1/3 bg-background rounded overflow-hidden',
-            activeTab === 'live' && 'block'
+            activePanel === 'live' && 'block'
           )}>
             <LivePanel />
           </div>
         </SearchProvider>
       </div>
       <div className="p-3 pt-0 lg:hidden">
-        <Tabs defaultValue="plan" onValueChange={(value) => setActiveTab(value as ValidTab)}>
+        <Tabs value={activePanel} onValueChange={(value) => setActivePanel(value as ControllerPanel)}>
           <TabsList className="w-full">
             <TabsTrigger value="plan" title={t('tabs.plan')}>{t('tabs.plan')}</TabsTrigger>
             <TabsTrigger value="schedule" title={t('tabs.schedule')}>{t('tabs.schedule')}</TabsTrigger>

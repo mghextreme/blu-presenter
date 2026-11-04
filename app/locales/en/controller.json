@@ -100,8 +100,19 @@
     "logo": "Logo",
     "windows": {
       "open": "Open window",
-      "closeAll": "Close all windows"
+      "closeAll": "Close all windows",
+      "closeOne": "Close window",
+      "list": "Open windows",
+      "window": "Window {{index}}"
     }
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "previous": "Previous",
+    "next": "Next",
+    "previousScheduleItem": "Previous schedule item",
+    "nextScheduleItem": "Next schedule item",
+    "blank": "Blank screen"
   },
   "watch": {
     "title": "Watch",

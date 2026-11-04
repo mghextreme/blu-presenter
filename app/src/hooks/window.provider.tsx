@@ -1,8 +1,9 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 type WindowProviderProps = {
   id: string
+  onClose?: () => void
   children: React.ReactNode
 }
 
@@ -18,12 +19,33 @@ const WindowProviderContext = createContext<WindowProviderState>(initialState);
 
 export function WindowProvider({
   id,
+  onClose,
   children,
   ...props
 }: Readonly<WindowProviderProps>) {
 
   const [externalWind, setExternalWind] = useState<Window | undefined>(undefined);
   const [externalEl, setExternalEl] = useState<HTMLElement | undefined>(undefined);
+
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  // The user can close the popped-out window directly, so watch for it and
+  // notify the controller to keep the tracked windows in sync.
+  useEffect(() => {
+    if (!externalWind) return;
+
+    const interval = setInterval(() => {
+      if (externalWind.closed) {
+        clearInterval(interval);
+        onCloseRef.current?.();
+      }
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [externalWind]);
 
   const copyStyles = (sourceDoc: Document, targetDoc: Document) => {
     Array.from(sourceDoc.styleSheets).forEach(styleSheet => {
