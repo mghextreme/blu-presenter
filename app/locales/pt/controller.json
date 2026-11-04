@@ -100,8 +100,19 @@
     "logo": "Logo",
     "windows": {
       "open": "Abrir janela",
-      "closeAll": "Fechar todas janelas"
+      "closeAll": "Fechar todas janelas",
+      "closeOne": "Fechar janela",
+      "list": "Janelas abertas",
+      "window": "Janela {{index}}"
     }
+  },
+  "shortcuts": {
+    "title": "Atalhos do teclado",
+    "previous": "Anterior",
+    "next": "Próximo",
+    "previousScheduleItem": "Item anterior da programação",
+    "nextScheduleItem": "Próximo item da programação",
+    "blank": "Tela em branco"
   },
   "watch": {
     "title": "Assistir",

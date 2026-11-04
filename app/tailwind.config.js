@@ -1,6 +1,12 @@
 const plugin = require('tailwindcss/plugin');
 const { fontFamily } = require('tailwindcss/defaultTheme')
 
+// Pin the default sans stack. Tailwind 4.3.x changed defaultTheme.sans from
+// `ui-sans-serif, system-ui` back to `-apple-system, Segoe UI, Roboto...`,
+// which silently changed the app's base font. Pinning keeps rendering stable
+// across Tailwind patch releases.
+const sansStack = ['ui-sans-serif', 'system-ui', 'sans-serif', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Segoe UI Symbol"', '"Noto Color Emoji"'];
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
@@ -79,22 +85,19 @@ module.exports = {
         'solid': '.05em .05em 0 rgb(0, 0, 0)',
       },
       fontFamily: {
+        "sans": sansStack,
         "epunda-slab": ['Epunda Slab', ...fontFamily.serif],
-        "inter": ['Inter', ...fontFamily.sans],
-        "montserrat": ['Montserrat', ...fontFamily.sans],
-        "open-sans": ['Open Sans', ...fontFamily.sans],
-        "oswald": ['Oswald', ...fontFamily.sans],
+        "inter": ['Inter', ...sansStack],
+        "montserrat": ['Montserrat', ...sansStack],
+        "open-sans": ['Open Sans', ...sansStack],
+        "oswald": ['Oswald', ...sansStack],
         "outfit": ['Outfit', ...fontFamily.serif],
         "playfair-display": ['Playfair Display', ...fontFamily.serif],
-        "raleway": ['Raleway', ...fontFamily.sans],
-        "roboto": ['Roboto', ...fontFamily.sans],
-        "roboto-condensed": ['Roboto Condensed', ...fontFamily.sans],
+        "raleway": ['Raleway', ...sansStack],
+        "roboto": ['Roboto', ...sansStack],
+        "roboto-condensed": ['Roboto Condensed', ...sansStack],
         "roboto-mono": ['Roboto Mono', ...fontFamily.mono],
         "source-code-pro": ['Source Code Pro', ...fontFamily.mono],
-      },
-      screens: {
-        print: { raw: 'print' },
-        screen: { raw: 'screen' },
       },
     },
   },

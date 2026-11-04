@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { useController } from "@/hooks/useController";
-import { IPositionableElement } from "@/types/browser";
 import { SlideSelector } from "./slide-selector";
 import { PreviewWindow } from "./preview-window";
 import { Controls } from "./controls";
@@ -26,14 +25,18 @@ export function LivePanel() {
   }, [scheduleItem]);
 
   useEffect(() => {
-    const wrapper: IPositionableElement | undefined = contentWrapper.current as IPositionableElement;
-    const slide: IPositionableElement | undefined = slideRefs.current[selection.slide ?? 0] as IPositionableElement;
+    const wrapper: HTMLElement | undefined = contentWrapper.current ?? undefined;
 
-    if (!wrapper || !slide) return;
+    // Follow the selected part when in parts mode, otherwise the selected slide
+    const part: HTMLElement | undefined = wrapper?.querySelector<HTMLElement>('[data-part-selected="true"]') ?? undefined;
+    const slide: HTMLElement | undefined = slideRefs.current[selection.slide ?? 0] ?? undefined;
+    const target: HTMLElement | undefined = part ?? slide;
 
-    const slideTo = slide.offsetTop - wrapper.offsetTop - 50;
-    wrapper?.scrollTo({
-      top: slideTo,
+    if (!wrapper || !target) return;
+
+    const targetTo = target.offsetTop - wrapper.offsetTop - 50;
+    wrapper.scrollTo({
+      top: targetTo,
       behavior: "smooth"
     });
   }, [selection]);

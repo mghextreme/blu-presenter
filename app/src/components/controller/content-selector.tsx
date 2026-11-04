@@ -37,6 +37,7 @@ export function ContentSelector({
 
   return (
     <div
+      data-part-selected={mode == 'part' && selected ? 'true' : undefined}
       className={"flex flex-row align-stretch justify-stretch my-2 rounded" + (!disabled && mode == 'part' ? ' cursor-pointer hover:bg-card' : '') + (mode == 'part' && selected ? ' bg-selected' : '')}
       onClick={!disabled && mode == 'part' ? () => setSelection({
         scheduleItem: scheduleItemIndex,

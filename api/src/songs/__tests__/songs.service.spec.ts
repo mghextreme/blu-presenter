@@ -117,7 +117,10 @@ describe('SongsService.advancedSearch', () => {
       providers: [
         SongsService,
         SongTextFormatService,
-        { provide: getRepositoryToken(Song), useValue: { createQueryBuilder: jest.fn(() => queryBuilder) } },
+        {
+          provide: getRepositoryToken(Song),
+          useValue: { createQueryBuilder: jest.fn(() => queryBuilder) },
+        },
         { provide: OrganizationsService, useValue: {} },
         { provide: UsersService, useValue: mockUsersService },
         { provide: REQUEST, useValue: { user: { internal: { id: 42 } } } },

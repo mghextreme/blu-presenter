@@ -12,12 +12,14 @@ interface SelectorScreenProps {
   setMode: (mode: ControllerMode) => void,
   defaultTheme?: ITheme,
   themeOptions?: ITheme[],
+  onThemeChange?: (theme: ITheme) => void,
 }
 
 export function SelectorScreen({
   setMode,
   defaultTheme,
   themeOptions,
+  onThemeChange,
 }: Readonly<SelectorScreenProps>) {
 
   const { t } = useTranslation("controller");
@@ -79,6 +81,7 @@ export function SelectorScreen({
 
   const setThemeAndMode = (theme: ITheme) => {
     setSelectedTheme(theme);
+    onThemeChange?.(theme);
     if (theme.extends === 'subtitles') {
       setMode('part');
     }

@@ -5,21 +5,20 @@ import { useController } from "@/hooks/useController";
 import { v4 } from "uuid";
 import { IWindow } from "@/types";
 import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
-import XMarkIcon from "@heroicons/react/24/solid/XMarkIcon";
 import { LanguageToggler } from "@/components/shared/language-toggler";
 import { useTranslation } from "react-i18next";
 import { Clock } from "./clock";
 import { BluPresenterLogo } from "@/components/shared/logo";
 import { BroadcastBadge } from "./broadcast-badge";
+import { ShortcutsDialogButton } from "./shortcuts-dialog";
+import { WindowControls } from "./window-controls";
 
 export function ControllerNavbar() {
 
   const { t } = useTranslation("controller");
 
   const {
-    windows,
     addWindow,
-    closeAllWindows,
   } = useController();
 
   return (
@@ -32,6 +31,7 @@ export function ControllerNavbar() {
           <Button variant="outline" disabled className="hidden lg:flex">
             <Clock />
           </Button>
+          <ShortcutsDialogButton />
           <LanguageToggler />
           <ThemeToggler />
           <ControllerModeToggler />
@@ -40,9 +40,7 @@ export function ControllerNavbar() {
             {t('controls.windows.open')}
             <PlayIcon className="ms-2 size-4" />
           </Button>
-          {windows.length > 0 && <Button title={t('controls.windows.closeAll')} onClick={() => closeAllWindows()}>
-            <XMarkIcon className="size-4" />
-          </Button>}
+          <WindowControls />
         </div>
       </div>
     </header>

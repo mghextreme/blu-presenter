@@ -23,6 +23,8 @@ export class SocketIoAdapter extends IoAdapter {
       },
     };
 
-    return super.createIOServer(port, serverOptions);
+    // NestJS 12 widened createIOServer to require full ServerOptions;
+    // socket.io applies its own defaults for anything left unset.
+    return super.createIOServer(port, serverOptions as ServerOptions);
   }
 }

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlanSchedules } from "./plan-schedules";
@@ -15,17 +16,31 @@ type PlanPanelProps = {
   showConfiguration?: boolean;
   showSchedules?: boolean;
   showOpen?: boolean;
+  /** Controlled active tab. When omitted the tabs manage their own state. */
+  value?: string;
+  onValueChange?: (tab: string) => void;
 }
 
-export function PlanPanel({ showConfiguration = true, showSchedules = true, showOpen = true }: Readonly<PlanPanelProps>) {
+export function PlanPanel({ showConfiguration = true, showSchedules = true, showOpen = true, value, onValueChange }: Readonly<PlanPanelProps>) {
 
   const { t } = useTranslation("controller");
+
+  const [internalTab, setInternalTab] = useState<string>(showSchedules ? 'schedules' : 'search');
+
+  const handleValueChange = (tab: string) => {
+    setInternalTab(tab);
+    onValueChange?.(tab);
+  };
 
   return (
     <div
       id="plan"
       className="flex flex-col justify-start items-stretch p-3 h-full">
-      <Tabs defaultValue={showSchedules ? 'schedules' : 'search'} className="flex flex-col h-full">
+      <Tabs
+        value={value}
+        defaultValue={value === undefined ? internalTab : undefined}
+        onValueChange={handleValueChange}
+        className="flex flex-col h-full">
         <TabsList className="w-full">
           {showSchedules && (
             <TabsTrigger value="schedules" title={t('plan.tabs.schedules')}><CalendarIcon className="size-4" /></TabsTrigger>

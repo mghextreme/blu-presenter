@@ -24,6 +24,16 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // react-hooks v7 added the React Compiler-powered rules to its
+      // recommended preset. Each flag needs a behavior-preserving refactor
+      // (~10 components), so they start as warnings and get fixed
+      // incrementally.
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/refs': 'warn',
+      'react-hooks/immutability': 'warn',
+      'react-hooks/preserve-manual-memoization': 'warn',
+      'react-hooks/use-memo': 'warn',
+      'react-hooks/incompatible-library': 'warn',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
