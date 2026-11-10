@@ -3,4 +3,8 @@ import { ISong } from "./song.interface";
 
 export interface IScheduleSong extends IScheduleItem, ISong {
   title: string
+  organization?: {
+    id?: number
+    name?: string
+  } | null
 }

@@ -7,7 +7,7 @@ import { ScheduleItem } from "./schedule-item";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import InboxArrowDownIcon from "@heroicons/react/24/solid/InboxArrowDownIcon"
 import ArrowsUpDownIcon from "@heroicons/react/20/solid/ArrowsUpDownIcon";
-import { ISortableScheduleItem } from "@/types";
+import { IScheduleSong, ISortableScheduleItem } from "@/types";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 
 type SchedulePanelProps = {
@@ -27,6 +27,17 @@ export function SchedulePanel({ showRestore = true, showOpen = true }: Readonly<
     removeAllFromSchedule,
     selection,
   } = useController();
+
+  // Only show organization badges when the schedule mixes songs from more
+  // than one organization (the public archive counts as its own).
+  const songOrganizations = schedule
+    .filter((item) => item.type === 'song')
+    .map((item) => (item as IScheduleSong).organization)
+    .filter((organization) => organization !== undefined);
+  const organizationKeys = new Set(
+    songOrganizations.map((organization) => organization?.id ?? null),
+  );
+  const showOrganizations = organizationKeys.size > 1;
 
   let hasLastSession = false;
   let lastSessionScheduleParsed = [];
@@ -95,6 +106,7 @@ export function SchedulePanel({ showRestore = true, showOpen = true }: Readonly<
                     selected={ix === selection.scheduleItem && scheduleItem?.id === item.id}
                     index={ix}
                     showOpen={showOpen}
+                    showOrganization={showOrganizations}
                     buttonsOverride={sorting ? (
                       <SortableItemHandle asChild>
                         <Button

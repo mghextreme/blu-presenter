@@ -68,20 +68,20 @@ export class SessionsGateway implements OnGatewayConnection {
       return;
     }
 
-    if (
-      !(await this.organizationsBaseService.isFeatureEnabledInOrg(
-        data.orgId,
-        'sessions',
-      ))
-    ) {
-      client.emit('error', {
-        code: 'session.disabled',
-        message: 'Sessions are disabled for this organization',
-      });
-      return;
-    }
-
     try {
+      if (
+        !(await this.organizationsBaseService.isFeatureEnabledInOrg(
+          data.orgId,
+          'sessions',
+        ))
+      ) {
+        client.emit('error', {
+          code: 'session.disabled',
+          message: 'Sessions are disabled for this organization',
+        });
+        return;
+      }
+
       const session = await this.sessionsService.findOneBySecret(
         data.orgId,
         data.sessionId,

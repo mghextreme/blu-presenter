@@ -10,6 +10,7 @@ import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import { SlideSelector } from "./slide-selector";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+import { OrgBadge } from "@/components/shared/org-badge";
 
 type ScheduleItemParams = {
   item: IScheduleItem
@@ -17,6 +18,7 @@ type ScheduleItemParams = {
   index: number
   buttonsOverride?: ReactNode;
   showOpen?: boolean;
+  showOrganization?: boolean;
 }
 
 export function ScheduleItem({
@@ -25,6 +27,7 @@ export function ScheduleItem({
   index,
   buttonsOverride,
   showOpen = true,
+  showOrganization = false,
 }: Readonly<ScheduleItemParams>) {
 
   const { t } = useTranslation("controller");
@@ -68,6 +71,9 @@ export function ScheduleItem({
             )}
           </CardHeaderText>
           <CardHeaderActions>
+            {item.type === 'song' && showOrganization && (
+              <OrgBadge organization={song?.organization} />
+            )}
             {buttonsOverride ? buttonsOverride : (
               <>
                 {item.type === 'song' && (

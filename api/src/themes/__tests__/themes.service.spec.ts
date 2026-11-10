@@ -461,4 +461,75 @@ describe('ThemesService', () => {
       ).toHaveBeenCalledWith(1, 'themes', { notFound: true });
     });
   });
+
+  describe('findAllForSession', () => {
+    it('lists the session theme when the URL omits the theme', async () => {
+      mockSessionsService.findOneBySecret.mockResolvedValue({ theme: '5' });
+      mockThemesRepository.find.mockResolvedValue([mockTheme]);
+
+      await service.findAllForSession(1, 7, 'secret-abc');
+
+      expect(mockThemesRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            orgId: 1,
+            id: 5,
+          },
+        }),
+      );
+    });
+
+    it('lists all org themes when neither URL nor session theme resolve', async () => {
+      // This must never put an undefined value into the where clause
+      // (TypeORM throws on it since the 1.x upgrade).
+      mockSessionsService.findOneBySecret.mockResolvedValue({ theme: 'lyrics' });
+
+      await service.findAllForSession(1, 7, 'secret-abc');
+      expect(mockThemesRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { orgId: 1 },
+        }),
+      );
+
+      await service.findAllForSession(1, 7, 'secret-abc', undefined);
+      expect(mockThemesRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { orgId: 1 },
+        }),
+      );
+
+      await service.findAllForSession(1, 7, 'secret-abc', NaN as never);
+      await service.findAllForSession(1, 7, 'secret-abc', 0 as never);
+      expect(mockThemesRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { orgId: 1 },
+        }),
+      );
+    });
+
+    it('constrains by the URL theme when provided', async () => {
+      mockSessionsService.findOneBySecret.mockResolvedValue({ theme: '90' });
+      mockThemesRepository.find.mockResolvedValue([mockTheme]);
+
+      // The controller passes @Query values verbatim, so a URL theme can
+      // still arrive as a string
+      await service.findAllForSession(1, 7, 'secret-abc', '3' as never);
+      expect(mockThemesRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            orgId: 1,
+            id: 3,
+          },
+        }),
+      );
+    });
+
+    it('returns [] when the session or secret does not match', async () => {
+      mockSessionsService.findOneBySecret.mockResolvedValue(null);
+
+      const result = await service.findAllForSession(1, 7, 'bad-secret');
+      expect(result).toEqual([]);
+      expect(mockThemesRepository.find).not.toHaveBeenCalled();
+    });
+  });
 });
