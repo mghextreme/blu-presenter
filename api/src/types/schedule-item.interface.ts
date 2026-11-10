@@ -11,4 +11,8 @@ export interface IScheduleItem {
   secret?: string;
   uniqueId?: number;
   updatedAt?: Date;
+  organization?: {
+    id: number;
+    name: string;
+  } | null;
 }

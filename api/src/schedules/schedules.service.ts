@@ -312,6 +312,8 @@ export class SchedulesService {
         'song.secret',
         'song.updatedAt',
       ])
+      .leftJoin('song.organization', 'organization')
+      .addSelect(['organization.id', 'organization.name'])
       .where('song.id IN (:...songIds)', { songIds })
       .getMany();
 
@@ -337,6 +339,12 @@ export class SchedulesService {
           references: song.references,
           secret: song.secret,
           updatedAt: song.updatedAt,
+          organization: song.organization
+            ? {
+                id: song.organization.id,
+                name: song.organization.name,
+              }
+            : null,
         };
       })
       .filter((item) => item !== null);
