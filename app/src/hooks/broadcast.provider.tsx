@@ -1,9 +1,7 @@
 import { createContext, useEffect, useMemo, useState } from "react"
 import { BaseTheme, IBroadcastSession } from "@/types"
-import { useAuth } from "./useAuth"
 import { useController } from "./useController"
 import { useServices } from "./useServices"
-import { useSessionSocket, JoinSessionParams } from "./useSessionSocket"
 import { STORAGE_KEYS } from "@/lib/storage-keys"
 
 type BroadcastProviderProps = {
@@ -28,22 +26,24 @@ const initialState: BroadcastProviderState = {
 
 export const BroadcastProviderContext = createContext<BroadcastProviderState>(initialState);
 
+/**
+ * Drives the REST write path for live broadcast state (controller →
+ * listeners). The controller itself holds no WebSocket connection: every
+ * change is persisted through the API, and the API fans the state out to
+ * the room — only receiver pages need a socket to receive it.
+ */
 export function BroadcastProvider({
   children,
   ...props
 }: Readonly<BroadcastProviderProps>) {
 
   const {
-    session: authSession,
-  } = useAuth();
-
-  const { broadcastService } = useServices();
-
-  const {
     schedule,
     scheduleItem,
     selection,
   } = useController();
+
+  const { broadcastService } = useServices();
 
   const [session, setSession] = useState<IBroadcastSession | undefined>(() => {
     try {
@@ -54,77 +54,11 @@ export function BroadcastProvider({
     }
   });
 
-  const {
-    switchSession
-  } = useSessionSocket({
-    auth: {
-      token: authSession?.access_token,
-    },
-    // Values used in onJoinedSession are always fresh because useSessionSocket
-    // calls callbacks via configRef, which is kept in sync every render.
-    onJoinedSession: (data) => {
-      // Push the controller's full state after every (re)join. This seeds
-      // listeners on session switch and re-syncs them after a reconnect.
-      broadcastState(data.id);
-    },
-  });
-
-  /**
-   * Push the controller's current state to the session via the REST write
-   * path. Each call carries the current access token (auto-refreshed on
-   * 401 by ApiService) — failures are logged instead of silently dropped.
-   */
-  const broadcastState = (sessionId: number) => {
-    const orgId = session?.orgId;
-    if (!orgId) return;
-
-    broadcastService.setSchedule(sessionId, orgId, schedule ?? [])
-      .catch((e) => console.warn('Failed to broadcast schedule:', e));
-
-    if (!scheduleItem) return;
-
-    broadcastService.setScheduleItem(sessionId, orgId, scheduleItem)
-      .catch((e) => console.warn('Failed to broadcast schedule item:', e));
-
-    if (!selection) return;
-
-    broadcastService.setSelection(sessionId, orgId, selection)
-      .catch((e) => console.warn('Failed to broadcast selection:', e));
-  };
-
-  const toJoinParams = (s?: IBroadcastSession): JoinSessionParams | null => {
-    if (s?.id && s.secret && s.orgId) {
-      return {
-        sessionId: s.id,
-        secret: s.secret,
-        orgId: s.orgId,
-        token: authSession?.access_token,
-      };
-    }
-    return null;
-  };
-
-  // On mount, connect to the session restored from sessionStorage
-  useEffect(() => {
-    const params = toJoinParams(session);
-    if (params) {
-      switchSession(params);
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const externalSetSession = (newBroadcastSession?: IBroadcastSession) => {
-    if (!newBroadcastSession) {
-      sessionStorage.removeItem(STORAGE_KEYS.broadcastSession);
-    } else {
-      sessionStorage.setItem(STORAGE_KEYS.broadcastSession, JSON.stringify(newBroadcastSession));
-    }
-
-    setSession(newBroadcastSession);
-
-    const params = toJoinParams(newBroadcastSession);
-    switchSession(params);
-  }
-
+  // Restoring state may be stale mid-session: initial controller state has
+  // no schedule item and no selection at all, so those writes are skipped
+  // here instead of clearing the live state that listeners still show. The
+  // schedule is always pushed — it is the controller's source of truth and
+  // was restored for storeState routes.
   useEffect(() => {
     if (!session?.id || !session?.orgId) return;
 
@@ -135,6 +69,9 @@ export function BroadcastProvider({
   useEffect(() => {
     if (!session?.id || !session?.orgId) return;
 
+    // Nothing selected yet: skip instead of clearing the live schedule item.
+    if (!scheduleItem) return;
+
     broadcastService.setScheduleItem(session.id, session.orgId, scheduleItem)
       .catch((e) => console.warn('Failed to broadcast schedule item:', e));
   }, [broadcastService, scheduleItem, session]);
@@ -142,9 +79,24 @@ export function BroadcastProvider({
   useEffect(() => {
     if (!session?.id || !session?.orgId) return;
 
+    // Initial controller state has no item/slide/part at all. Pushing that
+    // would persist an empty selection and blank out part on every listener
+    // until the presenter re-selects.
+    if (selection.scheduleItem === undefined) return;
+
     broadcastService.setSelection(session.id, session.orgId, selection)
       .catch((e) => console.warn('Failed to broadcast selection:', e));
   }, [broadcastService, selection, session]);
+
+  const externalSetSession = (newBroadcastSession?: IBroadcastSession) => {
+    if (!newBroadcastSession) {
+      sessionStorage.removeItem(STORAGE_KEYS.broadcastSession);
+    } else {
+      sessionStorage.setItem(STORAGE_KEYS.broadcastSession, JSON.stringify(newBroadcastSession));
+    }
+
+    setSession(newBroadcastSession);
+  }
 
   const [urlTheme, setUrlTheme] = useState<BaseTheme | number | undefined>(undefined);
 

@@ -285,12 +285,26 @@ export class ThemesService {
       return [];
     }
 
-    if (
-      !theme &&
+    // The URL theme is authoritative; otherwise fall back to the session's
+    // own theme. Neither may exist (receiver URL without ?theme= and the
+    // session theme unset or one of the built-in themes) — in that case no
+    // id constraint is applied at all and the org's themes are listed.
+    // Sending an undefined id into a where clause makes newer TypeORM
+    // versions throw "Undefined value encountered in property 'Theme.id'".
+    if (typeof theme === 'string') {
+      theme = Number(theme);
+    }
+    let themeId: number | undefined = undefined;
+    if (typeof theme === 'number' && Number.isFinite(theme) && theme > 0) {
+      themeId = theme;
+    } else if (
       session.theme &&
       !['lyrics', 'subtitles', 'teleprompter'].includes(session.theme)
     ) {
-      theme = Number(session.theme);
+      const fromSession = Number(session.theme);
+      if (Number.isFinite(fromSession) && fromSession > 0) {
+        themeId = fromSession;
+      }
     }
 
     return await this.themesRepository.find({
@@ -302,7 +316,7 @@ export class ThemesService {
       },
       where: {
         orgId,
-        id: theme,
+        ...(themeId !== undefined ? { id: themeId } : {}),
       },
       order: {
         name: 'asc',

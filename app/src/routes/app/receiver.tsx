@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLoaderData, useParams } from "react-router-dom";
 import { IControllerSelection, IScheduleItem, ISession, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { useController } from "@/hooks/useController";
@@ -15,7 +15,31 @@ export function Receiver() {
 
   const params = useParams();
 
+  // The provider's setters resolve against committed state, so a selection
+  // must be applied once schedule/scheduleItem state has been committed —
+  // never in the same batch. Applying both in one batch makes
+  // externalSetSelection return early on a missing schedule item and
+  // externalSetScheduleItem reset the part to 0. The incoming selection is
+  // queued here together with the schedule reference of that moment; the
+  // flush effect applies it once the committed schedule reference differs.
+  const pendingSelection = useRef<IControllerSelection | undefined>(undefined);
+  const scheduleAtQueueTime = useRef<IScheduleItem[] | undefined>(undefined);
+  const queueSelection = useCallback(
+    (selection?: IControllerSelection, scheduleNow?: IScheduleItem[]) => {
+      const hasSelection =
+        !!selection &&
+        (selection.scheduleItem !== undefined ||
+          selection.slide !== undefined ||
+          selection.part !== undefined);
+      pendingSelection.current = hasSelection ? selection : undefined;
+      scheduleAtQueueTime.current = scheduleNow;
+    },
+    [],
+  );
+
   const {
+    schedule,
+    scheduleItem,
     replaceSchedule,
     setScheduleItem,
     setSelection,
@@ -33,8 +57,24 @@ export function Receiver() {
   useEffect(() => {
     replaceSchedule(session?.schedule ? session.schedule as IScheduleItem[] : []);
     setScheduleItem(session?.scheduleItem ?? {} as IScheduleItem);
-    setSelection(session?.selection ?? {} as IControllerSelection);
-  }, []);
+    queueSelection(session?.selection as IControllerSelection | undefined, schedule);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Flush the queued selection once the schedule state has committed: the
+  // provider setters then run against committed state (context values from
+  // this render), so externalSetSelection resolves item/slide/part bounds
+  // correctly. The baseline is refreshed for the next round of updates.
+  useEffect(() => {
+    const pending = pendingSelection.current;
+    const committed = schedule;
+
+    if (pending !== undefined && committed !== scheduleAtQueueTime.current) {
+      pendingSelection.current = undefined;
+      setSelection(pending);
+    }
+
+    scheduleAtQueueTime.current = committed;
+  }, [schedule, scheduleItem, setSelection]);
 
   const getJoinParams = useCallback(() => {
     if (session?.id && params.secret && params.orgId) {
@@ -62,9 +102,7 @@ export function Receiver() {
         setScheduleItem(data.scheduleItem as IScheduleItem);
       }
 
-      if (data.selection) {
-        setSelection(data.selection as IControllerSelection);
-      }
+      queueSelection(data.selection as IControllerSelection | undefined, schedule);
     },
     onError: (data) => {
       // Re-join session on notInSession error (e.g., server restart while transport survived)

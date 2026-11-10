@@ -29,6 +29,16 @@ export class SupabaseGuard extends AuthGuard('jwt') {
   }
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
+    // WebSocket handlers must not go through the passport strategy: the WS
+    // "request" is the socket itself and has no HTTP headers, so the JWT
+    // extraction would always fail. Since NestJS v12 global guards run on
+    // WS message handlers too, skip them here — WS gateways authenticate
+    // through their own guards (see OptionalWebsocketGuard), mirroring
+    // RestOnlyThrottlerGuard.
+    if (context.getType() === 'ws') {
+      return true;
+    }
+
     const contextHandler = context.getHandler();
     const contextClass = context.getClass();
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -92,19 +102,24 @@ export class WebsocketGuard implements CanActivate {
     const client: AuthenticatedSocket = context.switchToWs().getClient();
     const data = context.switchToWs().getData();
 
-    if (!!client.userId && !!client.orgId && !!client.sessionId) {
-      if (
-        !data.sessionId ||
-        (data.sessionId === client.sessionId && data.orgId === client.orgId)
-      ) {
-        return true;
-      }
+    // A client already tracked as joined to the session in the payload may
+    // reuse that room without re-verification. leaveSession payloads carry
+    // no orgId (it is already bound to the client); join payloads must match
+    // it. Anything else is re-verified below via the token.
+    const reusesJoinedSession =
+      !!client.userId &&
+      !!client.sessionId &&
+      !!client.orgId &&
+      data.sessionId === client.sessionId &&
+      (data.orgId === undefined || data.orgId === client.orgId);
+    if (reusesJoinedSession) {
+      return true;
     }
 
     const token =
       data?.token ||
-      client.handshake.auth?.token ||
-      (client.handshake.query?.token as string);
+      client?.handshake?.auth?.token ||
+      (client?.handshake?.query?.token as string);
 
     let authPayload;
     try {
@@ -118,10 +133,14 @@ export class WebsocketGuard implements CanActivate {
       return false;
     }
 
-    const session = await this.sessionService.findOne(
-      data.orgId,
-      data.sessionId,
-    );
+    // leaveSession payloads omit orgId: fall back to the client's own org id
+    // instead of querying the database with an undefined orgId.
+    const orgId = data?.orgId ?? client?.orgId;
+    if (orgId === undefined || orgId === null) {
+      return false;
+    }
+
+    const session = await this.sessionService.findOne(orgId, data.sessionId);
     if (!session) {
       return false;
     }
