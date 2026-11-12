@@ -5,7 +5,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthUser } from '@supabase/supabase-js';
-import { createPublicKey } from 'crypto';
+import { createPublicKey } from 'node:crypto';
 
 interface JWKS {
   keys: Record<string, any>[];

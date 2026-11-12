@@ -161,6 +161,12 @@ client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
 redirect_uri = "env(SUPABASE_AUTH_REDIRECT_URI)"
 
+[auth.external.spotify]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_SPOTIFY_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_SPOTIFY_SECRET)"
+redirect_uri = "env(SUPABASE_AUTH_REDIRECT_URI)"
+
 [auth.external.microsoft]
 enabled = true
 client_id = "env(SUPABASE_AUTH_EXTERNAL_MICROSOFT_APPLICATION_ID)"

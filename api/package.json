@@ -65,6 +65,8 @@
     "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.7",
+    "eslint-plugin-regexp": "^3.3.3",
+    "eslint-plugin-unicorn": "^79.0.0",
     "jest": "^30.5.2",
     "prettier": "^3.9.10",
     "source-map-support": "^0.5.21",

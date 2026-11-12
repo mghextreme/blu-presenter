@@ -183,6 +183,7 @@ export class SchedulesService {
         title: true,
         date: true,
         items: true,
+        references: true,
         createdBy: true,
         updatedBy: true,
         secret: true,
@@ -203,6 +204,7 @@ export class SchedulesService {
     }
 
     schedule.items = await this.resolveSongReferences(schedule.items);
+    this.annotateReferences(schedule);
     return schedule;
   }
 
@@ -236,6 +238,7 @@ export class SchedulesService {
         title: true,
         date: true,
         items: true,
+        references: true,
         secret: true,
         organization: {
           id: true,
@@ -271,6 +274,7 @@ export class SchedulesService {
     if (schedule.items?.length) {
       schedule.items = await this.resolveSongReferences(schedule.items);
     }
+    this.annotateReferences(schedule);
 
     const orgUser = userOrgs.find(
       (org) => org.organization.id === schedule.orgId,
@@ -288,6 +292,22 @@ export class SchedulesService {
             role: undefined,
           },
     } as ScheduleWithRole;
+  }
+
+  /**
+   * Marks auto-generated references with whether the
+   * requesting user created them, so the UI knows who may re-sync.
+   */
+  private annotateReferences(schedule: Schedule): void {
+    if (!this.request.user || !schedule.references?.length) {
+      return;
+    }
+
+    const userId = this.request.user['internal']?.id;
+    schedule.references = schedule.references.map((reference) => {
+      if (!('source' in reference)) return reference;
+      return { ...reference, syncedByMe: reference.syncedBy === userId };
+    });
   }
 
   private async resolveSongReferences(
@@ -369,6 +389,7 @@ export class SchedulesService {
       title: createScheduleDto.title,
       date: createScheduleDto.date || null,
       items: createScheduleDto.items,
+      references: createScheduleDto.references ?? [],
       secret: generateRandomSecret(10),
       orgId,
       createdBy: user.id,
@@ -409,6 +430,10 @@ export class SchedulesService {
 
     if (updateScheduleDto.items !== undefined) {
       schedule.items = updateScheduleDto.items;
+    }
+
+    if (updateScheduleDto.references !== undefined) {
+      schedule.references = updateScheduleDto.references;
     }
 
     schedule.updatedBy = user.id;

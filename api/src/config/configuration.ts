@@ -21,6 +21,14 @@ export default () => ({
   captcha: {
     enabled: process.env.DISABLE_CAPTCHA !== 'true',
   },
+  spotify: {
+    clientId: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+    // HMAC key protecting the OAuth `state` parameter of the connect flow;
+    // falls back to the Supabase JWT secret when not set.
+    stateSecret:
+      process.env.SPOTIFY_STATE_SECRET || process.env.SUPABASE_JWT_SECRET,
+  },
   apiDocs: {
     enabled: process.env.ENABLE_API_DOCS === 'true',
   },

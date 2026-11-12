@@ -5,6 +5,7 @@ import {
   IsOptional,
   Length,
 } from 'class-validator';
+import { SongReference } from 'src/entities';
 
 export class CreateScheduleDto {
   @IsNotEmpty()
@@ -17,4 +18,8 @@ export class CreateScheduleDto {
 
   @IsArray()
   items: any[];
+
+  @IsOptional()
+  @IsArray()
+  references?: SongReference[];
 }

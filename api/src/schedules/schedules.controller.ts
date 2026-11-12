@@ -14,15 +14,21 @@ import {
   CreateScheduleDto,
   SearchScheduleDto,
   UpdateScheduleDto,
+  CreateSchedulePlaylistDto,
+  SchedulePlaylistSyncResult,
 } from 'src/types';
 import { ScheduleWithRoleViewModel } from 'src/models/schedule-with-role.view-model';
 import { SchedulesService } from './schedules.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
 import { Public } from 'src/supabase/public.decorator';
+import { SpotifyService } from 'src/spotify/spotify.service';
 
 @Controller('schedules')
 export class SchedulesController {
-  constructor(private readonly schedulesService: SchedulesService) {}
+  constructor(
+    private readonly schedulesService: SchedulesService,
+    private readonly spotifyService: SpotifyService,
+  ) {}
 
   @Post('search')
   async search(
@@ -66,5 +72,15 @@ export class SchedulesController {
     @Param('id') id: number,
   ): Promise<void> {
     return await this.schedulesService.delete(orgId, id);
+  }
+
+  @Post(':id/spotify-playlist')
+  @OrganizationRole('owner', 'admin', 'member')
+  async syncSpotifyPlaylist(
+    @Headers('Organization') orgId: number,
+    @Param('id') id: number,
+    @Body() dto: CreateSchedulePlaylistDto,
+  ): Promise<SchedulePlaylistSyncResult> {
+    return await this.spotifyService.syncSchedulePlaylist(orgId, id, dto);
   }
 }

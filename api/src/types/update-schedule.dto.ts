@@ -1,4 +1,5 @@
 import { IsArray, IsDateString, IsOptional, Length } from 'class-validator';
+import { SongReference } from 'src/entities';
 
 export class UpdateScheduleDto {
   @IsOptional()
@@ -12,4 +13,8 @@ export class UpdateScheduleDto {
   @IsOptional()
   @IsArray()
   items?: any[];
+
+  @IsOptional()
+  @IsArray()
+  references?: SongReference[];
 }

@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { ISpotifyConnection } from 'src/types';
 import { Organization } from './organization.entity';
 import { OrganizationUser } from './organization-user.entity';
 import { OrganizationInvitation } from './organization-invitation.entity';
@@ -19,6 +20,9 @@ export class User {
 
   @Column()
   email: string;
+
+  @Column({ type: 'jsonb', select: false, nullable: true, default: null })
+  spotify: ISpotifyConnection | null;
 
   @OneToMany(() => OrganizationUser, (orgUser) => orgUser.user)
   organizations: OrganizationUser[];
