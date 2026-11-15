@@ -2,7 +2,7 @@
 import { IOrganization } from "@/types/organization.interface";
 import { ApiService } from "./api.service";
 import { IOrganizationInvitation, IOrganizationUser, OrganizationFeature, OrganizationRoleOptions, UserOrganization } from "@/types";
-import { FetchQueryOptions } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 
 export class OrganizationsService extends ApiService {
 
@@ -164,8 +164,8 @@ export class OrganizationsService extends ApiService {
     return await this.getOrFetch(this.getFromUserQuery());
   }
 
-  public getFromUserQuery(): FetchQueryOptions<UserOrganization[]> {
-    return {
+  public getFromUserQuery() {
+    return queryOptions({
       queryKey: ['user', 'organizations'],
       queryFn: async () => {
         const orgUsers = await this.getRequest(`/users/organizations`);
@@ -178,7 +178,7 @@ export class OrganizationsService extends ApiService {
 
         return mappedOrgs;
       },
-    };
+    });
   }
 
   private parseOrganization(response: any): IOrganization {

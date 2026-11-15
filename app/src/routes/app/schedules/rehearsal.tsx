@@ -10,6 +10,7 @@ import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import PrinterIcon from "@heroicons/react/24/solid/PrinterIcon";
 import { RehearsalNav } from "@/components/app/schedules/rehearsal-nav";
 import { SongViewer } from "@/components/app/songs/song-viewer";
+import { ReferencePlayer } from "@/components/app/songs/reference-player";
 import { OrganizationBar } from "@/components/app/organization-bar";
 import { PageContent, pageContentColumn } from "@/components/shared/page-content";
 import { cn } from "@/lib/utils";
@@ -157,6 +158,12 @@ export function RehearsalSchedule() {
 
       {currentItem && (
         <SongViewer song={currentItem} />
+      )}
+
+      {!!data.references?.length && (
+        <div className={cn(pageContentColumn, "mt-2")}>
+          <ReferencePlayer references={data.references} />
+        </div>
       )}
 
       <RehearsalNav

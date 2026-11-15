@@ -1,8 +1,6 @@
 import { useRef, useState } from "react";
 import { UseFieldArrayRemove, UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { z } from "zod";
-import { SongSchema } from "@/types/schemas/song.schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import LinkIcon from "@heroicons/react/24/solid/LinkIcon";
@@ -12,7 +10,9 @@ import ChevronUpDownIcon from "@heroicons/react/24/solid/ChevronUpDownIcon";
 import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOnSquareIcon";
 
 interface EditSongReferencesItemProps {
-  form: UseFormReturn<z.infer<typeof SongSchema>>,
+  // Generic on purpose: any form with a `references` array field works
+  // (song editor, schedule editor).
+  form: UseFormReturn<any>,
   ix: number,
   remove: UseFieldArrayRemove,
 }

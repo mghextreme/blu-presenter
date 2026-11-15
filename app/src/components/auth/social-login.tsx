@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 
 import { GoogleIcon } from "@/components/logos/google";
+import { SpotifyIcon } from "@/components/logos/spotify";
 import { useServices } from "@/hooks/useServices";
 import { ApiError } from "@/types";
 import { toast } from "sonner";
@@ -65,6 +66,10 @@ export function SocialLogin({ isLoading, setIsLoading }: Readonly<SocialLoginPro
       <Button variant="outline" type="button" disabled={isLoading} onClick={() => oauthOpen('google')}>
         <GoogleIcon className="size-4 me-2"></GoogleIcon>
         {" "}Google
+      </Button>
+      <Button variant="outline" type="button" disabled={isLoading} onClick={() => oauthOpen('spotify')}>
+        <SpotifyIcon className="size-4 me-2"></SpotifyIcon>
+        {" "}Spotify
       </Button>
       {/* <Button variant="outline" type="button" disabled={isLoading}>
         <MicrosoftIcon className="size-4 me-2"></MicrosoftIcon>

@@ -42,7 +42,9 @@ describe('SpotifyService', () => {
     expiresAt: new Date(Date.now() - 1000).toISOString(),
   });
 
-  const buildModule = async (): Promise<TestingModule> => {
+  const buildModule = async (
+    configOverrides: Record<string, any> = {},
+  ): Promise<TestingModule> => {
     const usersRepositoryMock = {
       update: usersUpdate,
       createQueryBuilder: () => ({
@@ -70,6 +72,7 @@ describe('SpotifyService', () => {
                 'spotify.clientSecret': CLIENT_SECRET,
                 'spotify.stateSecret': STATE_SECRET,
                 'app.baseUrl': 'https://app.blu.example',
+                ...configOverrides,
               })[key],
           },
         },
@@ -195,6 +198,24 @@ describe('SpotifyService', () => {
     it('builds an authorize URL even when not connected (connecting!)', () => {
       storedConnection = null;
       expect(() => service.getConnectUrl()).not.toThrow();
+    });
+
+    it('throws a clean error when Spotify is not configured', async () => {
+      const module = await buildModule({
+        'spotify.clientId': undefined,
+        'spotify.clientSecret': undefined,
+      });
+      const unconfigured = await module.resolve<SpotifyService>(SpotifyService);
+
+      expect(() => unconfigured.getConnectUrl()).toThrow(BadRequestException);
+    });
+
+    it('throws a clean error when the state secret is missing', async () => {
+      const module = await buildModule({ 'spotify.stateSecret': undefined });
+      const unconfigured = await module.resolve<SpotifyService>(SpotifyService);
+
+      // Missing state secret must surface as a 400, not a crypto TypeError.
+      expect(() => unconfigured.getConnectUrl()).toThrow(BadRequestException);
     });
   });
 
@@ -330,9 +351,7 @@ describe('SpotifyService', () => {
 
       // Creates an unlisted playlist with the derived name
       const [createCallUrl, createCallInit] = fetchCalls()[0];
-      expect(createCallUrl).toBe(
-        'https://api.spotify.com/v1/users/sp-user-1/playlists',
-      );
+      expect(createCallUrl).toBe('https://api.spotify.com/v1/me/playlists');
       const createBody = JSON.parse(createCallInit!.body as string);
       expect(createBody.name).toBe('Sunday Service — 2026-11-15');
       expect(createBody.public).toBe(false);
@@ -340,7 +359,7 @@ describe('SpotifyService', () => {
       // Adds the track to the playlist
       const [tracksCallUrl, tracksCallInit] = fetchCalls()[1];
       expect(tracksCallUrl).toBe(
-        'https://api.spotify.com/v1/playlists/pl1/tracks',
+        'https://api.spotify.com/v1/playlists/pl1/items',
       );
       expect(JSON.parse(tracksCallInit!.body as string)).toEqual({
         uris: ['spotify:track:abc'],
@@ -509,6 +528,41 @@ describe('SpotifyService', () => {
         NotFoundException,
       );
     });
+
+    it('surfaces the Spotify error message on 403 rejections', async () => {
+      const existing = {
+        url: 'https://open.spotify.com/playlist/pl1',
+        source: 'spotify-auto',
+        syncedBy: 42,
+      };
+      scheduleFindOneBy.mockResolvedValue(
+        mockSchedule({ references: [existing as any] }),
+      );
+      mockSongs([
+        {
+          id: 10,
+          title: 'Song A',
+          references: [{ url: 'https://open.spotify.com/track/abc' }],
+        },
+        { id: 11, title: 'Song B', references: [] },
+      ]);
+
+      fetchMock.mockImplementationOnce(async () =>
+        jsonResponse(
+          {
+            error: {
+              status: 403,
+              message: 'You cannot perform this action',
+            },
+          },
+          403,
+        ),
+      );
+
+      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
+        'Spotify rejected the request: You cannot perform this action',
+      );
+    });
   });
 
   describe('token refresh', () => {
@@ -553,6 +607,17 @@ describe('SpotifyService', () => {
         );
 
       await service.syncSchedulePlaylist(1, 1, {});
+
+      // The refresh request must authenticate with the client credentials
+      // (Authorization Code flow) — Spotify rejects secret-less refreshes
+      // with an empty `invalid_request`.
+      const [tokenUrl, tokenInit] = fetchCalls()[0];
+      expect(tokenUrl).toBe('https://accounts.spotify.com/api/token');
+      const tokenBody = tokenInit!.body as URLSearchParams;
+      expect(tokenBody.get('grant_type')).toBe('refresh_token');
+      expect(tokenBody.get('refresh_token')).toBe('refresh-token');
+      expect(tokenBody.get('client_id')).toBe(CLIENT_ID);
+      expect(tokenBody.get('client_secret')).toBe(CLIENT_SECRET);
 
       expect(usersUpdate).toHaveBeenCalledWith(42, {
         spotify: expect.objectContaining({

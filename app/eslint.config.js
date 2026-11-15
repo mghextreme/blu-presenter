@@ -3,6 +3,8 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
+import unicorn from 'eslint-plugin-unicorn'
+import regexp from 'eslint-plugin-regexp'
 
 export default tseslint.config(
   { ignores: ['dist'] },
@@ -21,6 +23,8 @@ export default tseslint.config(
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
+      unicorn,
+      regexp,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -58,6 +62,11 @@ export default tseslint.config(
       '@typescript-eslint/no-empty-object-type': ['error', {
         allowInterfaces: 'with-single-extends',
       }],
+      // Node built-ins must be imported with the explicit `node:` protocol
+      // (e.g. `node:crypto`).
+      'unicorn/prefer-node-protocol': 'error',
+      // Capture-group extraction uses `RegExp.exec()`, not `String.match()`.
+      'regexp/prefer-regexp-exec': 'error',
     },
   },
 )

@@ -46,5 +46,24 @@
       "confirm": "Disconnect",
       "cancel": "Cancel"
     }
+  },
+  "spotify": {
+    "description": "Connect to create and sync Spotify playlists for your schedules",
+    "connecting": "Connecting to Spotify...",
+    "connected": "Spotify connected!",
+    "connectedAs": "Connected as {{name}}",
+    "signInEnabled": "sign-in enabled",
+    "enableSignIn": "Enable sign-in with Spotify",
+    "unlinkSignIn": "Remove sign-in",
+    "disconnected": "Spotify disconnected!",
+    "disconnectFailed": "Error disconnecting Spotify",
+    "connectFailed": "Error connecting to Spotify",
+    "connectCancelled": "The Spotify connection was not completed.",
+    "confirmDisconnect": {
+      "title": "Disconnect Spotify?",
+      "description": "You will no longer be able to create or re-sync Spotify playlists. Playlists already created remain on your Spotify account. You can reconnect at any time.",
+      "confirm": "Disconnect",
+      "cancel": "Cancel"
+    }
   }
 }

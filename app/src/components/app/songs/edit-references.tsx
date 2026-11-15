@@ -1,16 +1,21 @@
-import { useFieldArray, UseFormReturn } from "react-hook-form";
+import { ReactNode } from "react";
+import { useFieldArray, UseFieldArrayRemove, UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { z } from "zod";
-import { SongSchema } from "@/types/schemas/song.schema";
 import { Button } from "@/components/ui/button";
 import { EditSongReferencesItem } from "./edit-references-item";
 
 interface EditSongReferencesProps {
-  form: UseFormReturn<z.infer<typeof SongSchema>>,
+  // Generic on purpose: any form with a `references` array field works
+  // (song editor, schedule editor).
+  form: UseFormReturn<any>,
+  /** Rendered instead of the editable inputs for auto-generated references
+   * (e.g. a schedule's Spotify playlist, which the app manages server-side). */
+  renderAutoReference?: (ix: number, remove: UseFieldArrayRemove) => ReactNode,
 }
 
 export function EditSongReferences({
   form,
+  renderAutoReference,
 }: Readonly<EditSongReferencesProps>) {
 
   const { t } = useTranslation("songs");
@@ -28,8 +33,14 @@ export function EditSongReferences({
   return (
     <div className="flex flex-col items-stretch space-y-2">
       <ul className="flex flex-col items-stretch space-y-2">
-        {references.map((_, ix: number) => (
-          <EditSongReferencesItem form={form} ix={ix} remove={remove} key={`reference-${ix}`}  />
+        {references.map((field, ix: number) => (
+          // Auto-generated references (they carry a `source`) get their own
+          // row without editable inputs, when the editor provides one.
+          !!renderAutoReference && !!(field as { source?: string }).source ? (
+            <div key={`reference-${ix}`}>{renderAutoReference(ix, remove)}</div>
+          ) : (
+            <EditSongReferencesItem form={form} ix={ix} remove={remove} key={`reference-${ix}`}  />
+          )
         ))}
       </ul>
       <Button

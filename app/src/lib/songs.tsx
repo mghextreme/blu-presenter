@@ -113,6 +113,7 @@ function isHostname(hostname: string, domain: string): boolean {
 
 export type ReferenceType =
   | 'spotify'
+  | 'spotify-playlist'
   | 'youtube'
   | 'deezer'
   | 'soundcloud'
@@ -124,7 +125,18 @@ export function getSpotifyTrackId(url: string): string | null {
   try {
     const parsed = new URL(url);
     if (!isHostname(parsed.hostname, 'spotify.com')) return null;
-    const match = parsed.pathname.match(/\/track\/([a-zA-Z0-9]+)/);
+    const match = /\/track\/([a-zA-Z0-9]+)/.exec(parsed.pathname);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+export function getSpotifyPlaylistId(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    if (!isHostname(parsed.hostname, 'spotify.com')) return null;
+    const match = /\/playlist\/([a-zA-Z0-9]+)/.exec(parsed.pathname);
     return match ? match[1] : null;
   } catch {
     return null;
@@ -156,7 +168,7 @@ export function getDeezerTrackId(url: string): string | null {
     const parsed = new URL(url);
     if (!isHostname(parsed.hostname, 'deezer.com')) return null;
     // Matches /track/{id} with optional locale prefix, e.g. /en/track/123 or /track/123
-    const match = parsed.pathname.match(/\/track\/(\d+)/);
+    const match = /\/track\/(\d+)/.exec(parsed.pathname);
     return match ? match[1] : null;
   } catch {
     return null;
@@ -173,7 +185,7 @@ export function getDeezerShareUrl(url: string): string | null {
     const hostname = parsed.hostname.replace('www.', '');
     if (hostname !== 'link.deezer.com') return null;
     // Short links have a path like /s/{code}
-    if (!parsed.pathname.match(/^\/s\/.+/)) return null;
+    if (!/^\/s\/.+/.exec(parsed.pathname)) return null;
     return url;
   } catch {
     return null;
@@ -230,7 +242,7 @@ export function getAppleMusicEmbedUrl(url: string): string | null {
     const parsed = new URL(url);
     if (!isHostname(parsed.hostname, 'music.apple.com')) return null;
     // Must be an album (with optional ?i= for track) or song path
-    if (!parsed.pathname.match(/\/(album|song)\//)) return null;
+    if (!/\/(album|song)\//.exec(parsed.pathname)) return null;
     // Transform music.apple.com → embed.music.apple.com
     const embedUrl = new URL(url);
     embedUrl.hostname = 'embed.music.apple.com';
@@ -246,7 +258,7 @@ export function getTidalTrackId(url: string): string | null {
     const hostname = parsed.hostname.replace('www.', '');
     if (hostname !== 'tidal.com' && hostname !== 'listen.tidal.com') return null;
     // Matches /track/{id} or /browse/track/{id}
-    const match = parsed.pathname.match(/\/track\/(\d+)/);
+    const match = /\/track\/(\d+)/.exec(parsed.pathname);
     return match ? match[1] : null;
   } catch {
     return null;
@@ -255,6 +267,7 @@ export function getTidalTrackId(url: string): string | null {
 
 export function getReferenceType(url: string): ReferenceType {
   if (getSpotifyTrackId(url)) return 'spotify';
+  if (getSpotifyPlaylistId(url)) return 'spotify-playlist';
   if (getYouTubeVideoId(url)) return 'youtube';
   if (getDeezerTrackId(url) || getDeezerShareUrl(url)) return 'deezer';
   if (getSoundCloudUrl(url)) return 'soundcloud';
@@ -265,6 +278,7 @@ export function getReferenceType(url: string): ReferenceType {
 
 export type EmbedInfo =
   | { type: 'spotify'; trackId: string }
+  | { type: 'spotify-playlist'; playlistId: string }
   | { type: 'youtube'; videoId: string }
   | { type: 'deezer'; trackId?: string; shareUrl?: string }
   | { type: 'soundcloud'; trackUrl: string }
@@ -283,6 +297,9 @@ export function getEmbedInfo(url: string | null): EmbedInfo {
   const spotifyId = getSpotifyTrackId(url);
   if (spotifyId) return { type: 'spotify', trackId: spotifyId };
 
+  const spotifyPlaylistId = getSpotifyPlaylistId(url);
+  if (spotifyPlaylistId) return { type: 'spotify-playlist', playlistId: spotifyPlaylistId };
+
   const ytId = getYouTubeVideoId(url);
   if (ytId) return { type: 'youtube', videoId: ytId };
 
@@ -300,6 +317,20 @@ export function getEmbedInfo(url: string | null): EmbedInfo {
   if (tidalId) return { type: 'tidal', trackId: tidalId };
 
   return { type: 'other' };
+}
+
+/**
+ * Deterministic short hash over the ordered track projection of a schedule.
+ * Used to detect whether the schedule changed since the last playlist sync.
+ * Mirrored in the API at `api/src/utils/spotify.ts` — keep both identical.
+ */
+export function computeTracksHash(trackIds: string[]): string {
+  const input = trackIds.join('|');
+  let hash = 5381;
+  for (let i = 0; i < input.length; i++) {
+    hash = Math.trunc((hash << 5) + hash + input.charCodeAt(i));
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
 // ─── Chord transposition ──────────────────────────────────────────────────────
@@ -333,7 +364,7 @@ const NOTE_RE = /^([A-G])(#{1,2}|b{1,2})?/;
  * `useFlats` controls output spelling for newly-created accidentals.
  */
 export function transposeChordToken(chord: string, semitones: number, useFlats: boolean): string {
-  const m = chord.match(NOTE_RE);
+  const m = NOTE_RE.exec(chord);
   if (!m) return chord;
 
   const rawRoot = m[1] + (m[2] ?? '');
@@ -345,7 +376,7 @@ export function transposeChordToken(chord: string, semitones: number, useFlats: 
   const suffix = chord.slice(rawRoot.length);
 
   // Handle bass note after '/' (e.g. "/C#")
-  const bassMatch = suffix.match(/([/\\])([A-G])(#{1,2}|b{1,2})?(.*)$/);
+  const bassMatch = /([/\\])([A-G])(#{1,2}|b{1,2})?(.*)$/.exec(suffix);
   if (bassMatch) {
     const sep = bassMatch[1];
     const rawBass = bassMatch[2] + (bassMatch[3] ?? '');
@@ -419,7 +450,7 @@ export function deriveAcronym(name: string): string {
   const trimmed = name.trim();
   if (!trimmed) return '';
 
-  const trailingNumberMatch = trimmed.match(/\s+(\d+)$/);
+  const trailingNumberMatch = /\s+(\d+)$/.exec(trimmed);
   const trailingNumber = trailingNumberMatch ? trailingNumberMatch[1] : '';
   const withoutNumber = trailingNumber ? trimmed.slice(0, -trailingNumberMatch![0].length) : trimmed;
 

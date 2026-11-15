@@ -482,7 +482,9 @@ describe('ThemesService', () => {
     it('lists all org themes when neither URL nor session theme resolve', async () => {
       // This must never put an undefined value into the where clause
       // (TypeORM throws on it since the 1.x upgrade).
-      mockSessionsService.findOneBySecret.mockResolvedValue({ theme: 'lyrics' });
+      mockSessionsService.findOneBySecret.mockResolvedValue({
+        theme: 'lyrics',
+      });
 
       await service.findAllForSession(1, 7, 'secret-abc');
       expect(mockThemesRepository.find).toHaveBeenCalledWith(

@@ -46,5 +46,24 @@
       "confirm": "Desconectar",
       "cancel": "Cancelar"
     }
+  },
+  "spotify": {
+    "description": "Conecte-se para criar e sincronizar playlists do Spotify para suas programações",
+    "connecting": "Conectando ao Spotify...",
+    "connected": "Spotify conectado!",
+    "connectedAs": "Conectado como {{name}}",
+    "signInEnabled": "login habilitado",
+    "enableSignIn": "Habilitar login com Spotify",
+    "unlinkSignIn": "Remover login",
+    "disconnected": "Spotify desconectado!",
+    "disconnectFailed": "Erro ao desconectar do Spotify",
+    "connectFailed": "Erro ao conectar ao Spotify",
+    "connectCancelled": "A conexão com o Spotify não foi concluída.",
+    "confirmDisconnect": {
+      "title": "Desconectar o Spotify?",
+      "description": "Você não poderá mais criar ou sincronizar playlists do Spotify. Playlists já criadas permanecem na sua conta do Spotify. Você pode reconectar a qualquer momento.",
+      "confirm": "Desconectar",
+      "cancel": "Cancelar"
+    }
   }
 }

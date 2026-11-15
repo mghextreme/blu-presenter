@@ -13,20 +13,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useLoaderData } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import { GoogleIcon } from "@/components/logos/google";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { GoogleConnection } from "@/components/app/profile/google-connection";
+import { SpotifyConnection } from "@/components/app/profile/spotify-connection";
 
 export function Profile() {
 
@@ -78,7 +68,6 @@ export function Profile() {
   const [isLoading, setLoading] = useState<boolean>(false);
   const [identitiesData, setIdentitiesData] = useState<IUserIdentitiesResponse>(loaderData.identities);
 
-  const googleIdentity = identitiesData.identities.find(i => i.provider === 'google');
   const hasPassword = identitiesData.hasPassword;
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -166,45 +155,6 @@ export function Profile() {
       });
   }
 
-  const onConnectGoogle = async () => {
-    try {
-      setLoading(true);
-      const redirectData = await authService.linkIdentity('google');
-      localStorage.setItem('link-identity-code-verifier', redirectData.codeVerifier);
-
-      setTimeout(() => {
-        window.open(redirectData.url, '_self');
-      }, 500);
-    }
-    catch (e: any) {
-      toast.error(t('connectedAccounts.connectFailed'), {
-        description: e?.message || '',
-      });
-      setLoading(false);
-    }
-  }
-
-  const onDisconnectGoogle = async () => {
-    if (!googleIdentity) return;
-
-    setLoading(true);
-
-    authService.unlinkIdentity(googleIdentity.identityId)
-      .then(async () => {
-        toast.success(t('connectedAccounts.disconnected'));
-        const updated = await authService.getIdentities();
-        setIdentitiesData(updated);
-      })
-      .catch((e) => {
-        toast.error(t('connectedAccounts.disconnectFailed'), {
-          description: e?.message || '',
-        });
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }
-
   return (
     <PageContent>
       <title>{t('title') + ' - BluPresenter'}</title>
@@ -263,47 +213,17 @@ export function Profile() {
 
       <h2 className="text-2xl mt-6 mb-4">{t('connectedAccounts.title')}</h2>
       <div className="max-w-lg space-y-3">
-        <div className="flex items-center justify-between rounded-lg border p-4">
-          <div className="flex items-center gap-3">
-            <GoogleIcon className="size-5" />
-            <div>
-              <p className="font-medium">Google</p>
-              {googleIdentity?.email && (
-                <p className="text-sm text-muted-foreground">{googleIdentity.email}</p>
-              )}
-            </div>
-          </div>
-          {googleIdentity ? (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" size="sm" disabled={isLoading}>
-                  {t('connectedAccounts.disconnect')}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t('connectedAccounts.confirmDisconnect.title')}</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {t('connectedAccounts.confirmDisconnect.description')}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t('connectedAccounts.confirmDisconnect.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" onClick={onDisconnectGoogle}>
-                    {t('connectedAccounts.confirmDisconnect.confirm')}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          ) : (
-            <Button variant="outline" size="sm" disabled={isLoading} onClick={onConnectGoogle}>
-              {isLoading && (
-                <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
-              )}
-              {t('connectedAccounts.connect')}
-            </Button>
-          )}
-        </div>
+        <GoogleConnection
+          identities={identitiesData}
+          onIdentitiesChanged={setIdentitiesData}
+          onBusyChange={setLoading}
+        />
+
+        <SpotifyConnection
+          identities={identitiesData}
+          onIdentitiesChanged={setIdentitiesData}
+          onBusyChange={setLoading}
+        />
       </div>
 
       {hasPassword ? (

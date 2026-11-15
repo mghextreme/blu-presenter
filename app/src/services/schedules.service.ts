@@ -88,4 +88,15 @@ export class SchedulesService extends ApiService {
     this.clearCache();
   }
 
+  public async syncSpotifyPlaylist(
+    scheduleId: number,
+    orgId: number,
+    name?: string,
+  ): Promise<{ action: 'created' | 'synced'; url: string; added: number; skipped: { songId: number; title: string }[] }> {
+    return await this.postRequest(`/schedules/${scheduleId}/spotify-playlist`, JSON.stringify({ name }), {
+      'content-type': 'application/json',
+      'Organization': orgId.toString(),
+    });
+  }
+
 }

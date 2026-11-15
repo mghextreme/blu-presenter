@@ -24,7 +24,8 @@
   "input": {
     "organization": "Organização",
     "title": "Título",
-    "date": "Data"
+    "date": "Data",
+    "references": "Referências"
   },
   "list": {
     "title": "Programações"
@@ -71,7 +72,8 @@
     "deleteSchedule": "Erro ao remover programação",
     "noPermission": "Você não tem permissão para gerenciar programações",
     "save": "Erro ao salvar programação",
-    "search": "Erro ao buscar programações"
+    "search": "Erro ao buscar programações",
+    "validation": "Não foi possível salvar: há campos inválidos. Revise o formulário e tente novamente."
   },
   "message": {
     "share": {
@@ -101,5 +103,23 @@
     "next": "Próxima música",
     "noSongs": "Nenhuma música nesta programação",
     "print": "Imprimir música atual"
+  },
+  "spotify": {
+    "serviceName": "Spotify",
+    "connect": "Conectar Spotify",
+    "create": "Criar playlist",
+    "createDescription": "Cria uma playlist não listada no Spotify com as {{count}} músicas que possuem referência do Spotify.",
+    "createConfirm": "Criar",
+    "resync": "Sincronizar novamente",
+    "resyncTooltip": "Atualiza a playlist do Spotify para refletir a programação atual",
+    "upToDate": "Atualizada",
+    "managedBy": "Gerenciada por {{name}}",
+    "managedByTooltip": "Somente {{name}}, que criou a playlist, pode sincronizá-la novamente",
+    "noSongs": "Nenhuma música com referência do Spotify",
+    "synced": "Playlist do Spotify atualizada ({{added}} músicas)!",
+    "syncedWithSkipped": "Playlist do Spotify atualizada ({{added}} músicas)!",
+    "syncedSkippedDescription": "Músicas sem referência do Spotify foram ignoradas: {{skipped}}",
+    "syncFailed": "Erro ao sincronizar a playlist do Spotify",
+    "connectFailed": "Erro ao conectar ao Spotify"
   }
 }

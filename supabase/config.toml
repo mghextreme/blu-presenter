@@ -79,6 +79,7 @@ site_url = "https://www.blupresenter.com"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
 additional_redirect_urls = [
   "http://localhost:5173/**",
+  "http://127.0.0.1:5173/**",
   "https://*.blupresenter.com/**",
 ]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).

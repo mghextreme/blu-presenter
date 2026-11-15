@@ -21,6 +21,8 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { EditSongReferences } from "@/components/app/songs/edit-references";
+import { EditPlaylistReference } from "@/components/app/schedules/edit-playlist-reference";
 import { toast } from "sonner";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
@@ -77,6 +79,7 @@ export function EditSchedule({
       id: data.id,
       title: data.title,
       date: data.date || '',
+      references: data.references ?? [],
     },
   });
 
@@ -168,7 +171,12 @@ function EditScheduleForm({
   }, [data.items]);
 
   const onSubmit = async (values: z.infer<typeof ScheduleSchema>) => {
-    if (!organizationId) return;
+    if (!organizationId) {
+      console.error(
+        'Cannot save schedule: no organization selected (organizationId is undefined)',
+      );
+      return;
+    }
 
     setLoading(true);
 
@@ -189,6 +197,7 @@ function EditScheduleForm({
       title: values.title,
       date: values.date || null,
       items: items as IScheduleItem[],
+      references: values.references as ISchedule['references'],
     };
 
     let action;
@@ -212,7 +221,15 @@ function EditScheduleForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 gap-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit, (errors) => {
+          // Surface silent validation aborts (e.g. nested reference fields,
+          // which have no FormMessage to render their errors).
+          console.error('Schedule form validation failed', errors);
+          toast.error(t('error.validation'));
+        })}
+        className="flex flex-col flex-1 gap-4"
+      >
         <div className="flex flex-col gap-3 max-w-2xl">
           <FormField
             control={form.control}
@@ -242,6 +259,16 @@ function EditScheduleForm({
                 </FormControl>
                 <FormMessage />
               </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="max-w-2xl">
+          <h3 className="font-medium text-sm mb-2">{t('input.references')}</h3>
+          <EditSongReferences
+            form={form}
+            renderAutoReference={(ix, remove) => (
+              <EditPlaylistReference form={form} ix={ix} remove={remove} schedule={data} />
             )}
           />
         </div>

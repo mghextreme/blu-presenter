@@ -253,7 +253,9 @@ export class SpotifyService {
           syncedAt: new Date().toISOString(),
           tracksHash: computeTracksHash(projection.trackIds),
           syncedBy: this.user!.id,
-          syncedByName: this.user!.nickname,
+          // Persist as absent (key dropped on JSON serialization), not null —
+          // the frontend schema treats null metadata as invalid input.
+          ...(this.user!.nickname != null && { syncedByName: this.user!.nickname }),
         },
       ];
     }
@@ -319,12 +321,12 @@ export class SpotifyService {
   }
 
   private async createPlaylist(name: string): Promise<string> {
-    const connection = await this.requireConnection();
+    await this.requireConnection();
 
     const playlist = await this.spotifyApi<{
       id: string;
       external_urls: { spotify: string };
-    }>(`/users/${encodeURIComponent(connection.userId)}/playlists`, {
+    }>('/me/playlists', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -350,10 +352,10 @@ export class SpotifyService {
   ): Promise<void> {
     const playlistId = this.extractPlaylistId(playlistUrl);
 
-    // Spotify accepts up to 100 track uris per write request.
+    // Spotify accepts up to 100 items per write request.
     const firstChunk = trackUris.slice(0, TRACKS_PER_REQUEST);
     await this.spotifyApi(
-      `/playlists/${encodeURIComponent(playlistId)}/tracks`,
+      `/playlists/${encodeURIComponent(playlistId)}/items`,
       {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -367,7 +369,7 @@ export class SpotifyService {
       i += TRACKS_PER_REQUEST
     ) {
       await this.spotifyApi(
-        `/playlists/${encodeURIComponent(playlistId)}/tracks`,
+        `/playlists/${encodeURIComponent(playlistId)}/items`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -438,6 +440,12 @@ export class SpotifyService {
 
   private async throwSpotifyError(response: Response): Promise<never> {
     const body = await response.text();
+    let spMessage = body;
+    try {
+      spMessage = JSON.parse(body)?.error?.message ?? body;
+    } catch {
+      // keep raw body as the message
+    }
 
     if (response.status === 404) {
       throw new NotFoundException(
@@ -446,10 +454,10 @@ export class SpotifyService {
     }
     if (response.status === 403) {
       throw new ForbiddenException(
-        'The connected Spotify account can no longer modify this playlist.',
+        `Spotify rejected the request: ${spMessage}`,
       );
     }
-    throw new BadRequestException(`Spotify API error: ${body}`);
+    throw new BadRequestException(`Spotify API error: ${spMessage}`);
   }
 
   private isTokenValid(connection: ISpotifyConnection): boolean {
@@ -487,7 +495,12 @@ export class SpotifyService {
       new URLSearchParams({
         grant_type: 'refresh_token',
         refresh_token: connection.refreshToken!,
+        // The refresh token was issued through the (non-PKCE) Authorization
+        // Code flow, so the token endpoint requires the client credentials —
+        // without the secret it rejects the request with an empty
+        // `invalid_request`.
         client_id: this.spotifyClientId!,
+        client_secret: this.spotifyClientSecret!,
       }),
     );
 
@@ -618,6 +631,14 @@ export class SpotifyService {
 
   private signStatePayload(payload: string): string {
     const secret = this.configService.get('spotify.stateSecret');
-    return createHmac('sha256', secret!).update(payload).digest('base64url');
+    if (!secret) {
+      // Reaching here means the Spotify integration is not configured
+      // (the connect URL endpoint already guards on clientId/secret, but
+      // completeConnect can also arrive here on its own).
+      throw new BadRequestException(
+        'Spotify integration is not configured on this server',
+      );
+    }
+    return createHmac('sha256', secret).update(payload).digest('base64url');
   }
 }

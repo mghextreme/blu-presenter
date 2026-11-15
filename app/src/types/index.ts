@@ -23,6 +23,7 @@ export * from './slide-title-content.interface';
 export * from './slide.interface';
 export * from './song-part.interface';
 export * from './song-reference.interface';
+export * from './schedule-playlist-reference.interface';
 export * from './song.interface';
 export * from './song-with-role.interface';
 export * from './supported-language.type';
