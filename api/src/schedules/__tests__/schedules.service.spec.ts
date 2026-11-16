@@ -381,4 +381,64 @@ describe('SchedulesService', () => {
       ).toHaveBeenCalledWith(1, 'schedules');
     });
   });
+  describe('references', () => {
+    const storedAuto = {
+      url: 'https://open.spotify.com/playlist/pl1',
+      source: 'spotify-auto',
+      syncedBy: 42,
+      tracksHash: 'hash-1',
+    };
+
+    it('keeps server-managed playlist metadata on update', async () => {
+      mockSchedulesRepository.findOneBy.mockResolvedValue(
+        mockSchedule({ references: [storedAuto] as any }),
+      );
+      // TypeORM's save returns the same instance: snapshot what was saved.
+      let savedReferences: unknown;
+      mockSchedulesRepository.save.mockImplementation(async (s) => {
+        savedReferences = JSON.parse(JSON.stringify(s.references));
+        return s;
+      });
+
+      const result = await service.update(1, 1, {
+        references: [
+          { url: 'https://a.example', name: 'A' },
+          {
+            url: 'https://open.spotify.com/playlist/forged',
+            source: 'spotify-auto',
+          },
+        ],
+      });
+
+      expect(savedReferences).toEqual([
+        { url: 'https://a.example', name: 'A' },
+        storedAuto,
+      ]);
+      // The response is shaped for the requesting user
+      expect(result.references[1]).toMatchObject({ syncedByMe: true });
+      expect(result.references[1]).not.toHaveProperty('syncedBy');
+    });
+
+    it('does not accept auto references on create', async () => {
+      mockSchedulesRepository.insert.mockResolvedValue({ raw: [{ id: 99 }] });
+
+      await service.create(1, {
+        title: 'New',
+        items: [],
+        references: [
+          {
+            url: 'https://open.spotify.com/playlist/x',
+            source: 'spotify-auto',
+          },
+          { url: 'https://a.example' },
+        ],
+      } as any);
+
+      expect(mockSchedulesRepository.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          references: [{ url: 'https://a.example' }],
+        }),
+      );
+    });
+  });
 });

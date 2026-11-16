@@ -12,6 +12,8 @@ import { useServices } from "@/hooks/useServices";
 import { ReferencePlayer } from "@/components/app/songs/reference-player";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +26,7 @@ import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import {
   SCHEDULE_PLAYLIST_PROVIDERS,
+  SchedulePlaylistCreateOptions,
   SchedulePlaylistProvider,
 } from "./playlist-providers";
 import { usePlaylistSync } from "./use-playlist-sync";
@@ -49,6 +52,7 @@ export function ScheduleReferences({
 
   const [createFor, setCreateFor] = useState<SchedulePlaylistProvider | null>(null);
   const [playlistName, setPlaylistName] = useState('');
+  const [playlistPublic, setPlaylistPublic] = useState(false);
 
   const canManage =
     !!schedule.organization &&
@@ -68,11 +72,15 @@ export function ScheduleReferences({
 
   const openCreate = (provider: SchedulePlaylistProvider) => {
     setPlaylistName(defaultName);
+    setPlaylistPublic(false);
     setCreateFor(provider);
   };
 
-  const syncAndClose = async (provider: SchedulePlaylistProvider, name?: string) => {
-    const success = await sync(provider, name);
+  const syncAndClose = async (
+    provider: SchedulePlaylistProvider,
+    options?: SchedulePlaylistCreateOptions,
+  ) => {
+    const success = await sync(provider, options);
     if (success) {
       setCreateFor(null);
     }
@@ -118,12 +126,28 @@ export function ScheduleReferences({
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-2">
-              <label className="text-sm font-medium">{t('input.title')}</label>
+              <Label htmlFor="playlist-name">{t('input.title')}</Label>
               <Input
+                id="playlist-name"
                 value={playlistName}
                 onChange={(e) => setPlaylistName(e.target.value)}
                 placeholder={defaultName}
                 maxLength={255}
+              />
+            </div>
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <Label htmlFor="playlist-public">{t(`${createFor.i18nPrefix}.public`)}</Label>
+                <p className="text-sm text-muted-foreground">
+                  {playlistPublic
+                    ? t(`${createFor.i18nPrefix}.publicDescription`)
+                    : t(`${createFor.i18nPrefix}.privateDescription`)}
+                </p>
+              </div>
+              <Switch
+                id="playlist-public"
+                checked={playlistPublic}
+                onCheckedChange={setPlaylistPublic}
               />
             </div>
             <DialogFooter>
@@ -132,7 +156,12 @@ export function ScheduleReferences({
               </Button>
               <Button
                 disabled={isBusy || !playlistName.trim()}
-                onClick={() => { void syncAndClose(createFor, playlistName.trim()); }}
+                onClick={() => {
+                  void syncAndClose(createFor, {
+                    name: playlistName.trim(),
+                    isPublic: playlistPublic,
+                  });
+                }}
               >
                 {isBusy && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
                 {t(`${createFor.i18nPrefix}.createConfirm`)}
@@ -146,25 +175,18 @@ export function ScheduleReferences({
 }
 
 /** Whether the user's account is connected to a provider's service, or
- * undefined while the status is loading. One case per provider. */
+ * undefined while the status is loading. */
 function useProviderConnection(
   provider: SchedulePlaylistProvider,
   enabled: boolean,
 ): boolean | undefined {
-  const { spotifyService } = useServices();
-
-  switch (provider.source) {
-    case 'spotify-auto': {
-      const { data } = useQuery({
-        ...spotifyService.getStatusQuery(),
-        enabled,
-        retry: false,
-      });
-      return data?.connected;
-    }
-    default:
-      throw new Error(`No connection status for schedule playlist provider: ${provider.source}`);
-  }
+  const services = useServices();
+  const { data } = useQuery({
+    ...provider.connectionQuery(services),
+    enabled,
+    retry: false,
+  });
+  return data;
 }
 
 interface ProviderRowProps {
@@ -276,15 +298,16 @@ function AutoReferenceState({
   onConnect,
 }: Readonly<AutoReferenceStateProps>) {
   const { t } = useTranslation("schedules");
-  const isConnected = useProviderConnection(provider, true);
+  // Only the creator can sync, so only they need the connection status.
+  const isConnected = useProviderConnection(provider, !!reference.syncedByMe);
 
-  // Wait for the connection status before rendering anything.
-  if (isConnected === undefined) {
+  // Wait for the creator's connection status before rendering anything.
+  if (reference.syncedByMe && isConnected === undefined) {
     return null;
   }
 
   // The creator disconnected their account: reconnect to re-enable syncing.
-  if (!isConnected && reference.syncedByMe) {
+  if (reference.syncedByMe && !isConnected) {
     return (
       <Button
         type="button"

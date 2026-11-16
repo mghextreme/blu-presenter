@@ -15,28 +15,6 @@ export function Receiver() {
 
   const params = useParams();
 
-  // The provider's setters resolve against committed state, so a selection
-  // must be applied once schedule/scheduleItem state has been committed —
-  // never in the same batch. Applying both in one batch makes
-  // externalSetSelection return early on a missing schedule item and
-  // externalSetScheduleItem reset the part to 0. The incoming selection is
-  // queued here together with the schedule reference of that moment; the
-  // flush effect applies it once the committed schedule reference differs.
-  const pendingSelection = useRef<IControllerSelection | undefined>(undefined);
-  const scheduleAtQueueTime = useRef<IScheduleItem[] | undefined>(undefined);
-  const queueSelection = useCallback(
-    (selection?: IControllerSelection, scheduleNow?: IScheduleItem[]) => {
-      const hasSelection =
-        !!selection &&
-        (selection.scheduleItem !== undefined ||
-          selection.slide !== undefined ||
-          selection.part !== undefined);
-      pendingSelection.current = hasSelection ? selection : undefined;
-      scheduleAtQueueTime.current = scheduleNow;
-    },
-    [],
-  );
-
   const {
     schedule,
     scheduleItem,
@@ -54,27 +32,54 @@ export function Receiver() {
     themes: ITheme[],
   };
 
+  // The provider's setters resolve against committed state, so a selection
+  // that arrives together with a new schedule/schedule item must be applied
+  // once that state has been committed — never in the same batch. Applying
+  // both in one batch makes externalSetSelection return early on a missing
+  // schedule item and externalSetScheduleItem reset the part to 0. Such a
+  // selection is queued with the schedule/item references of that moment and
+  // flushed as soon as either committed reference differs.
+  const pendingSelection = useRef<{
+    selection: IControllerSelection;
+    schedule: IScheduleItem[];
+    scheduleItem: IScheduleItem | undefined;
+  } | undefined>(undefined);
+
+  const applySelection = (
+    selection: IControllerSelection | undefined,
+    waitForCommit: boolean,
+  ) => {
+    // Any newer selection replaces one that is still waiting.
+    pendingSelection.current = undefined;
+
+    const hasSelection =
+      !!selection &&
+      (selection.scheduleItem !== undefined ||
+        selection.slide !== undefined ||
+        selection.part !== undefined);
+    if (!hasSelection) return;
+
+    if (waitForCommit) {
+      pendingSelection.current = { selection, schedule, scheduleItem };
+    } else {
+      setSelection(selection);
+    }
+  };
+
+  useEffect(() => {
+    const pending = pendingSelection.current;
+    if (!pending) return;
+    if (pending.schedule === schedule && pending.scheduleItem === scheduleItem) return;
+
+    pendingSelection.current = undefined;
+    setSelection(pending.selection);
+  }, [schedule, scheduleItem, setSelection]);
+
   useEffect(() => {
     replaceSchedule(session?.schedule ? session.schedule as IScheduleItem[] : []);
     setScheduleItem(session?.scheduleItem ?? {} as IScheduleItem);
-    queueSelection(session?.selection as IControllerSelection | undefined, schedule);
+    applySelection(session?.selection as IControllerSelection | undefined, true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Flush the queued selection once the schedule state has committed: the
-  // provider setters then run against committed state (context values from
-  // this render), so externalSetSelection resolves item/slide/part bounds
-  // correctly. The baseline is refreshed for the next round of updates.
-  useEffect(() => {
-    const pending = pendingSelection.current;
-    const committed = schedule;
-
-    if (pending !== undefined && committed !== scheduleAtQueueTime.current) {
-      pendingSelection.current = undefined;
-      setSelection(pending);
-    }
-
-    scheduleAtQueueTime.current = committed;
-  }, [schedule, scheduleItem, setSelection]);
 
   const getJoinParams = useCallback(() => {
     if (session?.id && params.secret && params.orgId) {
@@ -102,7 +107,12 @@ export function Receiver() {
         setScheduleItem(data.scheduleItem as IScheduleItem);
       }
 
-      queueSelection(data.selection as IControllerSelection | undefined, schedule);
+      // Only wait for a commit when this push actually changed state;
+      // otherwise nothing would ever flush the queued selection.
+      applySelection(
+        data.selection as IControllerSelection | undefined,
+        !!data.schedule || !!data.scheduleItem,
+      );
     },
     onError: (data) => {
       // Re-join session on notInSession error (e.g., server restart while transport survived)
@@ -141,11 +151,11 @@ export function Receiver() {
         eventName: 'selection',
         handler: (data) => {
           try {
-            setSelection({
+            applySelection({
               scheduleItem: data.scheduleItem,
               slide: data.slide,
               part: data.part,
-            } as IControllerSelection);
+            } as IControllerSelection, false);
           } catch (e) {
             console.error(e);
           }

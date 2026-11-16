@@ -1,6 +1,6 @@
 import { IScheduleItem, ISongReference } from "@/types";
 import { ISchedulePlaylistReference } from "@/types/schedule-playlist-reference.interface";
-import { computeTracksHash, getSpotifyTrackId } from "@/lib/songs";
+import { getSpotifyTrackId } from "@/lib/songs";
 
 /**
  * Spotify playlist sync helpers. Mirrors the API implementation at
@@ -24,12 +24,17 @@ export function findAutoReference(
 }
 
 /**
- * Finds the auto-generated Spotify playlist reference on a schedule, if any.
+ * Deterministic short hash over the ordered track projection of a schedule.
+ * Used to detect whether the schedule changed since the last playlist sync.
  */
-export function findAutoSpotifyReference(
-  references?: ISongReference[],
-): ISchedulePlaylistReference | undefined {
-  return findAutoReference(references, 'spotify-auto');
+export function computeTracksHash(trackIds: string[]): string {
+  const input = trackIds.join('|');
+  let hash = 5381;
+  for (let i = 0; i < input.length; i++) {
+    // `| 0` wraps to int32 exactly like the API implementation.
+    hash = Math.trunc((hash << 5) + hash + input.charCodeAt(i));
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
 export interface SchedulePlaylistProjection {

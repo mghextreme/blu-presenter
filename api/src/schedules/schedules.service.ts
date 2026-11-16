@@ -21,6 +21,10 @@ import { OrganizationUser, Schedule, Song } from 'src/entities';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 import { generateRandomSecret } from 'src/utils/secret';
+import {
+  mergeScheduleReferences,
+  presentScheduleReferences,
+} from 'src/utils/schedule-references';
 import { UsersService } from 'src/users/users.service';
 import { OrganizationsBaseService } from 'src/organizations/organizations.service';
 import { ScheduleWithRoleViewModel } from 'src/models/schedule-with-role.view-model';
@@ -295,19 +299,16 @@ export class SchedulesService {
   }
 
   /**
-   * Marks auto-generated references with whether the
-   * requesting user created them, so the UI knows who may re-sync.
+   * Shapes the references for the response: auto-generated references are
+   * marked with whether the requesting user created them (so the UI knows
+   * who may re-sync) and lose their internal owner id.
    */
   private annotateReferences(schedule: Schedule): void {
-    if (!this.request.user || !schedule.references?.length) {
-      return;
-    }
-
-    const userId = this.request.user['internal']?.id;
-    schedule.references = schedule.references.map((reference) => {
-      if (!('source' in reference)) return reference;
-      return { ...reference, syncedByMe: reference.syncedBy === userId };
-    });
+    const userId: number | undefined = this.request.user?.['internal']?.id;
+    schedule.references = presentScheduleReferences(
+      schedule.references,
+      userId,
+    );
   }
 
   private async resolveSongReferences(
@@ -389,7 +390,12 @@ export class SchedulesService {
       title: createScheduleDto.title,
       date: createScheduleDto.date || null,
       items: createScheduleDto.items,
-      references: createScheduleDto.references ?? [],
+      // A new schedule has no stored references: auto references can't be
+      // created through this endpoint.
+      references: mergeScheduleReferences(
+        createScheduleDto.references ?? [],
+        [],
+      ),
       secret: generateRandomSecret(10),
       orgId,
       createdBy: user.id,
@@ -433,13 +439,17 @@ export class SchedulesService {
     }
 
     if (updateScheduleDto.references !== undefined) {
-      schedule.references = updateScheduleDto.references;
+      schedule.references = mergeScheduleReferences(
+        updateScheduleDto.references,
+        schedule.references,
+      );
     }
 
     schedule.updatedBy = user.id;
 
-    const result = await this.schedulesRepository.save(schedule);
-    return result as Schedule;
+    const result = (await this.schedulesRepository.save(schedule)) as Schedule;
+    this.annotateReferences(result);
+    return result;
   }
 
   async delete(orgId: number, id: number): Promise<void> {

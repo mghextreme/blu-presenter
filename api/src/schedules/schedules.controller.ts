@@ -83,4 +83,13 @@ export class SchedulesController {
   ): Promise<SchedulePlaylistSyncResult> {
     return await this.spotifyService.syncSchedulePlaylist(orgId, id, dto);
   }
+
+  @Delete(':id/spotify-playlist')
+  @OrganizationRole('owner', 'admin', 'member')
+  async removeSpotifyPlaylist(
+    @Headers('Organization') orgId: number,
+    @Param('id') id: number,
+  ): Promise<void> {
+    return await this.spotifyService.removeSchedulePlaylist(orgId, id);
+  }
 }

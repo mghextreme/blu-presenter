@@ -5,7 +5,6 @@ import {
   Injectable,
   NotFoundException,
   Scope,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { REQUEST } from '@nestjs/core';
@@ -21,6 +20,7 @@ import {
   SpotifyConnectionStatus,
 } from 'src/types';
 import { computeTracksHash, getSpotifyTrackId } from 'src/utils/spotify';
+import { isAutoReference } from 'src/utils/schedule-references';
 import { OrganizationsBaseService } from 'src/organizations/organizations.service';
 
 const SPOTIFY_ACCOUNTS_BASE = 'https://accounts.spotify.com';
@@ -52,6 +52,15 @@ interface SpotifyTokenState {
   exp: number;
 }
 
+/** The token endpoint rejected the refresh token (revoked or expired). */
+class SpotifyInvalidGrantException extends BadRequestException {
+  constructor() {
+    super(
+      'Spotify authorization is no longer valid. Please reconnect your account.',
+    );
+  }
+}
+
 @Injectable({ scope: Scope.REQUEST })
 export class SpotifyService {
   constructor(
@@ -68,6 +77,12 @@ export class SpotifyService {
     @Inject(OrganizationsBaseService)
     private readonly organizationsBaseService: OrganizationsBaseService,
   ) {}
+
+  /**
+   * The current user's connection, loaded once per request (the service is
+   * request-scoped) and kept in sync with every write below.
+   */
+  private connectionCache: Promise<ISpotifyConnection | null> | undefined;
 
   private get user(): User | undefined {
     return this.request.user?.['internal'] as User;
@@ -89,7 +104,12 @@ export class SpotifyService {
 
   // ─── Connection status ──────────────────────────────────────────────────────
 
-  private async getConnection(): Promise<ISpotifyConnection | null> {
+  private getConnection(): Promise<ISpotifyConnection | null> {
+    this.connectionCache ??= this.loadConnection();
+    return this.connectionCache;
+  }
+
+  private async loadConnection(): Promise<ISpotifyConnection | null> {
     const user = this.user;
     if (!user) return null;
 
@@ -150,11 +170,18 @@ export class SpotifyService {
     this.verifyState(state);
 
     const tokenData = await this.exchangeCodeForTokens(code);
+    if (!tokenData.refresh_token) {
+      // Without a refresh token the connection would expire within the hour
+      // while still looking connected.
+      throw new BadRequestException(
+        'Spotify did not grant offline access. Please try connecting again.',
+      );
+    }
     const profile = await this.fetchSpotifyProfile(tokenData.access_token);
 
     const connection: ISpotifyConnection = {
       accessToken: tokenData.access_token,
-      refreshToken: tokenData.refresh_token ?? null,
+      refreshToken: tokenData.refresh_token,
       expiresAt: new Date(
         Date.now() + tokenData.expires_in * 1000,
       ).toISOString(),
@@ -163,9 +190,7 @@ export class SpotifyService {
       displayName: profile.display_name ?? null,
     };
 
-    await this.usersRepository.update(this.user!.id, {
-      spotify: connection,
-    });
+    await this.saveConnection(connection);
 
     return {
       connected: true,
@@ -176,9 +201,7 @@ export class SpotifyService {
   }
 
   async disconnect(): Promise<SpotifyConnectionStatus> {
-    await this.usersRepository.update(this.user!.id, {
-      spotify: null,
-    });
+    await this.saveConnection(null);
 
     return {
       connected: false,
@@ -186,6 +209,13 @@ export class SpotifyService {
       spotifyDisplayName: null,
       scope: null,
     };
+  }
+
+  private async saveConnection(
+    connection: ISpotifyConnection | null,
+  ): Promise<void> {
+    await this.usersRepository.update(this.user!.id, { spotify: connection });
+    this.connectionCache = Promise.resolve(connection);
   }
 
   // ─── Schedule playlist sync ─────────────────────────────────────────────────
@@ -209,9 +239,13 @@ export class SpotifyService {
     );
 
     const projection = await this.buildTrackProjection(schedule.items);
-    const existingReference = (schedule.references ?? []).find(
+    // Malformed entries (non-objects) are dropped on every write.
+    const references = (schedule.references ?? []).filter(
+      (reference) => !!reference && typeof reference === 'object',
+    );
+    const existingReference = references.find(
       (reference): reference is SchedulePlaylistReference =>
-        'source' in reference &&
+        isAutoReference(reference) &&
         reference.source === SPOTIFY_AUTO_REFERENCE_SOURCE,
     );
 
@@ -227,49 +261,89 @@ export class SpotifyService {
       );
     }
 
-    let playlistUrl: string;
+    let reference: SchedulePlaylistReference;
     let action: 'created' | 'synced';
 
     if (existingReference) {
       action = 'synced';
-      playlistUrl = existingReference.url;
-      await this.replacePlaylistTracks(playlistUrl, projection.trackUris);
-
-      existingReference.syncedAt = new Date().toISOString();
-      existingReference.tracksHash = computeTracksHash(projection.trackIds);
+      reference = existingReference;
     } else {
       action = 'created';
       const name =
         dto.name ?? this.defaultPlaylistName(schedule.title, schedule.date);
-      playlistUrl = await this.createPlaylist(name);
-      await this.replacePlaylistTracks(playlistUrl, projection.trackUris);
+      const url = await this.createPlaylist(name, dto.public ?? false);
 
-      schedule.references = [
-        ...(schedule.references ?? []),
-        {
-          url: playlistUrl,
-          name,
-          source: SPOTIFY_AUTO_REFERENCE_SOURCE,
-          syncedAt: new Date().toISOString(),
-          tracksHash: computeTracksHash(projection.trackIds),
-          syncedBy: this.user!.id,
-          // Persist as absent (key dropped on JSON serialization), not null —
-          // the frontend schema treats null metadata as invalid input.
-          ...(this.user!.nickname != null && { syncedByName: this.user!.nickname }),
-        },
-      ];
+      // Persist the reference right away (still without a tracks hash, so it
+      // shows as pending): if writing the tracks fails below, a retry
+      // re-syncs this playlist instead of creating another empty one.
+      reference = {
+        url,
+        name,
+        source: SPOTIFY_AUTO_REFERENCE_SOURCE,
+        syncedBy: this.user!.id,
+        // Persist as absent (key dropped on JSON serialization), not null —
+        // the frontend schema treats null metadata as invalid input.
+        ...(this.user!.nickname != null && {
+          syncedByName: this.user!.nickname,
+        }),
+      };
+      references.push(reference);
+      await this.saveReferences(schedule.id, references);
     }
 
-    await this.schedulesRepository.update(schedule.id, {
-      references: schedule.references,
-    });
+    await this.replacePlaylistTracks(reference.url, projection.trackUris);
+
+    reference.syncedAt = new Date().toISOString();
+    reference.tracksHash = computeTracksHash(projection.trackIds);
+    delete reference.syncedByMe;
+    await this.saveReferences(schedule.id, references);
 
     return {
       action,
-      url: playlistUrl,
+      url: reference.url,
       added: projection.trackUris.length,
       skipped: projection.skipped,
     };
+  }
+
+  /**
+   * Detaches the auto-generated Spotify playlist from a schedule. The
+   * playlist itself stays in its owner's Spotify library.
+   */
+  async removeSchedulePlaylist(
+    orgId: number,
+    scheduleId: number,
+  ): Promise<void> {
+    const schedule = await this.schedulesRepository.findOneBy({
+      id: scheduleId,
+      orgId,
+    });
+    if (!schedule) {
+      throw new NotFoundException();
+    }
+
+    await this.organizationsBaseService.assertFeatureEnabled(
+      orgId,
+      'schedules',
+    );
+
+    const references = (schedule.references ?? []).filter(
+      (reference) =>
+        !!reference &&
+        typeof reference === 'object' &&
+        !(
+          isAutoReference(reference) &&
+          reference.source === SPOTIFY_AUTO_REFERENCE_SOURCE
+        ),
+    );
+    await this.saveReferences(schedule.id, references);
+  }
+
+  private async saveReferences(
+    scheduleId: number,
+    references: Schedule['references'],
+  ): Promise<void> {
+    await this.schedulesRepository.update(scheduleId, { references });
   }
 
   private async buildTrackProjection(items: any[]): Promise<{
@@ -320,9 +394,10 @@ export class SpotifyService {
     return date ? `${title} — ${date}` : title;
   }
 
-  private async createPlaylist(name: string): Promise<string> {
-    await this.requireConnection();
-
+  private async createPlaylist(
+    name: string,
+    isPublic: boolean,
+  ): Promise<string> {
     const playlist = await this.spotifyApi<{
       id: string;
       external_urls: { spotify: string };
@@ -331,7 +406,7 @@ export class SpotifyService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name,
-        public: false,
+        public: isPublic,
         description: 'Generated by BluPresenter',
       }),
     });
@@ -385,7 +460,7 @@ export class SpotifyService {
     try {
       const parsed = new URL(url);
       const match = /\/playlist\/([a-zA-Z0-9]+)/.exec(parsed.pathname);
-      if (!match) {
+      if (parsed.hostname !== 'open.spotify.com' || !match) {
         throw new Error();
       }
       return match[1];
@@ -491,21 +566,31 @@ export class SpotifyService {
       return connection.accessToken;
     }
 
-    const data = await this.requestToken(
-      new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: connection.refreshToken!,
-        // The refresh token was issued through the (non-PKCE) Authorization
-        // Code flow, so the token endpoint requires the client credentials —
-        // without the secret it rejects the request with an empty
-        // `invalid_request`.
-        client_id: this.spotifyClientId!,
-        client_secret: this.spotifyClientSecret!,
-      }),
-    );
+    let data: SpotifyTokenResponse;
+    try {
+      data = await this.requestToken(
+        new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token: connection.refreshToken!,
+          // The refresh token was issued through the (non-PKCE) Authorization
+          // Code flow, so the token endpoint requires the client credentials —
+          // without the secret it rejects the request with an empty
+          // `invalid_request`.
+          client_id: this.spotifyClientId!,
+          client_secret: this.spotifyClientSecret!,
+        }),
+      );
+    } catch (e) {
+      if (e instanceof SpotifyInvalidGrantException) {
+        // The refresh token is dead: drop the connection so the UI asks the
+        // user to reconnect instead of offering syncs that always fail.
+        await this.saveConnection(null);
+      }
+      throw e;
+    }
 
     if (!data.access_token) {
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         'Spotify authorization is no longer valid. Please reconnect your account.',
       );
     }
@@ -518,9 +603,7 @@ export class SpotifyService {
       scope: data.scope ?? connection.scope,
     };
 
-    await this.usersRepository.update(this.user!.id, {
-      spotify: updated,
-    });
+    await this.saveConnection(updated);
 
     return updated.accessToken;
   }
@@ -558,9 +641,7 @@ export class SpotifyService {
     if (!response.ok) {
       const errorBody = await response.text();
       if (errorBody.includes('invalid_grant')) {
-        throw new BadRequestException(
-          'Spotify authorization is no longer valid. Please reconnect your account.',
-        );
+        throw new SpotifyInvalidGrantException();
       }
       throw new BadRequestException(`Spotify token error: ${errorBody}`);
     }

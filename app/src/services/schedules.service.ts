@@ -1,5 +1,5 @@
 import { ApiService } from "./api.service";
-import { ISchedule } from "@/types"
+import { ISchedule, ISchedulePlaylistSyncResult } from "@/types"
 import { getOfflineScheduleById, searchOfflineSchedules } from "@/lib/offline/reads";
 
 export class SchedulesService extends ApiService {
@@ -91,12 +91,22 @@ export class SchedulesService extends ApiService {
   public async syncSpotifyPlaylist(
     scheduleId: number,
     orgId: number,
-    name?: string,
-  ): Promise<{ action: 'created' | 'synced'; url: string; added: number; skipped: { songId: number; title: string }[] }> {
-    return await this.postRequest(`/schedules/${scheduleId}/spotify-playlist`, JSON.stringify({ name }), {
+    options: { name?: string; isPublic?: boolean } = {},
+  ): Promise<ISchedulePlaylistSyncResult> {
+    return await this.postRequest(`/schedules/${scheduleId}/spotify-playlist`, JSON.stringify({
+      name: options.name,
+      public: options.isPublic,
+    }), {
       'content-type': 'application/json',
       'Organization': orgId.toString(),
     });
+  }
+
+  public async removeSpotifyPlaylist(scheduleId: number, orgId: number): Promise<void> {
+    await this.deleteRequest(`/schedules/${scheduleId}/spotify-playlist`, {
+      'Organization': orgId.toString(),
+    });
+    this.clearCache();
   }
 
 }

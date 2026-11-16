@@ -55,3 +55,15 @@ describe('computeTracksHash', () => {
     expect(computeTracksHash([])).toMatch(/^[0-9a-f]{8}$/);
   });
 });
+
+describe('computeTracksHash (cross-implementation)', () => {
+  it('matches the frontend implementation (app/src/lib/spotify.ts)', () => {
+    expect(
+      computeTracksHash([
+        '6rqhFgbbKwnb9MLmUQDhG6',
+        '4uLU6hMCjMI75M1A2tKUQC',
+        '7GhIk7Il098yCjg4BQjzvb',
+      ]),
+    ).toBe('cc6e7023');
+  });
+});

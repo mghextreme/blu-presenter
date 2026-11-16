@@ -319,20 +319,6 @@ export function getEmbedInfo(url: string | null): EmbedInfo {
   return { type: 'other' };
 }
 
-/**
- * Deterministic short hash over the ordered track projection of a schedule.
- * Used to detect whether the schedule changed since the last playlist sync.
- * Mirrored in the API at `api/src/utils/spotify.ts` — keep both identical.
- */
-export function computeTracksHash(trackIds: string[]): string {
-  const input = trackIds.join('|');
-  let hash = 5381;
-  for (let i = 0; i < input.length; i++) {
-    hash = Math.trunc((hash << 5) + hash + input.charCodeAt(i));
-  }
-  return (hash >>> 0).toString(16).padStart(8, '0');
-}
-
 // ─── Chord transposition ──────────────────────────────────────────────────────
 
 const SHARPS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];

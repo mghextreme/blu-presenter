@@ -120,6 +120,9 @@
     "syncedWithSkipped": "Playlist do Spotify atualizada ({{added}} músicas)!",
     "syncedSkippedDescription": "Músicas sem referência do Spotify foram ignoradas: {{skipped}}",
     "syncFailed": "Erro ao sincronizar a playlist do Spotify",
-    "connectFailed": "Erro ao conectar ao Spotify"
+    "connectFailed": "Erro ao conectar ao Spotify",
+    "public": "Playlist pública",
+    "publicDescription": "Qualquer pessoa pode encontrá-la e abri-la no Spotify.",
+    "privateDescription": "Só você pode vê-la no Spotify, então outros membros podem não conseguir abri-la."
   }
 }

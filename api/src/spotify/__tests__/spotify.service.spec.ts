@@ -137,6 +137,7 @@ describe('SpotifyService', () => {
   >;
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     storedConnection = validConnection();
 
     fetchMock = jest
@@ -272,6 +273,18 @@ describe('SpotifyService', () => {
       await expect(service.completeConnect('code', state)).rejects.toThrow(
         BadRequestException,
       );
+    });
+
+    it('rejects a token response without a refresh token', async () => {
+      const state = makeState(42, Date.now() + 60_000);
+      fetchMock.mockImplementationOnce(async () =>
+        jsonResponse({ access_token: 'new-access', expires_in: 3600 }),
+      );
+
+      await expect(service.completeConnect('code', state)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(usersUpdate).not.toHaveBeenCalledWith(42, expect.anything());
     });
   });
 
@@ -565,6 +578,146 @@ describe('SpotifyService', () => {
     });
   });
 
+  describe('syncSchedulePlaylist (creation safety)', () => {
+    const scheduleWith = (references: any[]) =>
+      ({
+        id: 1,
+        orgId: 1,
+        title: 'Sunday Service',
+        date: null,
+        items: [{ type: 'song', id: 10 }],
+        references,
+      }) as Schedule;
+
+    beforeEach(() => {
+      songsQueryBuilder.mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([
+          {
+            id: 10,
+            title: 'Song A',
+            references: [{ url: 'https://open.spotify.com/track/abc' }],
+          },
+        ]),
+      });
+    });
+
+    it('creates a public playlist when requested', async () => {
+      scheduleFindOneBy.mockResolvedValue(scheduleWith([]));
+      fetchMock
+        .mockImplementationOnce(async () =>
+          jsonResponse({
+            id: 'pl1',
+            external_urls: { spotify: 'https://open.spotify.com/playlist/pl1' },
+          }),
+        )
+        .mockImplementationOnce(async () => jsonResponse({ snapshot_id: 's' }));
+
+      await service.syncSchedulePlaylist(1, 1, { name: 'N', public: true });
+
+      const createBody = JSON.parse(fetchCalls()[0][1]!.body as string);
+      expect(createBody.public).toBe(true);
+    });
+
+    it('keeps the new reference when writing the tracks fails', async () => {
+      scheduleFindOneBy.mockResolvedValue(scheduleWith([]));
+      scheduleUpdate.mockClear();
+      fetchMock
+        .mockImplementationOnce(async () =>
+          jsonResponse({
+            id: 'pl1',
+            external_urls: { spotify: 'https://open.spotify.com/playlist/pl1' },
+          }),
+        )
+        .mockImplementationOnce(async () =>
+          jsonResponse({ error: { message: 'Rate limited' } }, 429),
+        );
+
+      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
+        BadRequestException,
+      );
+
+      // Persisted before the track write, without a tracks hash (pending),
+      // so a retry re-syncs this playlist instead of creating another one.
+      expect(scheduleUpdate).toHaveBeenCalledTimes(1);
+      const [, { references }] = scheduleUpdate.mock.calls[0];
+      expect(references).toEqual([
+        expect.objectContaining({
+          url: 'https://open.spotify.com/playlist/pl1',
+          source: 'spotify-auto',
+          syncedBy: 42,
+        }),
+      ]);
+      expect(references[0].tracksHash).toBeUndefined();
+    });
+
+    it('refuses to write to a playlist URL outside open.spotify.com', async () => {
+      scheduleFindOneBy.mockResolvedValue(
+        scheduleWith([
+          {
+            url: 'https://evil.example/playlist/pl1',
+            source: 'spotify-auto',
+            syncedBy: 42,
+          },
+        ]),
+      );
+
+      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
+        'Invalid Spotify playlist URL',
+      );
+      expect(fetchCalls()).toHaveLength(0);
+    });
+
+    it('ignores malformed reference entries', async () => {
+      scheduleFindOneBy.mockResolvedValue(scheduleWith([null, 'x']));
+      scheduleUpdate.mockClear();
+      fetchMock
+        .mockImplementationOnce(async () =>
+          jsonResponse({
+            id: 'pl1',
+            external_urls: { spotify: 'https://open.spotify.com/playlist/pl1' },
+          }),
+        )
+        .mockImplementationOnce(async () => jsonResponse({ snapshot_id: 's' }));
+
+      const result = await service.syncSchedulePlaylist(1, 1, {});
+      expect(result.action).toBe('created');
+      const calls = scheduleUpdate.mock.calls;
+      const lastCall = calls[calls.length - 1];
+      expect(lastCall[1].references).toHaveLength(1);
+    });
+  });
+
+  describe('removeSchedulePlaylist', () => {
+    it('detaches only the auto-generated Spotify reference', async () => {
+      scheduleFindOneBy.mockResolvedValue({
+        id: 1,
+        orgId: 1,
+        references: [
+          {
+            url: 'https://open.spotify.com/playlist/pl1',
+            source: 'spotify-auto',
+          },
+          { url: 'https://youtube.com/watch?v=a', name: 'Video' },
+        ],
+      } as any);
+
+      await service.removeSchedulePlaylist(1, 1);
+
+      expect(scheduleUpdate).toHaveBeenCalledWith(1, {
+        references: [{ url: 'https://youtube.com/watch?v=a', name: 'Video' }],
+      });
+    });
+
+    it('throws when the schedule does not exist', async () => {
+      scheduleFindOneBy.mockResolvedValue(null);
+      await expect(service.removeSchedulePlaylist(1, 1)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
   describe('token refresh', () => {
     it('refreshes an expired access token before calling the API and rotates the refresh token', async () => {
       storedConnection = expiredConnection();
@@ -631,6 +784,44 @@ describe('SpotifyService', () => {
       expect((tracksCallInit!.headers as any).Authorization).toBe(
         'Bearer refreshed-access',
       );
+    });
+
+    it('drops the connection when Spotify revokes the refresh token', async () => {
+      storedConnection = expiredConnection();
+      scheduleFindOneBy.mockResolvedValue({
+        id: 1,
+        orgId: 1,
+        title: 'T',
+        date: null,
+        items: [{ type: 'song', id: 10 }],
+        references: [
+          {
+            url: 'https://open.spotify.com/playlist/pl1',
+            source: 'spotify-auto',
+            syncedBy: 42,
+          },
+        ],
+      } as any);
+      songsQueryBuilder.mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([
+          {
+            id: 10,
+            title: 'Song A',
+            references: [{ url: 'https://open.spotify.com/track/abc' }],
+          },
+        ]),
+      });
+
+      fetchMock.mockImplementationOnce(
+        async () => new Response('{"error":"invalid_grant"}', { status: 400 }),
+      );
+
+      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
+        'Spotify authorization is no longer valid',
+      );
+      expect(usersUpdate).toHaveBeenCalledWith(42, { spotify: null });
     });
 
     it('forces a refresh and retries once when the API rejects the token', async () => {

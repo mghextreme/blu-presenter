@@ -19,6 +19,7 @@ export * from './broadcast.dto';
 export * from './create-schedule.dto';
 export * from './update-schedule.dto';
 export * from './search-schedule.dto';
+export * from './schedule-reference.dto';
 export * from './create-schedule-playlist.dto';
 export * from './spotify-playlist-sync.dto';
 

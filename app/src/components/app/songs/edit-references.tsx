@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { Fragment, ReactNode } from "react";
 import { useFieldArray, UseFieldArrayRemove, UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ export function EditSongReferences({
           // Auto-generated references (they carry a `source`) get their own
           // row without editable inputs, when the editor provides one.
           !!renderAutoReference && !!(field as { source?: string }).source ? (
-            <div key={`reference-${ix}`}>{renderAutoReference(ix, remove)}</div>
+            <Fragment key={`reference-${ix}`}>{renderAutoReference(ix, remove)}</Fragment>
           ) : (
             <EditSongReferencesItem form={form} ix={ix} remove={remove} key={`reference-${ix}`}  />
           )

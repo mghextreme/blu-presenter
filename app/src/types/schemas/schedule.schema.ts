@@ -11,7 +11,6 @@ const ScheduleReferenceSchema = z.object({
   source: z.string().nullable().optional(),
   syncedAt: z.string().nullable().optional(),
   tracksHash: z.string().nullable().optional(),
-  syncedBy: z.number().nullable().optional(),
   syncedByName: z.string().nullable().optional(),
   syncedByMe: z.boolean().nullable().optional(),
 });

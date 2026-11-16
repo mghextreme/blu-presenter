@@ -43,6 +43,8 @@ const TestConsumer = () => {
       <button onClick={() => context.addToSchedule(structuredClone(multiPartItem))}>Add Item</button>
       <button onClick={() => context.setScheduleItem(0)}>Set First Item</button>
       <button onClick={() => context.setSelection({ scheduleItem: 0, slide: 0, part: 2 })}>Select Part 2</button>
+      <button onClick={() => context.setScheduleItem(structuredClone(multiPartItem))}>Open Outside Schedule</button>
+      <button onClick={() => context.setSelection({ slide: 0, part: 1 } as never)}>Select Part 1</button>
     </div>
   )
 }
@@ -153,6 +155,35 @@ describe('BroadcastProvider (REST write path)', () => {
         7,
         3,
         expect.objectContaining({ scheduleItem: 0, slide: 0, part: 2 }),
+      )
+    })
+  })
+  it('broadcasts slide/part changes of an item opened outside the schedule', async () => {
+    sessionStorage.setItem(
+      STORAGE_KEYS.broadcastSession,
+      JSON.stringify({ id: 7, orgId: 3, secret: 's3cr3t' }),
+    )
+
+    const { getByText } = render(
+      <ControllerProvider storeState={false}>
+        <BroadcastProvider>
+          <TestConsumer />
+        </BroadcastProvider>
+      </ControllerProvider>,
+    )
+    await act(async () => { await Promise.resolve() })
+    broadcastMocks.setSelection.mockClear()
+
+    const user = userEvent.setup()
+    // e.g. a song opened from search: no schedule index
+    await user.click(getByText('Open Outside Schedule'))
+    await user.click(getByText('Select Part 1'))
+
+    await waitFor(() => {
+      expect(broadcastMocks.setSelection).toHaveBeenCalledWith(
+        7,
+        3,
+        expect.objectContaining({ scheduleItem: undefined, slide: 0, part: 1 }),
       )
     })
   })

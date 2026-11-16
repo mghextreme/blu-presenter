@@ -4,8 +4,10 @@ import {
   IsNotEmpty,
   IsOptional,
   Length,
+  ValidateNested,
 } from 'class-validator';
-import { SongReference } from 'src/entities';
+import { Type } from 'class-transformer';
+import { ScheduleReferenceDto } from './schedule-reference.dto';
 
 export class CreateScheduleDto {
   @IsNotEmpty()
@@ -21,5 +23,7 @@ export class CreateScheduleDto {
 
   @IsOptional()
   @IsArray()
-  references?: SongReference[];
+  @ValidateNested({ each: true })
+  @Type(() => ScheduleReferenceDto)
+  references?: ScheduleReferenceDto[];
 }

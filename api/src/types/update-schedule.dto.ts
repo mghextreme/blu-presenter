@@ -1,5 +1,12 @@
-import { IsArray, IsDateString, IsOptional, Length } from 'class-validator';
-import { SongReference } from 'src/entities';
+import {
+  IsArray,
+  IsDateString,
+  IsOptional,
+  Length,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { ScheduleReferenceDto } from './schedule-reference.dto';
 
 export class UpdateScheduleDto {
   @IsOptional()
@@ -16,5 +23,7 @@ export class UpdateScheduleDto {
 
   @IsOptional()
   @IsArray()
-  references?: SongReference[];
+  @ValidateNested({ each: true })
+  @Type(() => ScheduleReferenceDto)
+  references?: ScheduleReferenceDto[];
 }

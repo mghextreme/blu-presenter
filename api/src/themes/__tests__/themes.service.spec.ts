@@ -526,6 +526,18 @@ describe('ThemesService', () => {
       );
     });
 
+    it('does not fall back to the session theme for a built-in URL theme', async () => {
+      mockSessionsService.findOneBySecret.mockResolvedValue({ theme: '90' });
+      mockThemesRepository.find.mockResolvedValue([]);
+
+      await service.findAllForSession(1, 7, 'secret-abc', 'lyrics' as never);
+      expect(mockThemesRepository.find).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { orgId: 1 },
+        }),
+      );
+    });
+
     it('returns [] when the session or secret does not match', async () => {
       mockSessionsService.findOneBySecret.mockResolvedValue(null);
 

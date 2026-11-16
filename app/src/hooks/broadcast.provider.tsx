@@ -81,8 +81,14 @@ export function BroadcastProvider({
 
     // Initial controller state has no item/slide/part at all. Pushing that
     // would persist an empty selection and blank out part on every listener
-    // until the presenter re-selects.
-    if (selection.scheduleItem === undefined) return;
+    // until the presenter re-selects. Items opened outside the schedule
+    // (search, free text, preview) have no schedule index but do carry a
+    // slide/part, so those selections are still broadcast.
+    if (
+      selection.scheduleItem === undefined &&
+      selection.slide === undefined &&
+      selection.part === undefined
+    ) return;
 
     broadcastService.setSelection(session.id, session.orgId, selection)
       .catch((e) => console.warn('Failed to broadcast selection:', e));

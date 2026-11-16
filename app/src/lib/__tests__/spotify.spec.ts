@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
-  computeTracksHash,
   getEmbedInfo,
   getReferenceType,
   getSpotifyPlaylistId,
 } from '@/lib/songs';
 import {
+  computeTracksHash,
   findAutoReference,
-  findAutoSpotifyReference,
   getSchedulePlaylistProjection,
 } from '@/lib/spotify';
 
@@ -56,6 +55,15 @@ describe('computeTracksHash', () => {
   it('produces a short hex string', () => {
     expect(computeTracksHash([])).toMatch(/^[0-9a-f]{8}$/);
   });
+
+  it('matches the API implementation (api/src/utils/spotify.ts)', () => {
+    // Value computed by the API's computeTracksHash for the same input.
+    expect(computeTracksHash([
+      '6rqhFgbbKwnb9MLmUQDhG6',
+      '4uLU6hMCjMI75M1A2tKUQC',
+      '7GhIk7Il098yCjg4BQjzvb',
+    ])).toBe('cc6e7023');
+  });
 });
 
 describe('getSchedulePlaylistProjection', () => {
@@ -95,20 +103,5 @@ describe('findAutoReference', () => {
   it('returns undefined when there is none', () => {
     expect(findAutoReference([{ url: 'https://open.spotify.com/track/abc' }], 'spotify-auto')).toBeUndefined();
     expect(findAutoReference(undefined, 'spotify-auto')).toBeUndefined();
-  });
-});
-
-describe('findAutoSpotifyReference', () => {
-  it('finds the auto-generated reference', () => {
-    const references = [
-      { url: 'https://example.com' },
-      { url: 'https://open.spotify.com/playlist/pl1', source: 'spotify-auto' as const },
-    ];
-    expect(findAutoSpotifyReference(references)?.url).toBe('https://open.spotify.com/playlist/pl1');
-  });
-
-  it('returns undefined when there is none', () => {
-    expect(findAutoSpotifyReference([{ url: 'https://open.spotify.com/track/abc' }])).toBeUndefined();
-    expect(findAutoSpotifyReference(undefined)).toBeUndefined();
   });
 });

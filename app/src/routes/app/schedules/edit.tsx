@@ -23,6 +23,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { EditSongReferences } from "@/components/app/songs/edit-references";
 import { EditPlaylistReference } from "@/components/app/schedules/edit-playlist-reference";
+import { SCHEDULE_PLAYLIST_PROVIDERS } from "@/components/app/schedules/playlist-providers";
 import { toast } from "sonner";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
@@ -159,6 +160,7 @@ function EditScheduleForm({
   t: ReturnType<typeof useTranslation>['t'],
 }>) {
   const { schedule, replaceSchedule } = useController();
+  const services = useServices();
   const [isLoading, setLoading] = useState<boolean>(false);
   const [addItemOpen, setAddItemOpen] = useState<boolean>(false);
   const [initialized, setInitialized] = useState<boolean>(false);
@@ -200,9 +202,24 @@ function EditScheduleForm({
       references: values.references as ISchedule['references'],
     };
 
+    // Generated playlists are managed server-side: saving the form never
+    // drops them (a stale form must not detach a playlist created in the
+    // meantime), so the ones the user removed are detached explicitly.
+    const removedPlaylistProviders = SCHEDULE_PLAYLIST_PROVIDERS.filter(
+      (provider) =>
+        !!provider.findReference(data.references) &&
+        !provider.findReference(values.references as ISchedule['references']),
+    );
+
     let action;
     if (edit) {
-      action = schedulesService.update(values.id, payload, organizationId);
+      action = schedulesService.update(values.id, payload, organizationId)
+        .then(async (savedSchedule) => {
+          await Promise.all(
+            removedPlaylistProviders.map((provider) => provider.remove(services, data)),
+          );
+          return savedSchedule;
+        });
     } else {
       action = schedulesService.add(payload, organizationId);
     }

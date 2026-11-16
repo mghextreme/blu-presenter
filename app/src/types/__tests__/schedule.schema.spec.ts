@@ -9,7 +9,6 @@ const autoReference = {
   source: 'spotify-auto',
   syncedAt: '2026-11-12T15:25:13.465Z',
   tracksHash: '08eedd91',
-  syncedBy: 2,
   syncedByName: null, // syncing user has no nickname in the DB
 }
 
@@ -31,7 +30,7 @@ describe('ScheduleSchema', () => {
   it('accepts missing null metadata fields', () => {
     const result = ScheduleSchema.safeParse({
       ...schedule,
-      references: [{ ...autoReference, syncedByName: undefined, syncedBy: undefined }],
+      references: [{ ...autoReference, syncedByName: undefined }],
     })
     expect(result.success).toBe(true)
   })
