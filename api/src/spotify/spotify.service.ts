@@ -16,6 +16,7 @@ import { Schedule, SchedulePlaylistReference, Song, User } from 'src/entities';
 import {
   CreateSchedulePlaylistDto,
   ISpotifyConnection,
+  IUserSpotifyData,
   SchedulePlaylistSyncResult,
   SpotifyConnectionStatus,
 } from 'src/types';
@@ -82,7 +83,7 @@ export class SpotifyService {
    * The current user's connection, loaded once per request (the service is
    * request-scoped) and kept in sync with every write below.
    */
-  private connectionCache: Promise<ISpotifyConnection | null> | undefined;
+  private connectionCache: Promise<IUserSpotifyData | null> | undefined;
 
   private get user(): User | undefined {
     return this.request.user?.['internal'] as User;
@@ -96,6 +97,29 @@ export class SpotifyService {
     return this.configService.get('spotify.clientSecret');
   }
 
+  /** Whether the server has the credentials the Spotify API flow needs. */
+  private get isConfigured(): boolean {
+    return !!this.spotifyClientId && !!this.spotifyClientSecret;
+  }
+
+  /** Whether the user may connect their account and create playlists. */
+  private isPlaylistsEnabled(data: IUserSpotifyData | null): boolean {
+    return this.isConfigured && data?.enabled === true;
+  }
+
+  private async assertPlaylistsEnabled(): Promise<void> {
+    if (!this.isConfigured) {
+      throw new BadRequestException(
+        'Spotify integration is not configured on this server',
+      );
+    }
+    if (!this.isPlaylistsEnabled(await this.getConnection())) {
+      throw new ForbiddenException(
+        'Spotify playlists are not enabled for this account',
+      );
+    }
+  }
+
   private get connectRedirectUri(): string {
     return (
       this.configService.get('app.baseUrl') + '/app/spotify/connect-callback'
@@ -104,12 +128,12 @@ export class SpotifyService {
 
   // ─── Connection status ──────────────────────────────────────────────────────
 
-  private getConnection(): Promise<ISpotifyConnection | null> {
+  private getConnection(): Promise<IUserSpotifyData | null> {
     this.connectionCache ??= this.loadConnection();
     return this.connectionCache;
   }
 
-  private async loadConnection(): Promise<ISpotifyConnection | null> {
+  private async loadConnection(): Promise<IUserSpotifyData | null> {
     const user = this.user;
     if (!user) return null;
 
@@ -129,12 +153,19 @@ export class SpotifyService {
     if (!connection?.refreshToken) {
       throw new BadRequestException('Spotify account not connected');
     }
-    return connection;
+    return connection as ISpotifyConnection;
   }
 
   async getStatus(): Promise<SpotifyConnectionStatus> {
-    const connection = await this.getConnection();
+    return this.buildStatus(await this.getConnection());
+  }
+
+  private buildStatus(
+    connection: IUserSpotifyData | null,
+  ): SpotifyConnectionStatus {
     return {
+      configured: this.isConfigured,
+      playlistsEnabled: this.isPlaylistsEnabled(connection),
       connected: !!connection?.refreshToken,
       spotifyUserId: connection?.userId ?? null,
       spotifyDisplayName: connection?.displayName ?? null,
@@ -144,12 +175,9 @@ export class SpotifyService {
 
   // ─── OAuth connect flow ─────────────────────────────────────────────────────
 
-  getConnectUrl(): { url: string } {
-    if (!this.spotifyClientId || !this.spotifyClientSecret) {
-      throw new BadRequestException(
-        'Spotify integration is not configured on this server',
-      );
-    }
+  async getConnectUrl(): Promise<{ url: string }> {
+    // The API connection only exists to manage playlists.
+    await this.assertPlaylistsEnabled();
 
     const params = new URLSearchParams({
       client_id: this.spotifyClientId,
@@ -167,6 +195,7 @@ export class SpotifyService {
     code: string,
     state: string,
   ): Promise<SpotifyConnectionStatus> {
+    await this.assertPlaylistsEnabled();
     this.verifyState(state);
 
     const tokenData = await this.exchangeCodeForTokens(code);
@@ -192,30 +221,36 @@ export class SpotifyService {
 
     await this.saveConnection(connection);
 
-    return {
-      connected: true,
-      spotifyUserId: connection.userId,
-      spotifyDisplayName: connection.displayName,
-      scope: connection.scope,
-    };
+    return this.getStatus();
   }
 
   async disconnect(): Promise<SpotifyConnectionStatus> {
     await this.saveConnection(null);
 
-    return {
-      connected: false,
-      spotifyUserId: null,
-      spotifyDisplayName: null,
-      scope: null,
-    };
+    return this.getStatus();
   }
 
+  /**
+   * Stores (or, with null, clears) the connection tokens. The `enabled` flag
+   * shares the column but is managed in the database, so it is carried over
+   * from the stored value rather than taken from `connection`.
+   */
   private async saveConnection(
     connection: ISpotifyConnection | null,
   ): Promise<void> {
-    await this.usersRepository.update(this.user!.id, { spotify: connection });
-    this.connectionCache = Promise.resolve(connection);
+    const enabled = (await this.getConnection())?.enabled === true;
+    let data: IUserSpotifyData | null = null;
+    if (connection) {
+      // Drop a stale flag that may ride along when spreading a loaded row.
+      const { enabled: _stale, ...tokens } = connection as IUserSpotifyData;
+      data = tokens;
+    }
+    if (enabled) {
+      data = { ...data, enabled: true };
+    }
+
+    await this.usersRepository.update(this.user!.id, { spotify: data });
+    this.connectionCache = Promise.resolve(data);
   }
 
   // ─── Schedule playlist sync ─────────────────────────────────────────────────
@@ -225,6 +260,8 @@ export class SpotifyService {
     scheduleId: number,
     dto: CreateSchedulePlaylistDto,
   ): Promise<SchedulePlaylistSyncResult> {
+    await this.assertPlaylistsEnabled();
+
     const schedule = await this.schedulesRepository.findOneBy({
       id: scheduleId,
       orgId,

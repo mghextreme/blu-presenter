@@ -16,6 +16,15 @@ import type { ServicesProviderState } from "@/hooks/services.provider";
 import type { ISpotifyConnectionStatus } from "@/services/spotify.service";
 import { SpotifyIcon } from "@/components/logos/spotify";
 
+/** The current user's access to a provider's playlist feature. */
+export interface SchedulePlaylistProviderStatus {
+  /** Whether the user may create/sync playlists with this provider (the
+   * server is configured and the feature is enabled for the user). */
+  enabled: boolean;
+  /** Whether the user's account is connected to the provider's service. */
+  connected: boolean;
+}
+
 /** Options for creating a playlist (ignored when re-syncing an existing one). */
 export interface SchedulePlaylistCreateOptions {
   name?: string;
@@ -43,8 +52,10 @@ export interface SchedulePlaylistProvider {
   findReference: (references?: ISongReference[]) => ISchedulePlaylistReference | undefined;
   /** Computes the schedule projection used for pending-change detection. */
   getProjection: (schedule: ISchedule) => SchedulePlaylistProjection;
-  /** Query resolving whether the current user's account is connected. */
-  connectionQuery: (services: ServicesProviderState) => UseQueryOptions<any, Error, boolean, any>;
+  /** Query resolving the current user's access to this provider. */
+  statusQuery: (
+    services: ServicesProviderState,
+  ) => UseQueryOptions<any, Error, SchedulePlaylistProviderStatus, any>;
   /** Returns the OAuth URL that connects the user's account. */
   getConnectUrl: (services: ServicesProviderState) => Promise<string>;
   /** Creates (or re-syncs) the schedule's playlist from its saved items. */
@@ -66,9 +77,12 @@ export const SCHEDULE_PLAYLIST_PROVIDERS: readonly SchedulePlaylistProvider[] = 
     nameKey: 'spotify.serviceName',
     findReference: (references) => findAutoReference(references, 'spotify-auto'),
     getProjection: (schedule) => getSchedulePlaylistProjection(schedule.items),
-    connectionQuery: ({ spotifyService }) => ({
+    statusQuery: ({ spotifyService }) => ({
       ...spotifyService.getStatusQuery(),
-      select: (status: ISpotifyConnectionStatus) => status.connected,
+      select: (status: ISpotifyConnectionStatus) => ({
+        enabled: !!status.playlistsEnabled,
+        connected: !!status.connected,
+      }),
     }),
     getConnectUrl: async ({ spotifyService }) => (await spotifyService.getConnectUrl()).url,
     sync: ({ schedulesService }, schedule, options) =>

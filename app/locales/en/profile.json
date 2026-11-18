@@ -49,6 +49,7 @@
   },
   "spotify": {
     "description": "Connect to create and sync Spotify playlists for your schedules",
+    "signInDescription": "Sign in to BluPresenter with your Spotify account",
     "connecting": "Connecting to Spotify...",
     "connected": "Spotify connected!",
     "connectedAs": "Connected as {{name}}",

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
 
 import {
   ISchedule,
@@ -8,7 +7,6 @@ import {
   ISongReference,
   isRoleHigherOrEqualThan,
 } from "@/types";
-import { useServices } from "@/hooks/useServices";
 import { ReferencePlayer } from "@/components/app/songs/reference-player";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,8 +26,13 @@ import {
   SCHEDULE_PLAYLIST_PROVIDERS,
   SchedulePlaylistCreateOptions,
   SchedulePlaylistProvider,
+  SchedulePlaylistProviderStatus,
 } from "./playlist-providers";
 import { usePlaylistSync } from "./use-playlist-sync";
+import {
+  SchedulePlaylistProviderStatuses,
+  usePlaylistProviderStatuses,
+} from "./use-playlist-provider-statuses";
 
 interface ScheduleReferencesProps {
   schedule: ISchedule;
@@ -58,11 +61,25 @@ export function ScheduleReferences({
     !!schedule.organization &&
     isRoleHigherOrEqualThan(schedule.organization.role, 'member');
 
+  // Only managers can create or sync playlists, so only they need the status.
+  const statuses = usePlaylistProviderStatuses(canManage);
+
   const hasReferences = !!schedule.references?.length;
 
-  // Managers see the section even without references, so they can add a
-  // generated playlist; everyone else only sees it when there is one.
-  if (!canManage && !hasReferences) {
+  // Providers the user may still create a playlist with: the feature must be
+  // enabled for them and the schedule must not have that playlist yet.
+  const availableProviders = canManage
+    ? SCHEDULE_PLAYLIST_PROVIDERS.filter(
+      (provider) =>
+        statuses[provider.source]?.enabled &&
+        !provider.findReference(schedule.references),
+    )
+    : [];
+
+  // Managers with an enabled provider see the section even without
+  // references, so they can add a generated playlist; everyone else only
+  // sees it when there is one.
+  if (!hasReferences && availableProviders.length === 0) {
     return null;
   }
 
@@ -94,18 +111,18 @@ export function ScheduleReferences({
           <ReferenceRowActions
             schedule={schedule}
             reference={reference}
+            statuses={statuses}
             isBusy={isBusy}
             onSync={(provider) => { void syncAndClose(provider); }}
             onConnect={connect}
           />
         )) : undefined}
       >
-        {canManage && SCHEDULE_PLAYLIST_PROVIDERS.filter(
-          (provider) => !provider.findReference(schedule.references),
-        ).map((provider) => (
+        {availableProviders.map((provider) => (
           <ProviderRow
             key={provider.source}
             provider={provider}
+            isConnected={!!statuses[provider.source]?.connected}
             schedule={schedule}
             isBusy={isBusy}
             onCreate={openCreate}
@@ -174,23 +191,10 @@ export function ScheduleReferences({
   );
 }
 
-/** Whether the user's account is connected to a provider's service, or
- * undefined while the status is loading. */
-function useProviderConnection(
-  provider: SchedulePlaylistProvider,
-  enabled: boolean,
-): boolean | undefined {
-  const services = useServices();
-  const { data } = useQuery({
-    ...provider.connectionQuery(services),
-    enabled,
-    retry: false,
-  });
-  return data;
-}
-
 interface ProviderRowProps {
   provider: SchedulePlaylistProvider;
+  /** Whether the user's account is connected to the provider's service. */
+  isConnected: boolean;
   schedule: ISchedule;
   isBusy: boolean;
   /** Opens the create dialog for a provider. */
@@ -203,13 +207,13 @@ interface ProviderRowProps {
  * service's logo and name, plus its create (or connect) action. */
 function ProviderRow({
   provider,
+  isConnected,
   schedule,
   isBusy,
   onCreate,
   onConnect,
 }: Readonly<ProviderRowProps>) {
   const { t } = useTranslation("schedules");
-  const isConnected = useProviderConnection(provider, true);
 
   const hasSongs = provider.getProjection(schedule).trackIds.length > 0;
 
@@ -224,13 +228,13 @@ function ProviderRow({
       <Button
         type="button"
         variant="outline"
-        disabled={isBusy || isConnected === undefined || (isConnected && !hasSongs)}
-        title={isConnected === true && !hasSongs ? t(`${provider.i18nPrefix}.noSongs`) : undefined}
+        disabled={isBusy || (isConnected && !hasSongs)}
+        title={isConnected && !hasSongs ? t(`${provider.i18nPrefix}.noSongs`) : undefined}
         onClick={() => (isConnected ? onCreate(provider) : onConnect(provider))}
       >
-        {isConnected === false
-          ? t(`${provider.i18nPrefix}.connect`)
-          : t(`${provider.i18nPrefix}.create`)}
+        {isConnected
+          ? t(`${provider.i18nPrefix}.create`)
+          : t(`${provider.i18nPrefix}.connect`)}
       </Button>
     </div>
   );
@@ -239,6 +243,7 @@ function ProviderRow({
 interface ReferenceRowActionsProps {
   schedule: ISchedule;
   reference: ISongReference;
+  statuses: SchedulePlaylistProviderStatuses;
   isBusy: boolean;
   onSync: (provider: SchedulePlaylistProvider) => void;
   onConnect: (provider: SchedulePlaylistProvider) => void;
@@ -249,6 +254,7 @@ interface ReferenceRowActionsProps {
 function ReferenceRowActions({
   schedule,
   reference,
+  statuses,
   isBusy,
   onSync,
   onConnect,
@@ -269,6 +275,7 @@ function ReferenceRowActions({
     <AutoReferenceState
       provider={provider}
       reference={provider.findReference(schedule.references)!}
+      status={statuses[provider.source]}
       schedule={schedule}
       isBusy={isBusy}
       onSync={onSync}
@@ -280,6 +287,8 @@ function ReferenceRowActions({
 interface AutoReferenceStateProps {
   provider: SchedulePlaylistProvider;
   reference: ISchedulePlaylistReference;
+  /** The user's status for the provider; undefined while loading. */
+  status: SchedulePlaylistProviderStatus | undefined;
   schedule: ISchedule;
   isBusy: boolean;
   onSync: (provider: SchedulePlaylistProvider) => void;
@@ -288,26 +297,26 @@ interface AutoReferenceStateProps {
 
 /** The sync state of a generated playlist on the view page: a connect prompt
  * when the creator has disconnected their account, otherwise the shared
- * re-sync state. */
+ * re-sync state. Nothing for a creator whose playlist feature is disabled. */
 function AutoReferenceState({
   provider,
   reference,
+  status,
   schedule,
   isBusy,
   onSync,
   onConnect,
 }: Readonly<AutoReferenceStateProps>) {
   const { t } = useTranslation("schedules");
-  // Only the creator can sync, so only they need the connection status.
-  const isConnected = useProviderConnection(provider, !!reference.syncedByMe);
 
-  // Wait for the creator's connection status before rendering anything.
-  if (reference.syncedByMe && isConnected === undefined) {
+  // Only the creator can sync: wait for their status, and hide the sync
+  // controls when the feature is not enabled for them.
+  if (reference.syncedByMe && !status?.enabled) {
     return null;
   }
 
   // The creator disconnected their account: reconnect to re-enable syncing.
-  if (reference.syncedByMe && !isConnected) {
+  if (reference.syncedByMe && !status?.connected) {
     return (
       <Button
         type="button"

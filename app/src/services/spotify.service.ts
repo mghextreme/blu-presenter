@@ -2,6 +2,10 @@ import { ApiService } from "./api.service";
 import { queryOptions } from "@tanstack/react-query";
 
 export interface ISpotifyConnectionStatus {
+  /** Whether the Spotify integration is configured on the server. */
+  configured: boolean;
+  /** Whether the current user may create/sync Spotify playlists. */
+  playlistsEnabled: boolean;
   connected: boolean;
   spotifyUserId: string | null;
   spotifyDisplayName: string | null;

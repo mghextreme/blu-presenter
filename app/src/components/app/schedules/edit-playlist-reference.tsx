@@ -4,6 +4,7 @@ import { ISchedule, ISchedulePlaylistReference } from "@/types";
 import { PlaylistSyncState } from "./schedule-references";
 import { usePlaylistSync } from "./use-playlist-sync";
 import { SCHEDULE_PLAYLIST_PROVIDERS } from "./playlist-providers";
+import { usePlaylistProviderStatuses } from "./use-playlist-provider-statuses";
 import { Button } from "@/components/ui/button";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOnSquareIcon";
@@ -41,6 +42,9 @@ export function EditPlaylistReference({
     (candidate) => !!reference && 'source' in reference && reference.source === candidate.source,
   );
 
+  // Only the creator can sync, so only they need the status.
+  const statuses = usePlaylistProviderStatuses(!!reference?.syncedByMe);
+
   const { isBusy, sync } = usePlaylistSync(schedule, (fresh) => {
     // The sync updated the reference's metadata server-side; mirror it into
     // the form so the row (and the eventual save) stay in sync.
@@ -57,6 +61,8 @@ export function EditPlaylistReference({
 
   const label = reference.name || t(provider.nameKey);
   const hasPendingChanges = reference.tracksHash !== provider.getProjection(schedule).hash;
+  // The creator can only sync while the playlist feature is enabled for them.
+  const showSyncState = !reference.syncedByMe || !!statuses[provider.source]?.enabled;
 
   return (
     <li className="flex justify-stretch align-start space-x-2">
@@ -71,13 +77,15 @@ export function EditPlaylistReference({
           <div className="flex-1 text-sm text-muted-foreground truncate" title={label}>
             {label}
           </div>
-          <PlaylistSyncState
-            provider={provider}
-            reference={reference}
-            hasPendingChanges={hasPendingChanges}
-            isBusy={isBusy}
-            onSync={() => { void sync(provider); }}
-          />
+          {showSyncState && (
+            <PlaylistSyncState
+              provider={provider}
+              reference={reference}
+              hasPendingChanges={hasPendingChanges}
+              isBusy={isBusy}
+              onSync={() => { void sync(provider); }}
+            />
+          )}
         </div>
       </div>
       <Button

@@ -80,7 +80,7 @@ export function usePlaylistSync(schedule: ISchedule, onSynced: (schedule: ISched
       await Promise.all([
         refresh().catch(() => undefined),
         queryClient.invalidateQueries({
-          queryKey: provider.connectionQuery(services).queryKey,
+          queryKey: provider.statusQuery(services).queryKey,
         }),
       ]);
       return false;

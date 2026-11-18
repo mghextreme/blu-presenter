@@ -12,3 +12,16 @@ export interface ISpotifyConnection {
   userId: string;
   displayName: string | null;
 }
+
+/**
+ * Contents of the `users.spotify` jsonb column: the playlist access flag plus,
+ * once the user connects their account, the connection tokens.
+ *
+ * `enabled` is managed directly in the database (users cannot change it) and
+ * gates the playlist features. It is kept across connects, token refreshes
+ * and disconnects, so an enabled user who never connected is stored as
+ * `{ "enabled": true }`.
+ */
+export interface IUserSpotifyData extends Partial<ISpotifyConnection> {
+  enabled?: boolean;
+}

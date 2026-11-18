@@ -49,6 +49,7 @@
   },
   "spotify": {
     "description": "Conecte-se para criar e sincronizar playlists do Spotify para suas programações",
+    "signInDescription": "Entre no BluPresenter com sua conta do Spotify",
     "connecting": "Conectando ao Spotify...",
     "connected": "Spotify conectado!",
     "connectedAs": "Conectado como {{name}}",

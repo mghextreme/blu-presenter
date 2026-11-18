@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { render } from "@/test/test-utils";
@@ -40,15 +40,17 @@ const schedule = {
 
 describe("ScheduleReferences", () => {
   const syncSpotifyPlaylist = vi.fn();
+  const getStatus = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     syncSpotifyPlaylist.mockResolvedValue({ action: "created", url: "u", added: 1, skipped: [] });
+    getStatus.mockResolvedValue({ configured: true, playlistsEnabled: true, connected: true });
     useServicesMock.mockReturnValue({
       spotifyService: {
         getStatusQuery: () => ({
           queryKey: ["spotify", "status"],
-          queryFn: async () => ({ connected: true }),
+          queryFn: getStatus,
         }),
       },
       schedulesService: {
@@ -67,6 +69,22 @@ describe("ScheduleReferences", () => {
     await user.click(createButton);
     return user;
   };
+
+  it("hides the playlist actions when playlists are not enabled for the user", async () => {
+    getStatus.mockResolvedValue({ configured: true, playlistsEnabled: false, connected: false });
+    const withReference = {
+      ...schedule,
+      references: [{ url: "https://example.com/rehearsal", name: "Rehearsal notes" }],
+    };
+    render(<ScheduleReferences schedule={withReference as never} onSynced={vi.fn()} />);
+
+    await waitFor(() => expect(getStatus).toHaveBeenCalled());
+    // Let the resolved status render before asserting on what's missing.
+    await act(async () => {});
+    expect(screen.getByText("Rehearsal notes")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "spotify.create" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "spotify.connect" })).not.toBeInTheDocument();
+  });
 
   it("creates a private playlist by default", async () => {
     const user = await openCreateDialog();

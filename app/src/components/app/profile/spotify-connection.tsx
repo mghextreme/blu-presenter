@@ -39,7 +39,11 @@ export function SpotifyConnection({
 
   const spotifyIdentity = identities.identities.find(i => i.provider === 'spotify');
 
-  const { data: status } = useQuery(spotifyService.getStatusQuery());
+  const { data: status } = useQuery({ ...spotifyService.getStatusQuery(), retry: false });
+
+  // The playlist connection is an opt-in feature; everyone else only gets
+  // sign-in with Spotify.
+  const playlistsEnabled = !!status?.playlistsEnabled;
 
   const setBusy = (busy: boolean) => onBusyChange?.(busy);
 
@@ -116,6 +120,12 @@ export function SpotifyConnection({
     }
   };
 
+  // Hidden unless Spotify is configured on the server, but kept for users who
+  // already linked it so they can still remove it.
+  if (!status?.configured && !spotifyIdentity) {
+    return null;
+  }
+
   return (
     <div className="flex items-center justify-between rounded-lg border p-4">
       <div className="flex items-center gap-3">
@@ -130,14 +140,16 @@ export function SpotifyConnection({
           ) : spotifyIdentity ? (
             <p className="text-sm text-muted-foreground">{t('spotify.signInEnabled')}</p>
           ) : (
-            <p className="text-sm text-muted-foreground">{t('spotify.description')}</p>
+            <p className="text-sm text-muted-foreground">
+              {playlistsEnabled ? t('spotify.description') : t('spotify.signInDescription')}
+            </p>
           )}
         </div>
       </div>
       <div className="flex items-center gap-2">
         {status?.connected ? (
           <>
-            {!spotifyIdentity && (
+            {!spotifyIdentity && status?.configured && (
               <Button variant="secondary" size="sm" disabled={isLoading} onClick={onLinkIdentity}>
                 {t('spotify.enableSignIn')}
               </Button>
@@ -171,9 +183,15 @@ export function SpotifyConnection({
                 {t('spotify.unlinkSignIn')}
               </Button>
             )}
-            <Button variant="outline" size="sm" disabled={isLoading} onClick={onConnect}>
-              {t('connectedAccounts.connect')}
-            </Button>
+            {playlistsEnabled ? (
+              <Button variant="outline" size="sm" disabled={isLoading} onClick={onConnect}>
+                {t('connectedAccounts.connect')}
+              </Button>
+            ) : !spotifyIdentity && status?.configured && (
+              <Button variant="outline" size="sm" disabled={isLoading} onClick={onLinkIdentity}>
+                {t('connectedAccounts.connect')}
+              </Button>
+            )}
           </>
         )}
       </div>

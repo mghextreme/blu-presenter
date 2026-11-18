@@ -9,6 +9,11 @@ export interface SchedulePlaylistSyncResult {
 }
 
 export interface SpotifyConnectionStatus {
+  /** Whether the Spotify integration is configured on this server. */
+  configured: boolean;
+  /** Whether the current user may create/sync playlists (configured and the
+   * user has the `spotify-playlists` feature). */
+  playlistsEnabled: boolean;
   connected: boolean;
   spotifyUserId: string | null;
   spotifyDisplayName: string | null;

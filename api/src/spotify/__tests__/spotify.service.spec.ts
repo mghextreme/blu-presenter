@@ -27,6 +27,15 @@ describe('SpotifyService', () => {
    */
   let storedConnection: ISpotifyConnection | null | undefined;
 
+  /** The `enabled` flag stored alongside the connection (playlist access). */
+  let spotifyEnabled: boolean;
+
+  const storedRow = () => {
+    if (storedConnection === undefined) return null;
+    if (!spotifyEnabled) return { id: 42, spotify: storedConnection };
+    return { id: 42, spotify: { ...storedConnection, enabled: true } };
+  };
+
   const validConnection = (): ISpotifyConnection => ({
     accessToken: 'access-token',
     refreshToken: 'refresh-token',
@@ -50,13 +59,7 @@ describe('SpotifyService', () => {
       createQueryBuilder: () => ({
         addSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        getOne: jest
-          .fn()
-          .mockResolvedValue(
-            storedConnection === undefined
-              ? null
-              : { id: 42, spotify: storedConnection },
-          ),
+        getOne: jest.fn().mockResolvedValue(storedRow()),
       }),
     };
 
@@ -139,6 +142,7 @@ describe('SpotifyService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     storedConnection = validConnection();
+    spotifyEnabled = true;
 
     fetchMock = jest
       .spyOn(globalThis, 'fetch')
@@ -157,6 +161,8 @@ describe('SpotifyService', () => {
   describe('getStatus', () => {
     it('reports connected when a refresh token exists', async () => {
       expect(await service.getStatus()).toEqual({
+        configured: true,
+        playlistsEnabled: true,
         connected: true,
         spotifyUserId: 'sp-user-1',
         spotifyDisplayName: 'Matias S.',
@@ -166,14 +172,46 @@ describe('SpotifyService', () => {
 
     it('reports not connected for users without Spotify data', async () => {
       storedConnection = null;
+      spotifyEnabled = false;
 
       expect((await service.getStatus()).connected).toBe(false);
+    });
+
+    it('reports enabled but not connected for a flag-only row', async () => {
+      storedConnection = null;
+
+      expect(await service.getStatus()).toMatchObject({
+        playlistsEnabled: true,
+        connected: false,
+      });
+    });
+
+    it('reports playlists disabled for users without the enabled flag', async () => {
+      spotifyEnabled = false;
+
+      expect(await service.getStatus()).toMatchObject({
+        configured: true,
+        playlistsEnabled: false,
+      });
+    });
+
+    it('reports not configured (and playlists disabled) without credentials', async () => {
+      const module = await buildModule({
+        'spotify.clientId': undefined,
+        'spotify.clientSecret': undefined,
+      });
+      const unconfigured = await module.resolve<SpotifyService>(SpotifyService);
+
+      expect(await unconfigured.getStatus()).toMatchObject({
+        configured: false,
+        playlistsEnabled: false,
+      });
     });
   });
 
   describe('getConnectUrl', () => {
-    it('builds an authorize URL with scopes and signed state', () => {
-      const { url } = service.getConnectUrl();
+    it('builds an authorize URL with scopes and signed state', async () => {
+      const { url } = await service.getConnectUrl();
       const parsed = new URL(url);
 
       expect(parsed.toString()).toMatch(
@@ -196,9 +234,9 @@ describe('SpotifyService', () => {
       expect(data.exp).toBeGreaterThan(Date.now());
     });
 
-    it('builds an authorize URL even when not connected (connecting!)', () => {
+    it('builds an authorize URL even when not connected (connecting!)', async () => {
       storedConnection = null;
-      expect(() => service.getConnectUrl()).not.toThrow();
+      await expect(service.getConnectUrl()).resolves.toHaveProperty('url');
     });
 
     it('throws a clean error when Spotify is not configured', async () => {
@@ -208,7 +246,15 @@ describe('SpotifyService', () => {
       });
       const unconfigured = await module.resolve<SpotifyService>(SpotifyService);
 
-      expect(() => unconfigured.getConnectUrl()).toThrow(BadRequestException);
+      await expect(unconfigured.getConnectUrl()).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('refuses users without the enabled flag', async () => {
+      spotifyEnabled = false;
+
+      await expect(service.getConnectUrl()).rejects.toThrow(ForbiddenException);
     });
 
     it('throws a clean error when the state secret is missing', async () => {
@@ -216,7 +262,9 @@ describe('SpotifyService', () => {
       const unconfigured = await module.resolve<SpotifyService>(SpotifyService);
 
       // Missing state secret must surface as a 400, not a crypto TypeError.
-      expect(() => unconfigured.getConnectUrl()).toThrow(BadRequestException);
+      await expect(unconfigured.getConnectUrl()).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -245,6 +293,7 @@ describe('SpotifyService', () => {
 
       expect(usersUpdate).toHaveBeenCalledWith(42, {
         spotify: expect.objectContaining({
+          enabled: true,
           accessToken: 'new-access',
           refreshToken: 'new-refresh',
           userId: 'sp-user-9',
@@ -286,13 +335,36 @@ describe('SpotifyService', () => {
       );
       expect(usersUpdate).not.toHaveBeenCalledWith(42, expect.anything());
     });
+
+    it('refuses users without the enabled flag', async () => {
+      spotifyEnabled = false;
+      const state = makeState(42, Date.now() + 60_000);
+
+      await expect(service.completeConnect('code', state)).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(fetchCalls()).toHaveLength(0);
+    });
   });
 
   describe('disconnect', () => {
-    it('clears the connection', async () => {
+    it('clears the connection but keeps the enabled flag', async () => {
       const status = await service.disconnect();
 
-      expect(status.connected).toBe(false);
+      expect(status).toMatchObject({
+        connected: false,
+        playlistsEnabled: true,
+      });
+      expect(usersUpdate).toHaveBeenCalledWith(42, {
+        spotify: { enabled: true },
+      });
+    });
+
+    it('clears the column for users without the enabled flag', async () => {
+      spotifyEnabled = false;
+
+      await service.disconnect();
+
       expect(usersUpdate).toHaveBeenCalledWith(42, { spotify: null });
     });
   });
@@ -323,6 +395,16 @@ describe('SpotifyService', () => {
 
     beforeEach(() => {
       scheduleFindOneBy.mockResolvedValue(mockSchedule());
+    });
+
+    it('refuses users without the enabled flag', async () => {
+      spotifyEnabled = false;
+
+      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(fetchCalls()).toHaveLength(0);
+      expect(scheduleUpdate).not.toHaveBeenCalled();
     });
 
     it('creates a playlist and attaches a spotify-auto reference', async () => {
@@ -821,7 +903,9 @@ describe('SpotifyService', () => {
       await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
         'Spotify authorization is no longer valid',
       );
-      expect(usersUpdate).toHaveBeenCalledWith(42, { spotify: null });
+      expect(usersUpdate).toHaveBeenCalledWith(42, {
+        spotify: { enabled: true },
+      });
     });
 
     it('forces a refresh and retries once when the API rejects the token', async () => {
