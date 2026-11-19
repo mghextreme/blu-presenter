@@ -548,6 +548,15 @@ interface ParsedSong {
   blocks: ISongPart[];
 }
 
+// Matches a line that is only a bracketed part title, e.g. "[Refrão]" or "[Verse 1]"
+const partHeaderRegex = /^\s*\[([^\[\]]+)\]\s*$/;
+
+/** Returns the part name if the line is only a bracketed title, otherwise null. */
+function getPartHeaderName(line: string): string | null {
+  const name = partHeaderRegex.exec(line)?.[1].trim();
+  return name || null;
+}
+
 export function parseSongText(fullText: string): ParsedSong {
   const rawLines = fullText.split(/\n/);
 
@@ -597,9 +606,36 @@ export function parseSongText(fullText: string): ParsedSong {
 
   // Parse remaining lines into blocks, splitting on empty lines.
   // 3 or more consecutive empty lines between parts inserts an extra empty block.
+  // A block consisting solely of a bracketed header (e.g. "[Refrão]") is not
+  // kept as a block; it names the block that follows it instead.
   const blocks: ISongPart[] = [];
   let currentLines: ISongPartLine[] = [];
   let emptyLineCount = 0;
+  let pendingHeader: { name: string; line: ISongPartLine } | null = null;
+
+  // A header not followed by a block (another header or end of text) is kept as a plain block
+  const flushPendingHeader = () => {
+    if (!pendingHeader) return;
+    blocks.push({ id: blocks.length, lines: [pendingHeader.line] });
+    pendingHeader = null;
+  };
+
+  const flushBlock = () => {
+    const name = currentLines.length === 1 ? getPartHeaderName(currentLines[0].content) : null;
+    if (name) {
+      flushPendingHeader();
+      pendingHeader = { name, line: currentLines[0] };
+    } else {
+      const block: ISongPart = { id: blocks.length, lines: currentLines };
+      if (pendingHeader) {
+        block.name = pendingHeader.name;
+        block.acronym = deriveAcronym(pendingHeader.name);
+        pendingHeader = null;
+      }
+      blocks.push(block);
+    }
+    currentLines = [];
+  };
 
   for (let i = bodyStart; i < rawLines.length; i++) {
     const line = rawLines[i];
@@ -608,18 +644,15 @@ export function parseSongText(fullText: string): ParsedSong {
     if (isEmpty) {
       if (currentLines.length > 0 && emptyLineCount === 0) {
         // First empty line after content — flush the current block
-        blocks.push({
-          id: blocks.length,
-          lines: currentLines,
-        });
-        currentLines = [];
+        flushBlock();
       }
       emptyLineCount++;
       continue;
     }
 
     // Non-empty line: if we had ≥3 empty lines since the last block, insert an empty block
-    if (emptyLineCount >= 3 && blocks.length > 0) {
+    // (unless a header is waiting for its block)
+    if (emptyLineCount >= 3 && blocks.length > 0 && !pendingHeader) {
       blocks.push({
         id: blocks.length,
         lines: [],
@@ -634,11 +667,9 @@ export function parseSongText(fullText: string): ParsedSong {
   }
 
   if (currentLines.length > 0) {
-    blocks.push({
-      id: blocks.length,
-      lines: currentLines,
-    });
+    flushBlock();
   }
+  flushPendingHeader();
 
   return { title, artist, blocks };
 }
