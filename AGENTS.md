@@ -8,7 +8,7 @@ BluPresenter is a monorepo containing two main projects:
 - **app/**: React + TypeScript frontend (Vite + React Router)
 - **api/**: NestJS backend API with TypeORM and Supabase integration
 
-**Package Manager**: pnpm (v10.x)
+**Package Manager**: pnpm (v12.x)
 **Node Version**: 26.x
 
 ## Build, Lint & Test Commands

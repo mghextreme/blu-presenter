@@ -548,17 +548,94 @@ interface ParsedSong {
   blocks: ISongPart[];
 }
 
-// Matches a line that is only a bracketed part title, e.g. "[Refrão]" or "[Verse 1]"
-const partHeaderRegex = /^\s*\[([^\[\]]+)\]\s*$/;
+// Zero-width characters some websites insert into copied text. They are not
+// matched by \s, so they break whitespace-based chord detection.
+const invisibleCharsRegex = /[\u200B-\u200D\u2060\uFEFF]/g;
+
+/** Removes zero-width characters (e.g. U+200B) from pasted text. */
+export function stripInvisibleChars(text: string): string {
+  return text.replace(invisibleCharsRegex, '');
+}
+
+// Matches a line starting with a bracketed part title, e.g. "[Refrão]" or "[Intro] C  G"
+const partHeaderRegex = /^(\s*\[([^\[\]]+)\])(.*)$/;
+
+interface PartHeader {
+  name: string;
+  /** The header including leading whitespace, e.g. "[Intro]" */
+  prefix: string;
+  /** Whatever follows the header on the same line */
+  rest: string;
+}
+
+/** Returns the part header if the line starts with a bracketed title (that is not a chord). */
+function getPartHeader(line: string): PartHeader | null {
+  const match = partHeaderRegex.exec(line);
+  const name = match?.[2].trim();
+  if (!match || !name || detectLineType(name) === 'chords') return null;
+  return { name, prefix: match[1], rest: match[3] };
+}
 
 /** Returns the part name if the line is only a bracketed title, otherwise null. */
 function getPartHeaderName(line: string): string | null {
-  const name = partHeaderRegex.exec(line)?.[1].trim();
-  return name || null;
+  const header = getPartHeader(line);
+  return header && header.rest.trim() === '' ? header.name : null;
+}
+
+/**
+ * If the block starts with a bracketed title, removes it from the lines and
+ * returns it as the block name. E.g. "[Intro] C  G" → name "Intro", line "C  G".
+ */
+function extractBlockName(lines: ISongPartLine[]): { name?: string; lines: ISongPartLine[] } {
+  const header = lines.length > 0 ? getPartHeader(lines[0].content) : null;
+  if (!header) return { lines };
+
+  if (header.rest.trim() === '') {
+    return { name: header.name, lines: lines.slice(1) };
+  }
+
+  // Keep chord columns aligned with the lyrics line below, otherwise drop the indentation
+  const content = lines[1]?.type === 'lyrics'
+    ? ' '.repeat(header.prefix.length) + header.rest
+    : header.rest.trimStart();
+
+  return {
+    name: header.name,
+    lines: [{ type: detectLineType(content), content }, ...lines.slice(1)],
+  };
+}
+
+/** Returns the inner text if the whole line is wrapped in a single pair of parentheses. */
+function unwrapParentheses(line: string): string | null {
+  const match = /^\s*\((.*)\)\s*$/.exec(line);
+  if (!match) return null;
+
+  let depth = 0;
+  for (const ch of match[1]) {
+    if (ch === '(') depth++;
+    if (ch === ')' && --depth < 0) return null; // e.g. "(C) (G)"
+  }
+  return depth === 0 ? match[1].trim() : null;
+}
+
+/** Removes wrapping parentheses from chord lines, e.g. "( C9  C )" → "C9  C", in blocks without lyrics. */
+function unwrapChordOnlyLines(lines: ISongPartLine[]): ISongPartLine[] {
+  if (lines.some(line => line.type === 'lyrics')) return lines;
+
+  return lines.map(line => {
+    if (line.type !== 'chords') return line;
+    const inner = unwrapParentheses(line.content);
+    return inner ? { ...line, content: inner } : line;
+  });
+}
+
+/** Title/artist lines are neither chords nor bracketed part headers. */
+function isTitleCandidate(line: string): boolean {
+  return !!line && detectLineType(line) !== 'chords' && !line.startsWith('[');
 }
 
 export function parseSongText(fullText: string): ParsedSong {
-  const rawLines = fullText.split(/\n/);
+  const rawLines = stripInvisibleChars(fullText).split(/\n/);
 
   // Strip leading and trailing empty lines
   while (rawLines.length > 0 && rawLines[0].trim() === '') rawLines.shift();
@@ -574,15 +651,15 @@ export function parseSongText(fullText: string): ParsedSong {
     const thirdLine = rawLines[2].trim();
 
     if (
-      firstLine && detectLineType(firstLine) !== 'chords' &&
-      secondLine && detectLineType(secondLine) !== 'chords' &&
+      isTitleCandidate(firstLine) &&
+      isTitleCandidate(secondLine) &&
       thirdLine === ''
     ) {
       title = firstLine;
       artist = secondLine;
       bodyStart = 3;
     } else if (
-      firstLine && detectLineType(firstLine) !== 'chords' &&
+      isTitleCandidate(firstLine) &&
       secondLine === ''
     ) {
       title = firstLine;
@@ -593,7 +670,7 @@ export function parseSongText(fullText: string): ParsedSong {
     const secondLine = rawLines[1].trim();
 
     if (
-      firstLine && detectLineType(firstLine) !== 'chords' &&
+      isTitleCandidate(firstLine) &&
       secondLine === ''
     ) {
       title = firstLine;
@@ -607,7 +684,8 @@ export function parseSongText(fullText: string): ParsedSong {
   // Parse remaining lines into blocks, splitting on empty lines.
   // 3 or more consecutive empty lines between parts inserts an extra empty block.
   // A block consisting solely of a bracketed header (e.g. "[Refrão]") is not
-  // kept as a block; it names the block that follows it instead.
+  // kept as a block; it names the block that follows it instead. A header at the
+  // start of a block (e.g. "[Intro] C  G") names that block.
   const blocks: ISongPart[] = [];
   let currentLines: ISongPartLine[] = [];
   let emptyLineCount = 0;
@@ -626,11 +704,16 @@ export function parseSongText(fullText: string): ParsedSong {
       flushPendingHeader();
       pendingHeader = { name, line: currentLines[0] };
     } else {
-      const block: ISongPart = { id: blocks.length, lines: currentLines };
-      if (pendingHeader) {
-        block.name = pendingHeader.name;
-        block.acronym = deriveAcronym(pendingHeader.name);
-        pendingHeader = null;
+      const extracted = extractBlockName(currentLines);
+      // An inline header is more specific than a standalone one before the block
+      if (extracted.name) flushPendingHeader();
+      const blockName = extracted.name ?? pendingHeader?.name;
+      pendingHeader = null;
+
+      const block: ISongPart = { id: blocks.length, lines: unwrapChordOnlyLines(extracted.lines) };
+      if (blockName) {
+        block.name = blockName;
+        block.acronym = deriveAcronym(blockName);
       }
       blocks.push(block);
     }

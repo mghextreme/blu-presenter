@@ -3,7 +3,7 @@ import { UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
-import { transposeLine, deriveAcronym, isBlockEqual } from "@/lib/songs";
+import { transposeLine, deriveAcronym, isBlockEqual, stripInvisibleChars } from "@/lib/songs";
 import { SongPartLineType } from "@/types";
 import { SongSchema } from "@/types/schemas/song.schema";
 import { SongEditorSeparator } from "@/components/app/songs/song-editor-separator";
@@ -222,7 +222,7 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
     const sel = window.getSelection();
     if (!editor || !sel || sel.rangeCount === 0) return;
 
-    const text = e.clipboardData.getData('text/plain');
+    const text = stripInvisibleChars(e.clipboardData.getData('text/plain'));
     const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
     const range = sel.getRangeAt(0);
 
