@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { REQUEST } from '@nestjs/core';
 import { Request as ExpRequest } from 'express';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { OrganizationsService } from 'src/organizations/organizations.service';
 import { Supabase } from 'src/supabase/supabase';
 import {
@@ -30,6 +30,9 @@ import {
 } from 'src/types';
 import { User } from 'src/entities';
 import { UsersService } from 'src/users/users.service';
+
+/** OAuth providers supported for sign-in and identity linking. */
+const SSO_PROVIDERS = ['google', 'spotify'];
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuthService {
@@ -109,45 +112,44 @@ export class AuthService {
     provider: string,
     _authDto?: AuthDto,
   ): Promise<OAuthRedirectDto> {
-    switch (provider) {
-      case 'google':
-        const redirectTo =
-          this.configService.get('app.baseUrl') + '/oauth/callback';
-        const codeVerifier = this.generatePKCEVerifier();
-        const codeChallenge = this.generatePKCEChallenge(codeVerifier);
-
-        const params = new URLSearchParams({
-          provider,
-          redirect_to: redirectTo,
-          code_challenge: codeChallenge,
-          code_challenge_method: 's256',
-        });
-
-        const response = await fetch(
-          `${this.supabaseUrl}/auth/v1/authorize?${params.toString()}`,
-          {
-            headers: { apikey: this.supabaseKey },
-            redirect: 'manual',
-          },
-        );
-
-        // The /auth/v1/authorize endpoint returns a 302 redirect to the
-        // provider's consent screen. Extract the URL from the Location header.
-        const url = response.headers.get('location');
-
-        if (!url) {
-          const body = await response.text();
-          throw new BadRequestException(
-            `Failed to initiate OAuth sign-in: ${body}`,
-          );
-        }
-
-        return { url, codeVerifier };
+    if (!SSO_PROVIDERS.includes(provider)) {
+      throw new BadRequestException(
+        `Provider ${provider} not supported for sign in`,
+      );
     }
 
-    throw new BadRequestException(
-      `Provider ${provider} not supported for sign in`,
+    const redirectTo =
+      this.configService.get('app.baseUrl') + '/oauth/callback';
+    const codeVerifier = this.generatePKCEVerifier();
+    const codeChallenge = this.generatePKCEChallenge(codeVerifier);
+
+    const params = new URLSearchParams({
+      provider,
+      redirect_to: redirectTo,
+      code_challenge: codeChallenge,
+      code_challenge_method: 's256',
+    });
+
+    const response = await fetch(
+      `${this.supabaseUrl}/auth/v1/authorize?${params.toString()}`,
+      {
+        headers: { apikey: this.supabaseKey },
+        redirect: 'manual',
+      },
     );
+
+    // The /auth/v1/authorize endpoint returns a 302 redirect to the
+    // provider's consent screen. Extract the URL from the Location header.
+    const url = response.headers.get('location');
+
+    if (!url) {
+      const body = await response.text();
+      throw new BadRequestException(
+        `Failed to initiate OAuth sign-in: ${body}`,
+      );
+    }
+
+    return { url, codeVerifier };
   }
 
   async exchangeCodeForSession(
@@ -316,13 +318,10 @@ export class AuthService {
   }
 
   async linkIdentity(provider: string): Promise<OAuthRedirectDto> {
-    switch (provider) {
-      case 'google':
-        break;
-      default:
-        throw new BadRequestException(
-          `Provider ${provider} not supported for identity linking`,
-        );
+    if (!SSO_PROVIDERS.includes(provider)) {
+      throw new BadRequestException(
+        `Provider ${provider} not supported for identity linking`,
+      );
     }
 
     const jwt = this.extractJwt();

@@ -4,9 +4,14 @@ import { Schedule, Song } from '../entities';
 import { SchedulesController } from './schedules.controller';
 import { SchedulesService } from './schedules.service';
 import { UsersModule } from 'src/users/users.module';
+import { SpotifyModule } from 'src/spotify/spotify.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Schedule, Song]), UsersModule],
+  imports: [
+    TypeOrmModule.forFeature([Schedule, Song]),
+    UsersModule,
+    SpotifyModule,
+  ],
   controllers: [SchedulesController],
   providers: [SchedulesService],
 })

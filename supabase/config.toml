@@ -79,6 +79,7 @@ site_url = "https://www.blupresenter.com"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
 additional_redirect_urls = [
   "http://localhost:5173/**",
+  "http://127.0.0.1:5173/**",
   "https://*.blupresenter.com/**",
 ]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
@@ -97,7 +98,7 @@ minimum_password_length = 8
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
-enable_signup = true
+enabled = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = false
@@ -128,7 +129,7 @@ content_path = "./supabase/templates/magic-link.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
-enable_signup = false
+enabled = false
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 # Template for sending OTP to users
@@ -159,6 +160,12 @@ auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 enabled = true
 client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
 secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+redirect_uri = "env(SUPABASE_AUTH_REDIRECT_URI)"
+
+[auth.external.spotify]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_SPOTIFY_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_SPOTIFY_SECRET)"
 redirect_uri = "env(SUPABASE_AUTH_REDIRECT_URI)"
 
 [auth.external.microsoft]

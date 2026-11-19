@@ -1,4 +1,4 @@
-import { FetchQueryOptions } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 import { ApiService } from "./api.service";
 import { IProfile } from "@/types"
 
@@ -12,11 +12,11 @@ export class UsersService extends ApiService {
     return await this.getOrFetch(this.getProfileQuery());
   }
 
-  public getProfileQuery(): FetchQueryOptions<IProfile> {
-    return {
+  public getProfileQuery() {
+    return queryOptions({
       queryKey: ['user', 'profile'],
       queryFn: async () => await this.getRequest(`/users/profile`) as IProfile,
-    };
+    });
   }
 
   public async update(value: IProfile): Promise<IProfile | null> {

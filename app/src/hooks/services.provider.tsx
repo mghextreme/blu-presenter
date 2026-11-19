@@ -1,5 +1,5 @@
 import { createContext, useMemo } from "react";
-import { AuthService, BroadcastService, OfflineDownloadsService, OrganizationsService, SchedulesService, SessionsService, SongsService, ThemesService, UsersService } from "@/services";
+import { AuthService, BroadcastService, OfflineDownloadsService, OrganizationsService, SchedulesService, SessionsService, SongsService, SpotifyService, ThemesService, UsersService } from "@/services";
 import * as config from "@/lib/config";
 import { QueryClient } from "@tanstack/react-query";
 
@@ -18,6 +18,7 @@ export type ServicesProviderState = {
   schedulesService: SchedulesService,
   broadcastService: BroadcastService,
   offlineDownloadsService: OfflineDownloadsService,
+  spotifyService: SpotifyService,
 }
 
 const initialState: ServicesProviderState = {
@@ -30,6 +31,7 @@ const initialState: ServicesProviderState = {
   schedulesService: {} as SchedulesService,
   broadcastService: {} as BroadcastService,
   offlineDownloadsService: {} as OfflineDownloadsService,
+  spotifyService: {} as SpotifyService,
 }
 
 export const ServicesContext = createContext<ServicesProviderState>(initialState);
@@ -44,6 +46,7 @@ export const ServicesProvider = ({ queryClient, children }: Readonly<ServicesPro
   const sessionsService = useMemo(() => new SessionsService(queryClient, config.api), [queryClient, config]);
   const schedulesService = useMemo(() => new SchedulesService(queryClient, config.api), [queryClient, config]);
   const broadcastService = useMemo(() => new BroadcastService(queryClient, config.api), [queryClient, config]);
+  const spotifyService = useMemo(() => new SpotifyService(queryClient, config.api), [queryClient, config]);
   const offlineDownloadsService = useMemo(
     () => new OfflineDownloadsService(queryClient, songsService, schedulesService, themesService),
     [queryClient, songsService, schedulesService, themesService],
@@ -59,6 +62,7 @@ export const ServicesProvider = ({ queryClient, children }: Readonly<ServicesPro
     schedulesService,
     broadcastService,
     offlineDownloadsService,
+    spotifyService,
   };
   return <ServicesContext.Provider value={value}>{children}</ServicesContext.Provider>;
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { ISongReference } from "@/types";
 import { SpotifyCode } from "@/components/app/songs/spotify-code";
@@ -70,7 +70,7 @@ function loadSpotifyIFrameApi(): Promise<SpotifyIFrameAPI> {
   return spotifyApiPromise;
 }
 
-function SpotifyEmbed({ trackId }: Readonly<{ trackId: string }>) {
+function SpotifyEmbed({ uri, height = 80 }: Readonly<{ uri: string; height?: number }>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<SpotifyEmbedController | null>(null);
 
@@ -91,9 +91,9 @@ function SpotifyEmbed({ trackId }: Readonly<{ trackId: string }>) {
       api.createController(
         containerRef.current,
         {
-          uri: `spotify:track:${trackId}`,
+          uri,
           width: "100%",
-          height: 80,
+          height,
         },
         (controller) => {
           if (destroyed) {
@@ -114,7 +114,7 @@ function SpotifyEmbed({ trackId }: Readonly<{ trackId: string }>) {
         controllerRef.current = null;
       }
     };
-  }, [trackId]);
+  }, [uri, height]);
 
   return <div ref={containerRef} className="rounded-lg overflow-hidden" />;
 }
@@ -224,9 +224,19 @@ function TidalEmbed({ trackId }: Readonly<{ trackId: string }>) {
 
 interface ReferencePlayerProps {
   references: ISongReference[];
+  /** Extra row content for a reference, e.g. the sync state of an
+   * auto-generated playlist. */
+  renderRowActions?: (reference: ISongReference) => ReactNode;
+  /** Additional rows rendered after the references (e.g. one per playlist
+   * provider that can still be added). */
+  children?: ReactNode;
 }
 
-export function ReferencePlayer({ references }: Readonly<ReferencePlayerProps>) {
+export function ReferencePlayer({
+  references,
+  renderRowActions,
+  children,
+}: Readonly<ReferencePlayerProps>) {
   const { t } = useTranslation("songs");
   const [activePlayerIndex, setActivePlayerIndex] = useState<number | null>(null);
 
@@ -267,12 +277,23 @@ export function ReferencePlayer({ references }: Readonly<ReferencePlayerProps>) 
             {reference.url.includes('spotify.com') && (
               <SpotifyCode songUrl={reference.url} imgWidth={320} className="max-w-28" colorScheme="theme" />
             )}
+            {renderRowActions?.(reference)}
           </div>
         );
       })}
+      {children}
       {embed?.type === 'spotify' && (
         <div className="mt-3">
-          <SpotifyEmbed key={embed.trackId} trackId={embed.trackId} />
+          <SpotifyEmbed key={embed.trackId} uri={`spotify:track:${embed.trackId}`} />
+        </div>
+      )}
+      {embed?.type === 'spotify-playlist' && (
+        <div className="mt-3">
+          <SpotifyEmbed
+            key={embed.playlistId}
+            uri={`spotify:playlist:${embed.playlistId}`}
+            height={352}
+          />
         </div>
       )}
       {embed?.type === 'youtube' && (

@@ -24,7 +24,8 @@
   "input": {
     "organization": "Organization",
     "title": "Title",
-    "date": "Date"
+    "date": "Date",
+    "references": "References"
   },
   "list": {
     "title": "Schedules"
@@ -71,7 +72,8 @@
     "deleteSchedule": "Error deleting schedule",
     "noPermission": "You don't have permission to manage schedules",
     "save": "Error saving schedule",
-    "search": "Error searching schedules"
+    "search": "Error searching schedules",
+    "validation": "Cannot save: some fields are invalid. Please review the form and try again."
   },
   "message": {
     "share": {
@@ -101,5 +103,26 @@
     "next": "Next song",
     "noSongs": "No songs in this schedule",
     "print": "Print current song"
+  },
+  "spotify": {
+    "serviceName": "Spotify",
+    "connect": "Connect Spotify",
+    "create": "Create playlist",
+    "createDescription": "Creates an unlisted Spotify playlist with the {{count}} songs that have a Spotify reference.",
+    "createConfirm": "Create",
+    "resync": "Re-sync",
+    "resyncTooltip": "Updates the Spotify playlist to match the current schedule",
+    "upToDate": "Up to date",
+    "managedBy": "Managed by {{name}}",
+    "managedByTooltip": "Only {{name}}, who created the playlist, can re-sync it",
+    "noSongs": "No songs with a Spotify reference",
+    "synced": "Spotify playlist updated ({{added}} songs)!",
+    "syncedWithSkipped": "Spotify playlist updated ({{added}} songs)!",
+    "syncedSkippedDescription": "Songs without a Spotify reference were skipped: {{skipped}}",
+    "syncFailed": "Error syncing the Spotify playlist",
+    "connectFailed": "Error connecting to Spotify",
+    "public": "Public playlist",
+    "publicDescription": "Anyone can find and open it on Spotify.",
+    "privateDescription": "Only you can see it on Spotify, so other members may not be able to open it."
   }
 }

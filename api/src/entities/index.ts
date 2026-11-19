@@ -5,6 +5,7 @@ export * from './organization-user.entity';
 export * from './session.entity';
 export * from './song-part.entity';
 export * from './song-reference.entity';
+export * from './schedule-playlist-reference.entity';
 export * from './song.entity';
 export * from './theme.entity';
 export * from './schedule.entity';

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardDescription, CardHeader, CardHeaderActions, CardHeaderText, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,12 +16,23 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { OrganizationBar } from "@/components/app/organization-bar";
 import { PageContent } from "@/components/shared/page-content";
+import { ScheduleReferences } from "@/components/app/schedules/schedule-references";
 
 export function ViewSchedule() {
   const { t, i18n } = useTranslation("schedules");
   const { isLoggedIn } = useAuth();
   const params = useParams();
-  const data = useLoaderData() as ISchedule | null;
+  const loadedData = useLoaderData() as ISchedule | null;
+
+  // Local mirror of the loaded schedule so the Spotify playlist action can
+  // refresh the references after creating/re-syncing. Reset when navigating
+  // to a different schedule within the same component instance.
+  const [data, setData] = useState<ISchedule | null>(loadedData);
+  const [dataId, setDataId] = useState<number | undefined>(loadedData?.id);
+  if (loadedData && loadedData.id !== dataId) {
+    setDataId(loadedData.id);
+    setData(loadedData);
+  }
 
   if (!data) {
     throw new Error("Can't find schedule");
@@ -144,6 +156,9 @@ export function ViewSchedule() {
             );
           })}
         </div>
+
+        {/* References, incl. the generated playlist actions (add / re-sync) */}
+        <ScheduleReferences schedule={data} onSynced={setData} />
 
         {isLoggedIn && (
           <div className="flex flex-row align-start space-x-2 mt-4">

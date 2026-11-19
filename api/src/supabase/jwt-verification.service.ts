@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createPublicKey } from 'crypto';
+import { createPublicKey } from 'node:crypto';
 import { JwtService } from '@nestjs/jwt';
 
 interface JWKS {

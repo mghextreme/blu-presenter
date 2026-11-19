@@ -8,6 +8,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Organization } from './organization.entity';
+import { SchedulePlaylistReference } from './schedule-playlist-reference.entity';
+import { SongReference } from './song-reference.entity';
 import { User } from './user.entity';
 
 @Entity({ name: 'schedules' })
@@ -35,6 +37,14 @@ export class Schedule {
     nullable: false,
   })
   items: any[];
+
+  @Column({
+    type: 'json',
+    array: true,
+    default: () => "'[]'",
+    nullable: false,
+  })
+  references: (SongReference | SchedulePlaylistReference)[];
 
   @Column()
   createdBy: number;

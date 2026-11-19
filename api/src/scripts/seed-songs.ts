@@ -4,8 +4,8 @@ import { SongTextFormatService } from '../songs/text-format/song-text-format.ser
 import { Song } from 'src/entities';
 import { generateRandomSecret } from 'src/utils/secret';
 import { DataSource } from 'typeorm';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 const USAGE = `Usage:
   seed:songs [--dir <path>] [--org <id>]

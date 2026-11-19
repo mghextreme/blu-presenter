@@ -291,13 +291,16 @@ export class ThemesService {
     // id constraint is applied at all and the org's themes are listed.
     // Sending an undefined id into a where clause makes newer TypeORM
     // versions throw "Undefined value encountered in property 'Theme.id'".
-    if (typeof theme === 'string') {
-      theme = Number(theme);
-    }
+    // A non-numeric URL theme (a built-in one such as `lyrics`) is still
+    // authoritative: it must not fall back to the session's custom theme.
+    const hasUrlTheme =
+      theme !== undefined && theme !== null && String(theme) !== '';
+    const urlThemeId = hasUrlTheme ? Number(theme) : Number.NaN;
     let themeId: number | undefined = undefined;
-    if (typeof theme === 'number' && Number.isFinite(theme) && theme > 0) {
-      themeId = theme;
+    if (Number.isFinite(urlThemeId) && urlThemeId > 0) {
+      themeId = urlThemeId;
     } else if (
+      !hasUrlTheme &&
       session.theme &&
       !['lyrics', 'subtitles', 'teleprompter'].includes(session.theme)
     ) {

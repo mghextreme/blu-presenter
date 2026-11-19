@@ -2,7 +2,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { ApiError } from "@/types";
 import { IAuthResponse } from "@/types/auth";
-import { FetchQueryOptions, QueryClient } from "@tanstack/react-query";
+import { DefaultError, QueryClient, QueryOptions } from "@tanstack/react-query";
 
 export abstract class ApiService {
 
@@ -67,10 +67,22 @@ export abstract class ApiService {
     }
   }
 
-  protected async getOrFetch<T>(query: FetchQueryOptions<T>): Promise<T> {
+  /**
+   * Returns the cached data for the query, fetching it via
+   * `queryClient.query` when absent. Accepts anything produced by
+   * TanStack's `queryOptions()` helper or an equivalent literal.
+   *
+   * The query-key generic is deliberately `any`: TanStack's `queryOptions()`
+   * brands keys with DataTag symbols whose variance otherwise fights the
+   * `queryFn` parameter's contravariant key type.
+   */
+  protected async getOrFetch<TData>(
+    query: QueryOptions<TData, DefaultError, TData, any>,
+  ): Promise<TData> {
+    const { queryKey } = query;
     return (
-      this.queryClient.getQueryData(query.queryKey) ??
-      (await this.queryClient.fetchQuery(query))
+      this.queryClient.getQueryData<TData>(queryKey!) ??
+      (await this.queryClient.query({ ...query, queryKey: queryKey! }))
     );
   }
 

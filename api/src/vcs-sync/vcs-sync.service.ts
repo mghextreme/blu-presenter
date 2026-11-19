@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { Song, SongVcsFile, VcsSource, VcsSyncRun } from 'src/entities';
 import { generateRandomSecret } from 'src/utils/secret';

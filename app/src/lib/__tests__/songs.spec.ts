@@ -372,6 +372,181 @@ Part C`;
     expect(result.blocks[3].lines).toHaveLength(0);
     expect(result.blocks[4].lines).toHaveLength(2);
   });
+
+  it('should detect short chord-only lines as chords', () => {
+    const input = `Am
+Eu olho para cruz
+F
+E para cruz eu vou
+  C
+Meu Salvador
+F#m7
+Na cruz mostrou`;
+
+    const result = parseSongText(input);
+
+    expect(result.blocks).toHaveLength(1);
+    expect(result.blocks[0].lines.map(l => l.type)).toEqual([
+      'chords', 'lyrics', 'chords', 'lyrics', 'chords', 'lyrics', 'chords', 'lyrics',
+    ]);
+  });
+
+  it('should use a bracketed header block as the name of the following block', () => {
+    const input = `Quebrantado
+Vineyard
+
+[Intro]
+
+C  G  Am  F
+
+[Refrão]
+
+C
+  Pela cruz, me chamou
+
+[Verso 2]
+Meu Salvador`;
+
+    const result = parseSongText(input);
+
+    expect(result.blocks).toHaveLength(3);
+    expect(result.blocks[0]).toEqual({
+      id: 0,
+      name: 'Intro',
+      acronym: 'I',
+      lines: [{ type: 'chords', content: 'C  G  Am  F' }],
+    });
+    expect(result.blocks[1]).toEqual({
+      id: 1,
+      name: 'Refrão',
+      acronym: 'R',
+      lines: [
+        { type: 'chords', content: 'C' },
+        { type: 'lyrics', content: '  Pela cruz, me chamou' },
+      ],
+    });
+    // Header followed directly by content (no empty line) names its own block
+    expect(result.blocks[2]).toEqual({
+      id: 2,
+      name: 'Verso 2',
+      acronym: 'V2',
+      lines: [{ type: 'lyrics', content: 'Meu Salvador' }],
+    });
+  });
+
+  it('should use an inline header as the block name and keep the rest of the line', () => {
+    const input = `[Intro] C  C4  C  C4
+
+[Solo]   Am  F
+         Some lyrics`;
+
+    const result = parseSongText(input);
+
+    expect(result.title).toBe('');
+    expect(result.blocks).toHaveLength(2);
+    expect(result.blocks[0]).toEqual({
+      id: 0,
+      name: 'Intro',
+      acronym: 'I',
+      lines: [{ type: 'chords', content: 'C  C4  C  C4' }],
+    });
+    // Followed by lyrics: header replaced by spaces to keep chord alignment
+    expect(result.blocks[1].name).toBe('Solo');
+    expect(result.blocks[1].lines).toEqual([
+      { type: 'chords', content: '         Am  F' },
+      { type: 'lyrics', content: '         Some lyrics' },
+    ]);
+  });
+
+  it('should not treat a bracketed chord as a header', () => {
+    const result = parseSongText(`C G\n[Am]\nLyrics`);
+
+    expect(result.blocks[0].name).toBeUndefined();
+    expect(result.blocks[0].lines[1].content).toBe('[Am]');
+  });
+
+  it('should ignore zero-width characters copied from websites', () => {
+    const zw = '\u200B';
+    const input = [
+      `${zw}[Primeira Parte]`,
+      '',
+      `${zw}         C`,
+      `${zw}Te amo, Deus`,
+      `${zw}F7M/C                  C`,
+      `${zw}      És fiel em todo tempo`,
+    ].join('\n');
+
+    const result = parseSongText(input);
+
+    expect(result.blocks).toHaveLength(1);
+    expect(result.blocks[0].name).toBe('Primeira Parte');
+    expect(result.blocks[0].lines).toEqual([
+      { type: 'chords', content: '         C' },
+      { type: 'lyrics', content: 'Te amo, Deus' },
+      { type: 'chords', content: 'F7M/C                  C' },
+      { type: 'lyrics', content: '      És fiel em todo tempo' },
+    ]);
+  });
+
+  it('should remove wrapping parentheses from chord lines in blocks without lyrics', () => {
+    const input = `C G
+Lyrics
+
+( C9  C  C4 )
+( C  C9  C  C4 )
+
+(Am7(9))  (G)
+
+( G )
+Lyrics with chords`;
+
+    const result = parseSongText(input);
+
+    expect(result.blocks[1].lines).toEqual([
+      { type: 'chords', content: 'C9  C  C4' },
+      { type: 'chords', content: 'C  C9  C  C4' },
+    ]);
+    // Not a single wrapping pair: left untouched
+    expect(result.blocks[2].lines[0].content).toBe('(Am7(9))  (G)');
+    // Block has lyrics: left untouched
+    expect(result.blocks[3].lines[0].content).toBe('( G )');
+  });
+
+  it('should not insert an empty block between a header and its block', () => {
+    const input = `C G Am
+Part A
+
+
+
+[Refrão]
+
+
+
+G C F
+Part B`;
+
+    const result = parseSongText(input);
+
+    expect(result.blocks).toHaveLength(3);
+    expect(result.blocks[1].lines).toHaveLength(0);
+    expect(result.blocks[2].name).toBe('Refrão');
+    expect(result.blocks[2].lines).toHaveLength(2);
+  });
+
+  it('should keep a header as a plain block when no block follows it', () => {
+    const input = `C G Am
+Part A
+
+[Intro]
+
+[Refrão]`;
+
+    const result = parseSongText(input);
+
+    expect(result.blocks).toHaveLength(3);
+    expect(result.blocks[1]).toEqual({ id: 1, lines: [{ type: 'lyrics', content: '[Intro]' }] });
+    expect(result.blocks[2]).toEqual({ id: 2, lines: [{ type: 'lyrics', content: '[Refrão]' }] });
+  });
 });
 
 describe('transposeNote', () => {

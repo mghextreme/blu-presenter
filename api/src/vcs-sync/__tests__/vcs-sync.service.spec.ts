@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
 import { DataSource, EntityManager } from 'typeorm';
 import { Song, SongVcsFile, VcsSource } from '../../entities';
 import { SongTextFormatService } from '../../songs/text-format/song-text-format.service';

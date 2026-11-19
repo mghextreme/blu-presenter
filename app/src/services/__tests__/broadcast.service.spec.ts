@@ -59,6 +59,50 @@ describe('BroadcastService', () => {
     ])
   })
 
+  it('supersedes a queued write of the same state with the newest one', async () => {
+    const first = service.setSelection(7, 3, { part: 1 })
+    await Promise.resolve()
+    // While the first PUT is in flight, three more selections arrive: only
+    // the latest one still needs to be sent.
+    const stale1 = service.setSelection(7, 3, { part: 2 })
+    const stale2 = service.setSelection(7, 3, { part: 3 })
+    const latest = service.setSelection(7, 3, { part: 4 })
+
+    await expect(stale1).resolves.toBeUndefined()
+    await expect(stale2).resolves.toBeUndefined()
+
+    for (let i = 0; i < 25 && deferreds.size > 0; i++) {
+      for (const [, deferred] of Array.from(deferreds)) deferred?.resolve()
+      deferreds.clear()
+      await new Promise((resolve) => setTimeout(resolve, 0))
+    }
+    await Promise.all([first, latest])
+
+    expect(callLog).toEqual([
+      '/sessions/7/broadcast/selection',
+      '/sessions/7/broadcast/selection',
+    ])
+  })
+
+  it('times out a stalled write so later writes still go out', async () => {
+    vi.useFakeTimers()
+    try {
+      const stalled = service.setSelection(7, 3, { part: 1 })
+      const next = service.setScheduleItem(7, 3, { id: 1 })
+      stalled.catch(() => undefined)
+      await vi.advanceTimersByTimeAsync(10_000)
+      await expect(stalled).rejects.toThrow(/timed out/)
+      expect(callLog).toEqual([
+        '/sessions/7/broadcast/selection',
+        '/sessions/7/broadcast/schedule-item',
+      ])
+      deferreds.get('/sessions/7/broadcast/schedule-item')?.resolve()
+      await expect(next).resolves.toBeUndefined()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('emits nothing offline', async () => {
     const onLine = navigator.onLine
     try {

@@ -19,6 +19,9 @@ export * from './broadcast.dto';
 export * from './create-schedule.dto';
 export * from './update-schedule.dto';
 export * from './search-schedule.dto';
+export * from './schedule-reference.dto';
+export * from './create-schedule-playlist.dto';
+export * from './spotify-playlist-sync.dto';
 
 export * from './organization-role.type';
 export * from './organization-feature.type';
@@ -48,3 +51,5 @@ export * from './otp-sign-in-request.dto';
 export * from './otp-sign-in-verify.dto';
 
 export * from './authenticated-socket.interface';
+export * from './spotify-connect-callback.dto';
+export * from './spotify-connection.interface';

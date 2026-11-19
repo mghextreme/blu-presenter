@@ -48,6 +48,11 @@ const socketBuzz = vi.hoisted(() => ({
   driveJoinedSession: (data: unknown) => {
     socketBuzz.config?.onJoinedSession?.(data)
   },
+  driveEvent: (eventName: string, data: unknown) => {
+    socketBuzz.config?.additionalEvents
+      ?.find((event: any) => event.eventName === eventName)
+      ?.handler(data)
+  },
 }))
 
 vi.mock('@/hooks/useSessionSocket', () => ({
@@ -157,6 +162,66 @@ describe('Receiver initial load', () => {
       // selection.scheduleItem = 1 → the second item becomes the active one
       expect(captured.scheduleItem?.title).toBe('Other Song')
       expect(captured.selection).toEqual({ scheduleItem: 1, slide: 0, part: 2 })
+    })
+  })
+  it('applies a joined-session selection that comes without schedule changes', async () => {
+    ;(loaderSession as any).selection = { scheduleItem: 0, slide: 0, part: 0 }
+
+    let captured: any = null
+    render(
+      <ControllerProvider storeState={false}>
+        <Receiver />
+        <Probe onValue={(context) => { captured = context }} />
+      </ControllerProvider>,
+    )
+    await waitFor(() => {
+      expect(captured.selection).toEqual({ scheduleItem: 0, slide: 0, part: 0 })
+    })
+
+    await act(async () => {
+      socketBuzz.driveJoinedSession({ selection: { scheduleItem: 0, slide: 0, part: 2 } })
+    })
+
+    await waitFor(() => {
+      expect(captured.selection).toEqual({ scheduleItem: 0, slide: 0, part: 2 })
+    })
+  })
+
+  it('never applies a queued selection over a newer live one', async () => {
+    ;(loaderSession as any).selection = { scheduleItem: 0, slide: 0, part: 0 }
+
+    let captured: any = null
+    render(
+      <ControllerProvider storeState={false}>
+        <Receiver />
+        <Probe onValue={(context) => { captured = context }} />
+      </ControllerProvider>,
+    )
+    await waitFor(() => {
+      expect(captured.selection).toEqual({ scheduleItem: 0, slide: 0, part: 0 })
+    })
+
+    // A join push queues part 1, then a newer live selection (part 2) lands
+    // in the same batch, before the queued one could flush.
+    await act(async () => {
+      socketBuzz.driveJoinedSession({
+        scheduleItem: makeMultiPartItem(1, 'Amazing Grace'),
+        selection: { scheduleItem: 0, slide: 0, part: 1 },
+      })
+      socketBuzz.driveEvent('selection', { scheduleItem: 0, slide: 0, part: 2 })
+    })
+
+    // A later schedule change must not resurrect the stale part 1
+    await act(async () => {
+      socketBuzz.driveEvent('schedule', [
+        makeMultiPartItem(1, 'Amazing Grace'),
+        makeMultiPartItem(2, 'How Great Thou Art'),
+      ])
+    })
+
+    await waitFor(() => {
+      expect(captured.schedule).toHaveLength(2)
+      expect(captured.selection.part).toBe(2)
     })
   })
 })

@@ -4,7 +4,10 @@ import {
   IsNotEmpty,
   IsOptional,
   Length,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ScheduleReferenceDto } from './schedule-reference.dto';
 
 export class CreateScheduleDto {
   @IsNotEmpty()
@@ -17,4 +20,10 @@ export class CreateScheduleDto {
 
   @IsArray()
   items: any[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ScheduleReferenceDto)
+  references?: ScheduleReferenceDto[];
 }
