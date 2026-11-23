@@ -36,3 +36,8 @@ coverage
 
 # Supabase
 supabase/snippets
+
+# AI
+skills-lock.json
+.agents/*
+.claude/*

@@ -18,7 +18,7 @@ export function PrivacyPolicy() {
       <div className="flex flex-col items-center py-16 text-left gap-y-12">
         <div className="w-full max-w-4xl px-2 sm:px-4 prose prose-gray dark:prose-invert">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            <strong>{t('lastUpdated')}</strong> {new Date('2025-10-13T15:00:00-03:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+            <strong>{t('lastUpdated')}</strong> {new Date('2026-11-20T12:00:00-03:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
 
           <section>
@@ -50,6 +50,9 @@ export function PrivacyPolicy() {
               <Trans t={t} i18nKey="informationWeCollect.p2">
                 We do <strong>not</strong> use analytics tools or tracking services. We only collect the minimum data necessary to provide the service.
               </Trans>
+            </p>
+            <p className="mt-4">
+              {t('informationWeCollect.p3')}
             </p>
           </section>
 
@@ -98,6 +101,44 @@ export function PrivacyPolicy() {
                 </Trans>
               </p>
             </div>
+
+            <div className="ml-4 mt-4">
+              <h3 className="text-lg font-medium mb-2">{t('thirdPartyServices.spotify.title')}</h3>
+              <p>
+                <Trans t={t} i18nKey="thirdPartyServices.spotify.p1">
+                  If you sign in with Spotify or connect your Spotify account, we use Spotify's OAuth service and the <Link to="https://developer.spotify.com/documentation/web-api" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Spotify Web API</Link>.
+                </Trans>
+              </p>
+              <p className="mt-2">
+                <Trans t={t} i18nKey="thirdPartyServices.spotify.p2">
+                  You can disconnect Spotify at any time from your profile page. You can also remove BluPresenter's access in your <Link to="https://www.spotify.com/account/apps/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Spotify account settings</Link>. Spotify's practices are governed by their <Link to="https://www.spotify.com/legal/privacy-policy/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Privacy Policy</Link>.
+                </Trans>
+              </p>
+            </div>
+
+            <div className="ml-4 mt-4">
+              <h3 className="text-lg font-medium mb-2">{t('thirdPartyServices.youtube.title')}</h3>
+              <p>
+                <Trans t={t} i18nKey="thirdPartyServices.youtube.p1">
+                  If you connect your YouTube account, BluPresenter uses <Link to="https://developers.google.com/youtube" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">YouTube API Services</Link> to manage playlists on your channel.
+                </Trans>
+              </p>
+              <p className="mt-2">
+                <Trans t={t} i18nKey="thirdPartyServices.youtube.p2">
+                  By connecting YouTube, you agree to be bound by the <Link to="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">YouTube Terms of Service</Link>. Google's handling of your data is governed by the <Link to="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Google Privacy Policy</Link>.
+                </Trans>
+              </p>
+              <p className="mt-2">
+                <Trans t={t} i18nKey="thirdPartyServices.youtube.p3">
+                  You can also revoke access through the <Link to="https://security.google.com/settings/security/permissions" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Google security settings page</Link>.
+                </Trans>
+              </p>
+              <p className="mt-2">
+                <Trans t={t} i18nKey="thirdPartyServices.youtube.p4">
+                  BluPresenter's use and transfer of information received from Google APIs will adhere to the <Link to="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Google API Services User Data Policy</Link>, including the Limited Use requirements.
+                </Trans>
+              </p>
+            </div>
           </section>
 
           <section>
@@ -139,6 +180,9 @@ export function PrivacyPolicy() {
                 If you wish to delete your account or have your data removed, please submit a request through our <Link to="https://github.com/mghextreme/blu-presenter/issues" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">GitHub Issues page</Link>.
                 We will process your request as soon as reasonably possible.
               </Trans>
+            </p>
+            <p className="mt-4">
+              {t('dataRetentionAndDeletion.p3')}
             </p>
           </section>
 

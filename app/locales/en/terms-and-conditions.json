@@ -17,7 +17,8 @@
       "Creating and editing songs",
       "Organizing content within organizations",
       "Present lyrics (and chords) through a controller interface",
-      "Collaborating with other users"
+      "Collaborating with other users",
+      "Exporting schedules as playlists to your Spotify or YouTube account"
     ],
     "p2": "The service is provided \"as-is\" without any guarantees of availability, uptime, or performance."
   },
@@ -31,7 +32,7 @@
       "Accept responsibility for all activities that occur under your account",
       "Notify us immediately of any unauthorized use of your account"
     ],
-    "p2": "You may create an account using email and password, or through third-party authentication providers such as Google."
+    "p2": "You may create an account using email and password, or through third-party authentication providers such as Google or Spotify."
   },
   "userContentAndOwnership": {
     "title": "4. User Content and Ownership",
@@ -129,9 +130,13 @@
     "p1": "BluPresenter relies on third-party services, including:",
     "list": [
       "<0>Supabase</0> for authentication and database services",
-      "<0>Google</0> for optional OAuth authentication"
+      "<0>Google</0> for optional OAuth authentication",
+      "<0>Spotify</0> for optional sign-in and playlist export",
+      "<0>YouTube</0> (YouTube API Services) for optional playlist export and embedded video playback"
     ],
-    "p2": "Your use of these third-party services is subject to their respective terms of service and privacy policies. We are not responsible for the practices or policies of these third-party services."
+    "p2": "Your use of these third-party services is subject to their respective terms of service and privacy policies. We are not responsible for the practices or policies of these third-party services.",
+    "p3": "By using the YouTube features of BluPresenter, you agree to be bound by the <1>YouTube Terms of Service</1>.",
+    "p4": "Features that depend on Spotify or YouTube may change, be limited, or stop working if those services change their terms or APIs. Playlists created on your accounts belong to you and are subject to the rules of the platform where they were created."
   },
   "privacy": {
     "title": "13. Privacy",

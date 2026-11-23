@@ -15,9 +15,11 @@
     "p1": "When you create an account and use BluPresenter, we collect the following personal information:",
     "list": [
       "<0>Account Information:</0> Email address, name, and nickname",
-      "<0>Authentication Data:</0> Login credentials and session information managed by our authentication provider"
+      "<0>Authentication Data:</0> Login credentials and session information managed by our authentication provider, including the name and email address shared by Google or Spotify if you sign in with them",
+      "<0>Connected Accounts (optional):</0> If you connect Spotify or YouTube to create playlists, the ID and name of that account (your Spotify display name or YouTube channel name), and the access tokens that let us manage playlists on your behalf"
     ],
-    "p2": "We do <1>not</1> use analytics tools or tracking services. We only collect the minimum data necessary to provide the service."
+    "p2": "We do <1>not</1> use analytics tools or tracking services. We only collect the minimum data necessary to provide the service.",
+    "p3": "Access tokens for connected accounts are only used by our servers. They are never shown to you, to other users, or to members of your organizations."
   },
   "howWeUseYourInformation": {
     "title": "3. How We Use Your Information",
@@ -26,9 +28,10 @@
       "Provide and maintain the BluPresenter service",
       "Authenticate your account and manage your sessions",
       "Enable collaboration features within organizations",
-      "Communicate with you about your account or the service"
+      "Communicate with you about your account or the service",
+      "Create and update playlists on your connected Spotify or YouTube account, only when you ask us to"
     ],
-    "p2": "We do <1>not</1> sell, rent, or share your personal information with third parties - not for marketing, or any other purpose."
+    "p2": "We do <1>not</1> sell, rent, or share your personal information with third parties - not for marketing, or any other purpose. The only data we send to other services is what you ask us to: when you create or sync a playlist, its name and the songs in it are sent to Spotify or YouTube."
   },
   "thirdPartyServices": {
     "title": "4. Third-Party Services",
@@ -41,6 +44,18 @@
     "googleAuthentication": {
       "title": "Google Authentication",
       "p1": "If you choose to sign in with Google, we use Google's OAuth service for authentication. Google may collect information according to their <1>Privacy Policy</1>."
+    },
+    "spotify": {
+      "title": "Spotify",
+      "p1": "If you sign in with Spotify or connect your Spotify account, we use Spotify's OAuth service and the <1>Spotify Web API</1>. When you connect Spotify for playlists, Spotify shares your basic profile with us (user ID, display name, email address and country), of which we only store your user ID and display name. We then create and update playlists on your Spotify account when you ask us to. We do not access your listening history, saved music, or other playlists.",
+      "p2": "You can disconnect Spotify at any time from your profile page. You can also remove BluPresenter's access in your <1>Spotify account settings</1>. Spotify's practices are governed by their <3>Privacy Policy</3>."
+    },
+    "youtube": {
+      "title": "YouTube (YouTube API Services)",
+      "p1": "If you connect your YouTube account, BluPresenter uses <1>YouTube API Services</1> to read your channel ID and name, and to create and update playlists on your channel when you ask us to. New playlists are unlisted unless you choose to make them public. We do not access your watch history, subscriptions, or videos and playlists not created by BluPresenter.",
+      "p2": "By connecting YouTube, you agree to be bound by the <1>YouTube Terms of Service</1>. Google's handling of your data is governed by the <3>Google Privacy Policy</3>.",
+      "p3": "You can disconnect YouTube at any time from your profile page, which deletes the stored tokens and revokes BluPresenter's access. You can also revoke access through the <1>Google security settings page</1>.",
+      "p4": "BluPresenter's use and transfer of information received from Google APIs will adhere to the <1>Google API Services User Data Policy</1>, including the Limited Use requirements."
     }
   },
   "cookiesAndLocalStorage": {
@@ -48,9 +63,10 @@
     "p1": "BluPresenter uses minimal cookies and browser storage:",
     "list": [
       "<0>Authentication Cookies:</0> Used to maintain your login session",
-      "<0>Local and Session Storage:</0> Used to store your preferences and session tokens"
+      "<0>Local and Session Storage:</0> Used to store your preferences and session tokens",
+      "<0>Embedded Players:</0> Songs with YouTube or Spotify references can show those services' players, which may store cookies or similar data on your device under their own policies. YouTube videos are embedded in privacy-enhanced mode (youtube-nocookie.com)."
     ],
-    "p2": "These are essential for the service to function properly. We do not use tracking or advertising cookies."
+    "p2": "Authentication cookies and browser storage are essential for the service to function properly. BluPresenter itself does not use tracking or advertising cookies."
   },
   "dataSecurity": {
     "title": "6. Data Security",
@@ -60,7 +76,8 @@
   "dataRetentionAndDeletion": {
     "title": "7. Data Retention and Deletion",
     "p1": "Currently, we do not have an automated data retention or deletion policy. Your data remains in our system as long as your account is active.",
-    "p2": "If you wish to delete your account or have your data removed, please submit a request through our <1>GitHub Issues page</1>. We will process your request as soon as reasonably possible."
+    "p2": "If you wish to delete your account or have your data removed, please submit a request through our <1>GitHub Issues page</1>. We will process your request as soon as reasonably possible.",
+    "p3": "When you disconnect Spotify or YouTube, the stored tokens and account details are deleted right away (for YouTube, we also ask Google to revoke our access). Playlists already created stay on your Spotify or YouTube account, and you can delete them there. If you revoke access directly in your Spotify or Google account instead, we delete the stored tokens the next time we try to use them."
   },
   "yourRights": {
     "title": "8. Your Rights",
@@ -75,7 +92,7 @@
   },
   "internationalUsers": {
     "title": "9. International Users",
-    "p1": "BluPresenter is operated from Brazil and uses services hosted in the United States (Supabase - us-east-2 region). By using our service, you acknowledge that your information may be transferred to and processed in the United States.",
+    "p1": "BluPresenter is operated from Brazil and uses services hosted in the United States (Supabase - us-east-2 region). If you connect Spotify or YouTube, the data you send to them is also processed by those services. By using our service, you acknowledge that your information may be transferred to and processed in the United States.",
     "p2": "We welcome users from around the world, but please be aware that data protection laws may vary by country."
   },
   "childrensPrivacy": {

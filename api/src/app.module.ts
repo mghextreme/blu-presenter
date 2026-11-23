@@ -17,6 +17,7 @@ import { SessionsModule } from './sessions/sessions.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { VcsSyncModule } from './vcs-sync/vcs-sync.module';
 import { SpotifyModule } from './spotify/spotify.module';
+import { YoutubeModule } from './youtube/youtube.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { RestOnlyThrottlerGuard } from './guards/rest-only-throttler.guard';
 
@@ -47,6 +48,7 @@ import { RestOnlyThrottlerGuard } from './guards/rest-only-throttler.guard';
     SchedulesModule,
     VcsSyncModule,
     SpotifyModule,
+    YoutubeModule,
   ],
   exports: [TypeOrmModule],
   controllers: [AppController],

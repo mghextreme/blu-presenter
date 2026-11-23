@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { REQUEST } from '@nestjs/core';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import { createHash } from 'node:crypto';
 import { AuthService } from '../auth.service';
 import { Supabase } from '../../supabase/supabase';
 import { UsersService } from '../../users/users.service';
@@ -224,6 +225,40 @@ describe('AuthService — password reset & OTP login', () => {
           token: '000000',
         }),
       ).rejects.toBeInstanceOf(BadRequestException);
+    });
+  });
+
+  describe('linkIdentity', () => {
+    afterEach(() => jest.restoreAllMocks());
+
+    it('returns the raw PKCE verifier matching the challenge sent to Supabase', async () => {
+      const fetchMock = jest
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(
+          new Response(JSON.stringify({ url: 'https://accounts.example/x' })),
+        );
+
+      const { url, codeVerifier } = await service.linkIdentity('google');
+
+      expect(url).toBe('https://accounts.example/x');
+      // /auth/validate sends this verbatim as the PKCE code_verifier, so it
+      // must hash to the challenge Supabase stored.
+      const authorizeUrl = new URL(
+        fetchMock.mock.calls
+          .map(([input]) => String(input))
+          .find((input) => input.includes('/user/identities/authorize'))!,
+      );
+      const challenge = createHash('sha256')
+        .update(codeVerifier)
+        .digest('base64url');
+      expect(authorizeUrl.searchParams.get('code_challenge')).toBe(challenge);
+      expect(codeVerifier).toMatch(/^[\w-]+$/);
+    });
+
+    it('rejects unsupported providers', async () => {
+      await expect(service.linkIdentity('github')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });

@@ -124,5 +124,26 @@
     "public": "Public playlist",
     "publicDescription": "Anyone can find and open it on Spotify.",
     "privateDescription": "Only you can see it on Spotify, so other members may not be able to open it."
+  },
+  "youtube": {
+    "serviceName": "YouTube",
+    "connect": "Connect YouTube",
+    "create": "Create playlist",
+    "createDescription": "Creates an unlisted YouTube playlist with the {{count}} songs that have a YouTube reference.",
+    "createConfirm": "Create",
+    "resync": "Re-sync",
+    "resyncTooltip": "Updates the YouTube playlist to match the current schedule",
+    "upToDate": "Up to date",
+    "managedBy": "Managed by {{name}}",
+    "managedByTooltip": "Only {{name}}, who created the playlist, can re-sync it",
+    "noSongs": "No songs with a YouTube reference",
+    "synced": "YouTube playlist updated ({{added}} songs)!",
+    "syncedWithSkipped": "YouTube playlist updated ({{added}} songs)!",
+    "syncedSkippedDescription": "Songs without an available YouTube video were skipped: {{skipped}}",
+    "syncFailed": "Error syncing the YouTube playlist",
+    "connectFailed": "Error connecting to YouTube",
+    "public": "Public playlist",
+    "publicDescription": "Anyone can find it on YouTube.",
+    "privateDescription": "Unlisted: anyone with the link can open it."
   }
 }

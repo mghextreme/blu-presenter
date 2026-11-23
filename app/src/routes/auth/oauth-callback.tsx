@@ -1,7 +1,9 @@
 import { useTranslation } from "react-i18next";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import { useServices } from "@/hooks/useServices";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
+import { describeApiError } from "@/types";
 import { IAuthInvitationData, IExchangeCodeData } from "@/types/auth";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
@@ -20,6 +22,9 @@ export function OAuthCallback() {
   }
 
   const { authService } = useServices();
+  // The code can only be exchanged once: guard against effects running twice
+  // (React.StrictMode) or re-running on re-renders.
+  const startedRef = useRef(false);
 
   const rawInvite = localStorage.getItem(STORAGE_KEYS.authInvite);
   let invite: IAuthInvitationData | undefined = undefined;
@@ -41,7 +46,14 @@ export function OAuthCallback() {
       payload.invite = invite;
     }
 
-    await authService.exchangeCodeForSession(payload);
+    try {
+      await authService.exchangeCodeForSession(payload);
+    } catch (e) {
+      localStorage.removeItem('auth-token-code-verifier');
+      toast.error(t('errors.oauth'), { description: await describeApiError(e) });
+      await navigate('/login', { replace: true });
+      return;
+    }
     localStorage.removeItem('auth-token-code-verifier');
     localStorage.removeItem(STORAGE_KEYS.authInvite);
 
@@ -52,6 +64,8 @@ export function OAuthCallback() {
   }
 
   useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
     validateTokens();
   });
 

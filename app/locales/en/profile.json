@@ -40,6 +40,7 @@
     "disconnectFailed": "Error disconnecting account",
     "linking": "Linking account...",
     "linkError": "Error linking account",
+    "linked": "Account connected!",
     "confirmDisconnect": {
       "title": "Disconnect Google account?",
       "description": "You will no longer be able to sign in with this Google account. Make sure you have a password set before disconnecting.",
@@ -48,14 +49,9 @@
     }
   },
   "spotify": {
-    "description": "Connect to create and sync Spotify playlists for your schedules",
-    "signInDescription": "Sign in to BluPresenter with your Spotify account",
     "connecting": "Connecting to Spotify...",
     "connected": "Spotify connected!",
-    "connectedAs": "Connected as {{name}}",
-    "signInEnabled": "sign-in enabled",
-    "enableSignIn": "Enable sign-in with Spotify",
-    "unlinkSignIn": "Remove sign-in",
+    "playlists": "Spotify playlists",
     "disconnected": "Spotify disconnected!",
     "disconnectFailed": "Error disconnecting Spotify",
     "connectFailed": "Error connecting to Spotify",
@@ -65,6 +61,22 @@
       "description": "You will no longer be able to create or re-sync Spotify playlists. Playlists already created remain on your Spotify account. You can reconnect at any time.",
       "confirm": "Disconnect",
       "cancel": "Cancel"
+    },
+    "confirmUnlinkSignIn": {
+      "title": "Disconnect Spotify account?",
+      "description": "You will no longer be able to sign in with this Spotify account. Make sure you have a password set before disconnecting."
+    }
+  },
+  "youtube": {
+    "connecting": "Connecting to YouTube...",
+    "connected": "YouTube connected!",
+    "disconnected": "YouTube disconnected!",
+    "disconnectFailed": "Error disconnecting YouTube",
+    "connectFailed": "Error connecting to YouTube",
+    "connectCancelled": "The YouTube connection was not completed.",
+    "confirmDisconnect": {
+      "title": "Disconnect YouTube?",
+      "description": "You will no longer be able to create or re-sync YouTube playlists. Playlists already created remain on your YouTube channel. You can reconnect at any time."
     }
   }
 }

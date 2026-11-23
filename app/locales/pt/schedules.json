@@ -124,5 +124,26 @@
     "public": "Playlist pública",
     "publicDescription": "Qualquer pessoa pode encontrá-la e abri-la no Spotify.",
     "privateDescription": "Só você pode vê-la no Spotify, então outros membros podem não conseguir abri-la."
+  },
+  "youtube": {
+    "serviceName": "YouTube",
+    "connect": "Conectar YouTube",
+    "create": "Criar playlist",
+    "createDescription": "Cria uma playlist não listada no YouTube com as {{count}} músicas que têm uma referência do YouTube.",
+    "createConfirm": "Criar",
+    "resync": "Sincronizar",
+    "resyncTooltip": "Atualiza a playlist do YouTube para corresponder à programação atual",
+    "upToDate": "Atualizada",
+    "managedBy": "Gerenciada por {{name}}",
+    "managedByTooltip": "Somente {{name}}, que criou a playlist, pode sincronizá-la",
+    "noSongs": "Nenhuma música com referência do YouTube",
+    "synced": "Playlist do YouTube atualizada ({{added}} músicas)!",
+    "syncedWithSkipped": "Playlist do YouTube atualizada ({{added}} músicas)!",
+    "syncedSkippedDescription": "Músicas sem um vídeo disponível no YouTube foram ignoradas: {{skipped}}",
+    "syncFailed": "Erro ao sincronizar a playlist do YouTube",
+    "connectFailed": "Erro ao conectar ao YouTube",
+    "public": "Playlist pública",
+    "publicDescription": "Qualquer pessoa pode encontrá-la no YouTube.",
+    "privateDescription": "Não listada: qualquer pessoa com o link pode abri-la."
   }
 }

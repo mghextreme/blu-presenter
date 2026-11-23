@@ -100,6 +100,21 @@ export function presentScheduleReferences(
   });
 }
 
+/**
+ * Deterministic short hash over the ordered track projection of a schedule
+ * (Spotify track ids, YouTube video ids, ...). Used to detect whether the
+ * schedule changed since the last playlist sync. Mirrored in the frontend at
+ * `app/src/lib/schedule-playlists.ts` — keep both implementations identical.
+ */
+export function computeTracksHash(trackIds: string[]): string {
+  const input = trackIds.join('|');
+  let hash = 5381;
+  for (let i = 0; i < input.length; i++) {
+    hash = ((hash << 5) + hash + input.charCodeAt(i)) | 0;
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
 /** Removes fields computed per response, which must never be persisted. */
 function stripPresentationFields(
   reference: SchedulePlaylistReference,

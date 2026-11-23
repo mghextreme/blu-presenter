@@ -18,7 +18,7 @@ export function TermsAndConditions() {
       <div className="flex flex-col items-center py-16 text-left gap-y-12">
         <div className="w-full max-w-4xl px-2 sm:px-4 prose prose-gray dark:prose-invert">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            <strong>{t('lastUpdated')}</strong> {new Date('2025-10-13T15:00:00-03:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+            <strong>{t('lastUpdated')}</strong> {new Date('2026-11-20T12:00:00-03:00').toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
 
           <section>
@@ -234,6 +234,14 @@ export function TermsAndConditions() {
             </ul>
             <p className="mt-4">
               {t('thirdPartyServices.p2')}
+            </p>
+            <p className="mt-4">
+              <Trans t={t} i18nKey="thirdPartyServices.p3">
+                By using the YouTube features of BluPresenter, you agree to be bound by the <Link to="https://www.youtube.com/t/terms" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">YouTube Terms of Service</Link>.
+              </Trans>
+            </p>
+            <p className="mt-4">
+              {t('thirdPartyServices.p4')}
             </p>
           </section>
 

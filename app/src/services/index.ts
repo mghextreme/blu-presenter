@@ -7,4 +7,6 @@ export * from './sessions.service';
 export * from './schedules.service';
 export * from './broadcast.service';
 export * from './offline-downloads.service';
+export * from './playlist-integration.service';
 export * from './spotify.service';
+export * from './youtube.service';

@@ -115,6 +115,7 @@ export type ReferenceType =
   | 'spotify'
   | 'spotify-playlist'
   | 'youtube'
+  | 'youtube-playlist'
   | 'deezer'
   | 'soundcloud'
   | 'apple-music'
@@ -158,6 +159,25 @@ export function getYouTubeVideoId(url: string): string | null {
     }
 
     return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Extracts a YouTube playlist id from a playlist URL. Watch URLs inside a
+ * playlist (`watch?v=...&list=...`) are videos, not playlists.
+ */
+export function getYouTubePlaylistId(url: string): string | null {
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.replace('www.', '');
+    if (hostname !== 'youtube.com' && hostname !== 'music.youtube.com' && hostname !== 'm.youtube.com') {
+      return null;
+    }
+    if (parsed.searchParams.has('v')) return null;
+    const list = parsed.searchParams.get('list');
+    return list && /^[\w-]+$/.test(list) ? list : null;
   } catch {
     return null;
   }
@@ -269,6 +289,7 @@ export function getReferenceType(url: string): ReferenceType {
   if (getSpotifyTrackId(url)) return 'spotify';
   if (getSpotifyPlaylistId(url)) return 'spotify-playlist';
   if (getYouTubeVideoId(url)) return 'youtube';
+  if (getYouTubePlaylistId(url)) return 'youtube-playlist';
   if (getDeezerTrackId(url) || getDeezerShareUrl(url)) return 'deezer';
   if (getSoundCloudUrl(url)) return 'soundcloud';
   if (getAppleMusicEmbedUrl(url)) return 'apple-music';
@@ -280,6 +301,7 @@ export type EmbedInfo =
   | { type: 'spotify'; trackId: string }
   | { type: 'spotify-playlist'; playlistId: string }
   | { type: 'youtube'; videoId: string }
+  | { type: 'youtube-playlist'; playlistId: string }
   | { type: 'deezer'; trackId?: string; shareUrl?: string }
   | { type: 'soundcloud'; trackUrl: string }
   | { type: 'apple-music'; embedUrl: string }
@@ -302,6 +324,9 @@ export function getEmbedInfo(url: string | null): EmbedInfo {
 
   const ytId = getYouTubeVideoId(url);
   if (ytId) return { type: 'youtube', videoId: ytId };
+
+  const ytPlaylistId = getYouTubePlaylistId(url);
+  if (ytPlaylistId) return { type: 'youtube-playlist', playlistId: ytPlaylistId };
 
   const deezerId = getDeezerTrackId(url);
   const deezerShare = getDeezerShareUrl(url);

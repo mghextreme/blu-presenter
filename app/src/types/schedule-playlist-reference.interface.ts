@@ -17,6 +17,9 @@ export interface ISchedulePlaylistReference extends ISongReference {
   syncedByMe?: boolean
 }
 
+/** Streaming services the API can generate schedule playlists on. */
+export type SchedulePlaylistProviderId = 'spotify' | 'youtube'
+
 /** Result of creating or re-syncing a schedule's generated playlist. */
 export interface ISchedulePlaylistSyncResult {
   action: 'created' | 'synced'

@@ -368,10 +368,9 @@ export class AuthService {
       );
     }
 
-    return {
-      url: data.url,
-      codeVerifier: `sb-${new URL(supabaseUrl).hostname.split('.')[0]}-auth-token-code-verifier=${codeVerifier}`,
-    };
+    // The raw verifier: the app sends it back to /auth/validate, where it must
+    // hash to the code challenge above.
+    return { url: data.url, codeVerifier };
   }
 
   async unlinkIdentity(identityId: string): Promise<void> {

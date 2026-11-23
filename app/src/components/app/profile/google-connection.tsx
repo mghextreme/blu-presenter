@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { useServices } from "@/hooks/useServices";
 import { describeApiError } from "@/types";
 import { GoogleIcon } from "@/components/logos/google";
+import { YouTubeIcon } from "@/components/logos/youtube";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -32,18 +34,35 @@ export function GoogleConnection({
   onBusyChange,
 }: Readonly<GoogleConnectionProps>) {
   const { t } = useTranslation("profile");
-  const { authService } = useServices();
+  const queryClient = useQueryClient();
+  const { authService, youtubeService } = useServices();
 
-  const [isLoading, setLoading] = useState<boolean>(false);
+  const [pending, setPending] = useState<'google' | 'youtube' | null>(null);
+  const isLoading = pending !== null;
 
   const googleIdentity = identities.identities.find(i => i.provider === 'google');
 
-  const setBusy = (busy: boolean) => onBusyChange?.(busy);
+  const { data: youtubeStatus } = useQuery({ ...youtubeService.getStatusQuery(), retry: false });
+
+  // YouTube playlists are an opt-in feature; kept visible for users who
+  // already connected so they can still disconnect.
+  const showYoutube = !!youtubeStatus?.playlistsEnabled || !!youtubeStatus?.connected;
+  const youtubeAccount = youtubeStatus?.connected
+    ? youtubeStatus.accountName || youtubeStatus.accountId
+    : null;
+
+  const start = (action: 'google' | 'youtube') => {
+    onBusyChange?.(true);
+    setPending(action);
+  };
+  const stop = () => {
+    setPending(null);
+    onBusyChange?.(false);
+  };
 
   const onConnect = async () => {
     try {
-      setBusy(true);
-      setLoading(true);
+      start('google');
       const redirectData = await authService.linkIdentity('google');
       localStorage.setItem('link-identity-code-verifier', redirectData.codeVerifier);
 
@@ -54,8 +73,7 @@ export function GoogleConnection({
       toast.error(t('connectedAccounts.connectFailed'), {
         description: await describeApiError(e),
       });
-      setLoading(false);
-      setBusy(false);
+      stop();
     }
   };
 
@@ -63,9 +81,7 @@ export function GoogleConnection({
     if (!googleIdentity) return;
 
     try {
-      setBusy(true);
-      setLoading(true);
-
+      start('google');
       await authService.unlinkIdentity(googleIdentity.identityId);
       toast.success(t('connectedAccounts.disconnected'));
       const updated = await authService.getIdentities();
@@ -75,51 +91,126 @@ export function GoogleConnection({
         description: await describeApiError(e),
       });
     } finally {
-      setLoading(false);
-      setBusy(false);
+      stop();
+    }
+  };
+
+  const onConnectYoutube = async () => {
+    try {
+      start('youtube');
+      const { url } = await youtubeService.getConnectUrl();
+      setTimeout(() => {
+        window.open(url, '_self');
+      }, 500);
+    } catch (e: any) {
+      toast.error(t('youtube.connectFailed'), {
+        description: await describeApiError(e),
+      });
+      stop();
+    }
+  };
+
+  const onDisconnectYoutube = async () => {
+    try {
+      start('youtube');
+      await youtubeService.disconnect();
+      toast.success(t('youtube.disconnected'));
+      await queryClient.invalidateQueries({ queryKey: ['youtube'] });
+    } catch (e: any) {
+      toast.error(t('youtube.disconnectFailed'), {
+        description: await describeApiError(e),
+      });
+    } finally {
+      stop();
     }
   };
 
   return (
-    <div className="flex items-center justify-between rounded-lg border p-4">
-      <div className="flex items-center gap-3">
-        <GoogleIcon className="size-5" />
-        <div>
-          <p className="font-medium">Google</p>
-          {googleIdentity?.email && (
-            <p className="text-sm text-muted-foreground">{googleIdentity.email}</p>
+    <div className="rounded-lg border divide-y">
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-3">
+          <GoogleIcon className="size-5" />
+          <div>
+            <p className="font-medium">Google</p>
+            {googleIdentity?.email && (
+              <p className="text-sm text-muted-foreground">{googleIdentity.email}</p>
+            )}
+          </div>
+        </div>
+        {googleIdentity ? (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm" disabled={isLoading}>
+                {t('connectedAccounts.disconnect')}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('connectedAccounts.confirmDisconnect.title')}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t('connectedAccounts.confirmDisconnect.description')}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('connectedAccounts.confirmDisconnect.cancel')}</AlertDialogCancel>
+                <AlertDialogAction variant="destructive" onClick={onDisconnect}>
+                  {t('connectedAccounts.confirmDisconnect.confirm')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        ) : (
+          <Button variant="outline" size="sm" disabled={isLoading} onClick={onConnect}>
+            {pending === 'google' && (
+              <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
+            )}
+            {t('connectedAccounts.connect')}
+          </Button>
+        )}
+      </div>
+
+      {showYoutube && (
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            <YouTubeIcon className="size-5" />
+            <div>
+              <p className="font-medium">YouTube</p>
+              {youtubeAccount && (
+                <p className="text-sm text-muted-foreground">{youtubeAccount}</p>
+              )}
+            </div>
+          </div>
+          {youtubeStatus?.connected ? (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" disabled={isLoading}>
+                  {t('connectedAccounts.disconnect')}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('youtube.confirmDisconnect.title')}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t('youtube.confirmDisconnect.description')}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('connectedAccounts.confirmDisconnect.cancel')}</AlertDialogCancel>
+                  <AlertDialogAction variant="destructive" onClick={onDisconnectYoutube}>
+                    {t('connectedAccounts.confirmDisconnect.confirm')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : (
+            <Button variant="outline" size="sm" disabled={isLoading} onClick={onConnectYoutube}>
+              {pending === 'youtube' && (
+                <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
+              )}
+              {t('connectedAccounts.connect')}
+            </Button>
           )}
         </div>
-      </div>
-      {googleIdentity ? (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="outline" size="sm" disabled={isLoading}>
-              {t('connectedAccounts.disconnect')}
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>{t('connectedAccounts.confirmDisconnect.title')}</AlertDialogTitle>
-              <AlertDialogDescription>
-                {t('connectedAccounts.confirmDisconnect.description')}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>{t('connectedAccounts.confirmDisconnect.cancel')}</AlertDialogCancel>
-              <AlertDialogAction variant="destructive" onClick={onDisconnect}>
-                {t('connectedAccounts.confirmDisconnect.confirm')}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      ) : (
-        <Button variant="outline" size="sm" disabled={isLoading} onClick={onConnect}>
-          {isLoading && (
-            <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
-          )}
-          {t('connectedAccounts.connect')}
-        </Button>
       )}
     </div>
   );

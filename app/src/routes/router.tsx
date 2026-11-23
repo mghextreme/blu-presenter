@@ -64,7 +64,7 @@ import { ViewSchedule } from "./app/schedules/view";
 import { RehearsalSchedule } from "./app/schedules/rehearsal";
 import { loader as singleScheduleLoader } from "./app/schedules/single.loader";
 import { loader as allSchedulesLoader } from "./app/schedules/all.loader";
-import { SpotifyConnectCallback } from "./app/spotify/connect-callback";
+import { SpotifyConnectCallback, YoutubeConnectCallback } from "./app/playlist-connect-callback";
 
 import { EditOrganization } from "./app/organizations/index";
 import { loader as editOrganizationLoader } from "./app/organizations/index.loader"
@@ -106,6 +106,7 @@ export function AppRouter() {
           <Route index={true} element={<Welcome />} loader={() => welcomeLoader({ organizationsService: services.organizationsService })} />
           <Route path="profile" element={<Profile />} loader={() => profileLoader({ usersService: services.usersService, authService: services.authService })} />
           <Route path="spotify/connect-callback" element={<SpotifyConnectCallback />} />
+          <Route path="youtube/connect-callback" element={<YoutubeConnectCallback />} />
           <Route path="songs">
             <Route index={true} element={<SongsIndex />} loader={() => allSongsLoader({ songsService: services.songsService, lang: i18n.language })} />
             <Route path="add" element={<EditSong edit={false} />} />

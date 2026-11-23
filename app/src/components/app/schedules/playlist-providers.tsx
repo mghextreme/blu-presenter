@@ -11,10 +11,12 @@ import {
   findAutoReference,
   getSchedulePlaylistProjection,
   SchedulePlaylistProjection,
-} from "@/lib/spotify";
+} from "@/lib/schedule-playlists";
+import { getSpotifyTrackId, getYouTubeVideoId } from "@/lib/songs";
 import type { ServicesProviderState } from "@/hooks/services.provider";
-import type { ISpotifyConnectionStatus } from "@/services/spotify.service";
+import type { IPlaylistConnectionStatus } from "@/services/playlist-integration.service";
 import { SpotifyIcon } from "@/components/logos/spotify";
+import { YouTubeIcon } from "@/components/logos/youtube";
 
 /** The current user's access to a provider's playlist feature. */
 export interface SchedulePlaylistProviderStatus {
@@ -35,7 +37,7 @@ export interface SchedulePlaylistCreateOptions {
  * A streaming service for which BluPresenter can auto-generate a schedule
  * playlist (e.g. a Spotify playlist mirroring the schedule's songs).
  *
- * To support another service (YouTube Music, Deezer, ...), add an entry to
+ * To support another service (Deezer, Apple Music, ...), add an entry to
  * `SCHEDULE_PLAYLIST_PROVIDERS` and its i18n strings under the entry's prefix
  * in the schedule locale files (e.g. `locales/en/schedules.json`).
  */
@@ -68,6 +70,12 @@ export interface SchedulePlaylistProvider {
   remove: (services: ServicesProviderState, schedule: ISchedule) => Promise<void>;
 }
 
+/** Maps a playlist integration's connection status to the provider status. */
+const selectStatus = (status: IPlaylistConnectionStatus): SchedulePlaylistProviderStatus => ({
+  enabled: !!status.playlistsEnabled,
+  connected: !!status.connected,
+});
+
 /** All registered schedule playlist providers. */
 export const SCHEDULE_PLAYLIST_PROVIDERS: readonly SchedulePlaylistProvider[] = [
   {
@@ -76,18 +84,32 @@ export const SCHEDULE_PLAYLIST_PROVIDERS: readonly SchedulePlaylistProvider[] = 
     i18nPrefix: 'spotify',
     nameKey: 'spotify.serviceName',
     findReference: (references) => findAutoReference(references, 'spotify-auto'),
-    getProjection: (schedule) => getSchedulePlaylistProjection(schedule.items),
+    getProjection: (schedule) => getSchedulePlaylistProjection(schedule.items, getSpotifyTrackId),
     statusQuery: ({ spotifyService }) => ({
       ...spotifyService.getStatusQuery(),
-      select: (status: ISpotifyConnectionStatus) => ({
-        enabled: !!status.playlistsEnabled,
-        connected: !!status.connected,
-      }),
+      select: selectStatus,
     }),
     getConnectUrl: async ({ spotifyService }) => (await spotifyService.getConnectUrl()).url,
     sync: ({ schedulesService }, schedule, options) =>
-      schedulesService.syncSpotifyPlaylist(schedule.id, schedule.organization!.id, options),
+      schedulesService.syncPlaylist(schedule.id, schedule.organization!.id, 'spotify', options),
     remove: ({ schedulesService }, schedule) =>
-      schedulesService.removeSpotifyPlaylist(schedule.id, schedule.organization!.id),
+      schedulesService.removePlaylist(schedule.id, schedule.organization!.id, 'spotify'),
+  },
+  {
+    source: 'youtube-auto',
+    Icon: YouTubeIcon,
+    i18nPrefix: 'youtube',
+    nameKey: 'youtube.serviceName',
+    findReference: (references) => findAutoReference(references, 'youtube-auto'),
+    getProjection: (schedule) => getSchedulePlaylistProjection(schedule.items, getYouTubeVideoId),
+    statusQuery: ({ youtubeService }) => ({
+      ...youtubeService.getStatusQuery(),
+      select: selectStatus,
+    }),
+    getConnectUrl: async ({ youtubeService }) => (await youtubeService.getConnectUrl()).url,
+    sync: ({ schedulesService }, schedule, options) =>
+      schedulesService.syncPlaylist(schedule.id, schedule.organization!.id, 'youtube', options),
+    remove: ({ schedulesService }, schedule) =>
+      schedulesService.removePlaylist(schedule.id, schedule.organization!.id, 'youtube'),
   },
 ];

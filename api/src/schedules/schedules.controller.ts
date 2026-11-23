@@ -22,12 +22,14 @@ import { SchedulesService } from './schedules.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
 import { Public } from 'src/supabase/public.decorator';
 import { SpotifyService } from 'src/spotify/spotify.service';
+import { YoutubeService } from 'src/youtube/youtube.service';
 
 @Controller('schedules')
 export class SchedulesController {
   constructor(
     private readonly schedulesService: SchedulesService,
     private readonly spotifyService: SpotifyService,
+    private readonly youtubeService: YoutubeService,
   ) {}
 
   @Post('search')
@@ -91,5 +93,24 @@ export class SchedulesController {
     @Param('id') id: number,
   ): Promise<void> {
     return await this.spotifyService.removeSchedulePlaylist(orgId, id);
+  }
+
+  @Post(':id/youtube-playlist')
+  @OrganizationRole('owner', 'admin', 'member')
+  async syncYoutubePlaylist(
+    @Headers('Organization') orgId: number,
+    @Param('id') id: number,
+    @Body() dto: CreateSchedulePlaylistDto,
+  ): Promise<SchedulePlaylistSyncResult> {
+    return await this.youtubeService.syncSchedulePlaylist(orgId, id, dto);
+  }
+
+  @Delete(':id/youtube-playlist')
+  @OrganizationRole('owner', 'admin', 'member')
+  async removeYoutubePlaylist(
+    @Headers('Organization') orgId: number,
+    @Param('id') id: number,
+  ): Promise<void> {
+    return await this.youtubeService.removeSchedulePlaylist(orgId, id);
   }
 }
