@@ -21,7 +21,8 @@ export interface IPlaylistConnection {
  * the user connects their account, the connection tokens.
  *
  * `enabled` is managed directly in the database (users cannot change it) and
- * gates the playlist features. It is kept across connects, token refreshes
+ * gates the playlist features of providers that require opting in (Spotify;
+ * YouTube is open to everyone once configured). It is kept across connects, token refreshes
  * and disconnects, so an enabled user who never connected is stored as
  * `{ "enabled": true }`.
  */

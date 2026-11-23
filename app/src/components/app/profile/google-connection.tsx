@@ -44,7 +44,7 @@ export function GoogleConnection({
 
   const { data: youtubeStatus } = useQuery({ ...youtubeService.getStatusQuery(), retry: false });
 
-  // YouTube playlists are an opt-in feature; kept visible for users who
+  // Shown whenever the server has YouTube configured; also kept for users who
   // already connected so they can still disconnect.
   const showYoutube = !!youtubeStatus?.playlistsEnabled || !!youtubeStatus?.connected;
   const youtubeAccount = youtubeStatus?.connected

@@ -227,10 +227,13 @@ describe('YoutubeService', () => {
       });
     });
 
-    it('reports playlists disabled without the enabled flag', async () => {
+    it('reports playlists enabled without a per-user flag', async () => {
       youtubeEnabled = false;
+      storedConnection = null;
       expect(await service.getStatus()).toMatchObject({
-        playlistsEnabled: false,
+        configured: true,
+        playlistsEnabled: true,
+        connected: false,
       });
     });
 
@@ -270,9 +273,19 @@ describe('YoutubeService', () => {
       ).toMatchObject({ p: 'youtube', uid: 42 });
     });
 
-    it('refuses users without the enabled flag', async () => {
+    it('allows users without the enabled flag', async () => {
       youtubeEnabled = false;
-      await expect(service.getConnectUrl()).rejects.toThrow(ForbiddenException);
+      storedConnection = null;
+      await expect(service.getConnectUrl()).resolves.toHaveProperty('url');
+    });
+
+    it('refuses when the server is not configured', async () => {
+      const module = await buildModule({ 'youtube.clientSecret': undefined });
+      const unconfigured = await module.resolve<YoutubeService>(YoutubeService);
+
+      await expect(unconfigured.getConnectUrl()).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 

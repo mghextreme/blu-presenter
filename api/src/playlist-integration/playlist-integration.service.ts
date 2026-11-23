@@ -77,7 +77,8 @@ class InvalidGrantException extends BadRequestException {
  * shares:
  *
  * - the per-user connection, stored in the provider's `users` jsonb column
- *   together with the database-managed `enabled` flag;
+ *   together with the database-managed `enabled` flag (only checked by
+ *   providers that require opting in, see `requiresOptIn`);
  * - the OAuth authorization code flow (signed state, code exchange, token
  *   refresh with a retry on 401);
  * - the schedule sync: projecting songs to provider item ids, creating the
@@ -182,11 +183,20 @@ export abstract class PlaylistIntegrationService {
     return !!this.clientId && !!this.clientSecret;
   }
 
+  /**
+   * Whether users need the database-managed `enabled` flag before they can
+   * connect. When false, every user can once the server is configured.
+   */
+  protected get requiresOptIn(): boolean {
+    return true;
+  }
+
   /** Whether the user may connect their account and create playlists. */
   private isPlaylistsEnabled(
     data: IUserPlaylistIntegrationData | null,
   ): boolean {
-    return this.isConfigured && data?.enabled === true;
+    if (!this.isConfigured) return false;
+    return !this.requiresOptIn || data?.enabled === true;
   }
 
   private async assertPlaylistsEnabled(): Promise<void> {

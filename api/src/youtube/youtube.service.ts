@@ -52,6 +52,11 @@ export class YoutubeService extends PlaylistIntegrationService {
     'https://www.googleapis.com/auth/youtube',
   ];
 
+  // Available to every user once YOUTUBE_CLIENT_ID/SECRET are set.
+  protected get requiresOptIn(): boolean {
+    return false;
+  }
+
   protected extraAuthorizeParams(): Record<string, string> {
     // Google only issues a refresh token on offline access, and only on the
     // first consent unless the consent screen is shown again.
