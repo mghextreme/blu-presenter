@@ -119,13 +119,17 @@ function SpotifyEmbed({ uri, height = 80 }: Readonly<{ uri: string; height?: num
   return <div ref={containerRef} className="rounded-lg overflow-hidden" />;
 }
 
-function YouTubeEmbed({ videoId }: Readonly<{ videoId: string }>) {
+function YouTubeEmbed({ videoId, playlistId }: Readonly<{ videoId?: string; playlistId?: string }>) {
+  const src = playlistId
+    ? `https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(playlistId)}&autoplay=1`
+    : `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
+
   return (
     <iframe
-      src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`}
+      src={src}
       title="YouTube reference player"
       width="100%"
-      height={200}
+      height={playlistId ? 315 : 200}
       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
       loading="lazy"
       className="rounded-lg border-0"
@@ -299,6 +303,11 @@ export function ReferencePlayer({
       {embed?.type === 'youtube' && (
         <div className="mt-3 rounded-lg overflow-hidden">
           <YouTubeEmbed key={embed.videoId} videoId={embed.videoId} />
+        </div>
+      )}
+      {embed?.type === 'youtube-playlist' && (
+        <div className="mt-3 rounded-lg overflow-hidden">
+          <YouTubeEmbed key={embed.playlistId} playlistId={embed.playlistId} />
         </div>
       )}
       {embed?.type === 'deezer' && (

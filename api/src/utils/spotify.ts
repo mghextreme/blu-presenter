@@ -1,6 +1,6 @@
 /**
  * Shared Spotify helpers for the playlist sync feature. Mirrored in the
- * frontend at `app/src/lib/spotify.ts` — keep both implementations identical.
+ * frontend at `app/src/lib/songs.tsx` — keep both implementations identical.
  */
 
 /**
@@ -19,17 +19,4 @@ export function getSpotifyTrackId(url: string): string | null {
   } catch {
     return null;
   }
-}
-
-/**
- * Deterministic short hash over the ordered track projection of a schedule.
- * Used to detect whether the schedule changed since the last playlist sync.
- */
-export function computeTracksHash(trackIds: string[]): string {
-  const input = trackIds.join('|');
-  let hash = 5381;
-  for (let i = 0; i < input.length; i++) {
-    hash = ((hash << 5) + hash + input.charCodeAt(i)) | 0;
-  }
-  return (hash >>> 0).toString(16).padStart(8, '0');
 }

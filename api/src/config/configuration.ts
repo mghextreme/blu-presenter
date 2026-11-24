@@ -30,6 +30,14 @@ export default () => ({
     stateSecret:
       process.env.SPOTIFY_STATE_SECRET || process.env.SPOTIFY_CLIENT_SECRET,
   },
+  youtube: {
+    // A Google OAuth client with the YouTube Data API v3 enabled.
+    clientId: process.env.YOUTUBE_CLIENT_ID,
+    clientSecret: process.env.YOUTUBE_CLIENT_SECRET,
+    // See spotify.stateSecret.
+    stateSecret:
+      process.env.YOUTUBE_STATE_SECRET || process.env.YOUTUBE_CLIENT_SECRET,
+  },
   apiDocs: {
     enabled: process.env.ENABLE_API_DOCS === 'true',
   },

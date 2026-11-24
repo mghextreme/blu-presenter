@@ -18,6 +18,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
+import QueueListIcon from "@heroicons/react/24/outline/QueueListIcon";
 import { IUserIdentitiesResponse } from "@/types/auth";
 
 interface SpotifyConnectionProps {
@@ -25,6 +27,8 @@ interface SpotifyConnectionProps {
   onIdentitiesChanged: (identities: IUserIdentitiesResponse) => void;
   onBusyChange?: (busy: boolean) => void;
 }
+
+type PendingAction = 'signIn' | 'playlists';
 
 export function SpotifyConnection({
   identities,
@@ -35,77 +39,51 @@ export function SpotifyConnection({
   const queryClient = useQueryClient();
   const { spotifyService, authService } = useServices();
 
-  const [isLoading, setLoading] = useState<boolean>(false);
+  const [pending, setPending] = useState<PendingAction | null>(null);
+  const isLoading = pending !== null;
 
   const spotifyIdentity = identities.identities.find(i => i.provider === 'spotify');
 
   const { data: status } = useQuery({ ...spotifyService.getStatusQuery(), retry: false });
 
-  // The playlist connection is an opt-in feature; everyone else only gets
-  // sign-in with Spotify.
-  const playlistsEnabled = !!status?.playlistsEnabled;
+  // Sign-in is always offered; playlists are an opt-in feature, kept visible
+  // for users who already connected so they can still disconnect.
+  const showPlaylists = !!status?.playlistsEnabled || !!status?.connected;
+  const playlistsAccount = status?.connected
+    ? status.accountName || status.accountId
+    : null;
 
-  const setBusy = (busy: boolean) => onBusyChange?.(busy);
-
-  const onConnect = async () => {
-    try {
-      setBusy(true);
-      setLoading(true);
-      const { url } = await spotifyService.getConnectUrl();
-      setTimeout(() => {
-        window.open(url, '_self');
-      }, 500);
-    } catch (e: any) {
-      toast.error(t('spotify.connectFailed'), {
-        description: await describeApiError(e),
-      });
-      setLoading(false);
-      setBusy(false);
-    }
+  const start = (action: PendingAction) => {
+    onBusyChange?.(true);
+    setPending(action);
+  };
+  const stop = () => {
+    setPending(null);
+    onBusyChange?.(false);
   };
 
-  const onDisconnect = async () => {
+  const onConnectSignIn = async () => {
     try {
-      setBusy(true);
-      setLoading(true);
-      await spotifyService.disconnect();
-      toast.success(t('spotify.disconnected'));
-      await queryClient.invalidateQueries({ queryKey: ['spotify'] });
-    } catch (e: any) {
-      toast.error(t('spotify.disconnectFailed'), {
-        description: await describeApiError(e),
-      });
-    } finally {
-      setLoading(false);
-      setBusy(false);
-    }
-  };
-
-  const onLinkIdentity = async () => {
-    try {
-      setBusy(true);
-      setLoading(true);
+      start('signIn');
       const redirectData = await authService.linkIdentity('spotify');
       localStorage.setItem('link-identity-code-verifier', redirectData.codeVerifier);
 
       setTimeout(() => {
         window.open(redirectData.url, '_self');
-      }, 300);
+      }, 500);
     } catch (e: any) {
       toast.error(t('connectedAccounts.connectFailed'), {
         description: await describeApiError(e),
       });
-      setLoading(false);
-      setBusy(false);
+      stop();
     }
   };
 
-  const onUnlinkIdentity = async () => {
+  const onDisconnectSignIn = async () => {
     if (!spotifyIdentity) return;
 
     try {
-      setBusy(true);
-      setLoading(true);
+      start('signIn');
       await authService.unlinkIdentity(spotifyIdentity.identityId);
       toast.success(t('connectedAccounts.disconnected'));
       const updated = await authService.getIdentities();
@@ -115,45 +93,96 @@ export function SpotifyConnection({
         description: await describeApiError(e),
       });
     } finally {
-      setLoading(false);
-      setBusy(false);
+      stop();
     }
   };
 
-  // Hidden unless Spotify is configured on the server, but kept for users who
-  // already linked it so they can still remove it.
-  if (!status?.configured && !spotifyIdentity) {
-    return null;
-  }
+  const onConnectPlaylists = async () => {
+    try {
+      start('playlists');
+      const { url } = await spotifyService.getConnectUrl();
+      setTimeout(() => {
+        window.open(url, '_self');
+      }, 500);
+    } catch (e: any) {
+      toast.error(t('spotify.connectFailed'), {
+        description: await describeApiError(e),
+      });
+      stop();
+    }
+  };
+
+  const onDisconnectPlaylists = async () => {
+    try {
+      start('playlists');
+      await spotifyService.disconnect();
+      toast.success(t('spotify.disconnected'));
+      await queryClient.invalidateQueries({ queryKey: ['spotify'] });
+    } catch (e: any) {
+      toast.error(t('spotify.disconnectFailed'), {
+        description: await describeApiError(e),
+      });
+    } finally {
+      stop();
+    }
+  };
 
   return (
-    <div className="flex items-center justify-between rounded-lg border p-4">
-      <div className="flex items-center gap-3">
-        <SpotifyIcon className="size-5" />
-        <div>
-          <p className="font-medium">Spotify</p>
-          {status?.connected ? (
-            <p className="text-sm text-muted-foreground">
-              {t('spotify.connectedAs', { name: status.spotifyDisplayName || status.spotifyUserId })}
-              {spotifyIdentity && ' · ' + t('spotify.signInEnabled')}
-            </p>
-          ) : spotifyIdentity ? (
-            <p className="text-sm text-muted-foreground">{t('spotify.signInEnabled')}</p>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {playlistsEnabled ? t('spotify.description') : t('spotify.signInDescription')}
-            </p>
-          )}
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        {status?.connected ? (
-          <>
-            {!spotifyIdentity && status?.configured && (
-              <Button variant="secondary" size="sm" disabled={isLoading} onClick={onLinkIdentity}>
-                {t('spotify.enableSignIn')}
-              </Button>
+    <div className="rounded-lg border divide-y">
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-3">
+          <SpotifyIcon className="size-5" />
+          <div>
+            <p className="font-medium">Spotify</p>
+            {spotifyIdentity?.email && (
+              <p className="text-sm text-muted-foreground">{spotifyIdentity.email}</p>
             )}
+          </div>
+        </div>
+        {spotifyIdentity ? (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm" disabled={isLoading}>
+                {t('connectedAccounts.disconnect')}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t('spotify.confirmUnlinkSignIn.title')}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t('spotify.confirmUnlinkSignIn.description')}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t('connectedAccounts.confirmDisconnect.cancel')}</AlertDialogCancel>
+                <AlertDialogAction variant="destructive" onClick={onDisconnectSignIn}>
+                  {t('connectedAccounts.confirmDisconnect.confirm')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        ) : (
+          <Button variant="outline" size="sm" disabled={isLoading} onClick={onConnectSignIn}>
+            {pending === 'signIn' && (
+              <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
+            )}
+            {t('connectedAccounts.connect')}
+          </Button>
+        )}
+      </div>
+
+      {showPlaylists && (
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            <QueueListIcon className="size-5" />
+            <div>
+              <p className="font-medium">{t('spotify.playlists')}</p>
+              {playlistsAccount && (
+                <p className="text-sm text-muted-foreground">{playlistsAccount}</p>
+              )}
+            </div>
+          </div>
+          {status?.connected ? (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" disabled={isLoading}>
@@ -169,32 +198,22 @@ export function SpotifyConnection({
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>{t('connectedAccounts.confirmDisconnect.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" onClick={onDisconnect}>
+                  <AlertDialogAction variant="destructive" onClick={onDisconnectPlaylists}>
                     {t('connectedAccounts.confirmDisconnect.confirm')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          </>
-        ) : (
-          <>
-            {spotifyIdentity && (
-              <Button variant="outline" size="sm" disabled={isLoading} onClick={onUnlinkIdentity}>
-                {t('spotify.unlinkSignIn')}
-              </Button>
-            )}
-            {playlistsEnabled ? (
-              <Button variant="outline" size="sm" disabled={isLoading} onClick={onConnect}>
-                {t('connectedAccounts.connect')}
-              </Button>
-            ) : !spotifyIdentity && status?.configured && (
-              <Button variant="outline" size="sm" disabled={isLoading} onClick={onLinkIdentity}>
-                {t('connectedAccounts.connect')}
-              </Button>
-            )}
-          </>
-        )}
-      </div>
+          ) : (
+            <Button variant="outline" size="sm" disabled={isLoading} onClick={onConnectPlaylists}>
+              {pending === 'playlists' && (
+                <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
+              )}
+              {t('connectedAccounts.connect')}
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

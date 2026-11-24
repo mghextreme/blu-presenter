@@ -10,8 +10,8 @@ import { REQUEST } from '@nestjs/core';
 import { createHmac } from 'node:crypto';
 import { SpotifyService } from '../spotify.service';
 import { Schedule, Song, User } from '../../entities';
-import { ISpotifyConnection } from '../../types/spotify-connection.interface';
-import { computeTracksHash } from '../../utils/spotify';
+import { IPlaylistConnection } from '../../types/playlist-connection.interface';
+import { computeTracksHash } from '../../utils/schedule-references';
 import { OrganizationsBaseService } from '../../organizations/organizations.service';
 
 describe('SpotifyService', () => {
@@ -25,7 +25,7 @@ describe('SpotifyService', () => {
    * What the "database" holds for the current user's spotify jsonb column.
    * `undefined` simulates a missing user row.
    */
-  let storedConnection: ISpotifyConnection | null | undefined;
+  let storedConnection: IPlaylistConnection | null | undefined;
 
   /** The `enabled` flag stored alongside the connection (playlist access). */
   let spotifyEnabled: boolean;
@@ -36,7 +36,7 @@ describe('SpotifyService', () => {
     return { id: 42, spotify: { ...storedConnection, enabled: true } };
   };
 
-  const validConnection = (): ISpotifyConnection => ({
+  const validConnection = (): IPlaylistConnection => ({
     accessToken: 'access-token',
     refreshToken: 'refresh-token',
     expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
@@ -45,7 +45,7 @@ describe('SpotifyService', () => {
     displayName: 'Matias S.',
   });
 
-  const expiredConnection = (): ISpotifyConnection => ({
+  const expiredConnection = (): IPlaylistConnection => ({
     ...validConnection(),
     accessToken: 'stale-access-token',
     expiresAt: new Date(Date.now() - 1000).toISOString(),
@@ -114,9 +114,9 @@ describe('SpotifyService', () => {
     createHmac('sha256', STATE_SECRET).update(payload).digest('base64url');
 
   const makeState = (uid: number, exp: number): string => {
-    const payload = Buffer.from(JSON.stringify({ uid, exp })).toString(
-      'base64url',
-    );
+    const payload = Buffer.from(
+      JSON.stringify({ p: 'spotify', uid, exp }),
+    ).toString('base64url');
     return `${payload}.${signStatePayload(payload)}`;
   };
 
@@ -164,8 +164,8 @@ describe('SpotifyService', () => {
         configured: true,
         playlistsEnabled: true,
         connected: true,
-        spotifyUserId: 'sp-user-1',
-        spotifyDisplayName: 'Matias S.',
+        accountId: 'sp-user-1',
+        accountName: 'Matias S.',
         scope: 'user-read-email',
       });
     });
@@ -288,8 +288,8 @@ describe('SpotifyService', () => {
       const status = await service.completeConnect('auth-code', state);
 
       expect(status.connected).toBe(true);
-      expect(status.spotifyUserId).toBe('sp-user-9');
-      expect(status.spotifyDisplayName).toBe('Matias Spotify');
+      expect(status.accountId).toBe('sp-user-9');
+      expect(status.accountName).toBe('Matias Spotify');
 
       expect(usersUpdate).toHaveBeenCalledWith(42, {
         spotify: expect.objectContaining({

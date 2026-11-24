@@ -8,14 +8,15 @@ export interface SchedulePlaylistSyncResult {
   }[];
 }
 
-export interface SpotifyConnectionStatus {
-  /** Whether the Spotify integration is configured on this server. */
+export interface PlaylistConnectionStatus {
+  /** Whether the integration is configured on this server. */
   configured: boolean;
   /** Whether the current user may create/sync playlists (configured and the
-   * user has the `spotify-playlists` feature). */
+   * `enabled` flag is set for the user). */
   playlistsEnabled: boolean;
   connected: boolean;
-  spotifyUserId: string | null;
-  spotifyDisplayName: string | null;
+  /** The account id on the provider (Spotify user id, YouTube channel id). */
+  accountId: string | null;
+  accountName: string | null;
   scope: string | null;
 }

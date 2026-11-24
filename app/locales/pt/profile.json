@@ -40,6 +40,7 @@
     "disconnectFailed": "Erro desconectando conta",
     "linking": "Conectando conta...",
     "linkError": "Erro ao conectar conta",
+    "linked": "Conta conectada!",
     "confirmDisconnect": {
       "title": "Desconectar conta Google?",
       "description": "Você não poderá mais entrar com esta conta Google. Certifique-se de ter uma senha definida antes de desconectar.",
@@ -48,14 +49,9 @@
     }
   },
   "spotify": {
-    "description": "Conecte-se para criar e sincronizar playlists do Spotify para suas programações",
-    "signInDescription": "Entre no BluPresenter com sua conta do Spotify",
     "connecting": "Conectando ao Spotify...",
     "connected": "Spotify conectado!",
-    "connectedAs": "Conectado como {{name}}",
-    "signInEnabled": "login habilitado",
-    "enableSignIn": "Habilitar login com Spotify",
-    "unlinkSignIn": "Remover login",
+    "playlists": "Playlists do Spotify",
     "disconnected": "Spotify desconectado!",
     "disconnectFailed": "Erro ao desconectar do Spotify",
     "connectFailed": "Erro ao conectar ao Spotify",
@@ -65,6 +61,22 @@
       "description": "Você não poderá mais criar ou sincronizar playlists do Spotify. Playlists já criadas permanecem na sua conta do Spotify. Você pode reconectar a qualquer momento.",
       "confirm": "Desconectar",
       "cancel": "Cancelar"
+    },
+    "confirmUnlinkSignIn": {
+      "title": "Desconectar conta Spotify?",
+      "description": "Você não poderá mais entrar com esta conta Spotify. Certifique-se de ter uma senha definida antes de desconectar."
+    }
+  },
+  "youtube": {
+    "connecting": "Conectando ao YouTube...",
+    "connected": "YouTube conectado!",
+    "disconnected": "YouTube desconectado!",
+    "disconnectFailed": "Erro ao desconectar do YouTube",
+    "connectFailed": "Erro ao conectar ao YouTube",
+    "connectCancelled": "A conexão com o YouTube não foi concluída.",
+    "confirmDisconnect": {
+      "title": "Desconectar o YouTube?",
+      "description": "Você não poderá mais criar ou sincronizar playlists do YouTube. Playlists já criadas permanecem no seu canal do YouTube. Você pode reconectar a qualquer momento."
     }
   }
 }

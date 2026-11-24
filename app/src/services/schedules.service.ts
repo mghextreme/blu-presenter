@@ -1,5 +1,5 @@
 import { ApiService } from "./api.service";
-import { ISchedule, ISchedulePlaylistSyncResult } from "@/types"
+import { ISchedule, ISchedulePlaylistSyncResult, SchedulePlaylistProviderId } from "@/types"
 import { getOfflineScheduleById, searchOfflineSchedules } from "@/lib/offline/reads";
 
 export class SchedulesService extends ApiService {
@@ -88,12 +88,15 @@ export class SchedulesService extends ApiService {
     this.clearCache();
   }
 
-  public async syncSpotifyPlaylist(
+  /** Creates (or re-syncs) the schedule's auto-generated playlist on a
+   * streaming service. */
+  public async syncPlaylist(
     scheduleId: number,
     orgId: number,
+    provider: SchedulePlaylistProviderId,
     options: { name?: string; isPublic?: boolean } = {},
   ): Promise<ISchedulePlaylistSyncResult> {
-    return await this.postRequest(`/schedules/${scheduleId}/spotify-playlist`, JSON.stringify({
+    return await this.postRequest(`/schedules/${scheduleId}/${provider}-playlist`, JSON.stringify({
       name: options.name,
       public: options.isPublic,
     }), {
@@ -102,8 +105,13 @@ export class SchedulesService extends ApiService {
     });
   }
 
-  public async removeSpotifyPlaylist(scheduleId: number, orgId: number): Promise<void> {
-    await this.deleteRequest(`/schedules/${scheduleId}/spotify-playlist`, {
+  /** Detaches the schedule's auto-generated playlist (it stays on the service). */
+  public async removePlaylist(
+    scheduleId: number,
+    orgId: number,
+    provider: SchedulePlaylistProviderId,
+  ): Promise<void> {
+    await this.deleteRequest(`/schedules/${scheduleId}/${provider}-playlist`, {
       'Organization': orgId.toString(),
     });
     this.clearCache();

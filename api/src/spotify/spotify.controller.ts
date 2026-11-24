@@ -1,6 +1,9 @@
 import { Body, Controller, Delete, Get, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { SpotifyConnectCallbackDto, SpotifyConnectionStatus } from 'src/types';
+import {
+  PlaylistConnectCallbackDto,
+  PlaylistConnectionStatus,
+} from 'src/types';
 import { SpotifyService } from './spotify.service';
 
 @Controller('spotify')
@@ -9,7 +12,7 @@ export class SpotifyController {
   constructor(private readonly spotifyService: SpotifyService) {}
 
   @Get('status')
-  async getStatus(): Promise<SpotifyConnectionStatus> {
+  async getStatus(): Promise<PlaylistConnectionStatus> {
     return this.spotifyService.getStatus();
   }
 
@@ -20,13 +23,13 @@ export class SpotifyController {
 
   @Post('connect')
   async completeConnect(
-    @Body() dto: SpotifyConnectCallbackDto,
-  ): Promise<SpotifyConnectionStatus> {
+    @Body() dto: PlaylistConnectCallbackDto,
+  ): Promise<PlaylistConnectionStatus> {
     return this.spotifyService.completeConnect(dto.code, dto.state);
   }
 
   @Delete('connect')
-  async disconnect(): Promise<SpotifyConnectionStatus> {
+  async disconnect(): Promise<PlaylistConnectionStatus> {
     return this.spotifyService.disconnect();
   }
 }

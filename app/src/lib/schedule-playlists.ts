@@ -1,10 +1,10 @@
 import { IScheduleItem, ISongReference } from "@/types";
 import { ISchedulePlaylistReference } from "@/types/schedule-playlist-reference.interface";
-import { getSpotifyTrackId } from "@/lib/songs";
 
 /**
- * Spotify playlist sync helpers. Mirrors the API implementation at
- * `api/src/utils/spotify.ts` — keep both implementations identical.
+ * Schedule playlist sync helpers (Spotify, YouTube). Mirrors the API
+ * implementation at `api/src/playlist-integration/` and
+ * `api/src/utils/schedule-references.ts` — keep both implementations identical.
  */
 
 /** The `source` values identifying auto-generated playlist references. */
@@ -38,20 +38,23 @@ export function computeTracksHash(trackIds: string[]): string {
 }
 
 export interface SchedulePlaylistProjection {
-  /** Ordered Spotify track ids of all songs that have one. */
+  /** Ordered provider item ids (track, video) of all songs that have one. */
   trackIds: string[];
-  /** Songs without any Spotify track reference. */
+  /** Songs without a reference on the provider. */
   skipped: { songId: number; title: string }[];
-  /** Hash over the ordered track ids (see computeTracksHash). */
+  /** Hash over the ordered item ids (see computeTracksHash). */
   hash: string;
 }
 
 /**
- * Computes the ordered Spotify track projection of a schedule's song items —
- * the same list the "create/re-sync playlist" action writes to Spotify.
+ * Computes the ordered projection of a schedule's song items on a provider —
+ * the same list the "create/re-sync playlist" action writes to it.
+ * `getItemId` extracts the provider's item id from a song reference URL
+ * (e.g. getSpotifyTrackId, getYouTubeVideoId).
  */
 export function getSchedulePlaylistProjection(
-  items?: IScheduleItem[],
+  items: IScheduleItem[] | undefined,
+  getItemId: (url: string) => string | null,
 ): SchedulePlaylistProjection {
   const trackIds: string[] = [];
   const skipped: { songId: number; title: string }[] = [];
@@ -61,7 +64,7 @@ export function getSchedulePlaylistProjection(
 
     const songItem = item as { id: number; title?: string; references?: ISongReference[] };
     const trackId = (songItem.references ?? [])
-      .map((reference) => getSpotifyTrackId(reference.url))
+      .map((reference) => getItemId(reference.url))
       .find((id) => id !== null);
 
     if (trackId) {
