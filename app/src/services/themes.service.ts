@@ -1,62 +1,66 @@
+import { queryOptions } from "@tanstack/react-query";
 import { ApiService } from "./api.service";
 import { ITheme } from "@/types"
 import { mergeTheme } from "@/lib/theme-config";
 import { getOfflineThemeById, getOfflineThemes, searchOfflineThemes } from "@/lib/offline/reads";
 
+export interface ThemeSearchPayload {
+  query?: string;
+  organizations?: number[];
+  page?: number;
+  itemsPerPage?: number;
+}
+
+const themeKeys = {
+  all: ['themes'] as const,
+  detail: (themeId: number) => ['themes', 'id', themeId] as const,
+  allForUser: ['themes', 'allForUser'] as const,
+  forSession: (orgId: number, sessionId: number, secret?: string, theme?: number) => ['themes', 'session', orgId, sessionId, secret || null, theme ?? null] as const,
+  search: (payload: ThemeSearchPayload) => ['themes', 'search', payload] as const,
+};
+
 export class ThemesService extends ApiService {
 
-  public clearCache(): void {
-    this.queryClient.removeQueries({ queryKey: ['themes'] });
+  public invalidateCache(): Promise<void> {
+    return this.queryClient.invalidateQueries({ queryKey: themeKeys.all });
   }
 
-  public async search(payload: {
-    query?: string;
-    organizations?: number[];
-    page?: number;
-    itemsPerPage?: number;
-  }): Promise<ITheme[]> {
-    if (this.isOffline()) {
-      return await searchOfflineThemes(payload);
-    }
+  public searchQuery(payload: ThemeSearchPayload) {
+    return queryOptions({
+      queryKey: themeKeys.search(payload),
+      queryFn: () => this.withOfflineFallback(
+        async () => (await this.postRequest('/themes/search', JSON.stringify(payload), {
+          'content-type': 'application/json',
+        }) as ITheme[]).map(mergeTheme),
+        () => searchOfflineThemes(payload),
+      ),
+    });
+  }
 
-    try {
-      const themes = await this.postRequest('/themes/search', JSON.stringify(payload), {
-        'content-type': 'application/json',
-      }) as ITheme[];
-      return themes.map(mergeTheme);
-    } catch (e) {
-      if (this.isNetworkError(e)) {
-        return await searchOfflineThemes(payload);
-      }
-      throw e;
-    }
+  public async search(payload: ThemeSearchPayload): Promise<ITheme[]> {
+    return await this.queryClient.query(this.searchQuery(payload));
+  }
+
+  public allForUserQuery() {
+    return queryOptions({
+      queryKey: themeKeys.allForUser,
+      queryFn: () => this.withOfflineFallback(
+        async () => (await this.getRequest('/themes/user/all') as ITheme[]).map(mergeTheme),
+        () => getOfflineThemes(),
+      ),
+    });
   }
 
   public async getAllForUser(): Promise<ITheme[]> {
-    if (this.isOffline()) {
-      return await getOfflineThemes();
-    }
-
-    try {
-      const themes = await this.getOrFetch({
-        queryKey: ['themes', 'allForUser'],
-        queryFn: async () => await this.getRequest('/themes/user/all') as ITheme[],
-      });
-      return themes.map(mergeTheme);
-    } catch (e) {
-      if (this.isNetworkError(e)) {
-        return await getOfflineThemes();
-      }
-      throw e;
-    }
+    return await this.queryClient.query(this.allForUserQuery());
   }
 
-  public async getBySessionSecret(
-    orgId: number,
-    sessionId: number,
-    secret?: string,
-    theme?: number,
-  ) {
+  /** Requests the themes from the API even when a fresh copy is cached. */
+  public async fetchAllForUser(): Promise<ITheme[]> {
+    return await this.fetchFresh(this.allForUserQuery());
+  }
+
+  public forSessionQuery(orgId: number, sessionId: number, secret?: string, theme?: number) {
     const params = new URLSearchParams();
     if (secret && secret.length > 0) {
       params.append('secret', secret);
@@ -65,30 +69,31 @@ export class ThemesService extends ApiService {
       params.append('theme', theme.toString());
     }
 
-    const themes = await this.getOrFetch({
-      queryKey: ['themes', 'session', sessionId, theme ?? null],
-      queryFn: async () => await this.getRequest(`/themes/session/${orgId}/${sessionId}?${params.toString()}`) as ITheme[],
+    return queryOptions({
+      queryKey: themeKeys.forSession(orgId, sessionId, secret, theme),
+      queryFn: async () => (await this.getRequest(`/themes/session/${orgId}/${sessionId}?${params.toString()}`) as ITheme[]).map(mergeTheme),
     });
-    return themes.map(mergeTheme);
+  }
+
+  public async getBySessionSecret(orgId: number, sessionId: number, secret?: string, theme?: number): Promise<ITheme[]> {
+    return await this.queryClient.query(this.forSessionQuery(orgId, sessionId, secret, theme));
+  }
+
+  public byIdQuery(themeId: number) {
+    return queryOptions({
+      queryKey: themeKeys.detail(themeId),
+      queryFn: () => this.withOfflineFallback(
+        async () => {
+          const theme = await this.getRequest(`/themes/${themeId}`) as ITheme | null;
+          return theme ? mergeTheme(theme) : null;
+        },
+        () => getOfflineThemeById(themeId),
+      ),
+    });
   }
 
   public async getById(themeId: number): Promise<ITheme | null> {
-    if (this.isOffline()) {
-      return await getOfflineThemeById(themeId);
-    }
-
-    try {
-      const theme = await this.getOrFetch({
-        queryKey: ['themes', 'id', themeId],
-        queryFn: async () => await this.getRequest(`/themes/${themeId}`) as ITheme,
-      });
-      return theme ? mergeTheme(theme) : null;
-    } catch (e) {
-      if (this.isNetworkError(e)) {
-        return await getOfflineThemeById(themeId);
-      }
-      throw e;
-    }
+    return await this.queryClient.query(this.byIdQuery(themeId));
   }
 
   public async add(value: ITheme, orgId: number): Promise<ITheme | null> {
@@ -96,7 +101,7 @@ export class ThemesService extends ApiService {
       'content-type': 'application/json',
       'Organization': orgId.toString(),
     }) as ITheme;
-    this.clearCache();
+    void this.invalidateCache();
     return response;
   }
 
@@ -105,7 +110,7 @@ export class ThemesService extends ApiService {
       'content-type': 'application/json',
       'Organization': orgId.toString(),
     }) as ITheme;
-    this.clearCache();
+    void this.invalidateCache();
     return response;
   }
 
@@ -113,7 +118,8 @@ export class ThemesService extends ApiService {
     await this.deleteRequest(`/themes/${themeId}`, {
       'Organization': orgId.toString(),
     });
-    this.clearCache();
+    this.queryClient.removeQueries({ queryKey: themeKeys.detail(themeId) });
+    void this.invalidateCache();
   }
 
   public async copyToOrganization(id: number, toOrganizationId: number, sourceOrgId: number): Promise<void> {
@@ -124,6 +130,7 @@ export class ThemesService extends ApiService {
       'content-type': 'application/json',
       'Organization': sourceOrgId.toString(),
     });
+    void this.invalidateCache();
   }
 
 }

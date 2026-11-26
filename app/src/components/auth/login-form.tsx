@@ -2,6 +2,7 @@
 "use client"
 
 import { useState, HTMLAttributes } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Link, Navigate } from "react-router-dom";
 import { Turnstile } from '@marsidev/react-turnstile'
 
@@ -22,6 +23,7 @@ import { useServices } from "@/hooks/useServices";
 import { toast } from "sonner";
 import { ApiError } from "@/types";
 import { SocialLogin } from "./social-login";
+import { useSocialSignIn } from "./use-social-sign-in";
 
 import { captcha } from "@/lib/config";
 
@@ -37,7 +39,6 @@ export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
   const { t } = useTranslation("auth");
   const { email: invitedEmail, id, secret } = useInvitation();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { isLoggedIn } = useAuth();
   const { authService } = useServices();
 
@@ -51,15 +52,8 @@ export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
 
   const [captchaToken, setCaptchaToken] = useState<string>('');
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      if (captcha.enabled && !captchaToken) {
-        toast.error(t('errors.captcha verification process failed'));
-        return;
-      }
-
-      setIsLoading(true);
-
+  const signIn = useMutation({
+    mutationFn: (values: z.infer<typeof formSchema>) => {
       let inviteValues = {};
       if (id && secret) {
         inviteValues = {
@@ -70,12 +64,13 @@ export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
         };
       }
 
-      await authService.signIn({
+      return authService.signIn({
         ...values,
         ...inviteValues,
         captchaToken,
       });
-    } catch (e: unknown) {
+    },
+    onError: async (e: unknown) => {
       const error = e as ApiError;
       if (error) {
         const errorContent = await error.raw?.json();
@@ -85,9 +80,21 @@ export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
           });
         }
       }
-    } finally {
-      setIsLoading(false);
+    },
+  });
+
+  const socialSignIn = useSocialSignIn();
+
+  // A successful social sign-in stays busy: the page is about to redirect to the provider.
+  const isLoading = signIn.isPending || socialSignIn.isPending || socialSignIn.isSuccess;
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (captcha.enabled && !captchaToken) {
+      toast.error(t('errors.captcha verification process failed'));
+      return;
     }
+
+    signIn.mutate(values);
   }
 
   if (isLoggedIn) {
@@ -171,7 +178,7 @@ export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
           </span>
         </div>
       </div>
-      <SocialLogin isLoading={isLoading} setIsLoading={setIsLoading} />
+      <SocialLogin disabled={isLoading} onSignIn={socialSignIn.mutate} />
     </div>
   )
 }

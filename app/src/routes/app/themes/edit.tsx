@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useLoaderData, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { BaseTheme, filterOrganizationsByFeature, isRoleHigherOrEqualThan, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
+import { filterOrganizationsByFeature, isRoleHigherOrEqualThan, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useServices } from "@/hooks/useServices";
 import { Button } from "@/components/ui/button";
@@ -27,26 +28,45 @@ type EditThemeProps = {
   edit?: boolean
 }
 
+const newTheme: ITheme = {
+  id: 0,
+  name: '',
+  extends: 'lyrics',
+  config: LyricsTheme.config,
+};
+
 export function EditTheme({
   edit = true,
 }: Readonly<EditThemeProps>) {
+  return edit ? <EditExistingTheme /> : <ThemeForm edit={false} data={newTheme} />;
+}
+
+function EditExistingTheme() {
+  const params = useParams();
+  const { themesService } = useServices();
+  const { data } = useSuspenseQuery(themesService.byIdQuery(Number(params.id)));
+
+  if (!data) {
+    throw new Error("Can't find theme");
+  }
+
+  return <ThemeForm edit={true} data={data} />;
+}
+
+type ThemeFormProps = {
+  edit: boolean
+  data: ITheme
+}
+
+function ThemeForm({
+  edit,
+  data,
+}: Readonly<ThemeFormProps>) {
 
   const { t } = useTranslation("themes");
   const navigate = useNavigate();
   const { organization, organizations } = useAuth();
   const { themesService } = useServices();
-
-  const loadedData = useLoaderData() as ITheme;
-  const data = edit ? loadedData : {
-    id: 0,
-    name: '',
-    extends: 'lyrics' as BaseTheme,
-    config: LyricsTheme.config,
-  };
-
-  if (!data) {
-    throw new Error("Can't find theme");
-  }
 
   const organizationsToAddTo = filterOrganizationsByFeature(organizations, 'themes').filter(
     (org) => isRoleHigherOrEqualThan(org.role, 'member')
@@ -102,7 +122,15 @@ export function EditTheme({
     form.setValue('config', LyricsTheme.config);
   }, [form.watch('extends')]);
 
-  const [isLoading, setLoading] = useState<boolean>(false);
+  const saveTheme = useMutation({
+    mutationFn: ({ values, organizationId }: { values: z.infer<typeof ThemeSchema>, organizationId: number }) =>
+      edit ? themesService.update(values.id, values, organizationId) : themesService.add(values, organizationId),
+    onSuccess: () => navigate(`/app/themes`),
+    onError: (err) => {
+      console.error(err);
+      toast.error(t('error.save'));
+    },
+  });
 
   if (!edit && organizationsToAddTo.length === 0) {
     return (
@@ -118,27 +146,9 @@ export function EditTheme({
     );
   }
 
-  const onSubmit = async (values: z.infer<typeof ThemeSchema>) => {
+  const onSubmit = (values: z.infer<typeof ThemeSchema>) => {
     if (!organizationId) return;
-
-    setLoading(true);
-    let action;
-    if (edit) {
-      action = themesService.update(values.id, values, organizationId);
-    } else {
-      action = themesService.add(values, organizationId);
-    }
-    action
-      .then(() => {
-        navigate(`/app/themes`);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error(t('error.save'));
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    saveTheme.mutate({ values, organizationId });
   }
 
   return (
@@ -204,8 +214,8 @@ export function EditTheme({
                 <ThemeConfigForm form={form} />
 
                 <div className="flex flex-row align-start space-x-2">
-                  <Button className="flex-0" type="submit" disabled={isLoading}>
-                    {isLoading && (
+                  <Button className="flex-0" type="submit" disabled={saveTheme.isPending}>
+                    {saveTheme.isPending && (
                       <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
                     )}
                     {t('button.' + (edit ? 'update' : 'add'))}

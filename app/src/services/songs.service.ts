@@ -1,41 +1,62 @@
+import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 import { ApiService } from "./api.service";
+import { secretQuery } from "./secret-query";
 import { IScheduleItem, IScheduleSong, IScheduleText, ISlide, ISlideContent, ISlideTextContent, ISlideTitleContent, ISong, ISongWithRole } from "@/types"
 import { pairLyricsLines } from "@/lib/songs";
+import { PAGE_SIZE } from "@/lib/pagination";
 import { getOfflineSongById, searchOfflineSongs } from "@/lib/offline/reads";
+
+export interface SongSearchPayload {
+  query?: string;
+  queryLanguage?: string;
+  organizations?: number[];
+  languages?: string[];
+  searchPublicArchive?: boolean;
+  includeBlocks?: boolean;
+  page?: number;
+  itemsPerPage?: number;
+}
+
+export type SongSearchFilters = Omit<SongSearchPayload, 'page' | 'itemsPerPage'>;
+
+const songKeys = {
+  all: ['songs'] as const,
+  detail: (songId: number, secret?: string) => ['songs', 'id', songId, secret || null] as const,
+  export: (songId: number, secret?: string) => ['songs', 'export', songId, secret || null] as const,
+  search: (payload: SongSearchPayload) => ['songs', 'search', payload] as const,
+  searchPages: (filters: SongSearchFilters) => ['songs', 'search', 'pages', filters] as const,
+};
 
 export class SongsService extends ApiService {
 
-  public clearCache(): void {
-    this.queryClient.removeQueries({ queryKey: ['songs'] });
+  public invalidateCache(): Promise<void> {
+    return this.queryClient.invalidateQueries({ queryKey: songKeys.all });
   }
 
-  public async getById(songId: number, secret?: string): Promise<ISong | null> {
-    const hasSecret = secret && secret.length > 0;
-    const secretParam = hasSecret ? `?secret=${secret}` : '';
-    const queryKey = ['songs', 'id', songId, hasSecret ? secret : null];
-
-    if (this.isOffline()) {
-      return await getOfflineSongById(songId);
-    }
-
-    try {
-      return await this.getOrFetch({
-        queryKey,
-        queryFn: async () => await this.getRequest(`/songs/${songId}${secretParam}`) as ISong,
-      });
-    } catch (e) {
-      if (this.isNetworkError(e)) {
-        return await getOfflineSongById(songId);
-      }
-      throw e;
-    }
+  public byIdQuery(songId: number, secret?: string) {
+    return queryOptions({
+      queryKey: songKeys.detail(songId, secret),
+      queryFn: () => this.withOfflineFallback(
+        async () => await this.getRequest(`/songs/${songId}${secretQuery(secret)}`) as ISongWithRole | null,
+        () => getOfflineSongById(songId),
+      ),
+    });
   }
 
-  public async exportSong(songId: number, secret?: string): Promise<string> {
-    const hasSecret = secret && secret.length > 0;
-    const secretParam = hasSecret ? `?secret=${secret}` : '';
+  public async getById(songId: number, secret?: string): Promise<ISongWithRole | null> {
+    return await this.queryClient.query(this.byIdQuery(songId, secret));
+  }
 
-    return await this.getTextRequest(`/songs/${songId}/export${secretParam}`);
+  /** Requests the song from the API even when a fresh copy is cached. */
+  public async fetchById(songId: number): Promise<ISongWithRole | null> {
+    return await this.fetchFresh(this.byIdQuery(songId));
+  }
+
+  public exportQuery(songId: number, secret?: string) {
+    return queryOptions({
+      queryKey: songKeys.export(songId, secret),
+      queryFn: async () => await this.getTextRequest(`/songs/${songId}/export${secretQuery(secret)}`),
+    });
   }
 
   public async importText(text: string, orgId: number): Promise<ISong | null> {
@@ -43,36 +64,42 @@ export class SongsService extends ApiService {
       'content-type': 'application/json',
       'Organization': orgId.toString(),
     }) as ISong;
-    this.clearCache();
+    void this.invalidateCache();
     return response;
   }
 
-  public async search(
-    payload: {
-      query?: string | undefined;
-      queryLanguage?: string | undefined;
-      organizations?: number[];
-      languages?: string[] | undefined;
-      searchPublicArchive?: boolean;
-      includeBlocks?: boolean;
-      page?: number;
-      itemsPerPage?: number;
-    }
-  ): Promise<ISongWithRole[]> {
-    if (this.isOffline()) {
-      return await searchOfflineSongs(payload);
-    }
-
-    try {
-      return await this.postRequest('/songs/search', JSON.stringify(payload), {
+  private requestSearch(payload: SongSearchPayload): Promise<ISongWithRole[]> {
+    return this.withOfflineFallback(
+      async () => await this.postRequest('/songs/search', JSON.stringify(payload), {
         'content-type': 'application/json',
-      }) as ISongWithRole[];
-    } catch (e) {
-      if (this.isNetworkError(e)) {
-        return await searchOfflineSongs(payload);
-      }
-      throw e;
-    }
+      }) as ISongWithRole[],
+      () => searchOfflineSongs(payload),
+    );
+  }
+
+  public searchQuery(payload: SongSearchPayload) {
+    return queryOptions({
+      queryKey: songKeys.search(payload),
+      queryFn: () => this.requestSearch(payload),
+    });
+  }
+
+  public async search(payload: SongSearchPayload): Promise<ISongWithRole[]> {
+    return await this.queryClient.query(this.searchQuery(payload));
+  }
+
+  /** Search results loaded page by page (`PAGE_SIZE` songs each). */
+  public searchPagesQuery(filters: SongSearchFilters) {
+    return infiniteQueryOptions({
+      queryKey: songKeys.searchPages(filters),
+      queryFn: ({ pageParam }) => this.requestSearch({ ...filters, page: pageParam, itemsPerPage: PAGE_SIZE }),
+      initialPageParam: 1,
+      getNextPageParam: (lastPage, allPages) => (lastPage.length === PAGE_SIZE ? allPages.length + 1 : undefined),
+    });
+  }
+
+  public async searchPages(filters: SongSearchFilters) {
+    return await this.queryClient.infiniteQuery(this.searchPagesQuery(filters));
   }
 
   public async add(value: ISong, orgId: number): Promise<ISong | null> {
@@ -80,7 +107,7 @@ export class SongsService extends ApiService {
       'content-type': 'application/json',
       'Organization': orgId.toString(),
     }) as ISong;
-    this.clearCache();
+    void this.invalidateCache();
     return response;
   }
 
@@ -92,6 +119,7 @@ export class SongsService extends ApiService {
       'content-type': 'application/json',
       'Organization': sourceOrgId.toString(),
     });
+    void this.invalidateCache();
   }
 
   public async update(id: number, value: ISong, orgId: number): Promise<ISong | null> {
@@ -99,7 +127,7 @@ export class SongsService extends ApiService {
       'content-type': 'application/json',
       'Organization': orgId.toString(),
     }) as ISong;
-    this.clearCache();
+    void this.invalidateCache();
     return response;
   }
 
@@ -107,7 +135,8 @@ export class SongsService extends ApiService {
     await this.deleteRequest(`/songs/${songId}`, {
       'Organization': orgId.toString(),
     });
-    this.clearCache();
+    this.queryClient.removeQueries({ queryKey: ['songs', 'id', songId] });
+    void this.invalidateCache();
   }
 
   public toScheduleSong(song: ISong): IScheduleSong {

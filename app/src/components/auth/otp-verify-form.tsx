@@ -1,6 +1,7 @@
 "use client"
 
 import { HTMLAttributes, useCallback, useEffect, useRef, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Link, Navigate, useLocation } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
@@ -21,7 +22,7 @@ interface OtpVerifyFormProps extends HTMLAttributes<HTMLDivElement> {}
 const OTP_LENGTH = 6;
 
 export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormProps>) {
-  const { t, i18n } = useTranslation("auth");
+  const { t } = useTranslation("auth");
   const { authService } = useServices();
   const location = useLocation();
   const { isLoggedIn } = useAuth();
@@ -30,71 +31,63 @@ export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormPro
   const email = (location.state as { email?: string } | null)?.email;
 
   const [code, setCode] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isResending, setIsResending] = useState(false);
   // Prevents the auto-submit-on-complete from firing twice (once on input
   // completion, again if React re-renders the effect).
   const autoSubmittedRef = useRef(false);
 
+  // isLoggedIn flips true via useAuth on success; the <Navigate/> guard below
+  // handles the redirect (consistent with LoginForm).
+  const { mutate: verifyOtp, isPending: isVerifying } = useMutation({
+    mutationFn: (otp: { email: string; token: string }) => {
+      const inviteValues = id && secret ? { invite: { id, secret } } : {};
+
+      return authService.verifySignInOtp({
+        ...otp,
+        ...inviteValues,
+      });
+    },
+    onError: async (e: unknown) => {
+      const error = e as ApiError;
+      const errorContent = await error?.raw?.json().catch(() => null);
+      toast.error(t("otpSignIn.error"), {
+        description: t("errors." + (errorContent?.message ?? "Invalid login credentials")),
+      });
+      autoSubmittedRef.current = false;
+      setCode("");
+    },
+  });
+
   const submit = useCallback(
-    async (token: string) => {
+    (token: string) => {
       if (!email || token.length !== OTP_LENGTH) {
         return;
       }
 
-      try {
-        setIsLoading(true);
-
-        const inviteValues = id && secret ? { invite: { id, secret } } : {};
-
-        await authService.verifySignInOtp({
-          email,
-          token,
-          ...inviteValues,
-        });
-
-        // isLoggedIn flips true via useAuth; the <Navigate/> guard below
-        // handles the redirect (consistent with LoginForm).
-      } catch (e: unknown) {
-        const error = e as ApiError;
-        const errorContent = await error?.raw?.json().catch(() => null);
-        toast.error(t("otpSignIn.error"), {
-          description: t("errors." + (errorContent?.message ?? "Invalid login credentials")),
-        });
-        autoSubmittedRef.current = false;
-        setCode("");
-      } finally {
-        setIsLoading(false);
-      }
+      verifyOtp({ email, token });
     },
-    [authService, email, i18n.language, id, secret, t],
+    [email, verifyOtp],
   );
 
   useEffect(() => {
-    if (code.length === OTP_LENGTH && !autoSubmittedRef.current && !isLoading) {
+    if (code.length === OTP_LENGTH && !autoSubmittedRef.current && !isVerifying) {
       autoSubmittedRef.current = true;
       submit(code);
     }
-  }, [code, isLoading, submit]);
+  }, [code, isVerifying, submit]);
 
-  const onResend = async () => {
-    if (!email) {
-      return;
-    }
-    try {
-      setIsResending(true);
-      await authService.requestSignInOtp({ email });
+  const { mutate: resendOtp, isPending: isResending } = useMutation({
+    mutationFn: (address: string) => authService.requestSignInOtp({ email: address }),
+    onSuccess: () => {
       toast.success(t("otpSignIn.resent"));
-    } catch (e: unknown) {
+    },
+    onError: async (e: unknown) => {
       const error = e as ApiError;
       const errorContent = await error?.raw?.json().catch(() => null);
       toast.error(t("otpSignIn.error"), {
         description: t("errors." + (errorContent?.message ?? "default")),
       });
-    } finally {
-      setIsResending(false);
-    }
-  };
+    },
+  });
 
   if (isLoggedIn) {
     return <Navigate to="/app" />;
@@ -110,7 +103,7 @@ export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormPro
         maxLength={OTP_LENGTH}
         value={code}
         onChange={setCode}
-        disabled={isLoading}
+        disabled={isVerifying}
         autoFocus
         onComplete={(value) => {
           // Belt-and-suspenders: input-otp's own complete callback also triggers submit.
@@ -130,13 +123,13 @@ export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormPro
       <Button
         type="button"
         className="w-full"
-        disabled={isLoading || code.length !== OTP_LENGTH}
+        disabled={isVerifying || code.length !== OTP_LENGTH}
         onClick={() => {
           autoSubmittedRef.current = true;
           submit(code);
         }}
       >
-        {isLoading && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
+        {isVerifying && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
         {t("otpSignIn.verifySubmit")}
       </Button>
 
@@ -145,8 +138,8 @@ export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormPro
           type="button"
           variant="link"
           className="text-muted-foreground"
-          disabled={isResending || isLoading}
-          onClick={onResend}
+          disabled={isResending || isVerifying}
+          onClick={() => resendOtp(email)}
         >
           {isResending && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
           {t("otpSignIn.resend")}

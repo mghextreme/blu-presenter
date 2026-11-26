@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, waitFor, screen } from '@testing-library/react'
-import { act } from 'react'
+import { act, Suspense } from 'react'
+import { queryOptions } from '@tanstack/react-query'
+import { render, waitFor, screen } from '@/test/test-utils'
 import { Receiver } from '../../app/receiver'
 import { ControllerProvider } from '@/hooks/controller.provider'
 import { useController } from '@/hooks/useController'
@@ -27,8 +28,28 @@ const makeMultiPartItem = (id: number, title: string) => ({
 })
 
 vi.mock('react-router-dom', () => ({
-  useLoaderData: () => ({ session: loaderSession, themes: [] }),
   useParams: () => ({ orgId: '3', sessionId: '7', secret: 's3cr3t' }),
+}))
+
+const sessionThemes = vi.hoisted(() => [
+  { id: 11, name: 'Stage', extends: 'lyrics' },
+])
+
+vi.mock('@/hooks/useServices', () => ({
+  useServices: () => ({
+    sessionsService: {
+      bySecretQuery: (orgId: number, sessionId: number, secret?: string) => queryOptions({
+        queryKey: ['sessions', 'shared', orgId, sessionId, secret],
+        queryFn: async () => loaderSession,
+      }),
+    },
+    themesService: {
+      forSessionQuery: (orgId: number, sessionId: number, secret?: string, theme?: number) => queryOptions({
+        queryKey: ['themes', 'session', orgId, sessionId, secret, theme ?? null],
+        queryFn: async () => sessionThemes,
+      }),
+    },
+  }),
 }))
 
 const loaderSession = {
@@ -73,7 +94,9 @@ vi.mock('@/hooks/useSessionSocket', () => ({
 }))
 
 vi.mock('@/components/controller/selector-screen', () => ({
-  SelectorScreen: () => <div data-testid="selector-screen" />,
+  SelectorScreen: ({ themeOptions }: { themeOptions?: { name: string }[] }) => (
+    <div data-testid="selector-screen">{themeOptions?.map((theme) => theme.name).join(',')}</div>
+  ),
 }))
 
 const Probe = ({ onValue }: { onValue: (context: any) => void }) => {
@@ -96,7 +119,9 @@ describe('Receiver initial load', () => {
     let captured: any = null
     render(
       <ControllerProvider storeState={false}>
-        <Receiver />
+        <Suspense fallback={null}>
+          <Receiver />
+        </Suspense>
         <Probe onValue={(context) => { captured = context }} />
       </ControllerProvider>,
     )
@@ -117,13 +142,29 @@ describe('Receiver initial load', () => {
     })
   })
 
+  it("offers the session's themes when the URL names no theme", async () => {
+    render(
+      <ControllerProvider storeState={false}>
+        <Suspense fallback={null}>
+          <Receiver />
+        </Suspense>
+      </ControllerProvider>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('selector-screen')).toHaveTextContent('Stage')
+    })
+  })
+
   it('applies part 0 selections exactly as sent', async () => {
     ;(loaderSession as any).selection = { scheduleItem: 0, slide: 0, part: 0 }
 
     let captured: any = null
     render(
       <ControllerProvider storeState={false}>
-        <Receiver />
+        <Suspense fallback={null}>
+          <Receiver />
+        </Suspense>
         <Probe onValue={(context) => { captured = context }} />
       </ControllerProvider>,
     )
@@ -139,7 +180,9 @@ describe('Receiver initial load', () => {
     let captured: any = null
     render(
       <ControllerProvider storeState={false}>
-        <Receiver />
+        <Suspense fallback={null}>
+          <Receiver />
+        </Suspense>
         <Probe onValue={(context) => { captured = context }} />
       </ControllerProvider>,
     )
@@ -171,7 +214,9 @@ describe('Receiver initial load', () => {
     let captured: any = null
     render(
       <ControllerProvider storeState={false}>
-        <Receiver />
+        <Suspense fallback={null}>
+          <Receiver />
+        </Suspense>
         <Probe onValue={(context) => { captured = context }} />
       </ControllerProvider>,
     )
@@ -194,7 +239,9 @@ describe('Receiver initial load', () => {
     let captured: any = null
     render(
       <ControllerProvider storeState={false}>
-        <Receiver />
+        <Suspense fallback={null}>
+          <Receiver />
+        </Suspense>
         <Probe onValue={(context) => { captured = context }} />
       </ControllerProvider>,
     )

@@ -1,4 +1,5 @@
 import { Link, useLoaderData } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 import { format, parse } from "date-fns";
 import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
@@ -61,19 +62,20 @@ export function Schedules() {
     }
   };
 
-  const onDeleteSchedule = async (schedule: ISchedule) => {
+  const deleteSchedule = useMutation({
+    mutationFn: ({ scheduleId, organizationId }: { scheduleId: number, organizationId: number }) =>
+      schedulesService.delete(scheduleId, organizationId),
+    onError: () => {
+      toast.error(t('error.deleteSchedule'));
+    },
+  });
+
+  const onDeleteSchedule = (schedule: ISchedule) => {
     if (!schedule.organization?.id) {
       return;
     }
 
-    try {
-      await schedulesService.delete(schedule.id, schedule.organization.id);
-      list.refresh();
-    } catch (e: any) {
-      toast.error(
-        t('error.deleteSchedule'),
-      );
-    }
+    deleteSchedule.mutate({ scheduleId: schedule.id, organizationId: schedule.organization.id });
   }
 
   const getCardActions = (schedule: ISchedule) => {

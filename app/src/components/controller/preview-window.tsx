@@ -5,7 +5,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { SlideVisualizer } from "./slide-visualizer";
 import { useTranslation } from "react-i18next";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { IBrowserWindow, IScreenDetails } from "@/types/browser";
 import { useController } from "@/hooks/useController";
@@ -127,21 +128,16 @@ export function PreviewWindow({
     }
   }, [theme]);
 
-  const [consolidatedOptions, setConsolidatedOptions] = useState<typeof defaultThemeOptions>(defaultThemeOptions);
+  const { data: customThemes } = useQuery({ ...themesService.allForUserQuery(), enabled: showThemeSelector });
+  const consolidatedOptions = useMemo<typeof defaultThemeOptions>(() => [
+    ...(customThemes ?? []).map((theme: ITheme) => ({
+      value: theme,
+      label: theme.name,
+    })),
+    ...defaultThemeOptions,
+  ], [customThemes]);
   const previewThemeListId = "preview-theme-selector-list";
   const previewRatioListId = "preview-ratio-selector-list";
-  useEffect(() => {
-    themesService.getAllForUser()
-      .then((customThemes: ITheme[]) => {
-        setConsolidatedOptions([
-          ...customThemes.map((theme: ITheme) => ({
-            value: theme,
-            label: theme.name,
-          })),
-          ...defaultThemeOptions,
-        ]);
-      });
-  }, []);
 
   return (
     <div className="flex-1 relative">

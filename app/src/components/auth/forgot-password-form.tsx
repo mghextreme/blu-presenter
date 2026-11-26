@@ -1,6 +1,7 @@
 "use client"
 
 import { HTMLAttributes, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Turnstile } from "@marsidev/react-turnstile";
 
@@ -31,8 +32,6 @@ export function ForgotPasswordForm({ className, ...props }: Readonly<ForgotPassw
   const { t } = useTranslation("auth");
   const { authService } = useServices();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [captchaToken, setCaptchaToken] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -40,34 +39,31 @@ export function ForgotPasswordForm({ className, ...props }: Readonly<ForgotPassw
     defaultValues: { email: "" },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      if (captcha.enabled && !captchaToken) {
-        toast.error(t("errors.captcha verification process failed"));
-        return;
-      }
-
-      setIsLoading(true);
-
-      await authService.forgotPassword({
-        email: values.email,
-        captchaToken,
-      });
-
-      // Anti-enumeration: always show the success state regardless of result.
-      setSubmitted(true);
-    } catch (e: unknown) {
+  const forgotPassword = useMutation({
+    mutationFn: (values: z.infer<typeof formSchema>) => authService.forgotPassword({
+      email: values.email,
+      captchaToken,
+    }),
+    onError: async (e: unknown) => {
       const error = e as ApiError;
       const errorContent = await error?.raw?.json().catch(() => null);
       toast.error(t("forgotPassword.title"), {
         description: t("errors." + (errorContent?.message ?? "default")),
       });
-    } finally {
-      setIsLoading(false);
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (captcha.enabled && !captchaToken) {
+      toast.error(t("errors.captcha verification process failed"));
+      return;
     }
+
+    forgotPassword.mutate(values);
   };
 
-  if (submitted) {
+  // Anti-enumeration: the success state doesn't reveal whether the email exists.
+  if (forgotPassword.isSuccess) {
     return (
       <div className={cn("grid gap-4 text-center", className)} {...props}>
         <h2 className="text-lg font-semibold">{t("forgotPassword.successTitle")}</h2>
@@ -95,7 +91,7 @@ export function ForgotPasswordForm({ className, ...props }: Readonly<ForgotPassw
                     autoComplete="email"
                     autoCorrect="off"
                     autoCapitalize="none"
-                    disabled={isLoading}
+                    disabled={forgotPassword.isPending}
                     {...field}
                   />
                 </FormControl>
@@ -111,8 +107,8 @@ export function ForgotPasswordForm({ className, ...props }: Readonly<ForgotPassw
             />
           )}
 
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
+          <Button type="submit" disabled={forgotPassword.isPending}>
+            {forgotPassword.isPending && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
             {t("forgotPassword.submit")}
           </Button>
         </form>

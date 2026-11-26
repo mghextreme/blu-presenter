@@ -1,15 +1,19 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useLoaderData, useParams } from "react-router-dom";
-import { IControllerSelection, IScheduleItem, ISession, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
+import { useParams } from "react-router-dom";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { IControllerSelection, IScheduleItem, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { useController } from "@/hooks/useController";
+import { useServices } from "@/hooks/useServices";
 import { useSessionSocket } from "@/hooks/useSessionSocket";
 import { SelectorScreen } from "@/components/controller/selector-screen";
 import { ConnectionIndicator } from "@/components/receiver/connection-indicator";
 import i18next from "i18next";
 
 const SYNC_INTERVAL_MS = 60_000; // Re-sync state every 60 seconds
+const BASE_THEME_PARAMS = ['lyrics', 'subtitles', 'teleprompter'];
+const NO_THEMES: ITheme[] = [];
 
 export function Receiver() {
 
@@ -24,13 +28,18 @@ export function Receiver() {
     setMode: s.setMode,
   }));
 
-  const {
-    session,
-    themes,
-  } = useLoaderData() as {
-    session: ISession,
-    themes: ITheme[],
-  };
+  const { sessionsService, themesService } = useServices();
+  const orgId = Number(params.orgId);
+  const sessionId = Number(params.sessionId);
+
+  const { data: session } = useSuspenseQuery(sessionsService.bySecretQuery(orgId, sessionId, params.secret));
+
+  // Not a suspense query: base-theme URLs skip it. Otherwise the route loader
+  // has already cached it, so the themes are there on the first render.
+  const { data: themes = NO_THEMES } = useQuery({
+    ...themesService.forSessionQuery(orgId, sessionId, params.secret, params.theme ? Number(params.theme) : undefined),
+    enabled: !params.theme || !BASE_THEME_PARAMS.includes(params.theme),
+  });
 
   // The provider's setters resolve against committed state, so a selection
   // that arrives together with a new schedule/schedule item must be applied

@@ -1,9 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
-import { ISchedule, IScheduleSong } from "@/types";
+import { IScheduleSong } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Link, useLoaderData, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
+import { useServices } from "@/hooks/useServices";
 import ShareIcon from "@heroicons/react/24/solid/ShareIcon";
 import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
@@ -20,7 +22,8 @@ export function RehearsalSchedule() {
   const { t } = useTranslation("schedules");
   const { isLoggedIn } = useAuth();
   const params = useParams();
-  const data = useLoaderData() as ISchedule | null;
+  const { schedulesService } = useServices();
+  const { data } = useSuspenseQuery(schedulesService.byIdQuery(Number(params.id), params.secret));
 
   if (!data) {
     throw new Error("Can't find schedule");

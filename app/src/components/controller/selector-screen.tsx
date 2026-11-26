@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useWindow } from "@/hooks/window.provider";
 import { useTranslation } from "react-i18next";
@@ -7,6 +8,8 @@ import { IBrowserWindow, IScreenDetails } from "@/types/browser";
 import { ControllerMode, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
 import { SlideVisualizer } from "./slide-visualizer";
 import { useServices } from "@/hooks/useServices";
+
+const NO_THEMES: ITheme[] = [];
 
 interface SelectorScreenProps {
   setMode: (mode: ControllerMode) => void,
@@ -91,24 +94,13 @@ export function SelectorScreen({
     themesService,
   } = useServices();
 
-  const [customThemeOptions, setCustomThemeOptions] = useState<ITheme[]>(themeOptions ?? []);
-  useEffect(() => {
-    if (selectedTheme || themeOptions) return;
+  const { data: userThemes } = useQuery({
+    ...themesService.allForUserQuery(),
+    enabled: !selectedTheme && !themeOptions,
+  });
+  const customThemeOptions = themeOptions ?? userThemes ?? NO_THEMES;
 
-    themesService.getAllForUser()
-      .then((customThemes: ITheme[]) => {
-        setCustomThemeOptions(customThemes);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (!themeOptions) return;
-
-    setCustomThemeOptions(themeOptions);
-  }, [themeOptions]);
-
-  const [customThemesByOrg, setCustomThemesByOrg] = useState<{ key: string; name: string; themes: ITheme[] }[]>([]);
-  useEffect(() => {
+  const customThemesByOrg = useMemo(() => {
     const defaultOrgName = t('organizations.defaultName');
     const sortedThemes = [...customThemeOptions].sort((a, b) => {
       const orgA = a.organization?.name ?? defaultOrgName;
@@ -128,8 +120,7 @@ export function SelectorScreen({
       }
       group.themes.push(theme);
     }
-
-    setCustomThemesByOrg(groups);
+    return groups;
   }, [customThemeOptions, t]);
 
   return (

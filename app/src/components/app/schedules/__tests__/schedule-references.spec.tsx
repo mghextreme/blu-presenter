@@ -66,7 +66,7 @@ describe("ScheduleReferences", () => {
       },
       schedulesService: {
         syncPlaylist,
-        clearCache: vi.fn(),
+        invalidateCache: vi.fn(),
         fetchById: vi.fn().mockResolvedValue(null),
       },
     });

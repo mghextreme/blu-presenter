@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useLoaderData, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -33,26 +34,40 @@ type EditScheduleProps = {
   edit?: boolean
 }
 
+const newSchedule: ISchedule = {
+  id: 0,
+  title: '',
+  date: null,
+  items: [],
+};
+
 export function EditSchedule({
   edit = true,
 }: Readonly<EditScheduleProps>) {
+  return edit ? <EditSavedSchedule /> : <ScheduleEditor edit={false} data={newSchedule} />;
+}
+
+function EditSavedSchedule() {
+  const params = useParams();
+  const { schedulesService } = useServices();
+  const { data } = useSuspenseQuery(schedulesService.byIdQuery(Number(params.id)));
+
+  if (!data) {
+    throw new Error("Can't find schedule");
+  }
+
+  return <ScheduleEditor edit={true} data={data} />;
+}
+
+function ScheduleEditor({
+  edit,
+  data,
+}: Readonly<{ edit: boolean, data: ISchedule }>) {
 
   const { t } = useTranslation("schedules");
   const navigate = useNavigate();
   const { organization, organizations } = useAuth();
   const { schedulesService, songsService } = useServices();
-
-  const loadedData = useLoaderData() as ISchedule;
-  const data = edit ? loadedData : {
-    id: 0,
-    title: '',
-    date: null,
-    items: [],
-  };
-
-  if (!data) {
-    throw new Error("Can't find schedule");
-  }
 
   const organizationsToAddTo = filterOrganizationsByFeature(organizations, 'schedules').filter(
     (org) => isRoleHigherOrEqualThan(org.role, 'member')
@@ -161,7 +176,6 @@ function EditScheduleForm({
 }>) {
   const { schedule, replaceSchedule } = useController((s) => ({ schedule: s.schedule, replaceSchedule: s.replaceSchedule }));
   const services = useServices();
-  const [isLoading, setLoading] = useState<boolean>(false);
   const [addItemOpen, setAddItemOpen] = useState<boolean>(false);
   const [initialized, setInitialized] = useState<boolean>(false);
 
@@ -172,15 +186,41 @@ function EditScheduleForm({
     }
   }, [data.items]);
 
-  const onSubmit = async (values: z.infer<typeof ScheduleSchema>) => {
+  const saveSchedule = useMutation({
+    mutationFn: async ({ scheduleId, payload, organizationId }: { scheduleId: number, payload: Partial<ISchedule>, organizationId: number }) => {
+      if (!edit) {
+        return await schedulesService.add(payload, organizationId);
+      }
+
+      // Generated playlists are managed server-side: saving the form never
+      // drops them (a stale form must not detach a playlist created in the
+      // meantime), so the ones the user removed are detached explicitly.
+      const removedPlaylistProviders = SCHEDULE_PLAYLIST_PROVIDERS.filter(
+        (provider) =>
+          !!provider.findReference(data.references) &&
+          !provider.findReference(payload.references),
+      );
+
+      const savedSchedule = await schedulesService.update(scheduleId, payload, organizationId);
+      await Promise.all(
+        removedPlaylistProviders.map((provider) => provider.remove(services, data)),
+      );
+      return savedSchedule;
+    },
+    onSuccess: (savedSchedule) => navigate(`/app/schedules/${savedSchedule?.id}/view`),
+    onError: (err) => {
+      console.error(err);
+      toast.error(t('error.save'));
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof ScheduleSchema>) => {
     if (!organizationId) {
       console.error(
         'Cannot save schedule: no organization selected (organizationId is undefined)',
       );
       return;
     }
-
-    setLoading(true);
 
     const items = schedule.map((item: IScheduleItem) => {
       if (item.type === 'song') {
@@ -202,38 +242,7 @@ function EditScheduleForm({
       references: values.references as ISchedule['references'],
     };
 
-    // Generated playlists are managed server-side: saving the form never
-    // drops them (a stale form must not detach a playlist created in the
-    // meantime), so the ones the user removed are detached explicitly.
-    const removedPlaylistProviders = SCHEDULE_PLAYLIST_PROVIDERS.filter(
-      (provider) =>
-        !!provider.findReference(data.references) &&
-        !provider.findReference(values.references as ISchedule['references']),
-    );
-
-    let action;
-    if (edit) {
-      action = schedulesService.update(values.id, payload, organizationId)
-        .then(async (savedSchedule) => {
-          await Promise.all(
-            removedPlaylistProviders.map((provider) => provider.remove(services, data)),
-          );
-          return savedSchedule;
-        });
-    } else {
-      action = schedulesService.add(payload, organizationId);
-    }
-    action
-      .then((savedSchedule: ISchedule | null) => {
-        navigate(`/app/schedules/${savedSchedule?.id}/view`);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error(t('error.save'));
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    saveSchedule.mutate({ scheduleId: values.id, payload, organizationId });
   }
 
   return (
@@ -315,8 +324,8 @@ function EditScheduleForm({
         </div>
 
         <div className="flex flex-row align-start space-x-2">
-          <Button className="flex-0" type="submit" disabled={isLoading}>
-            {isLoading && (
+          <Button className="flex-0" type="submit" disabled={saveSchedule.isPending}>
+            {saveSchedule.isPending && (
               <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
             )}
             {t('button.' + (edit ? 'update' : 'add'))}

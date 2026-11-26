@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,8 @@ import { useController } from "@/hooks/useController";
 import QRCode from "react-qr-code";
 import { Input } from "../ui/input";
 import { toast } from "sonner";
+
+const NO_SESSIONS: ISession[] = [];
 
 const controllerConfigurationSchema = z.object({
   autoAdvanceScheduleItem: z.boolean(),
@@ -56,13 +59,7 @@ export function PlanConfiguration() {
     },
   });
 
-  const [sessions, setSessions] = useState<ISession[]>([]);
-  useEffect(() => {
-    sessionsService.getAllForUser()
-      .then((sessions: ISession[]) => {
-        setSessions(sessions);
-      });
-  }, []);
+  const { data: sessions = NO_SESSIONS } = useQuery(sessionsService.allForUserQuery());
 
   const [selectedSession, setSelectedSession] = useState<ISession | undefined>(undefined);
   useEffect(() => {
@@ -100,25 +97,18 @@ export function PlanConfiguration() {
     },
   ], [t]);
 
-  const [consolidatedOptions, setConsolidatedOptions] = useState<{label: string; value: BaseTheme | number}[]>(defaultThemeOptions);
+  const { data: customThemes } = useQuery({
+    ...themesService.searchQuery({ organizations: session?.orgId ? [session.orgId] : undefined, itemsPerPage: 100 }),
+    enabled: !!session,
+  });
+  const consolidatedOptions = useMemo<{label: string; value: BaseTheme | number}[]>(() => [
+    ...(session && customThemes ? customThemes : []).map((theme: ITheme) => ({
+      value: theme.id,
+      label: theme.name,
+    })),
+    ...defaultThemeOptions,
+  ], [session, customThemes, defaultThemeOptions]);
   const [selectedUrlTheme, setSelectedUrlTheme] = useState<{label: string; value: BaseTheme | number} | undefined>(undefined);
-  useEffect(() => {
-    if (!session) {
-      setConsolidatedOptions(defaultThemeOptions);
-      return;
-    }
-
-    themesService.search({ organizations: session.orgId ? [session.orgId] : undefined, itemsPerPage: 100 })
-      .then((customThemes: ITheme[]) => {
-        setConsolidatedOptions([
-          ...customThemes.map((theme: ITheme) => ({
-            value: theme.id,
-            label: theme.name,
-          })),
-          ...defaultThemeOptions,
-        ]);
-      });
-  }, [session, themesService, defaultThemeOptions]);
   
   useEffect(() => {
     const theUrlTheme = consolidatedOptions.find((theme) => theme.value == form.getValues('broadcastSessionUrlTheme')?.value);

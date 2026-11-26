@@ -1,6 +1,7 @@
 "use client"
 
-import { HTMLAttributes, useEffect, useMemo, useState } from "react";
+import { HTMLAttributes, useEffect, useMemo } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
@@ -47,8 +48,6 @@ export function ResetPasswordForm({ className, ...props }: Readonly<ResetPasswor
     [],
   );
 
-  const [isLoading, setIsLoading] = useState(false);
-
   useEffect(() => {
     // Strip tokens from the URL so they don't linger in history/referrers.
     if (accessToken) {
@@ -76,30 +75,30 @@ export function ResetPasswordForm({ className, ...props }: Readonly<ResetPasswor
     defaultValues: { password: "", confirmPassword: "" },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!accessToken) {
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-
-      await authService.resetPassword({
-        accessToken,
-        newPassword: values.password,
-      });
-
+  const resetPassword = useMutation({
+    mutationFn: ({ recoveryToken, password }: { recoveryToken: string, password: string }) => authService.resetPassword({
+      accessToken: recoveryToken,
+      newPassword: password,
+    }),
+    onSuccess: () => {
       toast.success(t("resetPassword.success"));
       navigate("/login");
-    } catch (e: unknown) {
+    },
+    onError: async (e: unknown) => {
       const error = e as ApiError;
       const errorContent = await error?.raw?.json().catch(() => null);
       toast.error(t("resetPassword.error"), {
         description: t("errors." + (errorContent?.message ?? "default")),
       });
-    } finally {
-      setIsLoading(false);
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (!accessToken) {
+      return;
     }
+
+    resetPassword.mutate({ recoveryToken: accessToken, password: values.password });
   };
 
   if (!accessToken) {
@@ -129,7 +128,7 @@ export function ResetPasswordForm({ className, ...props }: Readonly<ResetPasswor
                     type="password"
                     autoComplete="new-password"
                     placeholder={t("input.password")}
-                    disabled={isLoading}
+                    disabled={resetPassword.isPending}
                     {...field}
                   />
                 </FormControl>
@@ -148,7 +147,7 @@ export function ResetPasswordForm({ className, ...props }: Readonly<ResetPasswor
                     type="password"
                     autoComplete="new-password"
                     placeholder={t("input.confirmPassword")}
-                    disabled={isLoading}
+                    disabled={resetPassword.isPending}
                     {...field}
                   />
                 </FormControl>
@@ -157,8 +156,8 @@ export function ResetPasswordForm({ className, ...props }: Readonly<ResetPasswor
             )}
           />
 
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
+          <Button type="submit" disabled={resetPassword.isPending}>
+            {resetPassword.isPending && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
             {t("resetPassword.submit")}
           </Button>
         </form>

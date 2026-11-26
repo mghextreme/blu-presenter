@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+import { keepPreviousData, QueryKey, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { PAGE_SIZE } from "@/lib/pagination";
 import type { OptionalOrganization } from "@/components/app/organization-bar";
 import { selectionToFilter, useOrganizationFilter } from "@/hooks/use-organization-filter";
@@ -16,6 +17,9 @@ export type FilteredListSearchPayload = {
 };
 
 interface UseFilteredListOptions<T> {
+  /** Cache key of the listed resource (e.g. `['schedules']`); invalidating it refreshes the list. */
+  queryKey: QueryKey;
+  /** First page, already loaded by the route loader for the initial filters. */
   defaultValue?: T[];
   /** Organizations pre-selected on mount (restored from the persisted filter). */
   initialOrganizations?: OptionalOrganization[];
@@ -25,119 +29,67 @@ interface UseFilteredListOptions<T> {
   auto?: boolean;
 }
 
-export function useFilteredList<T>({ defaultValue, initialOrganizations, search, onError, auto = false }: UseFilteredListOptions<T>) {
+export function useFilteredList<T>({ queryKey, defaultValue, initialOrganizations, search, onError, auto = false }: UseFilteredListOptions<T>) {
+  const queryClient = useQueryClient();
   const [selectedOrganizations, setSelectedOrganizations] = useState<OptionalOrganization[]>(initialOrganizations ?? []);
   const [query, setQueryState] = useState<string>('');
   const [dateRange, setDateRangeState] = useState<FilteredListDateRange>(null);
-  const [results, setResults] = useState<T[]>(defaultValue ?? []);
-  const [page, setPage] = useState<number>(1);
-  const [hasMore, setHasMore] = useState<boolean>((defaultValue?.length ?? 0) === PAGE_SIZE);
-  const [isLoading, setLoading] = useState<boolean>(false);
+  const [filtersChanged, setFiltersChanged] = useState<boolean>(false);
 
-  // Latest request parameters, kept in a ref so that calls triggered in the
-  // same tick as a filter change always see the latest values.
-  const requestRef = useRef<{
-    organizations?: number[];
-    query?: string;
-    dateFrom?: string;
-    dateTo?: string;
-  }>({
-    organizations: selectionToFilter(initialOrganizations ?? []).organizations,
-  });
-  // Monotonic sequence to discard out-of-order responses.
-  const sequenceRef = useRef<number>(0);
-
-  const run = async (page: number, append: boolean) => {
-    const sequence = ++sequenceRef.current;
-
-    setLoading(true);
-    try {
-      const payload: FilteredListSearchPayload = {
-        ...requestRef.current,
-        page,
-        itemsPerPage: PAGE_SIZE,
-      };
-
-      const response = await search(payload);
-
-      if (sequence !== sequenceRef.current) {
-        return;
-      }
-
-      setResults((prev) => append ? [...prev, ...response] : response);
-      setHasMore(response.length === PAGE_SIZE);
-    } catch (e) {
-      if (sequence === sequenceRef.current) {
-        onError?.(e);
-      }
-    } finally {
-      if (sequence === sequenceRef.current) {
-        setLoading(false);
-      }
-    }
+  const filters = {
+    organizations: selectionToFilter(selectedOrganizations).organizations,
+    query: query.length >= 2 ? query : undefined,
+    dateFrom: dateRange?.from ?? undefined,
+    dateTo: dateRange?.to ?? undefined,
   };
+  const listKey = [...queryKey, 'list', filters];
 
-  // Latest run implementation, kept in a ref so the auto-load effect can call
-  // it without re-running when filters change.
-  const runRef = useRef(run);
-  useEffect(() => {
-    runRef.current = run;
+  const list = useInfiniteQuery({
+    queryKey: listKey,
+    queryFn: async ({ pageParam }) => {
+      try {
+        return await search({ ...filters, page: pageParam, itemsPerPage: PAGE_SIZE });
+      } catch (e) {
+        onError?.(e);
+        throw e;
+      }
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => (lastPage.length === PAGE_SIZE ? allPages.length + 1 : undefined),
+    initialData: !filtersChanged && defaultValue ? { pages: [defaultValue], pageParams: [1] } : undefined,
+    enabled: auto || filtersChanged || defaultValue !== undefined,
+    placeholderData: keepPreviousData,
   });
 
-  useEffect(() => {
-    if (auto) {
-      runRef.current(1, false);
-    }
-  }, [auto]);
+  const results = useMemo(() => list.data?.pages.flat() ?? [], [list.data]);
 
   const setOrganizations = (orgs: OptionalOrganization[]) => {
     setSelectedOrganizations(orgs);
-
-    const filter = selectionToFilter(orgs);
-    requestRef.current.organizations = filter.organizations;
-
     // Keep the shared, persisted filter in sync across list pages.
-    useOrganizationFilter.getState().setFilter(filter);
-
-    setPage(1);
-    run(1, false);
+    useOrganizationFilter.getState().setFilter(selectionToFilter(orgs));
+    setFiltersChanged(true);
   };
 
   const resetOrganizations = () => {
     setSelectedOrganizations([]);
-    requestRef.current.organizations = undefined;
     useOrganizationFilter.getState().reset();
-
-    setPage(1);
-    run(1, false);
+    setFiltersChanged(true);
   };
 
   const setQuery = (value: string) => {
     setQueryState(value);
-    requestRef.current.query = value.length >= 2 ? value : undefined;
-
-    setPage(1);
-    run(1, false);
+    setFiltersChanged(true);
   };
 
   const setDateRange = (range: FilteredListDateRange) => {
     setDateRangeState(range);
-    requestRef.current.dateFrom = range?.from ?? undefined;
-    requestRef.current.dateTo = range?.to ?? undefined;
-
-    setPage(1);
-    run(1, false);
+    setFiltersChanged(true);
   };
 
-  const loadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    run(nextPage, true);
-  };
-
+  /** Reloads from the first page with the current filters. */
   const refresh = () => {
-    setPage(1);
-    run(1, false);
+    setFiltersChanged(true);
+    void queryClient.resetQueries({ queryKey: listKey });
   };
 
   return {
@@ -149,9 +101,9 @@ export function useFilteredList<T>({ defaultValue, initialOrganizations, search,
     dateRange,
     setDateRange,
     results,
-    isLoading,
-    hasMore,
-    loadMore,
+    isLoading: list.isFetching,
+    hasMore: list.hasNextPage,
+    loadMore: () => void list.fetchNextPage(),
     refresh,
   };
 }
