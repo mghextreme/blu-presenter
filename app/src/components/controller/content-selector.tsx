@@ -18,10 +18,7 @@ export function ContentSelector({
   scheduleItemIndex = undefined,
   contentIndex,
 }: Readonly<ContentSelectorParams>) {
-  const {
-    mode,
-    setSelection,
-  } = useController();
+  const { mode, setSelection } = useController((s) => ({ mode: s.mode, setSelection: s.setSelection }));
 
   const getTitleContent = (content: ISlideTitleContent) => {
     let result = content.title;

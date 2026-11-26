@@ -12,9 +12,7 @@ export function SlideVisualizer({
   theme = LyricsTheme,
 }: Readonly<SlideVisualizerProps>) {
 
-  const {
-    setSelection,
-  } = useController();
+  const { setSelection } = useController((s) => ({ setSelection: s.setSelection }));
 
   const componentRef = useRef<typeof ScrollingSongVisualizer | typeof SingleSlideVisualizer>(null);
   useEffect(() => {

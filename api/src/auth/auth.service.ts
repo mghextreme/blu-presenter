@@ -4,6 +4,9 @@ import {
   Inject,
   Injectable,
   Scope,
+  HttpException,
+  HttpStatus,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { REQUEST } from '@nestjs/core';
@@ -245,6 +248,18 @@ export class AuthService {
     });
 
     if (error) {
+      // The app signs the user out on 400/403 from this endpoint, so only an
+      // invalid refresh token may map to those. Rate limits and Supabase
+      // outages must stay distinguishable so a transient failure does not
+      // end the session.
+      if (error.status === 429) {
+        throw new HttpException(error.message, HttpStatus.TOO_MANY_REQUESTS);
+      }
+      if (!error.status || error.status >= 500) {
+        throw new ServiceUnavailableException(
+          'Authentication service unavailable',
+        );
+      }
       switch (error.status) {
         case 401:
         case 403:

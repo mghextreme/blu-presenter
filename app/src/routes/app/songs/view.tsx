@@ -1,8 +1,10 @@
-import { ISongWithRole, isRoleHigherOrEqualThan } from "@/types";
+import { isRoleHigherOrEqualThan } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Link, useLoaderData, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
+import { useServices } from "@/hooks/useServices";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import PrinterIcon from "@heroicons/react/24/solid/PrinterIcon";
 import ShareIcon from "@heroicons/react/24/solid/ShareIcon";
@@ -21,8 +23,9 @@ export function ViewSong() {
 
   const { t } = useTranslation("songs");
 
-  const data = useLoaderData() as ISongWithRole;
   const params = useParams();
+  const { songsService } = useServices();
+  const { data } = useSuspenseQuery(songsService.byIdQuery(Number(params.id), params.secret));
   const { isLoggedIn } = useAuth();
 
   if (!data) {

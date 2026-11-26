@@ -39,7 +39,7 @@ export function usePlaylistSync(schedule: ISchedule, onSynced: (schedule: ISched
    * secret), then refetches the canonical entry used by the app routes.
    */
   const refresh = async () => {
-    services.schedulesService.clearCache();
+    void services.schedulesService.invalidateCache();
     const fresh = await services.schedulesService.fetchById(schedule.id);
     if (fresh) {
       onSynced(fresh);

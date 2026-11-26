@@ -21,14 +21,14 @@ export function Controls({
 
   const { t } = useTranslation('controller');
 
-  const {
-    next,
-    previous,
-    setBlank,
-    setLogo,
-    overrideSlide,
-    clearOverrideSlide,
-  } = useController();
+  const { next, previous, setBlank, setLogo, overrideSlide, clearOverrideSlide } = useController((s) => ({
+    next: s.next,
+    previous: s.previous,
+    setBlank: s.setBlank,
+    setLogo: s.setLogo,
+    overrideSlide: s.overrideSlide,
+    clearOverrideSlide: s.clearOverrideSlide,
+  }));
 
   const toggleBlank = () => {
     if (overrideSlide?.id == 'blank') {

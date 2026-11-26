@@ -1,4 +1,4 @@
-import { Session, User } from "@supabase/supabase-js";
+import type { Session, User } from "@supabase/supabase-js";
 
 export type SupportedLocale = "en" | "pt";
 

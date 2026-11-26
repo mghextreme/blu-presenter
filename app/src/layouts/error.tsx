@@ -5,6 +5,7 @@ import { LanguageToggler } from "@/components/shared/language-toggler";
 import { ThemeToggler } from "@/components/shared/theme-toggler";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { BluPresenterLogo } from "@/components/shared/logo";
 import { ApiError } from "@/types";
 
 function errorLayout(error: any) {
@@ -21,7 +22,7 @@ function errorLayout(error: any) {
     return (
       <>
         {error.message}<br/>
-        <pre>{error.stack}</pre>
+        <pre className="overflow-x-auto">{error.stack}</pre>
       </>
     );
   } else {
@@ -41,25 +42,35 @@ export function ErrorLayout() {
     isAuthError = error.status === 401 || error.status === 403;
   }
 
+  const homeLink = isLoggedIn ? '/app' : '/';
+
   const signOutAndRedirect = async () => {
     signOut();
     navigate('/login');
   }
 
   return (
-    <div className="container relative hidden h-screen overflow-hidden flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0 bg-card">
-      <div className="absolute right-4 top-4 md:right-8 md:top-8 flex justify-end">
+    <div className="container relative flex min-h-svh flex-col gap-6 py-4 lg:grid lg:h-screen lg:max-w-none lg:grid-cols-2 lg:items-center lg:gap-0 lg:overflow-hidden lg:px-0 lg:py-0 bg-card">
+      {/* Below lg the brand panel is hidden, so show the logo and toggles in a header row. */}
+      <div className="flex items-center justify-between lg:hidden">
+        <BluPresenterLogo linkTo={homeLink} />
+        <div className="flex">
+          <LanguageToggler variant="ghost"></LanguageToggler>
+          <ThemeToggler variant="ghost"></ThemeToggler>
+        </div>
+      </div>
+      <div className="absolute right-8 top-8 hidden justify-end lg:flex">
         <LanguageToggler variant="ghost"></LanguageToggler>
         <ThemeToggler variant="ghost"></ThemeToggler>
       </div>
       <div className="relative hidden h-full flex-col p-10 text-foreground lg:flex dark:border-r">
         <div className="absolute inset-0 bg-background" />
         <div className="relative z-20 flex items-center">
-          <Link to={isLoggedIn ? '/app' : '/'} className="text-lg font-medium">BluPresenter</Link>
+          <Link to={homeLink} className="text-lg font-medium">BluPresenter</Link>
         </div>
       </div>
-      <div className="lg:p-8">
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+      <div className="flex flex-1 flex-col justify-center lg:p-8">
+        <div className="mx-auto flex w-full min-w-0 flex-col justify-center space-y-6 sm:w-[350px]">
           <div>
             <h1 className="text-5xl mb-3">{t('title')}</h1>
             <p className="text-2xl">{t('message')}</p>

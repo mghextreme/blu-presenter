@@ -2,13 +2,21 @@
 import { useAuth } from "@/hooks/useAuth";
 import { ApiError } from "@/types";
 import { IAuthResponse } from "@/types/auth";
-import { DefaultError, QueryClient, QueryOptions } from "@tanstack/react-query";
+import { DefaultError, QueryClient, QueryExecuteOptions, QueryKey } from "@tanstack/react-query";
+
+// Statuses from POST /auth/refresh that mean the refresh token itself is no
+// longer valid. Anything else (5xx, 429, network) is transient: the session
+// is kept and the error propagates to the caller.
+const INVALID_REFRESH_STATUSES = [400, 401, 403];
+
+// Shared by every ApiService instance so concurrent 401s across services
+// trigger a single refresh (refresh tokens are single-use).
+let refreshPromise: Promise<void> | null = null;
 
 export abstract class ApiService {
 
   protected queryClient: QueryClient;
   protected url: string;
-  private refreshPromise: Promise<void> | null = null;
 
   constructor(queryClient: QueryClient, config: { url: string }) {
     this.queryClient = queryClient;
@@ -22,15 +30,15 @@ export abstract class ApiService {
   protected refreshSession = async () => {
     // Deduplicate concurrent refresh attempts: if a refresh is already
     // in progress, all callers await the same promise.
-    if (this.refreshPromise) {
-      return this.refreshPromise;
+    if (refreshPromise) {
+      return refreshPromise;
     }
 
-    this.refreshPromise = this.performRefresh();
+    refreshPromise = this.performRefresh();
     try {
-      await this.refreshPromise;
+      await refreshPromise;
     } finally {
-      this.refreshPromise = null;
+      refreshPromise = null;
     }
   }
 
@@ -53,7 +61,7 @@ export abstract class ApiService {
       });
     }
     catch (e) {
-      if (e instanceof ApiError) {
+      if (e instanceof ApiError && INVALID_REFRESH_STATUSES.includes(e.status)) {
         useAuth.setState({
           isLoggedIn: false,
           user: null,
@@ -67,23 +75,29 @@ export abstract class ApiService {
     }
   }
 
-  /**
-   * Returns the cached data for the query, fetching it via
-   * `queryClient.query` when absent. Accepts anything produced by
-   * TanStack's `queryOptions()` helper or an equivalent literal.
-   *
-   * The query-key generic is deliberately `any`: TanStack's `queryOptions()`
-   * brands keys with DataTag symbols whose variance otherwise fights the
-   * `queryFn` parameter's contravariant key type.
-   */
-  protected async getOrFetch<TData>(
-    query: QueryOptions<TData, DefaultError, TData, any>,
+  /** Fetches through the cache, bypassing freshness: always requests the API. */
+  protected fetchFresh<TData, TKey extends QueryKey>(
+    query: QueryExecuteOptions<TData, DefaultError, TData, TData, TKey>,
   ): Promise<TData> {
-    const { queryKey } = query;
-    return (
-      this.queryClient.getQueryData<TData>(queryKey!) ??
-      (await this.queryClient.query({ ...query, queryKey: queryKey! }))
-    );
+    return this.queryClient.query({ ...query, staleTime: 0 });
+  }
+
+  /**
+   * Runs `request`, answering from the offline store instead when the browser
+   * is offline or the request never reached the API.
+   */
+  protected async withOfflineFallback<T>(request: () => Promise<T>, offline: () => Promise<T>): Promise<T> {
+    if (this.isOffline()) {
+      return await offline();
+    }
+    try {
+      return await request();
+    } catch (e) {
+      if (this.isNetworkError(e)) {
+        return await offline();
+      }
+      throw e;
+    }
   }
 
   /** True when the browser reports no network connection. */
@@ -122,7 +136,7 @@ export abstract class ApiService {
 
     if (response.ok) {
       return await response.text();
-    } else if (refreshAuth && (response.status === 401 || response.status === 403) && headersWithAuth['Authorization']) {
+    } else if (refreshAuth && response.status === 401 && headersWithAuth['Authorization']) {
       await this.refreshSession();
       return await this.getTextRequest(path, headers, false);
     } else {
@@ -157,7 +171,7 @@ export abstract class ApiService {
       catch (e) {
         return null;
       }
-    } else if (refreshAuth && (response.status === 401 || response.status === 403) && headers['Authorization']) {
+    } else if (refreshAuth && response.status === 401 && headers['Authorization']) {
       await this.refreshSession();
       return await this.internalFetch(path, method, body, baseHeaders, false);
     } else {

@@ -17,11 +17,11 @@ export function WindowControls() {
 
   const { t } = useTranslation("controller");
 
-  const {
-    windows,
-    closeWindow,
-    closeAllWindows,
-  } = useController();
+  const { windows, closeWindow, closeAllWindows } = useController((s) => ({
+    windows: s.windows,
+    closeWindow: s.closeWindow,
+    closeAllWindows: s.closeAllWindows,
+  }));
 
   if (windows.length === 0) return null;
 

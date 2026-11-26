@@ -6,6 +6,7 @@ import { usePlaylistSync } from "./use-playlist-sync";
 import { SCHEDULE_PLAYLIST_PROVIDERS } from "./playlist-providers";
 import { usePlaylistProviderStatuses } from "./use-playlist-provider-statuses";
 import { Button } from "@/components/ui/button";
+import { safeExternalUrl } from "@/lib/utils";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOnSquareIcon";
 
@@ -92,7 +93,11 @@ export function EditPlaylistReference({
         type="button"
         variant="secondary"
         size="icon"
-        onClick={() => window.open(reference.url, '_blank')}
+        disabled={!safeExternalUrl(reference.url)}
+        onClick={() => {
+          const url = safeExternalUrl(reference.url);
+          if (url) window.open(url, '_blank', 'noopener,noreferrer');
+        }}
       >
         <ArrowTopRightOnSquareIcon className="size-4" />
       </Button>

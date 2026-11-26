@@ -51,8 +51,8 @@ export const ServicesProvider = ({ queryClient, children }: Readonly<ServicesPro
   const spotifyService = useMemo(() => new SpotifyService(queryClient, config.api), [queryClient]);
   const youtubeService = useMemo(() => new YoutubeService(queryClient, config.api), [queryClient]);
   const offlineDownloadsService = useMemo(
-    () => new OfflineDownloadsService(queryClient, songsService, schedulesService, themesService),
-    [queryClient, songsService, schedulesService, themesService],
+    () => new OfflineDownloadsService(songsService, schedulesService, themesService),
+    [songsService, schedulesService, themesService],
   );
 
   // Memoized so consumers don't re-render each time the provider does.

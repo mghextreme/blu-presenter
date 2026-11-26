@@ -1,4 +1,5 @@
 import { Link, useLoaderData } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,7 @@ export function Sessions() {
   const availableOrganizations = filterOrganizationsByFeature(organizations, 'sessions');
 
   const list = useFilteredList<ISession>({
+    queryKey: ['sessions'],
     defaultValue: data,
     initialOrganizations: filterToSelection(availableOrganizations),
     search: (payload) => sessionsService.search(payload),
@@ -50,20 +52,17 @@ export function Sessions() {
     return session.name;
   }
 
-  const onDeleteSession = async (session: ISession) => {
+  const deleteSession = useMutation({
+    mutationFn: ({ sessionId, organizationId }: { sessionId: number, organizationId: number }) =>
+      sessionsService.delete(sessionId, organizationId),
+    onError: () => toast.error(t('error.deleteSession')),
+  });
+
+  const onDeleteSession = (session: ISession) => {
     if (!session.organization?.id) {
       return;
     }
-
-    try {
-      await sessionsService.delete(session.id, session.organization.id);
-      sessionsService.clearCache();
-      list.refresh();
-    } catch (e: any) {
-      toast.error(
-        t('error.deleteSession'),
-      );
-    }
+    deleteSession.mutate({ sessionId: session.id, organizationId: session.organization.id });
   }
 
   const getCardActions = (session: ISession) => {

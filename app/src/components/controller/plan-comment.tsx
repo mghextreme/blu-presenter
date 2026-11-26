@@ -18,9 +18,7 @@ export function PlanComment() {
 
   const { t } = useTranslation("controller");
 
-  const {
-    addToSchedule,
-  } = useController();
+  const { addToSchedule } = useController((s) => ({ addToSchedule: s.addToSchedule }));
 
   const form = useForm<z.infer<typeof textFormSchema>>({
     resolver: zodResolver(textFormSchema),

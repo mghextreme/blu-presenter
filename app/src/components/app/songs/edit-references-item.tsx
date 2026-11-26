@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { UseFieldArrayRemove, UseFormReturn } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { safeExternalUrl } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import LinkIcon from "@heroicons/react/24/solid/LinkIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
@@ -55,8 +56,8 @@ export function EditSongReferencesItem({
   const openUrl = () => {
     if (!!error) return;
 
-    const url = form.getValues(`references.${ix}.url`);
-    window.open(url, '_blank');
+    const url = safeExternalUrl(form.getValues(`references.${ix}.url`));
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   return (

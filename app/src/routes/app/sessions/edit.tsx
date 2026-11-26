@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLoaderData, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -44,27 +45,46 @@ type EditSessionProps = {
   edit?: boolean
 }
 
+const newSession: ISession = {
+  id: 0,
+  name: '',
+  language: undefined,
+  theme: undefined,
+  default: false,
+};
+
 export function EditSession({
   edit = true,
 }: Readonly<EditSessionProps>) {
+  return edit ? <EditExistingSession /> : <SessionForm edit={false} data={newSession} />;
+}
+
+function EditExistingSession() {
+  const params = useParams();
+  const { sessionsService } = useServices();
+  const { data } = useSuspenseQuery(sessionsService.byIdQuery(Number(params.id)));
+
+  if (!data) {
+    throw new Error("Can't find session");
+  }
+
+  return <SessionForm edit={true} data={data} />;
+}
+
+type SessionFormProps = {
+  edit: boolean
+  data: ISession
+}
+
+function SessionForm({
+  edit,
+  data,
+}: Readonly<SessionFormProps>) {
 
   const { t } = useTranslation("sessions");
   const navigate = useNavigate();
   const { organization, organizations } = useAuth();
   const { sessionsService, themesService } = useServices();
-
-  const loadedData = useLoaderData() as ISession;
-  const data = edit ? loadedData : {
-    id: 0,
-    name: '',
-    language: undefined,
-    theme: undefined,
-    default: false,
-  };
-
-  if (!data) {
-    throw new Error("Can't find session");
-  }
 
   const organizationsToAddTo = filterOrganizationsByFeature(organizations, 'sessions').filter(
     (org) => isRoleHigherOrEqualThan(org.role, 'admin')
@@ -93,35 +113,26 @@ export function EditSession({
 
   const organizationId = edit ? data.organization?.id : selectedOrganizations[0]?.id;
 
-  const [isLoading, setLoading] = useState<boolean>(false);
+  const saveSession = useMutation({
+    mutationFn: ({ values, organizationId }: { values: ISession, organizationId: number }) =>
+      edit ? sessionsService.update(values.id, values, organizationId) : sessionsService.add(values, organizationId),
+    onSuccess: () => navigate(`/app/sessions`),
+    onError: (err) => {
+      console.error(err);
+      toast.error(t('error.save'));
+    },
+  });
 
-  const onSubmit = async (values: z.infer<typeof SessionSchema>) => {
+  const onSubmit = (values: z.infer<typeof SessionSchema>) => {
     if (!organizationId) return;
 
-    setLoading(true);
-
-    const fixedValues = {
-      ...values,
-      theme: values.theme ? values.theme.toString() : undefined,
-    };
-
-    let action;
-    if (edit) {
-      action = sessionsService.update(values.id, fixedValues, organizationId);
-    } else {
-      action = sessionsService.add(fixedValues, organizationId);
-    }
-    action
-      .then(() => {
-        navigate(`/app/sessions`);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error(t('error.save'));
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    saveSession.mutate({
+      values: {
+        ...values,
+        theme: values.theme ? values.theme.toString() : undefined,
+      },
+      organizationId,
+    });
   }
 
   const [openLanguageSelector, setOpenLanguageSelector] = useState(false);
@@ -157,23 +168,17 @@ export function EditSession({
     return (item as {label: string})?.label;
   }
 
-  const [consolidatedOptions, setConsolidatedOptions] = useState<{label: string; value: BaseTheme | number}[]>(defaultThemeOptions);
-  useEffect(() => {
-    if (!organizationId) {
-      return;
-    }
-
-    themesService.search({ organizations: [organizationId], itemsPerPage: 100 })
-      .then((customThemes: ITheme[]) => {
-        setConsolidatedOptions([
-          ...customThemes.map((theme: ITheme) => ({
-            value: theme.id,
-            label: theme.name,
-          })),
-          ...defaultThemeOptions,
-        ]);
-      });
-  }, [organizationId, themesService, defaultThemeOptions]);
+  const { data: customThemes } = useQuery({
+    ...themesService.searchQuery({ organizations: organizationId ? [organizationId] : undefined, itemsPerPage: 100 }),
+    enabled: !!organizationId,
+  });
+  const consolidatedOptions = useMemo<{label: string; value: BaseTheme | number}[]>(() => [
+    ...(customThemes ?? []).map((theme: ITheme) => ({
+      value: theme.id,
+      label: theme.name,
+    })),
+    ...defaultThemeOptions,
+  ], [customThemes, defaultThemeOptions]);
 
   const watchedTheme = form.watch('theme');
   const [selectedThemeName, setSelectedThemeName] = useState<string>(() => nameFromTheme(selectedTheme));
@@ -434,8 +439,8 @@ export function EditSession({
               )}
 
               <div className="flex flex-row align-start space-x-2">
-                <Button className="flex-0" type="submit" disabled={isLoading}>
-                  {isLoading && (
+                <Button className="flex-0" type="submit" disabled={saveSession.isPending}>
+                  {saveSession.isPending && (
                     <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
                   )}
                   {t('button.' + (edit ? 'update' : 'add'))}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { safeExternalUrl } from "@/lib/utils";
 import { ISongReference } from "@/types";
 import { SpotifyCode } from "@/components/app/songs/spotify-code";
 import {
@@ -258,12 +259,21 @@ export function ReferencePlayer({
         const refType = getReferenceType(reference.url);
         const isPlayable = refType !== 'other';
         const isActive = activePlayerIndex === ix;
+        const safeUrl = safeExternalUrl(reference.url);
 
         return (
           <div className="flex items-center gap-x-2" key={`references-${ix}`}>
-            <Button variant="secondary" size="icon" type="button" onClick={() => window.open(reference.url, '_blank')}>
-              <ArrowTopRightOnSquareIcon className="size-4" />
-            </Button>
+            {safeUrl ? (
+              <Button asChild variant="secondary" size="icon">
+                <a href={safeUrl} target="_blank" rel="noopener noreferrer">
+                  <ArrowTopRightOnSquareIcon className="size-4" />
+                </a>
+              </Button>
+            ) : (
+              <Button variant="secondary" size="icon" type="button" disabled>
+                <ArrowTopRightOnSquareIcon className="size-4" />
+              </Button>
+            )}
             {isPlayable && (
               <Button
                 variant={isActive ? "default" : "secondary"}

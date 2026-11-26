@@ -2,27 +2,23 @@ import {useState} from "react";
 import {zodResolver} from "@hookform/resolvers/zod"
 import {useForm} from "react-hook-form";
 import {z} from "zod";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 
 import { useServices } from "@/hooks/useServices";
 import { PageContent } from "@/components/shared/page-content";
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
-import {Link, useLoaderData, useNavigate} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import {CheckIcon} from "@radix-ui/react-icons";
 import {useTranslation} from "react-i18next";
-import {IOrganization, isRoleHigherOrEqualThan} from "@/types";
-import {OrganizationsService} from "@/services";
+import {isRoleHigherOrEqualThan} from "@/types";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {Command, CommandGroup, CommandItem, CommandList} from "@/components/ui/command";
 import {cn} from "@/lib/utils";
 import { toast } from "sonner";
-
-export async function loader({organizationsService, orgId}: { organizationsService: OrganizationsService, orgId: number }) {
-  return await organizationsService.getCurrent(orgId);
-}
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -36,9 +32,8 @@ export function InviteOrganizationMember() {
   const navigate = useNavigate();
 
   const { organizationsService } = useServices();
-  const data = useLoaderData() as IOrganization;
-
-  const [isLoading, setLoading] = useState<boolean>(false);
+  const params = useParams();
+  const { data } = useSuspenseQuery(organizationsService.currentQuery(Number(params.orgId)));
 
   const form = useForm<z.infer<typeof formSchema>>({
     //@ts-expect-error // TODO investigar
@@ -55,20 +50,21 @@ export function InviteOrganizationMember() {
     {label: t('role.guest'), value: 'guest'},
   ] as { label: string; value: 'admin' | 'member' | 'guest' }[];
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setLoading(true);
-    organizationsService.inviteMember(values.email, values.role, data.id)
-      .then(() => {
-        navigate(`/app/organization/${data.id}`, {replace: true});
-      })
-      .catch((e) => {
-        toast.error(t('error.inviteMember'), {
-          description: e?.message || '',
-        });
-      })
-      .finally(() => {
-        setLoading(false);
+  const inviteMember = useMutation({
+    mutationFn: (values: z.infer<typeof formSchema>) =>
+      organizationsService.inviteMember(values.email, values.role, data.id),
+    onSuccess: () => {
+      navigate(`/app/organization/${data.id}`, {replace: true});
+    },
+    onError: (e) => {
+      toast.error(t('error.inviteMember'), {
+        description: e?.message || '',
       });
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    inviteMember.mutate(values);
   }
 
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);
@@ -164,8 +160,8 @@ export function InviteOrganizationMember() {
               </FormItem>
             )}></FormField>
           <div className="flex flex-row align-start space-x-2">
-            <Button className="flex-0" type="submit" disabled={isLoading}>
-              {isLoading && (
+            <Button className="flex-0" type="submit" disabled={inviteMember.isPending}>
+              {inviteMember.isPending && (
                 <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
               )}
               {t('button.invite')}

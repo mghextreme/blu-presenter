@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { QueryClient } from "@tanstack/react-query";
 
 import { OfflineDownloadsService } from "../offline-downloads.service";
 import { REVALIDATED_AT_KEY } from "@/lib/offline/db";
@@ -40,7 +39,7 @@ vi.mock("@/lib/offline/db", () => ({
 }));
 
 const songsService = {
-  getById: vi.fn(),
+  fetchById: vi.fn(),
   search: vi.fn(),
 };
 const schedulesService = {
@@ -48,12 +47,11 @@ const schedulesService = {
   fetchById: vi.fn(),
 };
 const themesService = {
-  getAllForUser: vi.fn(),
+  fetchAllForUser: vi.fn(),
 };
 
 function createService() {
   return new OfflineDownloadsService(
-    new QueryClient(),
     songsService as any,
     schedulesService as any,
     themesService as any,
@@ -77,11 +75,11 @@ describe("OfflineDownloadsService", () => {
     fakeDb._maps.schedules.clear();
     fakeDb._maps.themes.clear();
     fakeDb._maps.meta.clear();
-    themesService.getAllForUser.mockResolvedValue([theme(1)]);
+    themesService.fetchAllForUser.mockResolvedValue([theme(1)]);
   });
 
   it("downloads a song and syncs the theme list", async () => {
-    songsService.getById.mockResolvedValue(song(5));
+    songsService.fetchById.mockResolvedValue(song(5));
     const service = createService();
 
     await service.downloadSong(5);
@@ -106,14 +104,14 @@ describe("OfflineDownloadsService", () => {
     schedulesService.fetchById.mockResolvedValue(schedule);
     // Song 11 is already stored; only song 12 must be fetched.
     fakeDb._maps.songs.set(11, { id: 11 });
-    songsService.getById.mockResolvedValue(song(12));
+    songsService.fetchById.mockResolvedValue(song(12));
     const service = createService();
 
     await service.downloadSchedule(100);
 
     expect(schedulesService.fetchById).toHaveBeenCalledWith(100);
-    expect(songsService.getById).toHaveBeenCalledTimes(1);
-    expect(songsService.getById).toHaveBeenCalledWith(12);
+    expect(songsService.fetchById).toHaveBeenCalledTimes(1);
+    expect(songsService.fetchById).toHaveBeenCalledWith(12);
     expect(fakeDb._maps.schedules.get(100)).toMatchObject({ id: 100, orgId: 7 });
     expect(fakeDb._maps.songs.get(12)).toMatchObject({ id: 12, orgId: 7 });
   });
@@ -126,7 +124,7 @@ describe("OfflineDownloadsService", () => {
       items: [{ id: 12, type: "song" }],
     };
     schedulesService.fetchById.mockResolvedValue(schedule);
-    songsService.getById.mockRejectedValue(new Error("offline"));
+    songsService.fetchById.mockRejectedValue(new Error("offline"));
     const service = createService();
 
     await expect(service.downloadSchedule(100)).resolves.toBeUndefined();
@@ -136,7 +134,7 @@ describe("OfflineDownloadsService", () => {
   it("revalidates downloaded content and removes deleted songs", async () => {
     fakeDb._maps.songs.set(5, { id: 5, orgId: 7, syncedAt: "old" });
     fakeDb._maps.songs.set(6, { id: 6, orgId: 7, syncedAt: "old" });
-    songsService.getById.mockImplementation(async (id: number) =>
+    songsService.fetchById.mockImplementation(async (id: number) =>
       id === 5 ? song(5, "Song 5 (updated)") : null, // song 6 was deleted server-side
     );
     const service = createService();
@@ -151,18 +149,18 @@ describe("OfflineDownloadsService", () => {
 
   it("throttles revalidation within the throttle window", async () => {
     fakeDb._maps.songs.set(5, { id: 5, orgId: 7, syncedAt: "old" });
-    songsService.getById.mockResolvedValue(song(5));
+    songsService.fetchById.mockResolvedValue(song(5));
     const service = createService();
 
     await service.revalidateAll(true);
     await service.revalidateAll(false);
 
-    expect(songsService.getById).toHaveBeenCalledTimes(1);
-    expect(themesService.getAllForUser).toHaveBeenCalledTimes(1);
+    expect(songsService.fetchById).toHaveBeenCalledTimes(1);
+    expect(themesService.fetchAllForUser).toHaveBeenCalledTimes(1);
 
     // Forced revalidation bypasses the throttle.
     await service.revalidateAll(true);
-    expect(songsService.getById).toHaveBeenCalledTimes(2);
+    expect(songsService.fetchById).toHaveBeenCalledTimes(2);
   });
 
   it("does nothing when the device is offline", async () => {
@@ -171,7 +169,7 @@ describe("OfflineDownloadsService", () => {
     try {
       const service = createService();
       await service.revalidateAll(true);
-      expect(themesService.getAllForUser).not.toHaveBeenCalled();
+      expect(themesService.fetchAllForUser).not.toHaveBeenCalled();
     } finally {
       Object.defineProperty(navigator, "onLine", { configurable: true, value: original });
     }

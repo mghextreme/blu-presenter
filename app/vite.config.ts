@@ -35,7 +35,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Precache the app shell. Fonts (~8 MB of variable TTFs) are NOT
+        // Precache the app shell. Fonts (~3.5 MB of variable WOFF2) are NOT
         // precached — they are runtime-cached CacheFirst on first use below,
         // which keeps the initial install small while still rendering
         // presentations offline after one online session.
@@ -43,7 +43,7 @@ export default defineConfig({
         navigateFallback: '/index.html',
         runtimeCaching: [
           {
-            urlPattern: /\.ttf$/i,
+            urlPattern: /\.woff2$/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'font-assets',
@@ -134,11 +134,6 @@ export default defineConfig({
               '@dnd-kit/utilities',
             ],
 
-            // Supabase - authentication and data layer
-            'vendor-supabase': [
-              '@supabase/supabase-js',
-            ],
-
             // UI utilities and icons
             'vendor-ui-utils': [
               '@heroicons/react',
@@ -146,7 +141,6 @@ export default defineConfig({
               'sonner',
               'next-themes',
               'react-qr-code',
-              'react-resizable-panels',
               'react-hotkeys-hook',
               'cmdk',
             ],

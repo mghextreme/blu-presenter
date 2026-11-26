@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { dump, load } from 'js-yaml';
 import { SongPart, SongPartLine } from 'src/entities';
+import { isHttpUrl } from 'src/utils/url';
 
 export interface SongExportReference {
   url: string;
@@ -178,6 +179,11 @@ export class SongTextFormatService {
       if (typeof url !== 'string' || url === '') {
         throw new SongTextFormatError(
           `Invalid reference at index ${index}: url must be a non-empty string`,
+        );
+      }
+      if (!isHttpUrl(url)) {
+        throw new SongTextFormatError(
+          `Invalid reference at index ${index}: url must be an http(s) URL`,
         );
       }
       let name: string | undefined;

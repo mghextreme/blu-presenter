@@ -5,8 +5,9 @@ import {
   createBrowserRouter,
   createRoutesFromElements
 } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import i18next from "i18next";
 
 import { AuthLayout } from "@/layouts/auth";
 import { loader as authLoader } from "@/layouts/auth.loader";
@@ -20,59 +21,24 @@ import { loader as publicSessionLoader } from "./app/public-session.loader";
 import { PrintLayout } from "@/layouts/print";
 import { useServices } from "@/hooks/useServices";
 
-import { Home } from "./home";
-import { OpenSource } from "./open-source";
-import { PrivacyPolicy } from "./privacy-policy";
-import { TermsAndConditions } from "./terms-and-conditions";
-
-import { SignUp } from "./auth/signup";
-import { Login } from "./auth/login";
-import { ForgotPassword } from "./auth/forgot-password";
-import { ResetPassword } from "./auth/reset-password";
-import { OtpRequest } from "./auth/otp-request";
-import { OtpVerify } from "./auth/otp-verify";
-import { OAuthCallback } from "./auth/oauth-callback";
-import { OAuthLinkCallback } from "./auth/oauth-link-callback";
-
-import { Welcome } from "./app/welcome";
 import { loader as welcomeLoader } from "./app/welcome.loader";
-import { Controller } from "./app/controller";
-import { Receiver } from "./app/receiver";
-import { Profile } from "./app/profile";
 import { loader as profileLoader } from "./app/profile.loader";
 
-import { Songs as SongsIndex } from "./app/songs";
-import { EditSong } from "./app/songs/edit";
-import { ViewSong } from "./app/songs/view";
-import { PrintSong } from "./app/songs/print";
 import { loader as singleSongLoader } from "./app/songs/single.loader";
 import { loader as allSongsLoader } from "./app/songs/all.loader";
 
-import { Themes as ThemesIndex } from "./app/themes/index";
-import { EditTheme } from "./app/themes/edit";
 import { loader as singleThemeLoader } from "./app/themes/single.loader";
 import { loader as allThemesLoader } from "./app/themes/all.loader";
 
-import { Sessions as SessionsIndex } from "./app/sessions/index";
-import { EditSession } from "./app/sessions/edit";
 import { loader as singleSessionLoader } from "./app/sessions/single.loader";
 import { loader as allSessionsLoader } from "./app/sessions/all.loader";
 
-import { Schedules as SchedulesIndex } from "./app/schedules/index";
-import { EditSchedule } from "./app/schedules/edit";
-import { ViewSchedule } from "./app/schedules/view";
-import { RehearsalSchedule } from "./app/schedules/rehearsal";
 import { loader as singleScheduleLoader } from "./app/schedules/single.loader";
 import { loader as allSchedulesLoader } from "./app/schedules/all.loader";
-import { SpotifyConnectCallback, YoutubeConnectCallback } from "./app/playlist-connect-callback";
 
-import { EditOrganization } from "./app/organizations/index";
 import { loader as editOrganizationLoader } from "./app/organizations/index.loader"
-import { OrganizationRedirect } from "./app/organizations/redirect";
-import { InviteOrganizationMember, loader as inviteOrganizationMemberLoader } from "./app/organizations/invite";
-import { EditMember, loader as editMemberLoader } from "./app/organizations/editMember";
-import { TransferOrganization } from "./app/organizations/transfer";
-import { ImportSong } from "./app/songs/import";
+import { loader as inviteOrganizationMemberLoader } from "./app/organizations/invite.loader";
+import { loader as editMemberLoader } from "./app/organizations/editMember.loader";
 
 export function AppRouter() {
 
@@ -83,97 +49,103 @@ export function AppRouter() {
     document.documentElement.lang = i18n.language || 'en';
   }, [i18n.language]);
 
-  const router = createBrowserRouter(
+  // Created once: rebuilding the router on re-render (e.g. a language change
+  // re-renders this component through useTranslation) remounts the whole tree,
+  // which resets the controller state and closes the projector windows.
+  // Loaders read the language from the i18next instance when they run, not
+  // from `i18n` above: react-i18next returns a new `i18n` wrapper object on
+  // every language change, so it cannot be a dependency here.
+  const router = useMemo(() => createBrowserRouter(
     createRoutesFromElements(
       <>
         <Route path="/" element={<PublicPagesLayout />} errorElement={<ErrorLayout />}>
-          <Route index={true} element={<Home />} />
-          <Route path="open-source" element={<OpenSource />} />
-          <Route path="privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="terms-and-conditions" element={<TermsAndConditions />} />
+          <Route index={true} lazy={() => import("./home").then((m) => ({ element: <m.Home /> }))} />
+          <Route path="open-source" lazy={() => import("./open-source").then((m) => ({ element: <m.OpenSource /> }))} />
+          <Route path="privacy-policy" lazy={() => import("./privacy-policy").then((m) => ({ element: <m.PrivacyPolicy /> }))} />
+          <Route path="terms-and-conditions" lazy={() => import("./terms-and-conditions").then((m) => ({ element: <m.TermsAndConditions /> }))} />
         </Route>
         <Route element={<AuthLayout />} errorElement={<ErrorLayout />} loader={(loader: LoaderFunctionArgs) => authLoader({ request: loader.request, organizationsService: services.organizationsService })}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/login/otp" element={<OtpRequest />} />
-          <Route path="/login/otp/verify" element={<OtpVerify />} />
-          <Route path="/oauth/callback" element={<OAuthCallback />} />
-          <Route path="/oauth/link-callback" element={<OAuthLinkCallback />} />
+          <Route path="/login" lazy={() => import("./auth/login").then((m) => ({ element: <m.Login /> }))} />
+          <Route path="/signup" lazy={() => import("./auth/signup").then((m) => ({ element: <m.SignUp /> }))} />
+          <Route path="/forgot-password" lazy={() => import("./auth/forgot-password").then((m) => ({ element: <m.ForgotPassword /> }))} />
+          <Route path="/reset-password" lazy={() => import("./auth/reset-password").then((m) => ({ element: <m.ResetPassword /> }))} />
+          <Route path="/login/otp" lazy={() => import("./auth/otp-request").then((m) => ({ element: <m.OtpRequest /> }))} />
+          <Route path="/login/otp/verify" lazy={() => import("./auth/otp-verify").then((m) => ({ element: <m.OtpVerify /> }))} />
+          <Route path="/oauth/callback" lazy={() => import("./auth/oauth-callback").then((m) => ({ element: <m.OAuthCallback /> }))} />
+          <Route path="/oauth/link-callback" lazy={() => import("./auth/oauth-link-callback").then((m) => ({ element: <m.OAuthLinkCallback /> }))} />
         </Route>
         <Route path="/app" element={<AppLayout />} errorElement={<ErrorLayout />}>
-          <Route index={true} element={<Welcome />} loader={() => welcomeLoader({ organizationsService: services.organizationsService })} />
-          <Route path="profile" element={<Profile />} loader={() => profileLoader({ usersService: services.usersService, authService: services.authService })} />
-          <Route path="spotify/connect-callback" element={<SpotifyConnectCallback />} />
-          <Route path="youtube/connect-callback" element={<YoutubeConnectCallback />} />
+          <Route index={true} lazy={() => import("./app/welcome").then((m) => ({ element: <m.Welcome /> }))} loader={() => welcomeLoader({ organizationsService: services.organizationsService })} />
+          <Route path="profile" lazy={() => import("./app/profile").then((m) => ({ element: <m.Profile /> }))} loader={() => profileLoader({ usersService: services.usersService, authService: services.authService })} />
+          <Route path="spotify/connect-callback" lazy={() => import("./app/playlist-connect-callback").then((m) => ({ element: <m.SpotifyConnectCallback /> }))} />
+          <Route path="youtube/connect-callback" lazy={() => import("./app/playlist-connect-callback").then((m) => ({ element: <m.YoutubeConnectCallback /> }))} />
           <Route path="songs">
-            <Route index={true} element={<SongsIndex />} loader={() => allSongsLoader({ songsService: services.songsService, lang: i18n.language })} />
-            <Route path="add" element={<EditSong edit={false} />} />
-            <Route path="import" element={<ImportSong />} />
-            <Route path=":id/view" element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
-            <Route path=":id/edit" element={<EditSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
+            <Route index={true} lazy={() => import("./app/songs").then((m) => ({ element: <m.Songs /> }))} loader={() => allSongsLoader({ songsService: services.songsService, lang: i18next.language })} />
+            <Route path="add" lazy={() => import("./app/songs/edit").then((m) => ({ element: <m.EditSong edit={false} /> }))} />
+            <Route path="import" lazy={() => import("./app/songs/import").then((m) => ({ element: <m.ImportSong /> }))} />
+            <Route path=":id/view" lazy={() => import("./app/songs/view").then((m) => ({ element: <m.ViewSong /> }))} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
+            <Route path=":id/edit" lazy={() => import("./app/songs/edit").then((m) => ({ element: <m.EditSong /> }))} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
           </Route>
           <Route path="organization">
-            <Route index={true} element={<OrganizationRedirect />} />
-            <Route path=":orgId" element={<EditOrganization />} loader={(loader: LoaderFunctionArgs) => editOrganizationLoader({ organizationsService: services.organizationsService, orgId: Number(loader.params.orgId) })} />
-            <Route path=":orgId/invite" element={<InviteOrganizationMember />} loader={(loader: LoaderFunctionArgs) => inviteOrganizationMemberLoader({ organizationsService: services.organizationsService, orgId: Number(loader.params.orgId) })} />
-            <Route path=":orgId/member/:id" element={<EditMember />} loader={(loader: LoaderFunctionArgs) => editMemberLoader({ params: loader.params, organizationsService: services.organizationsService, orgId: Number(loader.params.orgId) })} />
-            <Route path=":orgId/transfer" element={<TransferOrganization />} loader={(loader: LoaderFunctionArgs) => editOrganizationLoader({ organizationsService: services.organizationsService, orgId: Number(loader.params.orgId) })} />
+            <Route index={true} lazy={() => import("./app/organizations/redirect").then((m) => ({ element: <m.OrganizationRedirect /> }))} />
+            <Route path=":orgId" lazy={() => import("./app/organizations/index").then((m) => ({ element: <m.EditOrganization /> }))} loader={(loader: LoaderFunctionArgs) => editOrganizationLoader({ organizationsService: services.organizationsService, orgId: Number(loader.params.orgId) })} />
+            <Route path=":orgId/invite" lazy={() => import("./app/organizations/invite").then((m) => ({ element: <m.InviteOrganizationMember /> }))} loader={(loader: LoaderFunctionArgs) => inviteOrganizationMemberLoader({ organizationsService: services.organizationsService, orgId: Number(loader.params.orgId) })} />
+            <Route path=":orgId/member/:id" lazy={() => import("./app/organizations/editMember").then((m) => ({ element: <m.EditMember /> }))} loader={(loader: LoaderFunctionArgs) => editMemberLoader({ params: loader.params, organizationsService: services.organizationsService, orgId: Number(loader.params.orgId) })} />
+            <Route path=":orgId/transfer" lazy={() => import("./app/organizations/transfer").then((m) => ({ element: <m.TransferOrganization /> }))} loader={(loader: LoaderFunctionArgs) => editOrganizationLoader({ organizationsService: services.organizationsService, orgId: Number(loader.params.orgId) })} />
           </Route>
           <Route path="organizations">
-            <Route path="add" element={<EditOrganization edit={false} />} />
+            <Route path="add" lazy={() => import("./app/organizations/index").then((m) => ({ element: <m.EditOrganization edit={false} /> }))} />
           </Route>
           <Route path="themes">
-            <Route index={true} element={<ThemesIndex />} loader={() => allThemesLoader({ themesService: services.themesService })} />
-            <Route path="add" element={<EditTheme edit={false} />} />
-            <Route path=":id/edit" element={<EditTheme />} loader={(loader: LoaderFunctionArgs) => singleThemeLoader({ params: loader.params, themesService: services.themesService })} />
+            <Route index={true} lazy={() => import("./app/themes/index").then((m) => ({ element: <m.Themes /> }))} loader={() => allThemesLoader({ themesService: services.themesService })} />
+            <Route path="add" lazy={() => import("./app/themes/edit").then((m) => ({ element: <m.EditTheme edit={false} /> }))} />
+            <Route path=":id/edit" lazy={() => import("./app/themes/edit").then((m) => ({ element: <m.EditTheme /> }))} loader={(loader: LoaderFunctionArgs) => singleThemeLoader({ params: loader.params, themesService: services.themesService })} />
           </Route>
           <Route path="sessions">
-            <Route index={true} element={<SessionsIndex />} loader={() => allSessionsLoader({ sessionsService: services.sessionsService })} />
-            <Route path="add" element={<EditSession edit={false} />} />
-            <Route path=":id/edit" element={<EditSession />} loader={(loader: LoaderFunctionArgs) => singleSessionLoader({ params: loader.params, sessionsService: services.sessionsService })} />
+            <Route index={true} lazy={() => import("./app/sessions/index").then((m) => ({ element: <m.Sessions /> }))} loader={() => allSessionsLoader({ sessionsService: services.sessionsService })} />
+            <Route path="add" lazy={() => import("./app/sessions/edit").then((m) => ({ element: <m.EditSession edit={false} /> }))} />
+            <Route path=":id/edit" lazy={() => import("./app/sessions/edit").then((m) => ({ element: <m.EditSession /> }))} loader={(loader: LoaderFunctionArgs) => singleSessionLoader({ params: loader.params, sessionsService: services.sessionsService })} />
           </Route>
           <Route path="schedules">
-            <Route index={true} element={<SchedulesIndex />} loader={() => allSchedulesLoader({ schedulesService: services.schedulesService })} />
-            <Route path="add" element={<EditSchedule edit={false} />} />
-            <Route path=":id/view" element={<ViewSchedule />} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService })} />
-            <Route path=":id/rehearsal" element={<RehearsalSchedule />} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService })} />
-            <Route path=":id/edit" element={<EditSchedule />} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService })} />
+            <Route index={true} lazy={() => import("./app/schedules/index").then((m) => ({ element: <m.Schedules /> }))} loader={() => allSchedulesLoader({ schedulesService: services.schedulesService })} />
+            <Route path="add" lazy={() => import("./app/schedules/edit").then((m) => ({ element: <m.EditSchedule edit={false} /> }))} />
+            <Route path=":id/view" lazy={() => import("./app/schedules/view").then((m) => ({ element: <m.ViewSchedule /> }))} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService })} />
+            <Route path=":id/rehearsal" lazy={() => import("./app/schedules/rehearsal").then((m) => ({ element: <m.RehearsalSchedule /> }))} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService })} />
+            <Route path=":id/edit" lazy={() => import("./app/schedules/edit").then((m) => ({ element: <m.EditSchedule /> }))} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService })} />
           </Route>
         </Route>
         <Route path="/app" element={<PrintLayout />} errorElement={<ErrorLayout />}>
-          <Route path="songs/:id/print" element={<PrintSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
+          <Route path="songs/:id/print" lazy={() => import("./app/songs/print").then((m) => ({ element: <m.PrintSong /> }))} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
         </Route>
         <Route path="/app/controller" element={<ControllerLayout />} errorElement={<ErrorLayout />}>
-          <Route index={true} element={<Controller />} />
+          <Route index={true} lazy={() => import("./app/controller").then((m) => ({ element: <m.Controller /> }))} />
         </Route>
         <Route path="/shared" element={<PrintLayout />} errorElement={<ErrorLayout />}>
           <Route path="print/:id">
-            <Route index={true} element={<PrintSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
-            <Route path=":secret" element={<PrintSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.secret })} />
+            <Route index={true} lazy={() => import("./app/songs/print").then((m) => ({ element: <m.PrintSong /> }))} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
+            <Route path=":secret" lazy={() => import("./app/songs/print").then((m) => ({ element: <m.PrintSong /> }))} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.secret })} />
           </Route>
         </Route>
         <Route path="/shared" element={<AppSharedLayout />} errorElement={<ErrorLayout />}>
           <Route path="view/:id">
-            <Route index={true} element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
-            <Route path=":secret" element={<ViewSong />} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.secret })} />
+            <Route index={true} lazy={() => import("./app/songs/view").then((m) => ({ element: <m.ViewSong /> }))} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService })} />
+            <Route path=":secret" lazy={() => import("./app/songs/view").then((m) => ({ element: <m.ViewSong /> }))} loader={(loader: LoaderFunctionArgs) => singleSongLoader({ params: loader.params, songsService: services.songsService, secret: loader.params.secret })} />
           </Route>
           <Route path="schedules/:id/">
-            <Route index={true} element={<ViewSchedule />} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService })} />
-            <Route path=":secret" element={<ViewSchedule />} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService, secret: loader.params.secret })} />
-            <Route path=":secret/rehearsal" element={<RehearsalSchedule />} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService, secret: loader.params.secret })} />
+            <Route index={true} lazy={() => import("./app/schedules/view").then((m) => ({ element: <m.ViewSchedule /> }))} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService })} />
+            <Route path=":secret" lazy={() => import("./app/schedules/view").then((m) => ({ element: <m.ViewSchedule /> }))} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService, secret: loader.params.secret })} />
+            <Route path=":secret/rehearsal" lazy={() => import("./app/schedules/rehearsal").then((m) => ({ element: <m.RehearsalSchedule /> }))} loader={(loader: LoaderFunctionArgs) => singleScheduleLoader({ params: loader.params, schedulesService: services.schedulesService, secret: loader.params.secret })} />
           </Route>
         </Route>
         <Route path="/shared" element={<ControllerSharedLayout />} errorElement={<ErrorLayout />}>
           <Route path="session/:orgId/:sessionId/:secret">
-            <Route index={true} element={<Receiver />} loader={(loader: LoaderFunctionArgs) => publicSessionLoader({ params: loader.params, sessionsService: services.sessionsService, themesService: services.themesService })} />
-            <Route path=":theme" element={<Receiver />} loader={(loader: LoaderFunctionArgs) => publicSessionLoader({ params: loader.params, sessionsService: services.sessionsService, themesService: services.themesService })} />
+            <Route index={true} lazy={() => import("./app/receiver").then((m) => ({ element: <m.Receiver /> }))} loader={(loader: LoaderFunctionArgs) => publicSessionLoader({ params: loader.params, sessionsService: services.sessionsService, themesService: services.themesService })} />
+            <Route path=":theme" lazy={() => import("./app/receiver").then((m) => ({ element: <m.Receiver /> }))} loader={(loader: LoaderFunctionArgs) => publicSessionLoader({ params: loader.params, sessionsService: services.sessionsService, themesService: services.themesService })} />
           </Route>
         </Route>
       </>
     )
-  );
+  ), [services]);
 
   return (
     <RouterProvider router={router} />

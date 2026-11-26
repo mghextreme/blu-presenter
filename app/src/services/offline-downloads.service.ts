@@ -1,5 +1,4 @@
-import { QueryClient } from "@tanstack/react-query";
-import { ISchedule, ISongWithRole, ITheme } from "@/types";
+import { ISchedule, ISongWithRole } from "@/types";
 import {
   OfflineDatabase,
   OfflineSongRow,
@@ -27,7 +26,6 @@ export class OfflineDownloadsService {
   private static readonly REVALIDATE_THROTTLE_MS = 5 * 60 * 1000;
 
   constructor(
-    private readonly queryClient: QueryClient,
     private readonly songsService: SongsService,
     private readonly schedulesService: SchedulesService,
     private readonly themesService: ThemesService,
@@ -122,8 +120,7 @@ export class OfflineDownloadsService {
   private async syncThemes(): Promise<void> {
     // Themes are cached aggressively in the query client; drop the cache to
     // guarantee a fresh fetch for the offline copy.
-    this.queryClient.removeQueries({ queryKey: ["themes"] });
-    const themes = await this.themesService.getAllForUser() as ITheme[];
+    const themes = await this.themesService.fetchAllForUser();
     const syncedAt = new Date().toISOString();
     const rows: OfflineThemeRow[] = themes.map(theme => ({
       id: theme.id,
@@ -146,8 +143,7 @@ export class OfflineDownloadsService {
   }
 
   private async fetchFreshSong(songId: number): Promise<ISongWithRole | null> {
-    this.queryClient.removeQueries({ queryKey: ["songs", "id", songId] });
-    return await this.songsService.getById(songId) as ISongWithRole | null;
+    return await this.songsService.fetchById(songId) as ISongWithRole | null;
   }
 
   private toSongRow(song: ISongWithRole, previousOrgId?: number): OfflineSongRow {

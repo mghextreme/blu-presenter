@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { CaretSortIcon } from "@radix-ui/react-icons";
@@ -41,29 +42,26 @@ export function CopySongToOrganization({
 
   const startingOrg = possibleOrgs.length === 1 ? possibleOrgs[0].id : undefined;
 
-  const [loading, setLoading] = useState<boolean>(false);
   const [open, setOpen] = useState<boolean>(false);
   const [selectedOrg, setSelectedOrg] = useState<number | undefined>(startingOrg);
   const organizationListId = "copy-song-organization-list";
 
-  const onSubmit = async () => {
+  const copySong = useMutation({
+    mutationFn: ({ toOrganizationId, sourceOrgId }: { toOrganizationId: number, sourceOrgId: number }) =>
+      songsService.copyToOrganization(songId, toOrganizationId, sourceOrgId),
+    onSuccess: () => toast.success(t('message.copyToOrganization.success')),
+    onError: (e) => {
+      toast.error(t('error.copyToOrganization'), {
+        description: e?.message || '',
+      });
+    },
+  });
+
+  const onSubmit = () => {
     if (!selectedOrg || !sourceOrgId) {
       return;
     }
-
-    setLoading(true);
-    songsService.copyToOrganization(songId, selectedOrg, sourceOrgId)
-      .then(() => {
-        toast.success(t('message.copyToOrganization.success'));
-      })
-      .catch((e) => {
-        toast.error(t('error.copyToOrganization'), {
-          description: e?.message || '',
-        });
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    copySong.mutate({ toOrganizationId: selectedOrg, sourceOrgId });
   }
 
   return (
@@ -130,7 +128,7 @@ export function CopySongToOrganization({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
-          <AlertDialogAction disabled={!selectedOrg || loading} onClick={onSubmit}>{t('button.confirm')}</AlertDialogAction>
+          <AlertDialogAction disabled={!selectedOrg || copySong.isPending} onClick={onSubmit}>{t('button.confirm')}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

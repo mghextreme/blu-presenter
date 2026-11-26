@@ -34,6 +34,7 @@ export function Schedules() {
   const availableOrganizations = filterOrganizationsByFeature(organizations, 'schedules');
 
   const list = useFilteredList<ISchedule>({
+    queryKey: ['schedules'],
     defaultValue: data,
     initialOrganizations: filterToSelection(availableOrganizations),
     search: (payload) => schedulesService.search(payload),
@@ -67,7 +68,6 @@ export function Schedules() {
 
     try {
       await schedulesService.delete(schedule.id, schedule.organization.id);
-      schedulesService.clearCache();
       list.refresh();
     } catch (e: any) {
       toast.error(

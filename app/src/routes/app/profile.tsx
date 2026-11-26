@@ -1,17 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useIsMutating, useMutation, useSuspenseQuery } from "@tanstack/react-query";
 
-import { IProfile } from "@/types";
-import { IUserIdentitiesResponse } from "@/types/auth";
 import { useServices } from "@/hooks/useServices";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { PageContent } from "@/components/shared/page-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Link, useLoaderData } from "react-router-dom";
+import { Link } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -21,10 +18,6 @@ import { SpotifyConnection } from "@/components/app/profile/spotify-connection";
 export function Profile() {
 
   const { t } = useTranslation("profile");
-  const loaderData = useLoaderData() as {
-    profile: IProfile;
-    identities: IUserIdentitiesResponse;
-  };
 
   const formSchema = z.object({
     email: z.string().email(),
@@ -60,22 +53,24 @@ export function Profile() {
   });
 
   const { usersService, authService } = useServices();
+  const { data: profile } = useSuspenseQuery(usersService.getProfileQuery());
+  const { data: identities } = useSuspenseQuery(authService.identitiesQuery());
 
-  if (!loaderData?.profile) {
+  if (!profile) {
     throw new Error("Can't find user profile");
   }
 
-  const [isLoading, setLoading] = useState<boolean>(false);
-  const [identitiesData, setIdentitiesData] = useState<IUserIdentitiesResponse>(loaderData.identities);
+  // Any write on the page (including connecting accounts) blocks the forms.
+  const isMutating = useIsMutating() > 0;
 
-  const hasPassword = identitiesData.hasPassword;
+  const hasPassword = identities.hasPassword;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nickname: loaderData.profile.nickname ?? '',
-      name: loaderData.profile.name ?? '',
-      email: loaderData.profile.email ?? '',
+      nickname: profile.nickname ?? '',
+      name: profile.name ?? '',
+      email: profile.email ?? '',
     },
   });
 
@@ -96,70 +91,54 @@ export function Profile() {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setLoading(true);
-    usersService.update(values)
-      .then(() => {
-        toast.success(t('update.succeeded'));
-      })
-      .catch((e) => {
-        toast.error(t('update.failed'), {
-          description: e?.message || '',
-        });
-      })
-      .finally(() => {
-        setLoading(false);
+  const updateProfile = useMutation({
+    mutationFn: (values: z.infer<typeof formSchema>) => usersService.update(values),
+    onSuccess: () => {
+      toast.success(t('update.succeeded'));
+    },
+    onError: (e) => {
+      toast.error(t('update.failed'), {
+        description: e?.message || '',
       });
-  }
+    },
+  });
 
-  const onChangePassword = async (values: z.infer<typeof passwordChangeformSchema>) => {
-    setLoading(true);
-
-    authService.changePassword({
+  const changePassword = useMutation({
+    mutationFn: (values: z.infer<typeof passwordChangeformSchema>) => authService.changePassword({
       currentPassword: values.currentPassword,
       newPassword: values.password,
-    })
-      .then(() => {
-        toast.success(t('changePassword.succeeded'));
-        passwordChangeForm.reset();
-      })
-      .catch((e) => {
-        toast.error(t('changePassword.failed'), {
-          description: e?.message || '',
-        });
-      })
-      .finally(() => {
-        setLoading(false);
+    }),
+    onSuccess: () => {
+      toast.success(t('changePassword.succeeded'));
+      passwordChangeForm.reset();
+    },
+    onError: (e) => {
+      toast.error(t('changePassword.failed'), {
+        description: e?.message || '',
       });
-  }
+    },
+  });
 
-  const onSetPassword = async (values: z.infer<typeof setPasswordFormSchema>) => {
-    setLoading(true);
-
-    authService.setPassword({
+  const setPassword = useMutation({
+    mutationFn: (values: z.infer<typeof setPasswordFormSchema>) => authService.setPassword({
       newPassword: values.password,
-    })
-      .then(async () => {
-        toast.success(t('setPassword.succeeded'));
-        setPasswordForm.reset();
-        const updated = await authService.getIdentities();
-        setIdentitiesData(updated);
-      })
-      .catch((e) => {
-        toast.error(t('setPassword.failed'), {
-          description: e?.message || '',
-        });
-      })
-      .finally(() => {
-        setLoading(false);
+    }),
+    onSuccess: () => {
+      toast.success(t('setPassword.succeeded'));
+      setPasswordForm.reset();
+    },
+    onError: (e) => {
+      toast.error(t('setPassword.failed'), {
+        description: e?.message || '',
       });
-  }
+    },
+  });
 
   return (
     <PageContent>
       <title>{t('title') + ' - BluPresenter'}</title>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
+        <form onSubmit={form.handleSubmit((values) => updateProfile.mutate(values))} className="max-w-lg space-y-3">
           <FormField
             control={form.control}
             name="email"
@@ -200,8 +179,8 @@ export function Profile() {
             )}></FormField>
 
           <div className="flex flex-row align-start space-x-2">
-            <Button className="flex-0" type="submit" disabled={isLoading}>
-              {isLoading && (
+            <Button className="flex-0" type="submit" disabled={isMutating}>
+              {updateProfile.isPending && (
                 <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
               )}
               {t('button.update')}
@@ -213,24 +192,16 @@ export function Profile() {
 
       <h2 className="text-2xl mt-6 mb-4">{t('connectedAccounts.title')}</h2>
       <div className="max-w-lg space-y-3">
-        <GoogleConnection
-          identities={identitiesData}
-          onIdentitiesChanged={setIdentitiesData}
-          onBusyChange={setLoading}
-        />
+        <GoogleConnection identities={identities} />
 
-        <SpotifyConnection
-          identities={identitiesData}
-          onIdentitiesChanged={setIdentitiesData}
-          onBusyChange={setLoading}
-        />
+        <SpotifyConnection identities={identities} />
       </div>
 
       {hasPassword ? (
         <>
           <h2 className="text-2xl mt-6 mb-4">{t('changePassword.title')}</h2>
           <Form {...passwordChangeForm}>
-            <form onSubmit={passwordChangeForm.handleSubmit(onChangePassword)} className="max-w-lg space-y-3">
+            <form onSubmit={passwordChangeForm.handleSubmit((values) => changePassword.mutate(values))} className="max-w-lg space-y-3">
               <FormField
                 control={passwordChangeForm.control}
                 name="currentPassword"
@@ -271,8 +242,8 @@ export function Profile() {
                 )}></FormField>
 
               <div className="flex flex-row align-start space-x-2">
-                <Button className="flex-0" type="submit" disabled={isLoading}>
-                  {isLoading && (
+                <Button className="flex-0" type="submit" disabled={isMutating}>
+                  {changePassword.isPending && (
                     <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
                   )}
                   {t('button.update')}
@@ -285,7 +256,7 @@ export function Profile() {
         <>
           <h2 className="text-2xl mt-6 mb-4">{t('setPassword.title')}</h2>
           <Form {...setPasswordForm}>
-            <form onSubmit={setPasswordForm.handleSubmit(onSetPassword)} className="max-w-lg space-y-3">
+            <form onSubmit={setPasswordForm.handleSubmit((values) => setPassword.mutate(values))} className="max-w-lg space-y-3">
               <FormField
                 control={setPasswordForm.control}
                 name="password"
@@ -313,8 +284,8 @@ export function Profile() {
                 )}></FormField>
 
               <div className="flex flex-row align-start space-x-2">
-                <Button className="flex-0" type="submit" disabled={isLoading}>
-                  {isLoading && (
+                <Button className="flex-0" type="submit" disabled={isMutating}>
+                  {setPassword.isPending && (
                     <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
                   )}
                   {t('button.update')}

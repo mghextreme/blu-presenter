@@ -40,4 +40,5 @@ supabase/snippets
 # AI
 skills-lock.json
 .agents/*
-.claude/*
+# Symlink to .agents (a plain `.claude/*` pattern does not match a symlink)
+.claude

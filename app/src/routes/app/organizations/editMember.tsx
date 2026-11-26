@@ -2,17 +2,17 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 
 import { useServices } from "@/hooks/useServices";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Link, Params, useLoaderData, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import { CheckIcon } from "@radix-ui/react-icons";
 import { useTranslation } from "react-i18next";
-import { IOrganizationUser, isRoleHigherOrEqualThan } from "@/types";
-import { OrganizationsService } from "@/services";
+import { isRoleHigherOrEqualThan, OrganizationRoleOptions } from "@/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
@@ -20,10 +20,6 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { PageContent } from "@/components/shared/page-content";
-
-export async function loader({ params, organizationsService, orgId }: { params: Params, organizationsService: OrganizationsService, orgId: number }) {
-  return await organizationsService.getMember(Number(params.id), orgId);
-}
 
 export function EditMember() {
 
@@ -33,12 +29,10 @@ export function EditMember() {
 
   const { organizationsService } = useServices();
   const { organizations, user } = useAuth();
-  const data = useLoaderData() as IOrganizationUser;
+  const params = useParams();
+  const { data } = useSuspenseQuery(organizationsService.memberQuery(Number(params.id), Number(params.orgId)));
 
-  const { orgId } = useParams();
-  const organization = organizations.find((org) => org.id === Number(orgId));
-
-  const [isLoading, setLoading] = useState<boolean>(false);
+  const organization = organizations.find((org) => org.id === Number(params.orgId));
 
   const formSchema = z.object({
     role: z.enum(["admin", "member", "guest"]).default("guest"),
@@ -58,20 +52,20 @@ export function EditMember() {
     { label: t('role.guest'), value: 'guest' },
   ] as { label: string; value: 'admin' | 'member' | 'guest' }[];
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setLoading(true);
-    organizationsService.editMember(data.id, values.role, organization?.id ?? 0)
-      .then(() => {
-        navigate(`/app/organization/${organization?.id ?? 0}`, { replace: true });
-      })
-      .catch((e) => {
-        toast.error(t('error.editMember'), {
-          description: e?.message || '',
-        });
-      })
-      .finally(() => {
-        setLoading(false);
+  const editMember = useMutation({
+    mutationFn: (role: OrganizationRoleOptions) => organizationsService.editMember(data.id, role, organization?.id ?? 0),
+    onSuccess: () => {
+      navigate(`/app/organization/${organization?.id ?? 0}`, { replace: true });
+    },
+    onError: (e) => {
+      toast.error(t('error.editMember'), {
+        description: e?.message || '',
       });
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    editMember.mutate(values.role);
   }
 
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);
@@ -166,8 +160,8 @@ export function EditMember() {
               )}></FormField>
           )}
           <div className="flex flex-row align-start space-x-2">
-            <Button className="flex-0" type="submit" disabled={isLoading || !canEdit}>
-              {isLoading && (
+            <Button className="flex-0" type="submit" disabled={editMember.isPending || !canEdit}>
+              {editMember.isPending && (
                 <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
               )}
               {t('button.update')}

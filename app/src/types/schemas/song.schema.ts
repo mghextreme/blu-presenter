@@ -22,7 +22,7 @@ export const SongSchema = z.object({
   references: z.array(
     z.object({
       name: z.string().optional(),
-      url: z.string().url(),
+      url: z.url({ protocol: /^https?$/ }),
     }),
   ),
 });

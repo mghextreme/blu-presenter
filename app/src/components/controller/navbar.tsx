@@ -17,9 +17,7 @@ export function ControllerNavbar() {
 
   const { t } = useTranslation("controller");
 
-  const {
-    addWindow,
-  } = useController();
+  const { addWindow } = useController((s) => ({ addWindow: s.addWindow }));
 
   return (
     <header className="flex flex-0 w-full drop-shadow-1 bg-background">

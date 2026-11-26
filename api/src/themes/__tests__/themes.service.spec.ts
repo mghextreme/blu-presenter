@@ -546,4 +546,19 @@ describe('ThemesService', () => {
       expect(mockThemesRepository.find).not.toHaveBeenCalled();
     });
   });
+
+  describe('copyToOrganization', () => {
+    it('propagates a failure from creating the copy (e.g. feature disabled in target)', async () => {
+      mockThemesRepository.findOne.mockResolvedValue(mockTheme);
+      mockOrganizationsService.userRole.mockResolvedValue('member');
+      mockOrganizationsService.assertFeatureEnabled.mockRejectedValueOnce(
+        new ForbiddenException('Themes are disabled'),
+      );
+
+      await expect(service.copyToOrganization(1, 2)).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(mockThemesRepository.insert).not.toHaveBeenCalled();
+    });
+  });
 });

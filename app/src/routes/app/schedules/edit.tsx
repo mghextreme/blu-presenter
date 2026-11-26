@@ -159,7 +159,7 @@ function EditScheduleForm({
   navigate: ReturnType<typeof useNavigate>,
   t: ReturnType<typeof useTranslation>['t'],
 }>) {
-  const { schedule, replaceSchedule } = useController();
+  const { schedule, replaceSchedule } = useController((s) => ({ schedule: s.schedule, replaceSchedule: s.replaceSchedule }));
   const services = useServices();
   const [isLoading, setLoading] = useState<boolean>(false);
   const [addItemOpen, setAddItemOpen] = useState<boolean>(false);

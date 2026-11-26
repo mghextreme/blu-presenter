@@ -37,7 +37,7 @@ import {
 interface ScheduleReferencesProps {
   schedule: ISchedule;
   /** Called with the refreshed schedule after a playlist was created or re-synced. */
-  onSynced: (schedule: ISchedule) => void;
+  onSynced?: (schedule: ISchedule) => void;
 }
 
 /**

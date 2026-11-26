@@ -67,10 +67,7 @@ export function PreviewWindow({
   const [previewRatio, setPreviewRatio] = useState<string>(storedRatio);
   const [ratioOptions, setRatioOptions] = useState<{ value: string, label: string }[]>(defaultRatioOptions);
 
-  const {
-    mode,
-    setMode,
-  } = useController();
+  const { mode, setMode } = useController((s) => ({ mode: s.mode, setMode: s.setMode }));
 
   const {
     themesService,

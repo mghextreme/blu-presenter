@@ -6,13 +6,15 @@ import { queryOptions } from "@tanstack/react-query";
 
 export class OrganizationsService extends ApiService {
 
-  public clearCache(): void {
-    this.queryClient.removeQueries({ queryKey: ['organizations'] });
-    this.queryClient.removeQueries({ queryKey: ['user', 'organizations'] });
+  public invalidateCache(): Promise<unknown> {
+    return Promise.all([
+      this.queryClient.invalidateQueries({ queryKey: ['organizations'] }),
+      this.queryClient.invalidateQueries({ queryKey: ['user', 'organizations'] }),
+    ]);
   }
 
-  public async getCurrent(orgId: number): Promise<IOrganization | null> {
-    return await this.getOrFetch({
+  public currentQuery(orgId: number) {
+    return queryOptions({
       queryKey: ['organizations', 'self', orgId],
       queryFn: async () => {
         const response = await this.getRequest('/organizations/self', {
@@ -23,12 +25,16 @@ export class OrganizationsService extends ApiService {
     });
   }
 
+  public async getCurrent(orgId: number): Promise<IOrganization | null> {
+    return await this.queryClient.query(this.currentQuery(orgId));
+  }
+
   public async add(value: IOrganization): Promise<IOrganization | null> {
     const result = await this.postRequest('/organizations', JSON.stringify(value), {
       'content-type': 'application/json',
     }) as IOrganization;
 
-    this.clearCache();
+    void this.invalidateCache();
 
     return result;
   }
@@ -39,7 +45,7 @@ export class OrganizationsService extends ApiService {
       'Organization': orgId.toString(),
     }) as IOrganization;
 
-    this.clearCache();
+    void this.invalidateCache();
 
     return result;
   }
@@ -51,6 +57,8 @@ export class OrganizationsService extends ApiService {
       'content-type': 'application/json',
       'Organization': orgId.toString(),
     }) as IOrganization;
+
+    void this.invalidateCache();
   }
 
   public async delete(orgId: number): Promise<void> {
@@ -59,11 +67,11 @@ export class OrganizationsService extends ApiService {
       'Organization': orgId.toString(),
     });
 
-    this.clearCache();
+    void this.invalidateCache();
   }
 
-  public async getMember(id: number, orgId: number): Promise<IOrganizationUser> {
-    return await this.getOrFetch({
+  public memberQuery(id: number, orgId: number) {
+    return queryOptions({
       queryKey: ['organizations', orgId, 'members', id],
       queryFn: async () => {
         const response = await this.getRequest(`/organizations/members/${id}`, {
@@ -79,6 +87,10 @@ export class OrganizationsService extends ApiService {
     });
   }
 
+  public async getMember(id: number, orgId: number): Promise<IOrganizationUser> {
+    return await this.queryClient.query(this.memberQuery(id, orgId));
+  }
+
   public async inviteMember(email: string, role: OrganizationRoleOptions, orgId: number): Promise<IOrganizationInvitation> {
     const result = await this.postRequest('/organizations/members', JSON.stringify({
       email,
@@ -88,7 +100,7 @@ export class OrganizationsService extends ApiService {
       'Organization': orgId.toString(),
     }) as IOrganizationInvitation;
 
-    this.clearCache();
+    void this.invalidateCache();
 
     return result;
   }
@@ -101,20 +113,22 @@ export class OrganizationsService extends ApiService {
       'Organization': orgId.toString(),
     });
 
-    this.clearCache();
+    void this.invalidateCache();
   }
 
   public async getInvite(id: number, secret: string): Promise<IOrganizationInvitation> {
     return await this.getRequest(`/organizations/invitations/${id}?secret=${secret}`) as IOrganizationInvitation;
   }
 
-  public async getInvitations(): Promise<IOrganizationInvitation[]> {
-    return await this.getOrFetch({
+  public invitationsQuery() {
+    return queryOptions({
       queryKey: ['organizations', 'invitations', 'self'],
-      queryFn: async () => {
-        return await this.getRequest('/organizations/invitations');
-      },
+      queryFn: async () => await this.getRequest('/organizations/invitations') as IOrganizationInvitation[],
     });
+  }
+
+  public async getInvitations(): Promise<IOrganizationInvitation[]> {
+    return await this.queryClient.query(this.invitationsQuery());
   }
 
   public async acceptInvitation(id: number): Promise<void> {
@@ -122,7 +136,7 @@ export class OrganizationsService extends ApiService {
       'content-type': 'application/json',
     });
 
-    this.clearCache();
+    void this.invalidateCache();
   }
 
   public async rejectInvitation(id: number): Promise<void> {
@@ -130,7 +144,7 @@ export class OrganizationsService extends ApiService {
       'content-type': 'application/json',
     });
 
-    this.clearCache();
+    void this.invalidateCache();
   }
 
   public async cancelInvitation(id: number, orgId: number): Promise<void> {
@@ -139,7 +153,7 @@ export class OrganizationsService extends ApiService {
       'Organization': orgId.toString(),
     });
 
-    this.clearCache();
+    void this.invalidateCache();
   }
 
   public async leave(orgId: number) {
@@ -148,7 +162,7 @@ export class OrganizationsService extends ApiService {
       'Organization': orgId.toString(),
     });
 
-    this.clearCache();
+    void this.invalidateCache();
   }
 
   public async removeMember(id: number, orgId: number): Promise<void> {
@@ -157,11 +171,11 @@ export class OrganizationsService extends ApiService {
       'Organization': orgId.toString(),
     });
 
-    this.clearCache();
+    void this.invalidateCache();
   }
 
   public async getFromUser(): Promise<UserOrganization[]> {
-    return await this.getOrFetch(this.getFromUserQuery());
+    return await this.queryClient.query(this.getFromUserQuery());
   }
 
   public getFromUserQuery() {

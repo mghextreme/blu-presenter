@@ -261,4 +261,43 @@ describe('AuthService — password reset & OTP login', () => {
       );
     });
   });
+
+  describe('tokenRefresh', () => {
+    it.each([
+      [400, BadRequestException],
+      [401, ForbiddenException],
+      [403, ForbiddenException],
+    ])(
+      'maps an invalid refresh token (Supabase %i) to a sign-out status',
+      async (status, expected) => {
+        supabaseAuth.refreshSession.mockResolvedValue({
+          data: {},
+          error: { status, message: 'Invalid Refresh Token' },
+        });
+
+        await expect(
+          service.tokenRefresh({ refreshToken: 'r' }),
+        ).rejects.toThrow(expected);
+      },
+    );
+
+    it.each([
+      [429, 429],
+      [500, 503],
+      [502, 503],
+      [undefined, 503],
+    ])(
+      'keeps a transient Supabase failure (%p) distinguishable (%i)',
+      async (status, expected) => {
+        supabaseAuth.refreshSession.mockResolvedValue({
+          data: {},
+          error: { status, message: 'boom' },
+        });
+
+        await expect(
+          service.tokenRefresh({ refreshToken: 'r' }),
+        ).rejects.toMatchObject({ status: expected });
+      },
+    );
+  });
 });

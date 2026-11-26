@@ -37,11 +37,11 @@ export function BroadcastProvider({
   ...props
 }: Readonly<BroadcastProviderProps>) {
 
-  const {
-    schedule,
-    scheduleItem,
-    selection,
-  } = useController();
+  const { schedule, scheduleItem, selection } = useController((s) => ({
+    schedule: s.schedule,
+    scheduleItem: s.scheduleItem,
+    selection: s.selection,
+  }));
 
   const { broadcastService } = useServices();
 

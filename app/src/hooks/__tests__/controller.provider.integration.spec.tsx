@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useContext } from 'react'
-import { ControllerProvider, ControllerProviderContext } from '../controller.provider'
+import { ControllerProvider } from '../controller.provider'
+import { useController } from '../useController'
 import {
   mockScheduleItems,
 } from '@/test/mockData/scheduleItems'
@@ -30,7 +30,7 @@ const TestConsumer = ({
 }: Readonly<{
   onRender?: (context: any) => void
 }>) => {
-  const context = useContext(ControllerProviderContext)
+  const context = useController((s) => s)
 
   if (onRender) {
     onRender(context)

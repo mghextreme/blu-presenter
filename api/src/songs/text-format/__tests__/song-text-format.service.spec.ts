@@ -271,6 +271,11 @@ describe('SongTextFormatService', () => {
           '---\nschemaVersion: 1\nreferences:\n  - name: no url\n---\n\n# T\n## A\n',
         ),
       ).toThrow(/url must be a non-empty string/);
+      expect(() =>
+        service.decode(
+          '---\nschemaVersion: 1\nreferences:\n  - url: "javascript:alert(1)"\n---\n\n# T\n## A\n',
+        ),
+      ).toThrow(/url must be an http\(s\) URL/);
     });
   });
 

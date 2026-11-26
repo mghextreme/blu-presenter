@@ -1,4 +1,5 @@
 import { Link, useLoaderData } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import { filterOrganizationsByFeature, isRoleHigherOrEqualThan, ITheme } from "@/types";
@@ -30,6 +31,7 @@ export function Themes() {
   const availableOrganizations = filterOrganizationsByFeature(organizations, 'themes');
 
   const list = useFilteredList<ITheme>({
+    queryKey: ['themes'],
     defaultValue: data,
     initialOrganizations: filterToSelection(availableOrganizations),
     search: (payload) => themesService.search(payload),
@@ -43,20 +45,17 @@ export function Themes() {
   const filtersActive = list.selectedOrganizations.length > 0
     && list.selectedOrganizations.length < availableOrganizations.length;
 
-  const onDeleteTheme = async (theme: ITheme) => {
+  const deleteTheme = useMutation({
+    mutationFn: ({ themeId, organizationId }: { themeId: number, organizationId: number }) =>
+      themesService.delete(themeId, organizationId),
+    onError: () => toast.error(t('error.deleteTheme')),
+  });
+
+  const onDeleteTheme = (theme: ITheme) => {
     if (!theme.organization?.id) {
       return;
     }
-
-    try {
-      await themesService.delete(theme.id, theme.organization.id);
-      themesService.clearCache();
-      list.refresh();
-    } catch (e: any) {
-      toast.error(
-        t('error.deleteTheme'),
-      );
-    }
+    deleteTheme.mutate({ themeId: theme.id, organizationId: theme.organization.id });
   }
 
   const getCardActions = (theme: ITheme) => {

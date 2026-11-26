@@ -153,11 +153,13 @@ never touch them, because they have no link.
 
 ## Running inside Docker
 
+Run the compiled script inside a running API container (built from
+`api/Dockerfile`):
+
 ```bash
-docker compose exec api node dist/scripts/sync-vcs.js --source public-archive --apply
-docker compose exec api node dist/scripts/sync-vcs.js sources list
+docker exec <api-container> node dist/scripts/sync-vcs.js --source public-archive --apply
+docker exec <api-container> node dist/scripts/sync-vcs.js sources list
 ```
 
-The script needs the same environment variables as the API container
-(plus `GITHUB_TOKEN`, add it to the `api` service environment in
-`docker-compose.yml` if you use Docker).
+The script needs the same environment variables as the API container,
+plus `GITHUB_TOKEN`.

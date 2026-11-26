@@ -23,10 +23,7 @@ export function SongPreview({
 }: Readonly<SongPreviewProps>) {
   const { t } = useTranslation("songs");
 
-  const {
-    setScheduleItem,
-    setSelection,
-  } = useController();
+  const { setScheduleItem, setSelection } = useController((s) => ({ setScheduleItem: s.setScheduleItem, setSelection: s.setSelection }));
 
   const {
     songsService,

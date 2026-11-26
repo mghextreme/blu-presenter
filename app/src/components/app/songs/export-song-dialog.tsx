@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
@@ -22,31 +23,10 @@ export function ExportSongDialog({ songId, title, artist, secret, variant = "sec
   const { songsService } = useServices();
 
   const [open, setOpen] = useState<boolean>(false);
-  const [text, setText] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const exportedSong = useQuery({ ...songsService.exportQuery(songId, secret), enabled: open });
+  const text = exportedSong.data;
 
   const exportFilename = `${slugify(`${artist ?? ''}-${title}`) || `song-${songId}`}.md`;
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen);
-    if (!nextOpen) {
-      return;
-    }
-
-    setText(null);
-    setLoading(true);
-    songsService.exportSong(songId, secret)
-      .then((result) => setText(result))
-      .catch((e) => {
-        toast.error(t('error.export'), {
-          description: e?.message || '',
-        });
-        setOpen(false);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }
 
   const copyToClipboard = async () => {
     const clipboard = navigator.clipboard;
@@ -73,7 +53,7 @@ export function ExportSongDialog({ songId, title, artist, secret, variant = "sec
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size="sm" variant={variant} title={t('actions.export')}>
           <ArrowDownTrayIcon className="size-3" />
@@ -86,9 +66,15 @@ export function ExportSongDialog({ songId, title, artist, secret, variant = "sec
             <span className="block mb-2">{t('message.export.songDescription', { title: title, artist: artist })}</span>
           </DialogDescription>
         </DialogHeader>
-        <pre className="max-h-[50vh] overflow-auto rounded-md border bg-muted/50 p-4 font-mono text-xs whitespace-pre">
-          {loading ? t('message.export.loading') : text}
-        </pre>
+        {exportedSong.isError ? (
+          <p role="alert" className="text-destructive text-sm">
+            {t('error.export')}: {exportedSong.error.message}
+          </p>
+        ) : (
+          <pre className="max-h-[50vh] overflow-auto rounded-md border bg-muted/50 p-4 font-mono text-xs whitespace-pre">
+            {exportedSong.isPending ? t('message.export.loading') : text}
+          </pre>
+        )}
         <DialogFooter>
           <Button type="button" disabled={!text} onClick={downloadExport}>
             <ArrowDownTrayIcon className="size-3" />

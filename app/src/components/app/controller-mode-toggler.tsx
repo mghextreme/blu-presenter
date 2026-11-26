@@ -8,11 +8,11 @@ export function ControllerModeToggler() {
 
   const { t } = useTranslation("controller");
 
-  const {
-    mode,
-    setMode,
-    windows,
-  } = useController();
+  const { mode, setMode, windows } = useController((s) => ({
+    mode: s.mode,
+    setMode: s.setMode,
+    windows: s.windows,
+  }));
 
   const [anyPartWindow, setAnyPartWindow] = useState<boolean>(false);
 

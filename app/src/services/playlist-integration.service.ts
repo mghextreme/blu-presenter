@@ -30,8 +30,8 @@ export abstract class PlaylistIntegrationService extends ApiService {
     this.queryKey = [provider, 'status'];
   }
 
-  public clearCache(): void {
-    this.queryClient.removeQueries({ queryKey: this.queryKey });
+  public invalidateCache(): Promise<void> {
+    return this.queryClient.invalidateQueries({ queryKey: this.queryKey });
   }
 
   public async getStatus(): Promise<IPlaylistConnectionStatus> {
@@ -53,13 +53,13 @@ export abstract class PlaylistIntegrationService extends ApiService {
     const status = await this.postRequest(`/${this.provider}/connect`, JSON.stringify({ code, state }), {
       'content-type': 'application/json',
     }) as IPlaylistConnectionStatus;
-    this.clearCache();
+    void this.invalidateCache();
     return status;
   }
 
   public async disconnect(): Promise<IPlaylistConnectionStatus> {
     const status = await this.deleteRequest(`/${this.provider}/connect`) as IPlaylistConnectionStatus;
-    this.clearCache();
+    void this.invalidateCache();
     return status;
   }
 

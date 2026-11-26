@@ -18,13 +18,13 @@ export const ScrollingSongVisualizer = forwardRef(({
 
   const { t } = useTranslation('controller');
 
-  const {
-    mode,
-    schedule,
-    scheduleItem,
-    selection,
-    selectedSlide,
-  } = useController();
+  const { mode, schedule, scheduleItem, selection, selectedSlide } = useController((s) => ({
+    mode: s.mode,
+    schedule: s.schedule,
+    scheduleItem: s.scheduleItem,
+    selection: s.selection,
+    selectedSlide: s.selectedSlide,
+  }));
 
   const {childWindow} = useWindow();
 

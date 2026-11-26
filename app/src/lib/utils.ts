@@ -21,6 +21,21 @@ export function slugify(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+/**
+ * Returns `url` when it is an absolute http(s) URL, otherwise `undefined`.
+ * Use before opening or linking to any user-supplied URL so `javascript:`,
+ * `data:` and similar schemes can never be navigated to.
+ */
+export function safeExternalUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  try {
+    const { protocol } = new URL(url);
+    return protocol === 'http:' || protocol === 'https:' ? url : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function isTokenExpired(token: string | undefined | null): boolean {
   if (!token) return true;
   try {

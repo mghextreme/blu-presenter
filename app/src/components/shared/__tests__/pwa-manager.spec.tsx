@@ -27,9 +27,10 @@ function mockState(options: { isStandalone: boolean; needRefresh: boolean }) {
     canInstall: false,
     promptInstall: vi.fn(),
   });
+  // Mirror the real hook's shape: state values are [value, setter] tuples.
   useRegisterSWMock.mockReturnValue({
-    needRefresh: options.needRefresh,
-    offlineReady: false,
+    needRefresh: [options.needRefresh, vi.fn()],
+    offlineReady: [false, vi.fn()],
     updateServiceWorker: vi.fn(),
   });
 }

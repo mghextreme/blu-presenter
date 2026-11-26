@@ -1,577 +1,69 @@
-import { createContext, useMemo, useState } from "react"
+import { useState } from "react"
 import { useHotkeys } from 'react-hotkeys-hook';
 
 import { SelectorScreen } from "@/components/controller/selector-screen"
-import { IScheduleItem, IWindow, ISlide, ControllerMode, ISlideTextContent, ISlideImageContent, IControllerSelection, ITheme } from "@/types"
-import { generateScheduleItemUniqueId } from "@/lib/utils"
-import { STORAGE_KEYS } from "@/lib/storage-keys"
 import { WindowProvider } from "./window.provider"
-
-export interface IControllerConfig {
-  autoAdvanceScheduleItem: boolean
-}
+import { ControllerStoreContext } from "./controller.context"
+import { createControllerStore } from "./controller.store"
+import { useController } from "./useController"
 
 type ControllerProviderProps = {
+  /** Persist schedule and config to browser storage (only the live controller does). */
   storeState?: boolean
   children: React.ReactNode
 }
 
-type ControllerProviderState = {
-  mode: ControllerMode,
-  setMode: (mode: ControllerMode) => void,
-
-  schedule: IScheduleItem[],
-  replaceSchedule: (items: IScheduleItem[]) => void,
-  addToSchedule: (item: IScheduleItem | IScheduleItem[]) => void,
-  moveItemInSchedule: (fromIx: number, toIx: number) => void,
-  removeFromSchedule: (ix: number) => void,
-  removeAllFromSchedule: () => void,
-
-  scheduleItem?: IScheduleItem,
-  setScheduleItem: (item: number | IScheduleItem, selection?: IControllerSelection) => void,
-
-  selectedSlide?: ISlide,
-  overrideSlide?: ISlide,
-  setBlank: () => void,
-  setLogo: () => void,
-  clearOverrideSlide: () => void,
-
-  selection: IControllerSelection,
-  setSelection: (to: IControllerSelection) => void,
-
-  previous: () => void,
-  next: () => void,
-
-  windows: IWindow[],
-  addWindow: (window: IWindow) => void,
-  closeWindow: (id: string) => void,
-  closeAllWindows: () => void,
-  setWindowTheme: (id: string, theme?: ITheme) => void,
-
-  config: IControllerConfig,
-  setConfig: (config: IControllerConfig) => void,
-}
-
-const initialState: ControllerProviderState = {
-  mode: 'part',
-  setMode: () => null,
-
-  schedule: [],
-  addToSchedule: () => null,
-  replaceSchedule: () => null,
-  moveItemInSchedule: () => null,
-  removeFromSchedule: () => null,
-  removeAllFromSchedule: () => null,
-
-  scheduleItem: undefined,
-  setScheduleItem: () => null,
-
-  selectedSlide: {},
-  overrideSlide: undefined,
-  setBlank: () => null,
-  setLogo: () => null,
-  clearOverrideSlide: () => null,
-
-  selection: {} as IControllerSelection,
-  setSelection: () => null,
-
-  previous: () => null,
-  next: () => null,
-
-  windows: [],
-  addWindow: () => null,
-  closeWindow: () => null,
-  closeAllWindows: () => null,
-  setWindowTheme: () => null,
-
-  config: {
-    autoAdvanceScheduleItem: false,
-  },
-  setConfig: () => null,
-}
-
-export const ControllerProviderContext = createContext<ControllerProviderState>(initialState);
-
-export function ControllerProvider({
-  storeState = false,
-  children,
-  ...props
-}: Readonly<ControllerProviderProps>) {
-  const [mode, setMode] = useState<ControllerMode>(initialState.mode);
-
-  let storedSchedule: IScheduleItem[] = [];
-  if (storeState) {
-    try {
-      const localSchedule = localStorage.getItem(STORAGE_KEYS.controllerSchedule);
-      if (localSchedule) {
-        storedSchedule = (JSON.parse(localSchedule) as IScheduleItem[]) || [];
-      } else {
-        const sessionSchedule = sessionStorage.getItem(STORAGE_KEYS.controllerSchedule);
-        if (sessionSchedule) {
-          storedSchedule = (JSON.parse(sessionSchedule) as IScheduleItem[]) || [];
-        }
-      }
-    }
-    catch (e) {
-      // Ignore error
-    }
-  }
-  const [schedule, setSchedule] = useState<IScheduleItem[]>(storedSchedule);
-  const [scheduleItem, setScheduleItem] = useState<IScheduleItem | undefined>(initialState.scheduleItem);
-
-  const saveAndSetSchedule = (newSchedule: IScheduleItem[]) => {
-    if (storeState) {
-      sessionStorage.setItem(STORAGE_KEYS.controllerSchedule, JSON.stringify(newSchedule));
-      localStorage.setItem(STORAGE_KEYS.controllerSchedule, JSON.stringify(newSchedule));
-    }
-    setSchedule(newSchedule);
-  };
-
-  const addToSchedule = (item: IScheduleItem | IScheduleItem[]) => {
-    const items = Array.isArray(item) ? item : [item];
-
-    const startingIx = schedule.length;
-    const newValue = [
-      ...schedule,
-      ...items.map((item, ix) => {
-        const uniqueId = generateScheduleItemUniqueId(item, startingIx + ix);
-        return { ...item, index: startingIx + ix, uniqueId };
-      }),
-    ];
-    saveAndSetSchedule(newValue);
-  };
-  const replaceSchedule = (items: IScheduleItem[]) => {
-    const newValue = [
-      ...items.map((item, ix) => {
-        const uniqueId = generateScheduleItemUniqueId(item, ix);
-        return { ...item, index: ix, uniqueId };
-      }),
-    ];
-    saveAndSetSchedule(newValue);
-  };
-  const removeFromSchedule = (ix: number) => {
-    if (scheduleItemIx !== undefined) {
-      if (ix == scheduleItemIx) {
-        setScheduleItemIx(undefined);
-        setLatestScheduleItemIx((prev) => prev - 1);
-      } else if (ix < scheduleItemIx) {
-        setScheduleItemIx((prev) => prev === undefined ? prev : prev - 1);
-        setLatestScheduleItemIx((prev) => prev - 1);
-      }
-    }
-
-    const newValue = [
-      ...schedule.slice(0, ix),
-      ...schedule.slice(ix + 1).map((item, halfIx) => ({ ...item, index: ix + halfIx })),
-    ]
-    saveAndSetSchedule(newValue);
-  };
-  const moveItemInSchedule = (fromIx: number, toIx: number) => {
-    if (fromIx === toIx) return;
-
-    const newValue = structuredClone(schedule);
-    newValue.splice(fromIx, 1);
-    newValue.splice(toIx, 0, schedule[fromIx]);
-
-    saveAndSetSchedule(newValue.map((item, ix) => ({ ...item, index: ix })));
-
-    if (scheduleItemIx === undefined) return;
-    if (scheduleItemIx === fromIx) {
-      setScheduleItemIx(toIx);
-      setLatestScheduleItemIx(toIx);
-      return;
-    }
-
-    let scheduleItemDelta = 0;
-    if (fromIx < scheduleItemIx) { scheduleItemDelta -= 1; }
-    if (toIx <= scheduleItemIx) { scheduleItemDelta += 1; }
-    if (scheduleItemDelta !== 0) {
-      setScheduleItemIx((prev) => prev === undefined ? prev : prev + scheduleItemDelta);
-      setLatestScheduleItemIx((prev) => prev + scheduleItemDelta);
-    }
-  };
-  const removeAllFromSchedule = () => {
-    saveAndSetSchedule([]);
-  };
-  const externalSetScheduleItem = (item?: number | IScheduleItem, selection?: IControllerSelection) => {
-    if (item === undefined) return;
-
-    if (typeof item === 'number') {
-      if (item < 0 || item >= schedule.length) {
-        item = 0;
-      }
-      setScheduleItem(schedule[item as number]);
-      setScheduleItemIx(item as number);
-      setSlideIx(selection?.slide ?? 0);
-      setPartIx(selection?.part ?? 0);
-    } else {
-      setScheduleItem(item as IScheduleItem);
-      setScheduleItemIx(undefined);
-      setSlideIx(selection?.slide ?? 0);
-      setPartIx(selection?.part ?? 0);
-    }
-  }
-
-  const [overrideSlide, setOverrideSlide] = useState<ISlide | undefined>(initialState.overrideSlide);
-
-  const toggleBlank = () => {
-    if (overrideSlide && overrideSlide.id == 'blank') {
-      clearOverrideSlide();
-    } else {
-      setBlank();
-    }
-  }
-  const setBlank = () => {
-    setOverrideSlide({
-      id: 'blank',
-      content: [
-        {
-          type: 'lyrics',
-          text: '',
-        } as ISlideTextContent,
-      ],
-    } as ISlide);
-  }
-  const setLogo = () => {
-    setOverrideSlide({
-      id: 'logo',
-      content: [
-        {
-          type: 'image',
-          url: 'https://picsum.photos/300/200',
-          width: 300,
-          height: 200,
-        } as ISlideImageContent,
-      ],
-    } as ISlide);
-  }
-  const clearOverrideSlide = () => {
-    setOverrideSlide(undefined);
-  }
-
-  const [partIx, setPartIx] = useState<number | undefined>(undefined);
-  const [slideIx, setSlideIx] = useState<number | undefined>(undefined);
-  const [latestScheduleItemIx, setLatestScheduleItemIx] = useState<number>(-1);
-  const [scheduleItemIx, setScheduleItemIx] = useState<number | undefined>(undefined);
-
-  const selectedSlide = useMemo(() => {
-    if (slideIx === undefined || scheduleItem === undefined) {
-      return undefined;
-    } else if (slideIx >= 0 && slideIx < (scheduleItem.slides?.length ?? 0)) {
-      return scheduleItem.slides[slideIx];
-    }
-  }, [slideIx, scheduleItem]);
-
-  const externalSetSelection = (to: IControllerSelection) => {
-    if (to.scheduleItem === undefined && scheduleItemIx === undefined && scheduleItem === undefined) return;
-    to.scheduleItem = to.scheduleItem ?? scheduleItemIx;
-
-    if (to.scheduleItem !== undefined && (to.scheduleItem < 0 || to.scheduleItem >= schedule.length)) {
-      to.scheduleItem = 0;
-    }
-
-    let curScheduleItem: IScheduleItem | undefined = undefined;
-    if (to.scheduleItem !== undefined) {
-      if (scheduleItemIx !== to.scheduleItem && to.scheduleItem < schedule.length) {
-        curScheduleItem = schedule[to.scheduleItem];
-        setScheduleItem(curScheduleItem);
-      }
-      setLatestScheduleItemIx(to.scheduleItem);
-      setScheduleItemIx(to.scheduleItem);
-    }
-
-    if (!curScheduleItem) {
-      curScheduleItem = scheduleItem;
-    }
-
-    if (curScheduleItem === undefined) return;
-
-    if (to.slide !== undefined && to.slide >= 0 && to.slide < (curScheduleItem.slides?.length ?? 0)) {
-      setSlideIx(to.slide);
-    } else {
-      to.slide = slideIx || 0;
-    }
-
-    clearOverrideSlide();
-    const curSlide = curScheduleItem.slides && to.slide < (curScheduleItem.slides?.length ?? 0) ? curScheduleItem.slides[to.slide] : undefined;
-
-    if (!!curSlide && to.part !== undefined) {
-      if (curSlide.content === undefined || to.part >= curSlide.content?.length) {
-        setPartIx(0);
-      } else {
-        if (to.part < 0) {
-          to.part = curSlide.content?.length - 1;
-        }
-        setPartIx(to.part);
-      }
-    }
-  };
-
-  const previousItem = (goToEnd: boolean = false) => {
-    let curScheduleItemIx = scheduleItemIx;
-    if (curScheduleItemIx === undefined) {
-      curScheduleItemIx = latestScheduleItemIx;
-    }
-
-    if (curScheduleItemIx === undefined || curScheduleItemIx < 1) return;
-
-    const newScheduleItemIx = curScheduleItemIx - 1;
-    setScheduleItem(schedule[newScheduleItemIx]);
-    setScheduleItemIx(newScheduleItemIx);
-    setLatestScheduleItemIx(newScheduleItemIx);
-
-    if (!goToEnd) {
-      setSlideIx(0);
-      setPartIx(0);
-      return;
-    }
-
-    const newSlides = schedule[newScheduleItemIx]?.slides;
-    setSlideIx(newSlides ? newSlides.length - 1 : 0);
-
-    const newContent = newSlides && newSlides[newSlides.length - 1]?.content;
-    setPartIx(newContent ? newContent.length - 1 : 0);
-  };
-  const nextItem = () => {
-    let curScheduleItemIx = scheduleItemIx;
-    if (curScheduleItemIx === undefined) {
-      curScheduleItemIx = latestScheduleItemIx;
-    }
-
-    if (curScheduleItemIx === undefined || curScheduleItemIx >= schedule.length - 1) return;
-
-    const newScheduleItemIx = curScheduleItemIx + 1;
-    setScheduleItem(schedule[newScheduleItemIx]);
-    setScheduleItemIx(newScheduleItemIx);
-    setLatestScheduleItemIx(newScheduleItemIx);
-    setSlideIx(0);
-    setPartIx(0);
-  };
-
-  const previousSlide = () => {
-    if (!scheduleItem) return;
-
-    if (slideIx === undefined) {
-      if (scheduleItem.slides.length > 0) {
-        setSlideIx(scheduleItem.slides.length - 1);
-        setPartIx(0);
-      }
-    } else if (slideIx > 0) {
-      const newIndex = slideIx - 1;
-      setSlideIx(newIndex);
-
-      const newSlide = scheduleItem?.slides[newIndex];
-      setPartIx((newSlide?.content?.length ?? 1) - 1);
-    } else if (config.autoAdvanceScheduleItem && scheduleItemIx !== undefined && scheduleItemIx > 0) {
-      const newScheduleItemIx = scheduleItemIx - 1;
-      setScheduleItem(schedule[newScheduleItemIx]);
-      setScheduleItemIx(newScheduleItemIx);
-      setLatestScheduleItemIx(newScheduleItemIx);
-
-      const newSlides = schedule[newScheduleItemIx]?.slides;
-      setSlideIx(newSlides ? newSlides.length - 1 : 0);
-
-      const newContent = newSlides && newSlides[newSlides.length - 1]?.content;
-      setPartIx(newContent ? newContent.length - 1 : 0);
-    } else if (config.autoAdvanceScheduleItem && scheduleItemIx === undefined && latestScheduleItemIx > 0) {
-      const newScheduleItemIx = latestScheduleItemIx - 1;
-      setScheduleItem(schedule[newScheduleItemIx]);
-      setScheduleItemIx(newScheduleItemIx);
-      setLatestScheduleItemIx(newScheduleItemIx);
-
-      const newSlides = schedule[newScheduleItemIx]?.slides;
-      setSlideIx(newSlides ? newSlides.length - 1 : 0);
-
-      const newContent = newSlides && newSlides[newSlides.length - 1]?.content;
-      setPartIx(newContent ? newContent.length - 1 : 0);
-    }
-  };
-  const nextSlide = () => {
-    if (!scheduleItem) return;
-
-    if (slideIx === undefined) {
-      setSlideIx(0);
-      setPartIx(0);
-    } else if (slideIx + 1 < scheduleItem.slides.length) {
-      const newIndex = slideIx + 1;
-      setSlideIx(newIndex);
-      setPartIx(0);
-    } else if (config.autoAdvanceScheduleItem) {
-      nextItem();
-    }
-  };
-
-  const previousPart = () => {
-    if (!scheduleItem) return;
-
-    if (!selectedSlide) {
-      previousSlide();
-      return;
-    }
-
-    if (partIx === undefined) {
-      const newIndex = (selectedSlide.content?.length ?? 1) - 1;
-      setPartIx(newIndex);
-    } else if (partIx > 0) {
-      const newIndex = partIx - 1;
-      setPartIx(newIndex);
-    } else {
-      previousSlide();
-    }
-  };
-  const nextPart = () => {
-    if (!scheduleItem) return;
-
-    if (!selectedSlide) {
-      nextSlide();
-      return;
-    }
-
-    if (partIx === undefined) {
-      setPartIx(0);
-    } else if (partIx + 1 < (selectedSlide.content?.length ?? 1)) {
-      const newIndex = partIx + 1;
-      setPartIx(newIndex);
-    } else {
-      nextSlide();
-    }
-  };
-
-  const previous = () => {
-    if (mode == 'part') {
-      previousPart();
-    } else {
-      previousSlide();
-    }
-  };
-  const next = () => {
-    if (mode == 'part') {
-      nextPart();
-    } else {
-      nextSlide();
-    }
-  };
-
-  const [windows, setWindows] = useState<IWindow[]>([]);
-
-  const addWindow = (window: IWindow) => {
-    setWindows((prev) => [...prev, window]);
-  }
-  const closeWindow = (id: string) => {
-    setWindows((prev) => prev.filter((w) => w.id !== id));
-  }
-  const closeAllWindows = () => {
-    setWindows([]);
-  }
-  const setWindowTheme = (id: string, theme?: ITheme) => {
-    setWindows((prev) => prev.map((w) => w.id === id ? { ...w, theme } : w));
-  }
-
-  let storedConfig: IControllerConfig = initialState.config;
-  if (storeState) {
-    try {
-      const savedControllerConfig = localStorage.getItem(STORAGE_KEYS.controllerConfig);
-      if (savedControllerConfig) {
-        storedConfig = (JSON.parse(savedControllerConfig) as IControllerConfig) || storedConfig;
-      }
-    }
-    catch (e) {
-      // Ignore error
-    }
-  }
-  const [config, setConfig] = useState<IControllerConfig>(storedConfig);
-
-  const setAndSaveConfig = (newConfig: IControllerConfig) => {
-    if (storeState) {
-      localStorage.setItem(STORAGE_KEYS.controllerConfig, JSON.stringify(newConfig));
-    }
-    setConfig(newConfig);
-  }
-
-  const selection = useMemo(() => {
-    return {
-      scheduleItem: scheduleItemIx,
-      slide: slideIx,
-      part: partIx,
-    } as IControllerSelection;
-  }, [scheduleItemIx, slideIx, partIx]);
-
-  const value = useMemo(() => {
-    return {
-      mode,
-      setMode,
-
-      schedule,
-      addToSchedule,
-      replaceSchedule,
-      moveItemInSchedule,
-      removeFromSchedule,
-      removeAllFromSchedule,
-
-      scheduleItem: scheduleItem,
-      setScheduleItem: externalSetScheduleItem,
-
-      selectedSlide,
-      overrideSlide,
-      setBlank,
-      setLogo,
-      clearOverrideSlide,
-
-      previous,
-      next,
-
-      selection,
-      setSelection: externalSetSelection,
-
-      windows,
-      addWindow,
-      closeWindow,
-      closeAllWindows,
-      setWindowTheme,
-
-      config,
-      setConfig: setAndSaveConfig,
-    } as ControllerProviderState;
-  }, [
-    mode,
-    schedule,
-    scheduleItem,
-    selectedSlide,
-    overrideSlide,
-    selection,
-    windows,
-    config,
-  ]);
-
-  // Key names are the W3C key values accepted by react-hotkeys-hook
-  // (ts-key-enum v3 became types-only, so the dependency was dropped).
-  // preventDefault stops the browser from scrolling the panels on
-  // PageUp/PageDown/arrow keys; the panels scroll to the selection instead.
-  useHotkeys('ArrowLeft', previous, { preventDefault: true });
-  useHotkeys('PageUp', previous, { preventDefault: true });
-
-  useHotkeys('ArrowRight', next, { preventDefault: true });
-  useHotkeys('PageDown', next, { preventDefault: true });
-
-  useHotkeys('Control+ArrowLeft', () => previousItem(), { preventDefault: true });
-  useHotkeys('Control+PageUp', () => previousItem(), { preventDefault: true });
-
-  useHotkeys('Control+ArrowRight', nextItem, { preventDefault: true });
-  useHotkeys('Control+PageDown', nextItem, { preventDefault: true });
-
-  useHotkeys('Control+B', toggleBlank, { preventDefault: true });
+/** Each provider owns an independent controller store. */
+export function ControllerProvider({ storeState = false, children }: Readonly<ControllerProviderProps>) {
+  const [store] = useState(() => createControllerStore({ persist: storeState }));
 
   return (
-    <ControllerProviderContext.Provider {...props} value={value}>
+    <ControllerStoreContext.Provider value={store}>
       {children}
-      {windows.map((w) => (
-        <WindowProvider key={w.id} id={w.id} onClose={() => closeWindow(w.id)}>
-          <SelectorScreen
-            setMode={setMode}
-            onThemeChange={(theme) => setWindowTheme(w.id, theme)}
-          />
-        </WindowProvider>
-      ))}
-    </ControllerProviderContext.Provider>
+      <ControllerHotkeys />
+      <ProjectorWindows />
+    </ControllerStoreContext.Provider>
   )
+}
+
+function ControllerHotkeys() {
+  const { previous, next, previousItem, nextItem, toggleBlank } = useController((s) => ({
+    previous: s.previous,
+    next: s.next,
+    previousItem: s.previousItem,
+    nextItem: s.nextItem,
+    toggleBlank: s.toggleBlank,
+  }));
+
+  // preventDefault stops the browser from scrolling the panels; they scroll to the selection instead.
+  const options = { preventDefault: true };
+  useHotkeys('ArrowLeft', previous, options);
+  useHotkeys('PageUp', previous, options);
+  useHotkeys('ArrowRight', next, options);
+  useHotkeys('PageDown', next, options);
+  useHotkeys('Control+ArrowLeft', () => previousItem(), options);
+  useHotkeys('Control+PageUp', () => previousItem(), options);
+  useHotkeys('Control+ArrowRight', nextItem, options);
+  useHotkeys('Control+PageDown', nextItem, options);
+  useHotkeys('Control+B', toggleBlank, options);
+
+  return null;
+}
+
+function ProjectorWindows() {
+  const { windows, closeWindow, setWindowTheme, setMode } = useController((s) => ({
+    windows: s.windows,
+    closeWindow: s.closeWindow,
+    setWindowTheme: s.setWindowTheme,
+    setMode: s.setMode,
+  }));
+
+  return windows.map((w) => (
+    <WindowProvider key={w.id} id={w.id} onClose={() => closeWindow(w.id)}>
+      <SelectorScreen
+        setMode={setMode}
+        onThemeChange={(theme) => setWindowTheme(w.id, theme)}
+      />
+    </WindowProvider>
+  ));
 }

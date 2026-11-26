@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { Session, User } from '@supabase/supabase-js'
+import type { Session, User } from '@supabase/supabase-js'
 import { IOrganization } from '@/types'
 
 interface AuthState {

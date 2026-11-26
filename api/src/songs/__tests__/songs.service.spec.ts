@@ -182,3 +182,52 @@ describe('SongsService.advancedSearch', () => {
     expect(queryBuilder.orderBy).toHaveBeenCalledWith('title', 'ASC');
   });
 });
+
+describe('SongsService.copyToOrganization', () => {
+  let service: SongsService;
+
+  const mockSongsRepository = {
+    insert: jest.fn(),
+    findOne: jest.fn(),
+  };
+  const mockOrganizationsService = { userRole: jest.fn() };
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        SongsService,
+        SongTextFormatService,
+        { provide: getRepositoryToken(Song), useValue: mockSongsRepository },
+        { provide: OrganizationsService, useValue: mockOrganizationsService },
+        { provide: UsersService, useValue: {} },
+        {
+          provide: REQUEST,
+          useValue: { user: { organization: 1, internal: { id: 7 } } },
+        },
+      ],
+    }).compile();
+
+    service = await module.resolve<SongsService>(SongsService);
+  });
+
+  it('waits for the copy to be created and propagates its failure', async () => {
+    mockSongsRepository.findOne.mockResolvedValue({
+      id: 5,
+      title: 'Song',
+      artist: 'Artist',
+      language: 'en',
+      blocks: [],
+      references: [],
+    });
+    mockOrganizationsService.userRole.mockResolvedValue('member');
+    mockSongsRepository.insert.mockRejectedValue(new Error('insert failed'));
+
+    await expect(service.copyToOrganization(5, 2)).rejects.toThrow(
+      'insert failed',
+    );
+    expect(mockSongsRepository.insert).toHaveBeenCalledWith(
+      expect.objectContaining({ orgId: 2, title: 'Song' }),
+    );
+  });
+});

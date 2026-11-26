@@ -361,7 +361,7 @@ export class SongsService {
       );
     }
 
-    this.create(organizationId, {
+    await this.create(organizationId, {
       title: song.title,
       artist: song.artist,
       language: song.language,

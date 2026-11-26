@@ -496,6 +496,77 @@ describe('YoutubeService', () => {
       expect(create.body.snippet.title).toHaveLength(150);
     });
 
+    describe('right after creating the playlist', () => {
+      // YouTube can answer 404 for a playlist created moments ago.
+      const playlistNotFound = () => apiError(404, 'playlistNotFound');
+      let sleep: jest.SpyInstance;
+
+      beforeEach(() => {
+        scheduleFindOneBy.mockResolvedValue(mockSchedule([1, 2]));
+        mockSongs(2);
+        sleep = jest
+          .spyOn(service as any, 'sleep')
+          .mockResolvedValue(undefined);
+      });
+
+      it('does not list the items of the new playlist', async () => {
+        overrides.set(`GET ${API}/playlistItems`, playlistNotFound);
+
+        const result = await service.syncSchedulePlaylist(1, 1, {});
+
+        expect(result).toMatchObject({ action: 'created', added: 2 });
+        expect(
+          calls.some(
+            (call) =>
+              call.method === 'GET' && call.url.includes('/playlistItems'),
+          ),
+        ).toBe(false);
+        expect(playlist.map((item) => item.videoId)).toEqual(['v1', 'v2']);
+      });
+
+      it('retries the first insert until the playlist is visible', async () => {
+        let notFoundLeft = 2;
+        overrides.set(`POST ${API}/playlistItems`, () => {
+          if (--notFoundLeft === 0) {
+            overrides.delete(`POST ${API}/playlistItems`);
+          }
+          return playlistNotFound();
+        });
+
+        const result = await service.syncSchedulePlaylist(1, 1, {});
+
+        expect(result).toMatchObject({ action: 'created', added: 2 });
+        expect(sleep.mock.calls).toEqual([[1000], [2000]]);
+        expect(playlist.map((item) => item.videoId)).toEqual(['v1', 'v2']);
+      });
+
+      it('gives up after a few retries, keeping the pending reference', async () => {
+        overrides.set(`POST ${API}/playlistItems`, playlistNotFound);
+
+        await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
+          NotFoundException,
+        );
+        expect(sleep).toHaveBeenCalledTimes(3);
+        expect(scheduleUpdate).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('does not retry a missing playlist on re-sync', async () => {
+      scheduleFindOneBy.mockResolvedValue(
+        mockSchedule([1], [existingReference]),
+      );
+      mockSongs(1);
+      const sleep = jest.spyOn(service as any, 'sleep');
+      overrides.set(`GET ${API}/playlistItems`, () =>
+        apiError(404, 'playlistNotFound'),
+      );
+
+      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(sleep).not.toHaveBeenCalled();
+    });
+
     it('makes no writes when the playlist is already up to date', async () => {
       scheduleFindOneBy.mockResolvedValue(
         mockSchedule([1, 2, 3], [existingReference]),

@@ -28,9 +28,10 @@ function getTodayString(): string {
 export function PlanSchedules() {
   const { t, i18n } = useTranslation("controller");
   const { schedulesService, songsService } = useServices();
-  const { schedule, replaceSchedule } = useController();
+  const { schedule, replaceSchedule } = useController((s) => ({ schedule: s.schedule, replaceSchedule: s.replaceSchedule }));
 
   const list = useFilteredList<ISchedule>({
+    queryKey: ['schedules'],
     auto: true,
     search: (payload) => schedulesService.search(payload),
   });

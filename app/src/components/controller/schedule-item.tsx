@@ -32,10 +32,7 @@ export function ScheduleItem({
 
   const { t } = useTranslation("controller");
 
-  const {
-    setScheduleItem,
-    removeFromSchedule,
-  } = useController();
+  const { setScheduleItem, removeFromSchedule } = useController((s) => ({ setScheduleItem: s.setScheduleItem, removeFromSchedule: s.removeFromSchedule }));
 
   const loadItem = () => {
     setScheduleItem(index);

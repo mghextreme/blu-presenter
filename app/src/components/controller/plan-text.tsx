@@ -24,10 +24,7 @@ export function PlanText({ showOpen = true }: Readonly<PlanTextProps>) {
 
   const { t } = useTranslation("controller");
 
-  const {
-    addToSchedule,
-    setScheduleItem,
-  } = useController();
+  const { addToSchedule, setScheduleItem } = useController((s) => ({ addToSchedule: s.addToSchedule, setScheduleItem: s.setScheduleItem }));
 
   const form = useForm<z.infer<typeof textFormSchema>>({
     resolver: zodResolver(textFormSchema),

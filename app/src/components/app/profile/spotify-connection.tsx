@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { useServices } from "@/hooks/useServices";
@@ -24,23 +23,13 @@ import { IUserIdentitiesResponse } from "@/types/auth";
 
 interface SpotifyConnectionProps {
   identities: IUserIdentitiesResponse;
-  onIdentitiesChanged: (identities: IUserIdentitiesResponse) => void;
-  onBusyChange?: (busy: boolean) => void;
 }
-
-type PendingAction = 'signIn' | 'playlists';
 
 export function SpotifyConnection({
   identities,
-  onIdentitiesChanged,
-  onBusyChange,
 }: Readonly<SpotifyConnectionProps>) {
   const { t } = useTranslation("profile");
-  const queryClient = useQueryClient();
   const { spotifyService, authService } = useServices();
-
-  const [pending, setPending] = useState<PendingAction | null>(null);
-  const isLoading = pending !== null;
 
   const spotifyIdentity = identities.identities.find(i => i.provider === 'spotify');
 
@@ -53,79 +42,64 @@ export function SpotifyConnection({
     ? status.accountName || status.accountId
     : null;
 
-  const start = (action: PendingAction) => {
-    onBusyChange?.(true);
-    setPending(action);
-  };
-  const stop = () => {
-    setPending(null);
-    onBusyChange?.(false);
-  };
-
-  const onConnectSignIn = async () => {
-    try {
-      start('signIn');
-      const redirectData = await authService.linkIdentity('spotify');
+  const connectSignIn = useMutation({
+    mutationFn: () => authService.linkIdentity('spotify'),
+    onSuccess: (redirectData) => {
       localStorage.setItem('link-identity-code-verifier', redirectData.codeVerifier);
 
       setTimeout(() => {
         window.open(redirectData.url, '_self');
       }, 500);
-    } catch (e: any) {
+    },
+    onError: async (e) => {
       toast.error(t('connectedAccounts.connectFailed'), {
         description: await describeApiError(e),
       });
-      stop();
-    }
-  };
+    },
+  });
 
-  const onDisconnectSignIn = async () => {
-    if (!spotifyIdentity) return;
-
-    try {
-      start('signIn');
-      await authService.unlinkIdentity(spotifyIdentity.identityId);
+  const disconnectSignIn = useMutation({
+    mutationFn: (identityId: string) => authService.unlinkIdentity(identityId),
+    onSuccess: () => {
       toast.success(t('connectedAccounts.disconnected'));
-      const updated = await authService.getIdentities();
-      onIdentitiesChanged(updated);
-    } catch (e: any) {
+    },
+    onError: async (e) => {
       toast.error(t('connectedAccounts.disconnectFailed'), {
         description: await describeApiError(e),
       });
-    } finally {
-      stop();
-    }
-  };
+    },
+  });
 
-  const onConnectPlaylists = async () => {
-    try {
-      start('playlists');
-      const { url } = await spotifyService.getConnectUrl();
+  const connectPlaylists = useMutation({
+    mutationFn: () => spotifyService.getConnectUrl(),
+    onSuccess: ({ url }) => {
       setTimeout(() => {
         window.open(url, '_self');
       }, 500);
-    } catch (e: any) {
+    },
+    onError: async (e) => {
       toast.error(t('spotify.connectFailed'), {
         description: await describeApiError(e),
       });
-      stop();
-    }
-  };
+    },
+  });
 
-  const onDisconnectPlaylists = async () => {
-    try {
-      start('playlists');
-      await spotifyService.disconnect();
+  const disconnectPlaylists = useMutation({
+    mutationFn: () => spotifyService.disconnect(),
+    onSuccess: () => {
       toast.success(t('spotify.disconnected'));
-      await queryClient.invalidateQueries({ queryKey: ['spotify'] });
-    } catch (e: any) {
+    },
+    onError: async (e) => {
       toast.error(t('spotify.disconnectFailed'), {
         description: await describeApiError(e),
       });
-    } finally {
-      stop();
-    }
-  };
+    },
+  });
+
+  // A successful connect stays busy: the page is about to redirect to the provider.
+  const isSignInBusy = connectSignIn.isPending || connectSignIn.isSuccess || disconnectSignIn.isPending;
+  const isPlaylistsBusy = connectPlaylists.isPending || connectPlaylists.isSuccess || disconnectPlaylists.isPending;
+  const isLoading = isSignInBusy || isPlaylistsBusy;
 
   return (
     <div className="rounded-lg border divide-y">
@@ -155,15 +129,15 @@ export function SpotifyConnection({
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>{t('connectedAccounts.confirmDisconnect.cancel')}</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" onClick={onDisconnectSignIn}>
+                <AlertDialogAction variant="destructive" onClick={() => disconnectSignIn.mutate(spotifyIdentity.identityId)}>
                   {t('connectedAccounts.confirmDisconnect.confirm')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         ) : (
-          <Button variant="outline" size="sm" disabled={isLoading} onClick={onConnectSignIn}>
-            {pending === 'signIn' && (
+          <Button variant="outline" size="sm" disabled={isLoading} onClick={() => connectSignIn.mutate()}>
+            {isSignInBusy && (
               <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
             )}
             {t('connectedAccounts.connect')}
@@ -198,15 +172,15 @@ export function SpotifyConnection({
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>{t('connectedAccounts.confirmDisconnect.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" onClick={onDisconnectPlaylists}>
+                  <AlertDialogAction variant="destructive" onClick={() => disconnectPlaylists.mutate()}>
                     {t('connectedAccounts.confirmDisconnect.confirm')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           ) : (
-            <Button variant="outline" size="sm" disabled={isLoading} onClick={onConnectPlaylists}>
-              {pending === 'playlists' && (
+            <Button variant="outline" size="sm" disabled={isLoading} onClick={() => connectPlaylists.mutate()}>
+              {isPlaylistsBusy && (
                 <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
               )}
               {t('connectedAccounts.connect')}

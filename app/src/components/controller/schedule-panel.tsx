@@ -19,14 +19,14 @@ export function SchedulePanel({ showRestore = true, showOpen = true }: Readonly<
 
   const { t } = useTranslation('controller');
 
-  const {
-    schedule,
-    scheduleItem,
-    addToSchedule,
-    moveItemInSchedule,
-    removeAllFromSchedule,
-    selection,
-  } = useController();
+  const { schedule, scheduleItem, addToSchedule, moveItemInSchedule, removeAllFromSchedule, selection } = useController((s) => ({
+    schedule: s.schedule,
+    scheduleItem: s.scheduleItem,
+    addToSchedule: s.addToSchedule,
+    moveItemInSchedule: s.moveItemInSchedule,
+    removeAllFromSchedule: s.removeAllFromSchedule,
+    selection: s.selection,
+  }));
 
   // Only show organization badges when the schedule mixes songs from more
   // than one organization (the public archive counts as its own).

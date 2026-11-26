@@ -225,6 +225,12 @@ export class OrganizationsService extends OrganizationsBaseService {
     const organization = this.request.user['organization'];
     const ownerUser = this.request.user['internal'];
 
+    if (Number(toUserId) === ownerUser.id) {
+      throw new UnprocessableEntityException(
+        'You already own this organization',
+      );
+    }
+
     await this.dataSource.transaction(async (manager) => {
       const organizationsRepository = manager.getRepository(Organization);
       const organizationUsersRepository =
@@ -540,6 +546,32 @@ export class OrganizationsService extends OrganizationsBaseService {
     }
 
     await this.organizationInvitationsRepository.delete(invitationId);
+  }
+
+  /**
+   * Removes the calling user from the organization. Owners must transfer
+   * ownership first so the organization is never left without one.
+   */
+  async leave(id: number, userId: number): Promise<void> {
+    const member = await this.organizationUsersRepository.findOneBy({
+      userId,
+      orgId: id,
+    });
+
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    if (member.role === 'owner') {
+      throw new UnprocessableEntityException(
+        'Transfer ownership before leaving the organization',
+      );
+    }
+
+    await this.organizationUsersRepository.delete({
+      userId,
+      orgId: id,
+    });
   }
 
   async removeMember(id: number, memberId: number): Promise<void> {

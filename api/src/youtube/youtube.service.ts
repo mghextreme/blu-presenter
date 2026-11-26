@@ -22,6 +22,8 @@ const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 /** YouTube rejects playlist titles longer than this. */
 const MAX_PLAYLIST_TITLE_LENGTH = 150;
 const ITEMS_PER_PAGE = 50;
+/** Waits before retrying the first insert into a just-created playlist. */
+const NEW_PLAYLIST_RETRY_DELAYS_MS = [1000, 2000, 4000];
 
 interface PlaylistItem {
   /** The playlist item id (needed to delete it). */
@@ -126,9 +128,12 @@ export class YoutubeService extends PlaylistIntegrationService {
   protected async writePlaylistItems(
     playlistUrl: string,
     videoIds: string[],
+    isNew: boolean,
   ): Promise<string[]> {
     const playlistId = this.extractPlaylistId(playlistUrl);
-    const current = await this.listPlaylistItems(playlistId);
+    // A playlist created moments ago is empty, and YouTube may still answer
+    // 404 (playlistNotFound) for it while it propagates: skip the listing.
+    const current = isNew ? [] : await this.listPlaylistItems(playlistId);
 
     let keep = 0;
     while (
@@ -148,7 +153,35 @@ export class YoutubeService extends PlaylistIntegrationService {
 
     // Inserts without a position append, so these land in order.
     const failed: string[] = [];
+    // Only the first insert into a new playlist can race its propagation.
+    let mayNotExistYet = isNew;
     for (const videoId of videoIds.slice(keep)) {
+      try {
+        await this.insertPlaylistItem(playlistId, videoId, mayNotExistYet);
+        mayNotExistYet = false;
+      } catch (e) {
+        if (!(e instanceof YouTubeVideoNotFoundException)) {
+          throw e;
+        }
+        failed.push(videoId);
+      }
+    }
+
+    return failed;
+  }
+
+  /**
+   * Appends a video to the playlist. With `retryNotFound`, a 404 is retried
+   * a few times with backoff, as a newly created playlist can take a few
+   * seconds to become visible to the playlistItems endpoints.
+   */
+  private async insertPlaylistItem(
+    playlistId: string,
+    videoId: string,
+    retryNotFound: boolean,
+  ): Promise<void> {
+    const delays = retryNotFound ? NEW_PLAYLIST_RETRY_DELAYS_MS : [];
+    for (let attempt = 0; ; attempt++) {
       try {
         await this.apiRequest('/playlistItems?part=snippet', {
           method: 'POST',
@@ -160,15 +193,19 @@ export class YoutubeService extends PlaylistIntegrationService {
             },
           }),
         });
+        return;
       } catch (e) {
-        if (!(e instanceof YouTubeVideoNotFoundException)) {
+        if (!(e instanceof NotFoundException) || attempt >= delays.length) {
           throw e;
         }
-        failed.push(videoId);
+        await this.sleep(delays[attempt]);
       }
     }
+  }
 
-    return failed;
+  /** Separate so tests can skip the waits. */
+  protected sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private async listPlaylistItems(playlistId: string): Promise<PlaylistItem[]> {

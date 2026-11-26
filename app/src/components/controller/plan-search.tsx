@@ -20,10 +20,7 @@ export function PlanSearch({ showOpen = true }: Readonly<PlanSearchProps>) {
   const { t } = useTranslation("controller");
 
   const { songsService } = useServices();
-  const {
-    addToSchedule,
-    setScheduleItem,
-  } = useController();
+  const { addToSchedule, setScheduleItem } = useController((s) => ({ addToSchedule: s.addToSchedule, setScheduleItem: s.setScheduleItem }));
 
   const getButtonActions = (item: ISongWithRole) => {
     return (

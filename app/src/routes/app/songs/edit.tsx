@@ -1,11 +1,13 @@
 import { ISongPart, ISongWithRole, isRoleHigherOrEqualThan, SupportedLanguage } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Link, useLoaderData } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
 import i18next from "i18next";
 import { useAuth } from "@/hooks/useAuth";
+import { useServices } from "@/hooks/useServices";
 import { SongPreview } from "@/components/app/songs/song-preview";
 import { EditSongForm, EditSongFormHandle } from "@/components/app/songs/edit-form";
 import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
@@ -23,41 +25,35 @@ export function EditSong({
   edit = true,
   startingBlocks,
 }: Readonly<EditSongProps>) {
-
-  const { t } = useTranslation("songs");
-  const curLang = (i18next.resolvedLanguage || 'en') as SupportedLanguage;
-  const { organization, organizations } = useAuth();
-
-  const loadedData = useLoaderData() as ISongWithRole;
-  if (loadedData) {
-    loadedData.blocks = loadedData?.blocks?.map((block, index) => {
-      return {
-        ...block,
-        id: index,
-      };
-    });
+  if (edit) {
+    return <EditExistingSong />;
   }
-  const data = edit ? loadedData : {
-    id: 0,
-    title: '',
-    language: undefined,
-    artist: undefined,
-    blocks: startingBlocks ? startingBlocks.map((block, index) => {
-      return {
-        ...block,
-        id: index,
-      };
-    }) : [{
-      id: 0,
-      lines: [],
-    }],
-    references: [],
-    organization: undefined,
-  };
+
+  return <EditSongContent edit={false} data={{ id: 0, title: '', blocks: startingBlocks ?? [{ lines: [] }] }} />;
+}
+
+function EditExistingSong() {
+  const params = useParams();
+  const { songsService } = useServices();
+  const { data } = useSuspenseQuery(songsService.byIdQuery(Number(params.id)));
 
   if (!data) {
     throw new Error("Can't find song");
   }
+
+  return <EditSongContent edit data={data} />;
+}
+
+interface EditSongContentProps {
+  edit: boolean;
+  data: ISongWithRole;
+}
+
+function EditSongContent({ edit, data }: Readonly<EditSongContentProps>) {
+
+  const { t } = useTranslation("songs");
+  const curLang = (i18next.resolvedLanguage || 'en') as SupportedLanguage;
+  const { organization, organizations } = useAuth();
 
   const organizationsToAddTo = organizations.filter(
     (org) => isRoleHigherOrEqualThan(org.role, 'member')
@@ -88,7 +84,7 @@ export function EditSong({
     language: data.language ?? curLang,
     title: data.title,
     artist: data.artist ?? '',
-    blocks: data.blocks ?? [],
+    blocks: data.blocks?.map((block, index) => ({ ...block, id: index })) ?? [],
     references: data.references ?? [],
   };
 
@@ -110,7 +106,7 @@ export function EditSong({
             size="sm"
             title={t('actions.view')}
             asChild>
-            <Link to={`/app/songs/${loadedData.id}/view`}>
+            <Link to={`/app/songs/${data.id}/view`}>
               <EyeIcon className="size-3" />
             </Link>
           </Button>

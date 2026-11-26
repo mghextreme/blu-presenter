@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod"
-import { IControllerConfig } from "@/hooks/controller.provider";
+import { IControllerConfig } from "@/hooks/controller.storage";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -33,10 +33,7 @@ export function PlanConfiguration() {
 
   const { t } = useTranslation("controller");
 
-  const {
-    config,
-    setConfig,
-  } = useController();
+  const { config, setConfig } = useController((s) => ({ config: s.config, setConfig: s.setConfig }));
 
   const {
     sessionsService,

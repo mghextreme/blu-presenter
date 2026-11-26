@@ -7,9 +7,11 @@ import {
   IsString,
   Length,
   Min,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { SongPartDto } from './song-part.dto';
-import { SongReference } from 'src/entities';
+import { SongReferenceDto } from './song-reference.dto';
 
 export class UpdateSongDto {
   @IsInt()
@@ -34,6 +36,7 @@ export class UpdateSongDto {
 
   @IsOptional()
   @IsArray()
-  @IsObject({ each: true })
-  references?: SongReference[];
+  @ValidateNested({ each: true })
+  @Type(() => SongReferenceDto)
+  references?: SongReferenceDto[];
 }

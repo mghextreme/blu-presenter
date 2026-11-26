@@ -18,11 +18,11 @@ export function SlideSelector({
   scheduleItemIndex = undefined,
   index,
 }: Readonly<SlideSelectorParams>) {
-  const {
-    mode,
-    selection,
-    setSelection,
-  } = useController();
+  const { mode, selection, setSelection } = useController((s) => ({
+    mode: s.mode,
+    selection: s.selection,
+    setSelection: s.setSelection,
+  }));
 
   const [isSelected, setSelected] = useState<boolean>(false);
   const [isEmpty, setEmpty] = useState<boolean>(false);

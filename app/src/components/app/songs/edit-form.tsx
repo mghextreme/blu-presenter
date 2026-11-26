@@ -1,8 +1,9 @@
 import { forwardRef, ReactNode, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 
-import { ILanguage, ISong, supportedLanguagesMap } from "@/types";
+import { ILanguage, supportedLanguagesMap } from "@/types";
 import { useServices } from "@/hooks/useServices";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -91,7 +92,6 @@ const EditSongFormContent = forwardRef<EditSongFormHandle, EditSongFormProps>((
 
   const { songsService } = useServices();
 
-  const [isLoading, setLoading] = useState<boolean>(false);
   const lastFocusedBlockRef = useRef<number>(0);
   const lastFocusedLineRef = useRef<number>(0);
   const songEditorRef = useRef<SongEditorHandle>(null);
@@ -101,28 +101,20 @@ const EditSongFormContent = forwardRef<EditSongFormHandle, EditSongFormProps>((
     defaultValues: formValues,
   });
 
-  const onSubmit = async (values: z.infer<typeof SongSchema>) => {
+  const saveSong = useMutation({
+    mutationFn: ({ values, organizationId }: { values: z.infer<typeof SongSchema>, organizationId: number }) =>
+      edit ? songsService.update(values.id, values, organizationId) : songsService.add(values, organizationId),
+    onSuccess: (savedSong) => navigate(`/app/songs/${savedSong?.id}/view`),
+    onError: (err) => {
+      console.error(err);
+      toast.error(t('error.save'));
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof SongSchema>) => {
     if (hasUppercaseWarning && !ignoreWarning) return;
     if (!organizationId) return;
-
-    setLoading(true);
-    let action;
-    if (edit) {
-      action = songsService.update(values.id, values, organizationId);
-    } else {
-      action = songsService.add(values, organizationId);
-    }
-    action
-      .then((newSong: ISong) => {
-        navigate(`/app/songs/${newSong.id}/view`);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error(t('error.save'));
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    saveSong.mutate({ values, organizationId });
   }
 
   useImperativeHandle(ref, () => {
@@ -295,7 +287,7 @@ const EditSongFormContent = forwardRef<EditSongFormHandle, EditSongFormProps>((
               </FormItem>
             )}></FormField>
 
-          <SubmitButtons t={t} edit={edit} isLoading={isLoading} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} idSuffix="left" />
+          <SubmitButtons t={t} edit={edit} isLoading={saveSong.isPending} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} idSuffix="left" />
         </div>
 
         <div className="flex flex-col items-stretch min-w-md max-w-lg space-y-3 flex-1">
@@ -305,7 +297,7 @@ const EditSongFormContent = forwardRef<EditSongFormHandle, EditSongFormProps>((
             onCursorFocus={(block, line) => { lastFocusedBlockRef.current = block; lastFocusedLineRef.current = line; }}
           />
 
-          <SubmitButtons t={t} edit={edit} isLoading={isLoading} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} idSuffix="right" />
+          <SubmitButtons t={t} edit={edit} isLoading={saveSong.isPending} additionalSubmitButtons={additionalSubmitButtons} hasUppercaseWarning={hasUppercaseWarning} ignoreWarning={ignoreWarning} setIgnoreWarning={setIgnoreWarning} autoFixUppercase={autoFixUppercase} idSuffix="right" />
         </div>
       </form>
     </Form>

@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, waitFor, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { act, useContext } from 'react'
-import { ControllerProvider, ControllerProviderContext } from '../controller.provider'
+import { act } from 'react'
+import { ControllerProvider } from '../controller.provider'
+import { useController } from '../useController'
 import { BroadcastProvider } from '../broadcast.provider'
 import { mockScheduleItems } from '@/test/mockData/scheduleItems'
 import { STORAGE_KEYS } from '@/lib/storage-keys'
@@ -22,7 +23,7 @@ vi.mock('../useServices', () => ({
 }))
 
 const TestConsumer = () => {
-  const context = useContext(ControllerProviderContext)
+  const context = useController((s) => s)
   const multiPartItem: IScheduleSong = {
     ...mockScheduleItems[0],
     id: 99,

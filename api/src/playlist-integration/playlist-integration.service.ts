@@ -138,11 +138,13 @@ export abstract class PlaylistIntegrationService {
   /**
    * Makes the playlist contain exactly the given items, in order. Returns
    * the ids the provider refused to add (e.g. deleted videos); the songs
-   * with those ids are reported as skipped.
+   * with those ids are reported as skipped. `isNew` is set when the playlist
+   * was created by this same sync, so it is known to be empty.
    */
   protected abstract writePlaylistItems(
     playlistUrl: string,
     itemIds: string[],
+    isNew: boolean,
   ): Promise<string[]>;
 
   /** Maps a failed API response to the exception thrown to the client. */
@@ -431,7 +433,11 @@ export abstract class PlaylistIntegrationService {
 
     const itemIds = projection.entries.map((entry) => entry.itemId);
     const failedIds = new Set(
-      await this.writePlaylistItems(reference.url, itemIds),
+      await this.writePlaylistItems(
+        reference.url,
+        itemIds,
+        action === 'created',
+      ),
     );
     const failed = projection.entries.filter((entry) =>
       failedIds.has(entry.itemId),

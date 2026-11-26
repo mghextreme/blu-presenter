@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, waitFor, screen } from '@testing-library/react'
-import { act, useContext } from 'react'
+import { act } from 'react'
 import { Receiver } from '../../app/receiver'
-import { ControllerProvider, ControllerProviderContext } from '@/hooks/controller.provider'
+import { ControllerProvider } from '@/hooks/controller.provider'
+import { useController } from '@/hooks/useController'
 import { createMockScheduleItem } from '@/test/mockData/scheduleItems'
 import type { ISession } from '@/types'
 
@@ -76,7 +77,7 @@ vi.mock('@/components/controller/selector-screen', () => ({
 }))
 
 const Probe = ({ onValue }: { onValue: (context: any) => void }) => {
-  const context = useContext(ControllerProviderContext)
+  const context = useController((s) => s)
   onValue(context)
   return null
 }

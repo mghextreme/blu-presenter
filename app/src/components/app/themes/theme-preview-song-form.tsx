@@ -47,7 +47,11 @@ function buildDefaultBlocks(lyrics: string, chords: string): ISongPart[] {
 export function ThemePreviewSongForm({ baseTheme }: Readonly<ThemePreviewSongFormProps>) {
   const { t } = useTranslation("themes");
 
-  const { setScheduleItem, setMode, selection } = useController();
+  const { setScheduleItem, setMode, selection } = useController((s) => ({
+    setScheduleItem: s.setScheduleItem,
+    setMode: s.setMode,
+    selection: s.selection,
+  }));
   const { songsService } = useServices();
 
   const defaults = useMemo(() => ({

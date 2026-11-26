@@ -18,9 +18,9 @@ export function ProtectedRoute({ children }: Readonly<{ children: ReactNode }>) 
     }
 
     // A failed refresh must not block entry or log the user out when the
-    // failure is a network error (offline use): performRefresh only clears
-    // the session when the server rejects the refresh token (ApiError), and
-    // network errors keep the session as-is.
+    // failure is transient (offline, 5xx, 429): performRefresh only clears
+    // the session when the server rejects the refresh token (400/401/403),
+    // and every other failure keeps the session as-is.
     authService.tryRefreshSession()
       .catch(() => { /* offline or transient failure — keep cached session */ })
       .finally(() => {

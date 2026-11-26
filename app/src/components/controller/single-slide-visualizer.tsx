@@ -29,11 +29,11 @@ const SingleSlideVisualizerContent = forwardRef((
   ref,
 ) => {
 
-  const {
-    selectedSlide,
-    overrideSlide,
-    selection,
-  } = useController();
+  const { selectedSlide, overrideSlide, selection } = useController((s) => ({
+    selectedSlide: s.selectedSlide,
+    overrideSlide: s.overrideSlide,
+    selection: s.selection,
+  }));
 
   const {childWindow} = useWindow();
 

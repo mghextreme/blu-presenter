@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
-import { Link, useLoaderData, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import QRCode from "react-qr-code";
-import { INumberedSongPart, ISongWithRole, isRoleHigherOrEqualThan, LineStyle } from "@/types";
+import { INumberedSongPart, isRoleHigherOrEqualThan, LineStyle } from "@/types";
 import { usePrintConfig } from "@/hooks/usePrintConfig";
+import { useServices } from "@/hooks/useServices";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -88,8 +90,9 @@ export function PrintSong() {
 
   const { t } = useTranslation("songs");
 
-  const data = useLoaderData() as ISongWithRole;
   const params = useParams();
+  const { songsService } = useServices();
+  const { data } = useSuspenseQuery(songsService.byIdQuery(Number(params.id), params.secret));
 
   const {
     fontSize,

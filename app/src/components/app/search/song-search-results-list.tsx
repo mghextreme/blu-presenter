@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { ISongWithRole, isRoleHigherOrEqualThan } from "@/types";
 import { useServices } from "@/hooks/useServices";
-import { useSearch } from "@/hooks/search.provider";
 import { SearchResultsList } from "@/components/app/search/search-results-list";
 import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
 import { SongOfflineButton } from "@/components/app/offline/song-offline-button";
@@ -18,22 +18,18 @@ export function SongSearchResultsList() {
   const { t } = useTranslation("songs");
 
   const { songsService } = useServices();
-  const { refresh } = useSearch();
 
-  const onDeleteSong = async (song: ISongWithRole) => {
+  const deleteSong = useMutation({
+    mutationFn: ({ songId, organizationId }: { songId: number, organizationId: number }) =>
+      songsService.delete(songId, organizationId),
+    onError: () => toast.error(t('error.deleteSong')),
+  });
+
+  const onDeleteSong = (song: ISongWithRole) => {
     if (!song.organization?.id) {
       return;
     }
-
-    try {
-      await songsService.delete(song.id, song.organization.id);
-      songsService.clearCache();
-      refresh();
-    } catch (e: any) {
-      toast.error(
-        t('error.deleteSong'),
-      );
-    }
+    deleteSong.mutate({ songId: song.id, organizationId: song.organization.id });
   }
 
   const getButtonActions = (item: ISongWithRole) => {

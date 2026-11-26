@@ -128,7 +128,7 @@ export class OrganizationsController {
   async leaveOrganization(): Promise<void> {
     const usersOrg = this.request.user['organization'];
     const user = this.request.user['internal'];
-    return await this.organizationsService.removeMember(usersOrg, user.id);
+    return await this.organizationsService.leave(usersOrg, user.id);
   }
 
   @Public()

@@ -434,7 +434,7 @@ export class ThemesService {
       );
     }
 
-    this.create(organizationId, {
+    await this.create(organizationId, {
       name: theme.name,
       extends: theme.extends,
       config: theme.config,

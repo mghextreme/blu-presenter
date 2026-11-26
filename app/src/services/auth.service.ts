@@ -1,7 +1,7 @@
 import { IAuthInvitationData, IAuthResponse, IChangePasswordData, IExchangeCodeData, IForgotPasswordData, IOAuthRedirect, IOtpSignInRequestData, IOtpSignInVerifyData, IResetPasswordData, ISetPasswordData, ISignInData, ISignUpData, IUserIdentitiesResponse } from "@/types/auth";
 import { ApiService } from "./api.service";
 import { useAuth } from "@/hooks/useAuth";
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, queryOptions } from "@tanstack/react-query";
 import { OrganizationsService } from "./organizations.service";
 
 export class AuthService extends ApiService {
@@ -68,8 +68,15 @@ export class AuthService extends ApiService {
     });
   }
 
+  public identitiesQuery() {
+    return queryOptions({
+      queryKey: ['user', 'identities'],
+      queryFn: async () => await this.getRequest('/auth/identities') as IUserIdentitiesResponse,
+    });
+  }
+
   public async getIdentities(): Promise<IUserIdentitiesResponse> {
-    return await this.getRequest('/auth/identities') as IUserIdentitiesResponse;
+    return await this.queryClient.query(this.identitiesQuery());
   }
 
   public async linkIdentity(provider: string): Promise<IOAuthRedirect> {
@@ -80,12 +87,14 @@ export class AuthService extends ApiService {
 
   public async unlinkIdentity(identityId: string): Promise<void> {
     await this.deleteRequest(`/auth/identities/${identityId}`);
+    void this.queryClient.invalidateQueries({ queryKey: ['user', 'identities'] });
   }
 
   public async setPassword(value: ISetPasswordData): Promise<void> {
     await this.postRequest('/auth/setPassword', JSON.stringify(value), {
       'content-type': 'application/json',
     });
+    void this.queryClient.invalidateQueries({ queryKey: ['user', 'identities'] });
   }
 
   public async forgotPassword(value: IForgotPasswordData): Promise<void> {

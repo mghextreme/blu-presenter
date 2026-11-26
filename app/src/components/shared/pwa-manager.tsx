@@ -29,7 +29,11 @@ export function PwaManager() {
     () => sessionStorage.getItem(DISMISS_KEY) === "1",
   );
 
-  const { needRefresh, updateServiceWorker } = useRegisterSW();
+  // needRefresh is a [value, setter] tuple, not a boolean.
+  const {
+    needRefresh: [needRefresh],
+    updateServiceWorker,
+  } = useRegisterSW();
 
   if (!needRefresh || !isStandalone || dismissed) return null;
 

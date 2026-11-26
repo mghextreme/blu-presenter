@@ -27,7 +27,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v6
       with:
-        node-version: 26
+        node-version-file: .nvmrc
         cache: 'pnpm'
         cache-dependency-path: ./pnpm-lock.yaml
 
@@ -53,7 +53,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v6
       with:
-        node-version: 26
+        node-version-file: .nvmrc
         cache: 'pnpm'
         cache-dependency-path: ./pnpm-lock.yaml
 
@@ -85,7 +85,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v6
       with:
-        node-version: 26
+        node-version-file: .nvmrc
         cache: 'pnpm'
         cache-dependency-path: ./pnpm-lock.yaml
 
@@ -116,4 +116,4 @@ jobs:
       # .dockerignore vs the manifests, and that pnpm-lock.yaml's importers
       # all resolve against the copied package.json files (pnpm >= 11.28
       # fails "frozen-lockfile" if any importer's manifest is missing).
-      run: docker build -f api/Dockerfile . -t blu-presenter-api:ci
+      run: docker build -f api/Dockerfile . --build-arg NODE_VERSION="$(cat .nvmrc)" -t blu-presenter-api:ci

@@ -15,14 +15,14 @@ export function Receiver() {
 
   const params = useParams();
 
-  const {
-    schedule,
-    scheduleItem,
-    replaceSchedule,
-    setScheduleItem,
-    setSelection,
-    setMode,
-  } = useController();
+  const { schedule, scheduleItem, replaceSchedule, setScheduleItem, setSelection, setMode } = useController((s) => ({
+    schedule: s.schedule,
+    scheduleItem: s.scheduleItem,
+    replaceSchedule: s.replaceSchedule,
+    setScheduleItem: s.setScheduleItem,
+    setSelection: s.setSelection,
+    setMode: s.setMode,
+  }));
 
   const {
     session,
@@ -94,8 +94,8 @@ export function Receiver() {
 
   const { connect, socket, isConnected, reconnectAttempts, joinSession } = useSessionSocket({
     auth: {
-      orgId: Number(params.orgId),
-      sessionId: Number(params.sessionId),
+      orgId,
+      sessionId,
       secret: params.secret,
     },
     onJoinedSession: (data) => {

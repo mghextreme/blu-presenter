@@ -10,12 +10,12 @@ export function LivePanel() {
 
   const { t } = useTranslation('controller');
 
-  const {
-    mode,
-    scheduleItem,
-    selection,
-    windows,
-  } = useController();
+  const { mode, scheduleItem, selection, windows } = useController((s) => ({
+    mode: s.mode,
+    scheduleItem: s.scheduleItem,
+    selection: s.selection,
+    windows: s.windows,
+  }));
 
   const contentWrapper = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<HTMLDivElement[]>([]);
