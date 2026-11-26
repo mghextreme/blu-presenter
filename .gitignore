@@ -39,7 +39,6 @@ coverage
 supabase/snippets
 
 # AI
-skills-lock.json
 .agents/*
 # Symlink to .agents (a plain `.claude/*` pattern does not match a symlink)
 .claude

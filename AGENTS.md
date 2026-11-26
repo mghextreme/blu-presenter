@@ -28,6 +28,7 @@ These files are not loaded automatically. Read the matching one before starting:
 ## Rules that always apply
 
 - **Setup:** Node version is in `.nvmrc`; pnpm 12. Install once from the repo root with `pnpm install`. Env lives in one repo-root `.env` (copy `.env.sample`), read by both app and api. Never print or commit it.
+- **Agent skills:** project skills are pinned in `skills-lock.json` and installed (git-ignored) into `.agents/skills/`; `.claude` is a symlink to `.agents`. Restore them with `npx skills experimental_install`. Add new ones with `npx skills add <owner/repo> --skill <name>` so the lock stays complete.
 - **Commands with traps:**
   - `app/`: `pnpm test` is watch mode and never exits. Use `pnpm test run [file-pattern]`.
   - `api/`: `pnpm lint` runs `eslint --fix` and rewrites files. To only check: `pnpm exec eslint <files>`.
