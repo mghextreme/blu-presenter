@@ -1,49 +1,55 @@
-import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
-import { cn } from "@/lib/utils";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { SlideVisualizer } from "./slide-visualizer";
-import { useTranslation } from "react-i18next";
-import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
-import { IBrowserWindow, IScreenDetails } from "@/types/browser";
-import { useController } from "@/hooks/useController";
-import { useServices } from "@/hooks/useServices";
-import { usePreviewConfig } from "@/hooks/usePreviewConfig";
+import { CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
+import { cn } from '@/lib/utils';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { SlideVisualizer } from './slide-visualizer';
+import { useTranslation } from 'react-i18next';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from '@/types';
+import { IBrowserWindow, IScreenDetails } from '@/types/browser';
+import { useController } from '@/hooks/useController';
+import { useServices } from '@/hooks/useServices';
+import { usePreviewConfig } from '@/hooks/usePreviewConfig';
 
 const defaultThemeOptions = [
   {
     value: LyricsTheme,
-    label: "lyrics",
+    label: 'lyrics',
   },
   {
     value: SubtitlesTheme,
-    label: "subtitles",
+    label: 'subtitles',
   },
   {
     value: TeleprompterTheme,
-    label: "teleprompter",
+    label: 'teleprompter',
   },
 ];
 
 const defaultRatioOptions = [
   {
-    value: "16/9",
-    label: "16 x 9",
+    value: '16/9',
+    label: '16 x 9',
   },
   {
-    value: "4/3",
-    label: "4 x 3",
+    value: '4/3',
+    label: '4 x 3',
   },
 ];
 
 interface PreviewWindowProps {
-  closeWindow?: () => void
-  attachControllerMode?: boolean
-  theme?: ITheme
-  showThemeSelector?: boolean
+  closeWindow?: () => void;
+  attachControllerMode?: boolean;
+  theme?: ITheme;
+  showThemeSelector?: boolean;
 }
 
 export function PreviewWindow({
@@ -52,7 +58,6 @@ export function PreviewWindow({
   theme = LyricsTheme,
   showThemeSelector = true,
 }: Readonly<PreviewWindowProps>) {
-
   const { t } = useTranslation('controller');
 
   const {
@@ -66,13 +71,12 @@ export function PreviewWindow({
   const [previewTheme, setPreviewTheme] = useState<ITheme>(showThemeSelector ? storedTheme : theme);
   const [openPreviewRatioSelector, setOpenPreviewRatioSelector] = useState<boolean>(false);
   const [previewRatio, setPreviewRatio] = useState<string>(storedRatio);
-  const [ratioOptions, setRatioOptions] = useState<{ value: string, label: string }[]>(defaultRatioOptions);
+  const [ratioOptions, setRatioOptions] =
+    useState<{ value: string; label: string }[]>(defaultRatioOptions);
 
   const { mode, setMode } = useController((s) => ({ mode: s.mode, setMode: s.setMode }));
 
-  const {
-    themesService,
-  } = useServices();
+  const { themesService } = useServices();
 
   const updatePreviewTheme = (theme: ITheme) => {
     setPreviewTheme(theme);
@@ -82,19 +86,19 @@ export function PreviewWindow({
     }
 
     if (attachControllerMode && mode !== 'part') {
-      const newMode = theme.extends === 'subtitles' ? 'part': 'slide';
+      const newMode = theme.extends === 'subtitles' ? 'part' : 'slide';
       setMode(newMode);
     }
-  }
+  };
   const updatePreviewRatio = (ratio: string) => {
     if (ratio === previewRatio) return;
 
     setPreviewRatio(ratio);
     storeSetPreviewRatio(ratio);
-  }
+  };
 
   useEffect(() => {
-    setMode(previewTheme?.extends === 'subtitles' ? 'part': 'slide');
+    setMode(previewTheme?.extends === 'subtitles' ? 'part' : 'slide');
 
     const browserWindow = window as unknown as IBrowserWindow;
     if (!browserWindow?.getScreenDetails) return;
@@ -111,14 +115,11 @@ export function PreviewWindow({
           return {
             value: `${w}/${h}`,
             label: `${name} ${resolution}`,
-          }
+          };
         });
 
-        setRatioOptions([
-          ...defaultRatioOptions,
-          ...screenRatioOptions,
-        ]);
-      })
+        setRatioOptions([...defaultRatioOptions, ...screenRatioOptions]);
+      });
     }
   }, []);
 
@@ -128,16 +129,22 @@ export function PreviewWindow({
     }
   }, [theme]);
 
-  const { data: customThemes } = useQuery({ ...themesService.allForUserQuery(), enabled: showThemeSelector });
-  const consolidatedOptions = useMemo<typeof defaultThemeOptions>(() => [
-    ...(customThemes ?? []).map((theme: ITheme) => ({
-      value: theme,
-      label: theme.name,
-    })),
-    ...defaultThemeOptions,
-  ], [customThemes]);
-  const previewThemeListId = "preview-theme-selector-list";
-  const previewRatioListId = "preview-ratio-selector-list";
+  const { data: customThemes } = useQuery({
+    ...themesService.allForUserQuery(),
+    enabled: showThemeSelector,
+  });
+  const consolidatedOptions = useMemo<typeof defaultThemeOptions>(
+    () => [
+      ...(customThemes ?? []).map((theme: ITheme) => ({
+        value: theme,
+        label: theme.name,
+      })),
+      ...defaultThemeOptions,
+    ],
+    [customThemes],
+  );
+  const previewThemeListId = 'preview-theme-selector-list';
+  const previewRatioListId = 'preview-ratio-selector-list';
 
   return (
     <div className="flex-1 relative">
@@ -154,17 +161,21 @@ export function PreviewWindow({
                   className="flex-1 justify-between overflow-hidden"
                   title={t('preview.theme.title')}
                 >
-                  <span
-                    className="truncate">{previewTheme.id === 0 ? t('theme.' + previewTheme.name) : previewTheme.name}</span>
-                  <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
+                  <span className="truncate">
+                    {previewTheme.id === 0 ? t('theme.' + previewTheme.name) : previewTheme.name}
+                  </span>
+                  <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-full p-0">
                 <Command>
-                  <CommandInput placeholder={t('preview.theme.searchPlaceholder')} className="h-9"/>
+                  <CommandInput
+                    placeholder={t('preview.theme.searchPlaceholder')}
+                    className="h-9"
+                  />
                   <CommandEmpty>{t('preview.theme.searchNoneFound')}</CommandEmpty>
                   <CommandGroup id={previewThemeListId}>
-                    {consolidatedOptions.map(option => {
+                    {consolidatedOptions.map((option) => {
                       let orgName: string | undefined = undefined;
                       if (option.value.id !== 0) {
                         orgName = option.value.organization?.name;
@@ -178,7 +189,11 @@ export function PreviewWindow({
                         <>
                           <CommandItem
                             key={option.value.extends + '-' + option.value.id}
-                            value={option.value.id === 0 ? t('theme.' + option.label) : `${option.value.id} ${option.value.name} ${orgName}`}
+                            value={
+                              option.value.id === 0
+                                ? t('theme.' + option.label)
+                                : `${option.value.id} ${option.value.name} ${orgName}`
+                            }
                             onSelect={() => {
                               updatePreviewTheme(option.value);
                               setOpenPreviewThemeSelector(false);
@@ -187,9 +202,11 @@ export function PreviewWindow({
                             {option.value.id === 0 ? (
                               <>
                                 {t('theme.' + option.label)}
-                                <span className="text-xs opacity-70">({t('organizations.blupresenter')})</span>
+                                <span className="text-xs opacity-70">
+                                  ({t('organizations.blupresenter')})
+                                </span>
                               </>
-                             ) : (
+                            ) : (
                               <>
                                 {option.value.name}
                                 {orgName && <span className="text-xs opacity-70">({orgName})</span>}
@@ -197,8 +214,8 @@ export function PreviewWindow({
                             )}
                             <CheckIcon
                               className={cn(
-                                "ml-auto h-4 w-4",
-                                previewTheme === option.value ? "opacity-100" : "opacity-0"
+                                'ml-auto h-4 w-4',
+                                previewTheme === option.value ? 'opacity-100' : 'opacity-0',
                               )}
                             />
                           </CommandItem>
@@ -220,14 +237,18 @@ export function PreviewWindow({
                 className="flex-1 justify-between overflow-hidden"
                 title={t('preview.resolution.title')}
               >
-                <span
-                  className="truncate">{ratioOptions.find((option) => option.value == previewRatio)?.label}</span>
-                <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50"/>
+                <span className="truncate">
+                  {ratioOptions.find((option) => option.value == previewRatio)?.label}
+                </span>
+                <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-full p-0">
               <Command>
-                <CommandInput placeholder={t('preview.resolution.searchPlaceholder')} className="h-9"/>
+                <CommandInput
+                  placeholder={t('preview.resolution.searchPlaceholder')}
+                  className="h-9"
+                />
                 <CommandEmpty>{t('preview.resolution.searchNoneFound')}</CommandEmpty>
                 <CommandGroup id={previewRatioListId}>
                   {ratioOptions.map((option) => (
@@ -242,8 +263,8 @@ export function PreviewWindow({
                       {option.label}
                       <CheckIcon
                         className={cn(
-                          "ml-auto h-4 w-4",
-                          previewRatio === option.value ? "opacity-100" : "opacity-0"
+                          'ml-auto h-4 w-4',
+                          previewRatio === option.value ? 'opacity-100' : 'opacity-0',
                         )}
                       />
                     </CommandItem>
@@ -253,16 +274,13 @@ export function PreviewWindow({
             </PopoverContent>
           </Popover>
           {closeWindow && (
-            <Button
-              onClick={closeWindow}
-              title={t('preview.closeTitle')}
-              variant="outline">
+            <Button onClick={closeWindow} title={t('preview.closeTitle')} variant="outline">
               {t('preview.close')}
             </Button>
           )}
         </div>
       </div>
-      <div className={"flex-1 rounded overflow-hidden"} style={{aspectRatio: previewRatio}}>
+      <div className={'flex-1 rounded overflow-hidden'} style={{ aspectRatio: previewRatio }}>
         <SlideVisualizer theme={previewTheme}></SlideVisualizer>
       </div>
     </div>

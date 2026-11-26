@@ -1,15 +1,20 @@
-import { useTranslation } from "react-i18next";
-import { useAuth } from "@/hooks/useAuth";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
-import { useNavigate } from "react-router-dom";
-import { useServices } from "@/hooks/useServices";
-import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import ChevronDownIcon from '@heroicons/react/24/solid/ChevronDownIcon';
+import { useNavigate } from 'react-router-dom';
+import { useServices } from '@/hooks/useServices';
+import { useQuery } from '@tanstack/react-query';
 
 export function ProfileButton() {
-
-  const { t } = useTranslation("navbar");
+  const { t } = useTranslation('navbar');
   const navigate = useNavigate();
 
   const { user, signOut } = useAuth();
@@ -18,14 +23,14 @@ export function ProfileButton() {
   const { data } = useQuery(usersService.getProfileQuery());
 
   const goToProfile = () => {
-    navigate("/app/profile", { replace: true });
-  }
+    navigate('/app/profile', { replace: true });
+  };
 
   const onSignOut = async () => {
     await authService.signOut();
     signOut();
-    navigate("/login", { replace: true });
-  }
+    navigate('/login', { replace: true });
+  };
 
   return (
     <DropdownMenu>
@@ -41,5 +46,5 @@ export function ProfileButton() {
         <DropdownMenuItem onClick={onSignOut}>{t('profile.signOut')}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

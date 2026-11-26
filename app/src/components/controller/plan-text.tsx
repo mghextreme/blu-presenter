@@ -1,19 +1,26 @@
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner";
-import { useController } from "@/hooks/useController";
-import { useTranslation } from "react-i18next";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { IScheduleText, ISlideTitleContent } from "@/types";
-import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
-import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
+import { useController } from '@/hooks/useController';
+import { useTranslation } from 'react-i18next';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { IScheduleText, ISlideTitleContent } from '@/types';
+import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
+import PlayIcon from '@heroicons/react/24/solid/PlayIcon';
 
 type PlanTextProps = {
   showOpen?: boolean;
-}
+};
 
 const textFormSchema = z.object({
   title: z.string().min(2),
@@ -21,23 +28,25 @@ const textFormSchema = z.object({
 });
 
 export function PlanText({ showOpen = true }: Readonly<PlanTextProps>) {
+  const { t } = useTranslation('controller');
 
-  const { t } = useTranslation("controller");
-
-  const { addToSchedule, setScheduleItem } = useController((s) => ({ addToSchedule: s.addToSchedule, setScheduleItem: s.setScheduleItem }));
+  const { addToSchedule, setScheduleItem } = useController((s) => ({
+    addToSchedule: s.addToSchedule,
+    setScheduleItem: s.setScheduleItem,
+  }));
 
   const form = useForm<z.infer<typeof textFormSchema>>({
     resolver: zodResolver(textFormSchema),
     defaultValues: {
-      title: "",
-      subtitle: "",
+      title: '',
+      subtitle: '',
     },
   });
 
   const getScheduleItem = (values: z.infer<typeof textFormSchema>) => {
     return {
       id: Date.now(),
-      type: "text",
+      type: 'text',
       title: values.title,
       subtitle: values.subtitle,
       slides: [
@@ -45,7 +54,7 @@ export function PlanText({ showOpen = true }: Readonly<PlanTextProps>) {
         {
           content: [
             {
-              type: "title",
+              type: 'title',
               title: values.title,
               subtitle: values.subtitle,
             } as ISlideTitleContent,
@@ -54,29 +63,29 @@ export function PlanText({ showOpen = true }: Readonly<PlanTextProps>) {
         {},
       ],
     } as IScheduleText;
-  }
+  };
 
   const add = async (values: z.infer<typeof textFormSchema>) => {
     const scheduleItem = getScheduleItem(values);
     addToSchedule(scheduleItem);
     toast.success(t('plan.text.addedToSchedule', { title: values.title }));
     form.reset();
-  }
+  };
 
   const open = async (values: z.infer<typeof textFormSchema>) => {
     const scheduleItem = getScheduleItem(values);
     setScheduleItem(scheduleItem);
-  }
+  };
 
   const handleAdd = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
     form.handleSubmit(add)();
-  }
+  };
 
   const handleOpen = () => {
     form.handleSubmit(open)();
-  }
+  };
 
   return (
     <Form {...form}>
@@ -84,28 +93,30 @@ export function PlanText({ showOpen = true }: Readonly<PlanTextProps>) {
         <FormField
           control={form.control}
           name="title"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem className="flex-1">
               <FormLabel>{t('plan.text.input.title')}</FormLabel>
               <FormControl>
                 <Input autoComplete="off" {...field} />
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
-          )}></FormField>
+          )}
+        ></FormField>
 
         <FormField
           control={form.control}
           name="subtitle"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem className="flex-1">
               <FormLabel>{t('plan.text.input.subtitle')}</FormLabel>
               <FormControl>
                 <Input autoComplete="off" {...field} />
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
-          )}></FormField>
+          )}
+        ></FormField>
 
         <div className="flex justify-end space-x-2">
           <Button type="submit" title={t('plan.text.actions.add')}>
@@ -119,5 +130,5 @@ export function PlanText({ showOpen = true }: Readonly<PlanTextProps>) {
         </div>
       </form>
     </Form>
-  )
+  );
 }

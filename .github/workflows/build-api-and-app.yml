@@ -92,8 +92,8 @@ jobs:
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
 
-    - name: Lint App
-      run: pnpm --filter blu-presenter-app lint
+    - name: Check App (format, lint, type-check)
+      run: pnpm --filter blu-presenter-app check
 
     - name: Run tests
       run: pnpm --filter blu-presenter-app test run

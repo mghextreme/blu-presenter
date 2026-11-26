@@ -1,16 +1,16 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { act, Suspense } from 'react'
-import { queryOptions } from '@tanstack/react-query'
-import { render, waitFor, screen } from '@/test/test-utils'
-import { Receiver } from '../../app/receiver'
-import { ControllerProvider } from '@/hooks/controller.provider'
-import { useController } from '@/hooks/useController'
-import { createMockScheduleItem } from '@/test/mockData/scheduleItems'
-import type { ISession } from '@/types'
+import { describe, it, expect, beforeEach, vi } from 'vite-plus/test';
+import { act, Suspense } from 'react';
+import { queryOptions } from '@tanstack/react-query';
+import { render, waitFor, screen } from '@/test/test-utils';
+import { Receiver } from '../../app/receiver';
+import { ControllerProvider } from '@/hooks/controller.provider';
+import { useController } from '@/hooks/useController';
+import { createMockScheduleItem } from '@/test/mockData/scheduleItems';
+import type { ISession } from '@/types';
 
 vi.mock('i18next', () => ({
   default: { changeLanguage: vi.fn().mockResolvedValue(undefined) },
-}))
+}));
 
 // Slides need several content parts so selection.part stays in range
 const makeMultiPartItem = (id: number, title: string) => ({
@@ -25,61 +25,58 @@ const makeMultiPartItem = (id: number, title: string) => ({
       ],
     },
   ],
-})
+});
 
 vi.mock('react-router-dom', () => ({
   useParams: () => ({ orgId: '3', sessionId: '7', secret: 's3cr3t' }),
-}))
+}));
 
-const sessionThemes = vi.hoisted(() => [
-  { id: 11, name: 'Stage', extends: 'lyrics' },
-])
+const sessionThemes = vi.hoisted(() => [{ id: 11, name: 'Stage', extends: 'lyrics' }]);
 
 vi.mock('@/hooks/useServices', () => ({
   useServices: () => ({
     sessionsService: {
-      bySecretQuery: (orgId: number, sessionId: number, secret?: string) => queryOptions({
-        queryKey: ['sessions', 'shared', orgId, sessionId, secret],
-        queryFn: async () => loaderSession,
-      }),
+      bySecretQuery: (orgId: number, sessionId: number, secret?: string) =>
+        queryOptions({
+          queryKey: ['sessions', 'shared', orgId, sessionId, secret],
+          queryFn: async () => loaderSession,
+        }),
     },
     themesService: {
-      forSessionQuery: (orgId: number, sessionId: number, secret?: string, theme?: number) => queryOptions({
-        queryKey: ['themes', 'session', orgId, sessionId, secret, theme ?? null],
-        queryFn: async () => sessionThemes,
-      }),
+      forSessionQuery: (orgId: number, sessionId: number, secret?: string, theme?: number) =>
+        queryOptions({
+          queryKey: ['themes', 'session', orgId, sessionId, secret, theme ?? null],
+          queryFn: async () => sessionThemes,
+        }),
     },
   }),
-}))
+}));
 
 const loaderSession = {
   id: 7,
   orgId: 3,
-  schedule: [
-    makeMultiPartItem(1, 'Amazing Grace'),
-    makeMultiPartItem(2, 'How Great Thou Art'),
-  ],
+  schedule: [makeMultiPartItem(1, 'Amazing Grace'), makeMultiPartItem(2, 'How Great Thou Art')],
   // The controller was on item 0, slide 0, part 1 when the receiver reloads
   scheduleItem: makeMultiPartItem(1, 'Amazing Grace'),
   selection: { scheduleItem: 0, slide: 0, part: 1 },
   language: 'en',
-} as unknown as ISession
+} as unknown as ISession;
 
 const socketBuzz = vi.hoisted(() => ({
   config: null as any,
   driveJoinedSession: (data: unknown) => {
-    socketBuzz.config?.onJoinedSession?.(data)
+    socketBuzz.config?.onJoinedSession?.(data);
   },
   driveEvent: (eventName: string, data: unknown) => {
     socketBuzz.config?.additionalEvents
       ?.find((event: any) => event.eventName === eventName)
-      ?.handler(data)
+      ?.handler(data);
   },
-}))
+}));
 
 vi.mock('@/hooks/useSessionSocket', () => ({
   useSessionSocket: (config: any) => {
-    socketBuzz.config = config
+    socketBuzz.config = config;
     return {
       connect: vi.fn(),
       socket: null,
@@ -89,58 +86,62 @@ vi.mock('@/hooks/useSessionSocket', () => ({
       leaveSession: vi.fn(),
       switchSession: vi.fn(),
       emit: vi.fn(),
-    }
+    };
   },
-}))
+}));
 
 vi.mock('@/components/controller/selector-screen', () => ({
   SelectorScreen: ({ themeOptions }: { themeOptions?: { name: string }[] }) => (
     <div data-testid="selector-screen">{themeOptions?.map((theme) => theme.name).join(',')}</div>
   ),
-}))
+}));
 
 const Probe = ({ onValue }: { onValue: (context: any) => void }) => {
-  const context = useController((s) => s)
-  onValue(context)
-  return null
-}
+  const context = useController((s) => s);
+  onValue(context);
+  return null;
+};
 
 describe('Receiver initial load', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    sessionStorage.clear()
-    localStorage.clear()
-  })
+    vi.clearAllMocks();
+    sessionStorage.clear();
+    localStorage.clear();
+  });
 
   // This pins the regression where the part broadcast on initial load used to
   // be received only via socket streaming; when streaming is unavailable, the
   // loader data must place the receivers on the same part.
   it('restores schedule, item and part from loader data', async () => {
-    let captured: any = null
+    let captured: any = null;
     render(
       <ControllerProvider storeState={false}>
         <Suspense fallback={null}>
           <Receiver />
         </Suspense>
-        <Probe onValue={(context) => { captured = context }} />
+        <Probe
+          onValue={(context) => {
+            captured = context;
+          }}
+        />
       </ControllerProvider>,
-    )
+    );
 
     await waitFor(() => {
-      expect(screen.getByTestId('selector-screen')).toBeInTheDocument()
-    })
+      expect(screen.getByTestId('selector-screen')).toBeInTheDocument();
+    });
 
     // Schedule and item come from the loader
     await waitFor(() => {
-      expect(captured.schedule).toHaveLength(2)
-      expect(captured.scheduleItem?.title).toBe('Amazing Grace')
-    })
+      expect(captured.schedule).toHaveLength(2);
+      expect(captured.scheduleItem?.title).toBe('Amazing Grace');
+    });
 
     // Part must match the persisted selection (not reset to 0)
     await waitFor(() => {
-      expect(captured.selection).toEqual({ scheduleItem: 0, slide: 0, part: 1 })
-    })
-  })
+      expect(captured.selection).toEqual({ scheduleItem: 0, slide: 0, part: 1 });
+    });
+  });
 
   it("offers the session's themes when the URL names no theme", async () => {
     render(
@@ -149,105 +150,120 @@ describe('Receiver initial load', () => {
           <Receiver />
         </Suspense>
       </ControllerProvider>,
-    )
+    );
 
     await waitFor(() => {
-      expect(screen.getByTestId('selector-screen')).toHaveTextContent('Stage')
-    })
-  })
+      expect(screen.getByTestId('selector-screen')).toHaveTextContent('Stage');
+    });
+  });
 
   it('applies part 0 selections exactly as sent', async () => {
-    ;(loaderSession as any).selection = { scheduleItem: 0, slide: 0, part: 0 }
+    (loaderSession as any).selection = { scheduleItem: 0, slide: 0, part: 0 };
 
-    let captured: any = null
+    let captured: any = null;
     render(
       <ControllerProvider storeState={false}>
         <Suspense fallback={null}>
           <Receiver />
         </Suspense>
-        <Probe onValue={(context) => { captured = context }} />
+        <Probe
+          onValue={(context) => {
+            captured = context;
+          }}
+        />
       </ControllerProvider>,
-    )
+    );
 
     await waitFor(() => {
-      expect(captured.selection).toEqual({ scheduleItem: 0, slide: 0, part: 0 })
-    })
-  })
+      expect(captured.selection).toEqual({ scheduleItem: 0, slide: 0, part: 0 });
+    });
+  });
 
   it('applies schedule, item and selection from a joined-session push', async () => {
-    ;(loaderSession as any).selection = { scheduleItem: 0, slide: 0, part: 0 }
+    (loaderSession as any).selection = { scheduleItem: 0, slide: 0, part: 0 };
 
-    let captured: any = null
+    let captured: any = null;
     render(
       <ControllerProvider storeState={false}>
         <Suspense fallback={null}>
           <Receiver />
         </Suspense>
-        <Probe onValue={(context) => { captured = context }} />
+        <Probe
+          onValue={(context) => {
+            captured = context;
+          }}
+        />
       </ControllerProvider>,
-    )
+    );
     await waitFor(() => {
-      expect(captured.schedule).toHaveLength(2)
-    })
+      expect(captured.schedule).toHaveLength(2);
+    });
 
     const pushed = {
-      schedule: [makeMultiPartItem(1, 'New Song'),
-        makeMultiPartItem(2, 'Other Song')],
+      schedule: [makeMultiPartItem(1, 'New Song'), makeMultiPartItem(2, 'Other Song')],
       scheduleItem: makeMultiPartItem(1, 'New Song'),
       selection: { scheduleItem: 1, slide: 0, part: 2 },
-    }
+    };
 
     await act(async () => {
-      socketBuzz.driveJoinedSession(pushed)
-    })
+      socketBuzz.driveJoinedSession(pushed);
+    });
 
     await waitFor(() => {
-      expect(captured.schedule.map((i: any) => i.title)).toEqual(['New Song', 'Other Song'])
+      expect(captured.schedule.map((i: any) => i.title)).toEqual(['New Song', 'Other Song']);
       // selection.scheduleItem = 1 → the second item becomes the active one
-      expect(captured.scheduleItem?.title).toBe('Other Song')
-      expect(captured.selection).toEqual({ scheduleItem: 1, slide: 0, part: 2 })
-    })
-  })
+      expect(captured.scheduleItem?.title).toBe('Other Song');
+      expect(captured.selection).toEqual({ scheduleItem: 1, slide: 0, part: 2 });
+    });
+  });
   it('applies a joined-session selection that comes without schedule changes', async () => {
-    ;(loaderSession as any).selection = { scheduleItem: 0, slide: 0, part: 0 }
+    (loaderSession as any).selection = { scheduleItem: 0, slide: 0, part: 0 };
 
-    let captured: any = null
+    let captured: any = null;
     render(
       <ControllerProvider storeState={false}>
         <Suspense fallback={null}>
           <Receiver />
         </Suspense>
-        <Probe onValue={(context) => { captured = context }} />
+        <Probe
+          onValue={(context) => {
+            captured = context;
+          }}
+        />
       </ControllerProvider>,
-    )
+    );
     await waitFor(() => {
-      expect(captured.selection).toEqual({ scheduleItem: 0, slide: 0, part: 0 })
-    })
+      expect(captured.selection).toEqual({ scheduleItem: 0, slide: 0, part: 0 });
+    });
 
     await act(async () => {
-      socketBuzz.driveJoinedSession({ selection: { scheduleItem: 0, slide: 0, part: 2 } })
-    })
+      socketBuzz.driveJoinedSession({ selection: { scheduleItem: 0, slide: 0, part: 2 } });
+    });
 
     await waitFor(() => {
-      expect(captured.selection).toEqual({ scheduleItem: 0, slide: 0, part: 2 })
-    })
-  })
+      expect(captured.selection).toEqual({ scheduleItem: 0, slide: 0, part: 2 });
+    });
+  });
 
   it('never applies a queued selection over a newer live one', async () => {
-    ;(loaderSession as any).selection = { scheduleItem: 0, slide: 0, part: 0 }
+    (loaderSession as any).selection = { scheduleItem: 0, slide: 0, part: 0 };
 
-    let captured: any = null
+    let captured: any = null;
     render(
       <ControllerProvider storeState={false}>
         <Suspense fallback={null}>
           <Receiver />
         </Suspense>
-        <Probe onValue={(context) => { captured = context }} />
+        <Probe
+          onValue={(context) => {
+            captured = context;
+          }}
+        />
       </ControllerProvider>,
-    )
+    );
     await waitFor(() => {
-      expect(captured.selection).toEqual({ scheduleItem: 0, slide: 0, part: 0 })
-    })
+      expect(captured.selection).toEqual({ scheduleItem: 0, slide: 0, part: 0 });
+    });
 
     // A join push queues part 1, then a newer live selection (part 2) lands
     // in the same batch, before the queued one could flush.
@@ -255,21 +271,21 @@ describe('Receiver initial load', () => {
       socketBuzz.driveJoinedSession({
         scheduleItem: makeMultiPartItem(1, 'Amazing Grace'),
         selection: { scheduleItem: 0, slide: 0, part: 1 },
-      })
-      socketBuzz.driveEvent('selection', { scheduleItem: 0, slide: 0, part: 2 })
-    })
+      });
+      socketBuzz.driveEvent('selection', { scheduleItem: 0, slide: 0, part: 2 });
+    });
 
     // A later schedule change must not resurrect the stale part 1
     await act(async () => {
       socketBuzz.driveEvent('schedule', [
         makeMultiPartItem(1, 'Amazing Grace'),
         makeMultiPartItem(2, 'How Great Thou Art'),
-      ])
-    })
+      ]);
+    });
 
     await waitFor(() => {
-      expect(captured.schedule).toHaveLength(2)
-      expect(captured.selection.part).toBe(2)
-    })
-  })
-})
+      expect(captured.schedule).toHaveLength(2);
+      expect(captured.selection.part).toBe(2);
+    });
+  });
+});

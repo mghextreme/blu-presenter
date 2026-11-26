@@ -1,16 +1,16 @@
-import { useMutation } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { useMutation } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
-import { useServices } from "@/hooks/useServices";
-import { useInvitation } from "@/hooks/invitation.provider";
-import { ApiError } from "@/types";
-import { IAuthInvitationData } from "@/types/auth";
-import { STORAGE_KEYS } from "@/lib/storage-keys";
+import { useServices } from '@/hooks/useServices';
+import { useInvitation } from '@/hooks/invitation.provider';
+import { ApiError } from '@/types';
+import { IAuthInvitationData } from '@/types/auth';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 /** Starts an OAuth sign-in; on success the page redirects to the provider. */
 export function useSocialSignIn() {
-  const { t } = useTranslation("auth");
+  const { t } = useTranslation('auth');
   const { authService } = useServices();
   const { id: inviteId, secret: inviteSecret } = useInvitation();
 

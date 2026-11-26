@@ -1,8 +1,6 @@
-import {
-  Outlet,
-} from "react-router-dom";
+import { Outlet } from 'react-router-dom';
 
-import { ControllerProvider } from "@/hooks/controller.provider";
+import { ControllerProvider } from '@/hooks/controller.provider';
 
 export function ControllerSharedLayout() {
   return (

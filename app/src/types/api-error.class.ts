@@ -3,11 +3,7 @@ export class ApiError extends Error {
   public message: string;
   public raw?: Response;
 
-  constructor(
-    status: number,
-    message: string,
-    raw?: Response,
-  ) {
+  constructor(status: number, message: string, raw?: Response) {
     super(message);
     this.status = status;
     this.message = message;

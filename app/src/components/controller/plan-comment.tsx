@@ -1,53 +1,59 @@
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner";
-import { useController } from "@/hooks/useController";
-import { useTranslation } from "react-i18next";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { IScheduleItem } from "@/types";
-import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
+import { useController } from '@/hooks/useController';
+import { useTranslation } from 'react-i18next';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { IScheduleItem } from '@/types';
+import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 
 const textFormSchema = z.object({
   title: z.string().min(2),
 });
 
 export function PlanComment() {
-
-  const { t } = useTranslation("controller");
+  const { t } = useTranslation('controller');
 
   const { addToSchedule } = useController((s) => ({ addToSchedule: s.addToSchedule }));
 
   const form = useForm<z.infer<typeof textFormSchema>>({
     resolver: zodResolver(textFormSchema),
     defaultValues: {
-      title: "",
+      title: '',
     },
   });
 
   const getScheduleItem = (values: z.infer<typeof textFormSchema>) => {
     return {
       id: Date.now(),
-      type: "comment",
+      type: 'comment',
       title: values.title,
       slides: [{ isEmpty: true }],
     } as IScheduleItem;
-  }
+  };
 
   const add = async (values: z.infer<typeof textFormSchema>) => {
     const scheduleItem = getScheduleItem(values);
     addToSchedule(scheduleItem);
     toast.success(t('plan.comment.addedToSchedule', { title: values.title }));
     form.reset();
-  }
+  };
 
   const handleAdd = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
     form.handleSubmit(add)();
-  }
+  };
 
   return (
     <Form {...form}>
@@ -55,15 +61,16 @@ export function PlanComment() {
         <FormField
           control={form.control}
           name="title"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem className="flex-1">
               <FormLabel>{t('plan.comment.input.title')}</FormLabel>
               <FormControl>
                 <Input autoComplete="off" {...field} />
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
-          )}></FormField>
+          )}
+        ></FormField>
 
         <div className="flex justify-end space-x-2">
           <Button type="submit" title={t('plan.comment.actions.add')}>
@@ -72,5 +79,5 @@ export function PlanComment() {
         </div>
       </form>
     </Form>
-  )
+  );
 }

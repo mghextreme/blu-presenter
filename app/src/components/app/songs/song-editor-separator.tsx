@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { cn } from "@/lib/utils";
-import DocumentDuplicateIcon from "@heroicons/react/24/solid/DocumentDuplicateIcon";
-import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
+import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import DocumentDuplicateIcon from '@heroicons/react/24/solid/DocumentDuplicateIcon';
+import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
 
 interface SongEditorSeparatorProps {
   name?: string;
@@ -23,7 +23,6 @@ export function SongEditorSeparator({
   onRemove,
   showRemove = true,
 }: Readonly<SongEditorSeparatorProps>) {
-
   const [isEditingName, setIsEditingName] = useState(false);
   const [localName, setLocalName] = useState(name);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -32,7 +31,7 @@ export function SongEditorSeparator({
   const [localAcronym, setLocalAcronym] = useState(acronym);
   const acronymInputRef = useRef<HTMLInputElement>(null);
 
-  const { t } = useTranslation("songs");
+  const { t } = useTranslation('songs');
 
   // Keep local state in sync when props change (e.g. propagation from another part)
   const prevName = useRef(name);
@@ -111,10 +110,10 @@ export function SongEditorSeparator({
             type="button"
             onClick={handleNameClick}
             className={cn(
-              "text-xs px-2 py-0.5 rounded border transition-colors cursor-pointer",
+              'text-xs px-2 py-0.5 rounded border transition-colors cursor-pointer',
               localName
-                ? "border-transparent text-muted-foreground hover:bg-accent"
-                : "border-transparent text-muted-foreground/40 hover:text-muted-foreground hover:bg-accent",
+                ? 'border-transparent text-muted-foreground hover:bg-accent'
+                : 'border-transparent text-muted-foreground/40 hover:text-muted-foreground hover:bg-accent',
             )}
           >
             {localName || t('input.partName')}
@@ -142,10 +141,10 @@ export function SongEditorSeparator({
               onClick={handleAcronymClick}
               title={t('input.partAcronym')}
               className={cn(
-                "text-xs px-1.5 py-0.5 rounded border transition-colors cursor-pointer min-w-[1.75rem]",
+                'text-xs px-1.5 py-0.5 rounded border transition-colors cursor-pointer min-w-[1.75rem]',
                 localAcronym
-                  ? "border-transparent text-muted-foreground hover:bg-accent"
-                  : "border-transparent text-muted-foreground/40 hover:text-muted-foreground hover:bg-accent",
+                  ? 'border-transparent text-muted-foreground hover:bg-accent'
+                  : 'border-transparent text-muted-foreground/40 hover:text-muted-foreground hover:bg-accent',
               )}
             >
               {localAcronym || '—'}

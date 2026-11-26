@@ -1,10 +1,10 @@
-import { useTranslation } from "react-i18next";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
-import { ISchedule, describeApiError } from "@/types";
-import { useServices } from "@/hooks/useServices";
-import { SchedulePlaylistCreateOptions, SchedulePlaylistProvider } from "./playlist-providers";
+import { ISchedule, describeApiError } from '@/types';
+import { useServices } from '@/hooks/useServices';
+import { SchedulePlaylistCreateOptions, SchedulePlaylistProvider } from './playlist-providers';
 
 interface PlaylistSyncVariables {
   provider: SchedulePlaylistProvider;
@@ -17,7 +17,7 @@ interface PlaylistSyncVariables {
  * entries (`playlist-providers.tsx`).
  */
 export function usePlaylistSync(schedule: ISchedule, onSynced?: (schedule: ISchedule) => void) {
-  const { t } = useTranslation("schedules");
+  const { t } = useTranslation('schedules');
   const services = useServices();
   const queryClient = useQueryClient();
 
@@ -81,7 +81,10 @@ export function usePlaylistSync(schedule: ISchedule, onSynced?: (schedule: ISche
     provider: SchedulePlaylistProvider,
     options: SchedulePlaylistCreateOptions = {},
   ): Promise<boolean> =>
-    syncMutation.mutateAsync({ provider, options }).then(() => true, () => false);
+    syncMutation.mutateAsync({ provider, options }).then(
+      () => true,
+      () => false,
+    );
 
   // After a successful connect the browser is leaving for the provider's page.
   const isRedirecting = connectMutation.isSuccess;

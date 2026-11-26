@@ -1,23 +1,23 @@
-import { UseFormReturn, UseFieldArrayRemove, useWatch } from "react-hook-form";
-import { useTranslation } from "react-i18next";
-import { ISchedule, ISchedulePlaylistReference } from "@/types";
-import { PlaylistSyncState } from "./schedule-references";
-import { usePlaylistSync } from "./use-playlist-sync";
-import { SCHEDULE_PLAYLIST_PROVIDERS } from "./playlist-providers";
-import { usePlaylistProviderStatuses } from "./use-playlist-provider-statuses";
-import { Button } from "@/components/ui/button";
-import { safeExternalUrl } from "@/lib/utils";
-import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOnSquareIcon";
+import { UseFormReturn, UseFieldArrayRemove, useWatch } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { ISchedule, ISchedulePlaylistReference } from '@/types';
+import { PlaylistSyncState } from './schedule-references';
+import { usePlaylistSync } from './use-playlist-sync';
+import { SCHEDULE_PLAYLIST_PROVIDERS } from './playlist-providers';
+import { usePlaylistProviderStatuses } from './use-playlist-provider-statuses';
+import { Button } from '@/components/ui/button';
+import { safeExternalUrl } from '@/lib/utils';
+import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
+import ArrowTopRightOnSquareIcon from '@heroicons/react/24/solid/ArrowTopRightOnSquareIcon';
 
 interface EditPlaylistReferenceProps {
   // Generic on purpose: any form with a `references` array field works.
-  form: UseFormReturn<any>,
-  ix: number,
-  remove: UseFieldArrayRemove,
+  form: UseFormReturn<any>;
+  ix: number;
+  remove: UseFieldArrayRemove;
   /** The saved schedule — the sync endpoint re-syncs the playlist from its
    * saved items, so pending-change detection uses this state. */
-  schedule: ISchedule,
+  schedule: ISchedule;
 }
 
 /**
@@ -31,8 +31,8 @@ export function EditPlaylistReference({
   remove,
   schedule,
 }: Readonly<EditPlaylistReferenceProps>) {
-  const { t } = useTranslation("schedules");
-  const { t: tSongs } = useTranslation("songs");
+  const { t } = useTranslation('schedules');
+  const { t: tSongs } = useTranslation('songs');
 
   const reference = useWatch({
     control: form.control,
@@ -84,7 +84,9 @@ export function EditPlaylistReference({
               reference={reference}
               hasPendingChanges={hasPendingChanges}
               isBusy={isBusy}
-              onSync={() => { void sync(provider); }}
+              onSync={() => {
+                void sync(provider);
+              }}
             />
           )}
         </div>
@@ -111,5 +113,5 @@ export function EditPlaylistReference({
         <TrashIcon className="size-4" />
       </Button>
     </li>
-  )
+  );
 }

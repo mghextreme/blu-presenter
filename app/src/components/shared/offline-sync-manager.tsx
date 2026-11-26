@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
-import { useServices } from "@/hooks/useServices";
+import { useServices } from '@/hooks/useServices';
 
 /**
  * Mounts once inside the authenticated app layout: requests persistent
@@ -13,15 +13,19 @@ export function OfflineSyncManager() {
 
   useEffect(() => {
     // Best-effort: Firefox/Chrome prompt or resolve silently; Safari ignores.
-    navigator.storage?.persist?.().catch(() => { /* non-critical */ });
+    navigator.storage?.persist?.().catch(() => {
+      /* non-critical */
+    });
 
     const revalidate = () => {
-      offlineDownloadsService.revalidateAll().catch(() => { /* non-critical */ });
+      offlineDownloadsService.revalidateAll().catch(() => {
+        /* non-critical */
+      });
     };
     revalidate();
 
-    window.addEventListener("online", revalidate);
-    return () => window.removeEventListener("online", revalidate);
+    window.addEventListener('online', revalidate);
+    return () => window.removeEventListener('online', revalidate);
   }, [offlineDownloadsService]);
 
   return null;

@@ -1,6 +1,6 @@
-import { QueryClient, queryOptions } from "@tanstack/react-query";
+import { QueryClient, queryOptions } from '@tanstack/react-query';
 
-import { ApiService } from "./api.service";
+import { ApiService } from './api.service';
 
 /** The current user's connection to a playlist integration (Spotify, YouTube). */
 export interface IPlaylistConnectionStatus {
@@ -20,7 +20,6 @@ export interface IPlaylistConnectionStatus {
  * (`/<provider>/status`, `/<provider>/connect`).
  */
 export abstract class PlaylistIntegrationService extends ApiService {
-
   private readonly provider: string;
   private readonly queryKey: string[];
 
@@ -35,7 +34,7 @@ export abstract class PlaylistIntegrationService extends ApiService {
   }
 
   public async getStatus(): Promise<IPlaylistConnectionStatus> {
-    return await this.getRequest(`/${this.provider}/status`) as IPlaylistConnectionStatus;
+    return (await this.getRequest(`/${this.provider}/status`)) as IPlaylistConnectionStatus;
   }
 
   public getStatusQuery() {
@@ -46,21 +45,26 @@ export abstract class PlaylistIntegrationService extends ApiService {
   }
 
   public async getConnectUrl(): Promise<{ url: string }> {
-    return await this.getRequest(`/${this.provider}/connect`) as { url: string };
+    return (await this.getRequest(`/${this.provider}/connect`)) as { url: string };
   }
 
   public async completeConnect(code: string, state: string): Promise<IPlaylistConnectionStatus> {
-    const status = await this.postRequest(`/${this.provider}/connect`, JSON.stringify({ code, state }), {
-      'content-type': 'application/json',
-    }) as IPlaylistConnectionStatus;
+    const status = (await this.postRequest(
+      `/${this.provider}/connect`,
+      JSON.stringify({ code, state }),
+      {
+        'content-type': 'application/json',
+      },
+    )) as IPlaylistConnectionStatus;
     void this.invalidateCache();
     return status;
   }
 
   public async disconnect(): Promise<IPlaylistConnectionStatus> {
-    const status = await this.deleteRequest(`/${this.provider}/connect`) as IPlaylistConnectionStatus;
+    const status = (await this.deleteRequest(
+      `/${this.provider}/connect`,
+    )) as IPlaylistConnectionStatus;
     void this.invalidateCache();
     return status;
   }
-
 }

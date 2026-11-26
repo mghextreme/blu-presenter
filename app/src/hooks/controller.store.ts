@@ -1,55 +1,71 @@
-import { createStore, StoreApi } from "zustand/vanilla";
-import { IScheduleItem, IWindow, ISlide, ControllerMode, ISlideTextContent, ISlideImageContent, IControllerSelection, ITheme } from "@/types";
-import { generateScheduleItemUniqueId } from "@/lib/utils";
-import { DEFAULT_CONTROLLER_CONFIG, IControllerConfig, loadStoredConfig, loadStoredSchedule, saveConfig, saveSchedule } from "./controller.storage";
+import { createStore, StoreApi } from 'zustand/vanilla';
+import {
+  IScheduleItem,
+  IWindow,
+  ISlide,
+  ControllerMode,
+  ISlideTextContent,
+  ISlideImageContent,
+  IControllerSelection,
+  ITheme,
+} from '@/types';
+import { generateScheduleItemUniqueId } from '@/lib/utils';
+import {
+  DEFAULT_CONTROLLER_CONFIG,
+  IControllerConfig,
+  loadStoredConfig,
+  loadStoredSchedule,
+  saveConfig,
+  saveSchedule,
+} from './controller.storage';
 
 interface ControllerData {
-  mode: ControllerMode
-  schedule: IScheduleItem[]
-  scheduleItem?: IScheduleItem
-  overrideSlide?: ISlide
-  windows: IWindow[]
-  config: IControllerConfig
+  mode: ControllerMode;
+  schedule: IScheduleItem[];
+  scheduleItem?: IScheduleItem;
+  overrideSlide?: ISlide;
+  windows: IWindow[];
+  config: IControllerConfig;
 
-  scheduleItemIx?: number
-  slideIx?: number
-  partIx?: number
-  latestScheduleItemIx: number
+  scheduleItemIx?: number;
+  slideIx?: number;
+  partIx?: number;
+  latestScheduleItemIx: number;
 
   /** Derived from the indexes; keeps its identity until one of them changes. */
-  selection: IControllerSelection
+  selection: IControllerSelection;
   /** Derived from `scheduleItem` and `slideIx`. */
-  selectedSlide?: ISlide
+  selectedSlide?: ISlide;
 }
 
 interface ControllerActions {
-  setMode: (mode: ControllerMode) => void
+  setMode: (mode: ControllerMode) => void;
 
-  replaceSchedule: (items: IScheduleItem[]) => void
-  addToSchedule: (item: IScheduleItem | IScheduleItem[]) => void
-  moveItemInSchedule: (fromIx: number, toIx: number) => void
-  removeFromSchedule: (ix: number) => void
-  removeAllFromSchedule: () => void
+  replaceSchedule: (items: IScheduleItem[]) => void;
+  addToSchedule: (item: IScheduleItem | IScheduleItem[]) => void;
+  moveItemInSchedule: (fromIx: number, toIx: number) => void;
+  removeFromSchedule: (ix: number) => void;
+  removeAllFromSchedule: () => void;
 
-  setScheduleItem: (item: number | IScheduleItem, selection?: IControllerSelection) => void
-  setSelection: (to: IControllerSelection) => void
+  setScheduleItem: (item: number | IScheduleItem, selection?: IControllerSelection) => void;
+  setSelection: (to: IControllerSelection) => void;
 
-  setBlank: () => void
-  setLogo: () => void
-  toggleBlank: () => void
-  clearOverrideSlide: () => void
+  setBlank: () => void;
+  setLogo: () => void;
+  toggleBlank: () => void;
+  clearOverrideSlide: () => void;
 
-  previous: () => void
-  next: () => void
-  previousItem: (goToEnd?: boolean) => void
-  nextItem: () => void
+  previous: () => void;
+  next: () => void;
+  previousItem: (goToEnd?: boolean) => void;
+  nextItem: () => void;
 
-  addWindow: (window: IWindow) => void
-  closeWindow: (id: string) => void
-  closeAllWindows: () => void
-  setWindowTheme: (id: string, theme?: ITheme) => void
+  addWindow: (window: IWindow) => void;
+  closeWindow: (id: string) => void;
+  closeAllWindows: () => void;
+  setWindowTheme: (id: string, theme?: ITheme) => void;
 
-  setConfig: (config: IControllerConfig) => void
+  setConfig: (config: IControllerConfig) => void;
 }
 
 export type ControllerState = ControllerData & ControllerActions;
@@ -62,12 +78,20 @@ const BLANK_SLIDE = {
 
 const LOGO_SLIDE = {
   id: 'logo',
-  content: [{ type: 'image', url: 'https://picsum.photos/300/200', width: 300, height: 200 } as ISlideImageContent],
+  content: [
+    {
+      type: 'image',
+      url: 'https://picsum.photos/300/200',
+      width: 300,
+      height: 200,
+    } as ISlideImageContent,
+  ],
 } as ISlide;
 
 export function createControllerStore({ persist }: { persist: boolean }): ControllerStore {
   const store = createStore<ControllerState>()((set, get) => {
-    const update = (patch: Partial<ControllerData>) => set((current) => withDerivedFields(current, patch));
+    const update = (patch: Partial<ControllerData>) =>
+      set((current) => withDerivedFields(current, patch));
 
     const indexSchedule = (items: IScheduleItem[], startingIx: number) =>
       items.map((item, ix) => ({
@@ -173,7 +197,11 @@ export function createControllerStore({ persist }: { persist: boolean }): Contro
       slideIx: undefined,
       partIx: undefined,
       latestScheduleItemIx: -1,
-      selection: { scheduleItem: undefined, slide: undefined, part: undefined } as IControllerSelection,
+      selection: {
+        scheduleItem: undefined,
+        slide: undefined,
+        part: undefined,
+      } as IControllerSelection,
       selectedSlide: undefined,
 
       setMode: (mode) => update({ mode }),
@@ -193,7 +221,9 @@ export function createControllerStore({ persist }: { persist: boolean }): Contro
         const reordered = structuredClone(schedule);
         reordered.splice(fromIx, 1);
         reordered.splice(toIx, 0, schedule[fromIx]);
-        const patch: Partial<ControllerData> = { schedule: reordered.map((item, ix) => ({ ...item, index: ix })) };
+        const patch: Partial<ControllerData> = {
+          schedule: reordered.map((item, ix) => ({ ...item, index: ix })),
+        };
 
         if (scheduleItemIx === fromIx) {
           patch.scheduleItemIx = toIx;
@@ -241,7 +271,12 @@ export function createControllerStore({ persist }: { persist: boolean }): Contro
 
       setSelection: (to) => {
         const { schedule, scheduleItem, scheduleItemIx, slideIx } = get();
-        if (to.scheduleItem === undefined && scheduleItemIx === undefined && scheduleItem === undefined) return;
+        if (
+          to.scheduleItem === undefined &&
+          scheduleItemIx === undefined &&
+          scheduleItem === undefined
+        )
+          return;
 
         let targetItemIx = to.scheduleItem ?? scheduleItemIx;
         if (targetItemIx !== undefined && (targetItemIx < 0 || targetItemIx >= schedule.length)) {
@@ -272,7 +307,8 @@ export function createControllerStore({ persist }: { persist: boolean }): Contro
         }
         patch.overrideSlide = undefined;
 
-        const targetSlide = targetSlideIx < slideCount ? targetItem.slides[targetSlideIx] : undefined;
+        const targetSlide =
+          targetSlideIx < slideCount ? targetItem.slides[targetSlideIx] : undefined;
         if (targetSlide && to.part !== undefined) {
           const partCount = targetSlide.content?.length;
           if (partCount === undefined || to.part >= partCount) {
@@ -286,7 +322,8 @@ export function createControllerStore({ persist }: { persist: boolean }): Contro
 
       setBlank: () => update({ overrideSlide: BLANK_SLIDE }),
       setLogo: () => update({ overrideSlide: LOGO_SLIDE }),
-      toggleBlank: () => update({ overrideSlide: get().overrideSlide?.id === 'blank' ? undefined : BLANK_SLIDE }),
+      toggleBlank: () =>
+        update({ overrideSlide: get().overrideSlide?.id === 'blank' ? undefined : BLANK_SLIDE }),
       clearOverrideSlide: () => update({ overrideSlide: undefined }),
 
       previous: () => (get().mode === 'part' ? previousPart() : previousSlide()),
@@ -297,7 +334,8 @@ export function createControllerStore({ persist }: { persist: boolean }): Contro
       addWindow: (window) => update({ windows: [...get().windows, window] }),
       closeWindow: (id) => update({ windows: get().windows.filter((w) => w.id !== id) }),
       closeAllWindows: () => update({ windows: [] }),
-      setWindowTheme: (id, theme) => update({ windows: get().windows.map((w) => (w.id === id ? { ...w, theme } : w)) }),
+      setWindowTheme: (id, theme) =>
+        update({ windows: get().windows.map((w) => (w.id === id ? { ...w, theme } : w)) }),
 
       setConfig: (config) => update({ config }),
     };
@@ -313,13 +351,24 @@ export function createControllerStore({ persist }: { persist: boolean }): Contro
   return store;
 }
 
-function withDerivedFields(current: ControllerState, patch: Partial<ControllerData>): Partial<ControllerData> {
+function withDerivedFields(
+  current: ControllerState,
+  patch: Partial<ControllerData>,
+): Partial<ControllerData> {
   const next = { ...current, ...patch };
   const derived: Partial<ControllerData> = { ...patch };
 
   const { selection } = current;
-  if (next.scheduleItemIx !== selection.scheduleItem || next.slideIx !== selection.slide || next.partIx !== selection.part) {
-    derived.selection = { scheduleItem: next.scheduleItemIx, slide: next.slideIx, part: next.partIx } as IControllerSelection;
+  if (
+    next.scheduleItemIx !== selection.scheduleItem ||
+    next.slideIx !== selection.slide ||
+    next.partIx !== selection.part
+  ) {
+    derived.selection = {
+      scheduleItem: next.scheduleItemIx,
+      slide: next.slideIx,
+      part: next.partIx,
+    } as IControllerSelection;
   }
   if (next.scheduleItem !== current.scheduleItem || next.slideIx !== current.slideIx) {
     derived.selectedSlide = slideAt(next.scheduleItem, next.slideIx);

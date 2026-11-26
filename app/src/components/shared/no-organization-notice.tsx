@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
-import { PageContent } from "@/components/shared/page-content";
-import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
+import { PageContent } from '@/components/shared/page-content';
+import { Button } from '@/components/ui/button';
 
 interface NoOrganizationNoticeProps {
   title: string;

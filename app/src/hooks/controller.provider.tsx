@@ -1,20 +1,23 @@
-import { useState } from "react"
+import { useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
-import { SelectorScreen } from "@/components/controller/selector-screen"
-import { WindowProvider } from "./window.provider"
-import { ControllerStoreContext } from "./controller.context"
-import { createControllerStore } from "./controller.store"
-import { useController } from "./useController"
+import { SelectorScreen } from '@/components/controller/selector-screen';
+import { WindowProvider } from './window.provider';
+import { ControllerStoreContext } from './controller.context';
+import { createControllerStore } from './controller.store';
+import { useController } from './useController';
 
 type ControllerProviderProps = {
   /** Persist schedule and config to browser storage (only the live controller does). */
-  storeState?: boolean
-  children: React.ReactNode
-}
+  storeState?: boolean;
+  children: React.ReactNode;
+};
 
 /** Each provider owns an independent controller store. */
-export function ControllerProvider({ storeState = false, children }: Readonly<ControllerProviderProps>) {
+export function ControllerProvider({
+  storeState = false,
+  children,
+}: Readonly<ControllerProviderProps>) {
   const [store] = useState(() => createControllerStore({ persist: storeState }));
 
   return (
@@ -23,7 +26,7 @@ export function ControllerProvider({ storeState = false, children }: Readonly<Co
       <ControllerHotkeys />
       <ProjectorWindows />
     </ControllerStoreContext.Provider>
-  )
+  );
 }
 
 function ControllerHotkeys() {
@@ -60,10 +63,7 @@ function ProjectorWindows() {
 
   return windows.map((w) => (
     <WindowProvider key={w.id} id={w.id} onClose={() => closeWindow(w.id)}>
-      <SelectorScreen
-        setMode={setMode}
-        onThemeChange={(theme) => setWindowTheme(w.id, theme)}
-      />
+      <SelectorScreen setMode={setMode} onThemeChange={(theme) => setWindowTheme(w.id, theme)} />
     </WindowProvider>
   ));
 }

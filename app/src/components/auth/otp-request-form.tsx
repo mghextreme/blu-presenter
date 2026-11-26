@@ -1,45 +1,45 @@
-"use client"
+'use client';
 
-import { HTMLAttributes, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
-import { Turnstile } from "@marsidev/react-turnstile";
+import { HTMLAttributes, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { Link, useNavigate } from 'react-router-dom';
+import { Turnstile } from '@marsidev/react-turnstile';
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslation } from "react-i18next";
-import { useInvitation } from "@/hooks/invitation.provider";
-import { useServices } from "@/hooks/useServices";
-import { toast } from "sonner";
-import { ApiError } from "@/types";
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
+import { useInvitation } from '@/hooks/invitation.provider';
+import { useServices } from '@/hooks/useServices';
+import { toast } from 'sonner';
+import { ApiError } from '@/types';
 
-import { captcha } from "@/lib/config";
+import { captcha } from '@/lib/config';
 
 interface OtpRequestFormProps extends HTMLAttributes<HTMLDivElement> {}
 
 const formSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
 });
 
 export function OtpRequestForm({ className, ...props }: Readonly<OtpRequestFormProps>) {
-  const { t } = useTranslation("auth");
+  const { t } = useTranslation('auth');
   const { authService } = useServices();
   const navigate = useNavigate();
   const { email: invitedEmail, id, secret } = useInvitation();
 
-  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaToken, setCaptchaToken] = useState('');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { email: invitedEmail || "" },
+    defaultValues: { email: invitedEmail || '' },
   });
 
   const requestOtp = useMutation({
@@ -55,20 +55,20 @@ export function OtpRequestForm({ className, ...props }: Readonly<OtpRequestFormP
     onSuccess: (_, values) => {
       // Forward to verify step. Invitation context flows via AuthLayout/provider
       // (URL query string id/secret), so it is preserved without extra plumbing.
-      navigate("/login/otp/verify", { state: { email: values.email } });
+      navigate('/login/otp/verify', { state: { email: values.email } });
     },
     onError: async (e: unknown) => {
       const error = e as ApiError;
       const errorContent = await error?.raw?.json().catch(() => null);
-      toast.error(t("otpSignIn.error"), {
-        description: t("errors." + (errorContent?.message ?? "default")),
+      toast.error(t('otpSignIn.error'), {
+        description: t('errors.' + (errorContent?.message ?? 'default')),
       });
     },
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (captcha.enabled && !captchaToken) {
-      toast.error(t("errors.captcha verification process failed"));
+      toast.error(t('errors.captcha verification process failed'));
       return;
     }
 
@@ -76,7 +76,7 @@ export function OtpRequestForm({ className, ...props }: Readonly<OtpRequestFormP
   };
 
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div className={cn('grid gap-6', className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-col-1 space-y-2">
           <FormField
@@ -87,7 +87,7 @@ export function OtpRequestForm({ className, ...props }: Readonly<OtpRequestFormP
                 <FormControl>
                   <Input
                     type="email"
-                    placeholder={t("input.email")}
+                    placeholder={t('input.email')}
                     autoComplete="email"
                     autoCorrect="off"
                     autoCapitalize="none"
@@ -98,7 +98,7 @@ export function OtpRequestForm({ className, ...props }: Readonly<OtpRequestFormP
                 <FormMessage />
                 {invitedEmail && (
                   <Button variant="link" className="text-xs px-2 text-muted-foreground" asChild>
-                    <Link to="/login">{t("invitation.notYourEmail")}</Link>
+                    <Link to="/login">{t('invitation.notYourEmail')}</Link>
                   </Button>
                 )}
               </FormItem>
@@ -106,21 +106,18 @@ export function OtpRequestForm({ className, ...props }: Readonly<OtpRequestFormP
           />
 
           {captcha.enabled && (
-            <Turnstile
-              siteKey={captcha.siteKey}
-              onSuccess={(token) => setCaptchaToken(token)}
-            />
+            <Turnstile siteKey={captcha.siteKey} onSuccess={(token) => setCaptchaToken(token)} />
           )}
 
           <Button type="submit" disabled={requestOtp.isPending}>
             {requestOtp.isPending && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
-            {t("otpSignIn.requestSubmit")}
+            {t('otpSignIn.requestSubmit')}
           </Button>
         </form>
       </Form>
 
       <Button variant="link" asChild>
-        <Link to="/login">{t("signIn.withPassword")}</Link>
+        <Link to="/login">{t('signIn.withPassword')}</Link>
       </Button>
     </div>
   );

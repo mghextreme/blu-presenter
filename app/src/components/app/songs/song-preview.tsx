@@ -1,12 +1,19 @@
-import { ReactNode, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { ISong } from "@/types";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { PreviewWindow } from "@/components/controller/preview-window";
-import { Controls } from "@/components/controller/controls";
-import { useController } from "@/hooks/useController";
-import { useServices } from "@/hooks/useServices";
+import { ReactNode, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ISong } from '@/types';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { PreviewWindow } from '@/components/controller/preview-window';
+import { Controls } from '@/components/controller/controls';
+import { useController } from '@/hooks/useController';
+import { useServices } from '@/hooks/useServices';
 
 interface SongPreviewProps {
   getSong: () => ISong | undefined;
@@ -21,13 +28,14 @@ export function SongPreview({
   getLastFocusedLine,
   children,
 }: Readonly<SongPreviewProps>) {
-  const { t } = useTranslation("songs");
+  const { t } = useTranslation('songs');
 
-  const { setScheduleItem, setSelection } = useController((s) => ({ setScheduleItem: s.setScheduleItem, setSelection: s.setSelection }));
+  const { setScheduleItem, setSelection } = useController((s) => ({
+    setScheduleItem: s.setScheduleItem,
+    setSelection: s.setSelection,
+  }));
 
-  const {
-    songsService,
-  } = useServices();
+  const { songsService } = useServices();
 
   const [song, setSong] = useState<ISong>();
   const [startBlock, setStartBlock] = useState<number>(0);
@@ -93,9 +101,7 @@ export function SongPreview({
 
   return (
     <Dialog onOpenChange={setupSlides}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="xl:max-w-xl 2xl:max-w-2xl">
         <DialogTitle className="text-xl mb-2">
           {t('actions.preview')} - {song?.title}

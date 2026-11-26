@@ -1,28 +1,28 @@
-"use client"
+'use client';
 
-import { HTMLAttributes, useCallback, useEffect, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { HTMLAttributes, useCallback, useEffect, useRef, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 
-import { useTranslation } from "react-i18next";
-import { useAuth } from "@/hooks/useAuth";
-import { useInvitation } from "@/hooks/invitation.provider";
-import { useServices } from "@/hooks/useServices";
-import { toast } from "sonner";
-import { ApiError } from "@/types";
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/hooks/useAuth';
+import { useInvitation } from '@/hooks/invitation.provider';
+import { useServices } from '@/hooks/useServices';
+import { toast } from 'sonner';
+import { ApiError } from '@/types';
 
 interface OtpVerifyFormProps extends HTMLAttributes<HTMLDivElement> {}
 
 const OTP_LENGTH = 6;
 
 export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormProps>) {
-  const { t } = useTranslation("auth");
+  const { t } = useTranslation('auth');
   const { authService } = useServices();
   const location = useLocation();
   const { isLoggedIn } = useAuth();
@@ -30,7 +30,7 @@ export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormPro
 
   const email = (location.state as { email?: string } | null)?.email;
 
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState('');
   // Prevents the auto-submit-on-complete from firing twice (once on input
   // completion, again if React re-renders the effect).
   const autoSubmittedRef = useRef(false);
@@ -49,11 +49,11 @@ export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormPro
     onError: async (e: unknown) => {
       const error = e as ApiError;
       const errorContent = await error?.raw?.json().catch(() => null);
-      toast.error(t("otpSignIn.error"), {
-        description: t("errors." + (errorContent?.message ?? "Invalid login credentials")),
+      toast.error(t('otpSignIn.error'), {
+        description: t('errors.' + (errorContent?.message ?? 'Invalid login credentials')),
       });
       autoSubmittedRef.current = false;
-      setCode("");
+      setCode('');
     },
   });
 
@@ -78,13 +78,13 @@ export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormPro
   const { mutate: resendOtp, isPending: isResending } = useMutation({
     mutationFn: (address: string) => authService.requestSignInOtp({ email: address }),
     onSuccess: () => {
-      toast.success(t("otpSignIn.resent"));
+      toast.success(t('otpSignIn.resent'));
     },
     onError: async (e: unknown) => {
       const error = e as ApiError;
       const errorContent = await error?.raw?.json().catch(() => null);
-      toast.error(t("otpSignIn.error"), {
-        description: t("errors." + (errorContent?.message ?? "default")),
+      toast.error(t('otpSignIn.error'), {
+        description: t('errors.' + (errorContent?.message ?? 'default')),
       });
     },
   });
@@ -98,7 +98,7 @@ export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormPro
   }
 
   return (
-    <div className={cn("grid gap-6 justify-items-center", className)} {...props}>
+    <div className={cn('grid gap-6 justify-items-center', className)} {...props}>
       <InputOTP
         maxLength={OTP_LENGTH}
         value={code}
@@ -130,7 +130,7 @@ export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormPro
         }}
       >
         {isVerifying && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
-        {t("otpSignIn.verifySubmit")}
+        {t('otpSignIn.verifySubmit')}
       </Button>
 
       <div className="flex flex-col items-center gap-1 text-sm">
@@ -142,7 +142,7 @@ export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormPro
           onClick={() => resendOtp(email)}
         >
           {isResending && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
-          {t("otpSignIn.resend")}
+          {t('otpSignIn.resend')}
         </Button>
         <Button variant="link" className="text-muted-foreground" asChild>
           <Link
@@ -151,7 +151,7 @@ export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormPro
             // can change their email cleanly.
             state={null}
           >
-            {t("otpSignIn.changeEmail")}
+            {t('otpSignIn.changeEmail')}
           </Link>
         </Button>
       </div>

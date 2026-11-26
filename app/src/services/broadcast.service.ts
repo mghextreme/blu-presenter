@@ -1,4 +1,4 @@
-import { ApiService } from "./api.service";
+import { ApiService } from './api.service';
 
 /** A stalled write is abandoned after this long so it can't block the queue. */
 const WRITE_TIMEOUT_MS = 10_000;
@@ -27,7 +27,6 @@ interface QueuedWrite {
  * request can neither pile up a backlog nor freeze live updates.
  */
 export class BroadcastService extends ApiService {
-
   private queue: QueuedWrite[] = [];
   private draining = false;
 
@@ -69,28 +68,29 @@ export class BroadcastService extends ApiService {
       // spamming network failures on every schedule/selection change.
       return Promise.resolve();
     }
-    return this.enqueue(`${sessionId}:${kind}`, () => this.putRequest(
-      `/sessions/${sessionId}/broadcast/${kind}`,
-      JSON.stringify(body),
-      {
+    return this.enqueue(`${sessionId}:${kind}`, () =>
+      this.putRequest(`/sessions/${sessionId}/broadcast/${kind}`, JSON.stringify(body), {
         'content-type': 'application/json',
-        'Organization': orgId.toString(),
-      },
-    ));
+        Organization: orgId.toString(),
+      }),
+    );
   }
 
   public async setSchedule(sessionId: number, orgId: number, schedule: unknown[]): Promise<void> {
     return this.write(sessionId, orgId, 'schedule', { schedule });
   }
 
-  public async setScheduleItem(sessionId: number, orgId: number, scheduleItem: unknown): Promise<void> {
+  public async setScheduleItem(
+    sessionId: number,
+    orgId: number,
+    scheduleItem: unknown,
+  ): Promise<void> {
     return this.write(sessionId, orgId, 'schedule-item', { scheduleItem });
   }
 
   public async setSelection(sessionId: number, orgId: number, selection: unknown): Promise<void> {
     return this.write(sessionId, orgId, 'selection', { selection });
   }
-
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {

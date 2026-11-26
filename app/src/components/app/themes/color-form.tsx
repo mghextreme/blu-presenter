@@ -1,12 +1,12 @@
-import { FieldValues, Path, UseFormReturn } from "react-hook-form";
-import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { FieldValues, Path, UseFormReturn } from 'react-hook-form';
+import { FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 
 interface ThemeConfigFormProps<T extends FieldValues> {
-  form: UseFormReturn<T>
-  name: Path<T>
-  label: string
-  defaultValue?: string
+  form: UseFormReturn<T>;
+  name: Path<T>;
+  label: string;
+  defaultValue?: string;
 }
 
 export function ColorForm<T extends FieldValues>({
@@ -15,7 +15,6 @@ export function ColorForm<T extends FieldValues>({
   label,
   defaultValue,
 }: Readonly<ThemeConfigFormProps<T>>) {
-
   return (
     <FormField
       control={form.control}
@@ -26,12 +25,16 @@ export function ColorForm<T extends FieldValues>({
           <FormItem className="flex-1 min-w-[40%]">
             <FormLabel>{label}</FormLabel>
             <div className="flex gap-2">
-              <div className="w-auto h-full aspect-square rounded" style={{ backgroundColor: value }}></div>
+              <div
+                className="w-auto h-full aspect-square rounded"
+                style={{ backgroundColor: value }}
+              ></div>
               <Input {...field} value={value} />
             </div>
             <FormMessage />
           </FormItem>
         );
-      }}></FormField>
-  )
+      }}
+    ></FormField>
+  );
 }

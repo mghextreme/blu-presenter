@@ -1,12 +1,12 @@
-import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
-import CloudArrowDownIcon from "@heroicons/react/24/solid/CloudArrowDownIcon";
-import XMarkIcon from "@heroicons/react/24/solid/XMarkIcon";
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import CloudArrowDownIcon from '@heroicons/react/24/solid/CloudArrowDownIcon';
+import XMarkIcon from '@heroicons/react/24/solid/XMarkIcon';
 
-import { useServices } from "@/hooks/useServices";
-import { useDownloadedSongIds } from "@/hooks/use-offline-downloads";
-import { ISongWithRole } from "@/types";
-import { Button } from "@/components/ui/button";
+import { useServices } from '@/hooks/useServices';
+import { useDownloadedSongIds } from '@/hooks/use-offline-downloads';
+import { ISongWithRole } from '@/types';
+import { Button } from '@/components/ui/button';
 
 /**
  * Button signalling a song's offline availability, placed before the row
@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
  * on hover — to remove it from the device). Labels are title-only tooltips.
  */
 export function SongOfflineButton({ song }: Readonly<{ song: ISongWithRole }>) {
-  const { t } = useTranslation("offline");
+  const { t } = useTranslation('offline');
   const { offlineDownloadsService } = useServices();
   const downloadedIds = useDownloadedSongIds();
 

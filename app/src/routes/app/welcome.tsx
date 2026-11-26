@@ -1,20 +1,19 @@
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useServices } from "@/hooks/useServices";
-import { useAuth } from "@/hooks/useAuth";
-import { PageContent } from "@/components/shared/page-content";
-import { ListItemCard } from "@/components/shared/list-item-card";
-import { IOrganizationInvitation } from "@/types";
-import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
-import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
-import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useServices } from '@/hooks/useServices';
+import { useAuth } from '@/hooks/useAuth';
+import { PageContent } from '@/components/shared/page-content';
+import { ListItemCard } from '@/components/shared/list-item-card';
+import { IOrganizationInvitation } from '@/types';
+import CheckIcon from '@heroicons/react/24/solid/CheckIcon';
+import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
+import PencilIcon from '@heroicons/react/24/solid/PencilIcon';
+import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export function Welcome() {
-
   const { t } = useTranslation('app');
   const { t: tOrg } = useTranslation('organizations');
 
@@ -58,19 +57,21 @@ export function Welcome() {
           type="button"
           size="sm"
           title={t('actions.accept')}
-          onClick={() => acceptInvitation.mutate(invitation.id)}>
+          onClick={() => acceptInvitation.mutate(invitation.id)}
+        >
           <CheckIcon className="size-3" />
         </Button>
         <Button
           size="sm"
           variant="destructive"
           title={t('actions.reject')}
-          onClick={() => rejectInvitation.mutate(invitation.id)}>
+          onClick={() => rejectInvitation.mutate(invitation.id)}
+        >
           <TrashIcon className="size-3" />
         </Button>
       </>
     );
-  }
+  };
 
   return (
     <PageContent className="flex flex-col gap-6">
@@ -89,16 +90,20 @@ export function Welcome() {
               <ListItemCard
                 title={org.name || tOrg('defaultName')}
                 organization={org}
-                additionalBadges={org.role && (
-                  <Badge variant="secondary" className="me-3 my-auto">{t('role.' + org.role)}</Badge>
-                )}
-                actions={(
+                additionalBadges={
+                  org.role && (
+                    <Badge variant="secondary" className="me-3 my-auto">
+                      {t('role.' + org.role)}
+                    </Badge>
+                  )
+                }
+                actions={
                   <Button type="button" size="sm" title={t('actions.manage')} asChild>
                     <Link to={`/app/organization/${org.id}`}>
                       <PencilIcon className="size-3" />
                     </Link>
                   </Button>
-                )}
+                }
               />
             </li>
           ))}
@@ -114,9 +119,11 @@ export function Welcome() {
                 <ListItemCard
                   title={invitation.organization?.name || tOrg('defaultName')}
                   organization={invitation.organization}
-                  additionalBadges={(
-                    <Badge variant="secondary" className="me-3 my-auto">{t('role.' + invitation.role)}</Badge>
-                  )}
+                  additionalBadges={
+                    <Badge variant="secondary" className="me-3 my-auto">
+                      {t('role.' + invitation.role)}
+                    </Badge>
+                  }
                   actions={getInvitationActions(invitation)}
                 />
               </li>

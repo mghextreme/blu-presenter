@@ -1,5 +1,5 @@
-import { ISongPart, SongPartLineType } from "@/types";
-import { detectLineType, isBlockEqual } from "@/lib/songs";
+import { ISongPart, SongPartLineType } from '@/types';
+import { detectLineType, isBlockEqual } from '@/lib/songs';
 
 // ─── Types ──────────────────────────────────────────────────────
 
@@ -81,9 +81,15 @@ export function blocksToEditorParts(blocks: ISongPart[]): IEditorPart[] {
     key: nextPartKey(),
     name: block.name,
     acronym: block.acronym,
-    lines: block.lines.length > 0
-      ? block.lines.map((line) => ({ key: nextLineKey(), content: line.content, type: line.type, manuallySet: true }))
-      : [createEmptyLine()],
+    lines:
+      block.lines.length > 0
+        ? block.lines.map((line) => ({
+            key: nextLineKey(),
+            content: line.content,
+            type: line.type,
+            manuallySet: true,
+          }))
+        : [createEmptyLine()],
   }));
 }
 
@@ -121,9 +127,12 @@ function compactSongLines(lines: IEditorLine[]) {
 
 export function lineClassName(type: SongPartLineType): string {
   switch (type) {
-    case 'chords': return 'editor-line font-bold text-primary';
-    case 'comments': return 'editor-line italic text-green-600 dark:text-green-600';
-    default: return 'editor-line';
+    case 'chords':
+      return 'editor-line font-bold text-primary';
+    case 'comments':
+      return 'editor-line italic text-green-600 dark:text-green-600';
+    default:
+      return 'editor-line';
   }
 }
 
@@ -167,10 +176,15 @@ export function splitAtDoubleEmpty(input: IEditorPart[]): IEditorPart[] {
   // an existing named part in the result and inherit that name + acronym.
   for (let i = 0; i < result.length; i++) {
     if (result[i].name) continue;
-    const match = result.find((other, j) => j !== i && !!other.name && isBlockEqual(
-      { lines: compactSongLines(result[i].lines) },
-      { lines: compactSongLines(other.lines) },
-    ));
+    const match = result.find(
+      (other, j) =>
+        j !== i &&
+        !!other.name &&
+        isBlockEqual(
+          { lines: compactSongLines(result[i].lines) },
+          { lines: compactSongLines(other.lines) },
+        ),
+    );
     if (match) {
       result[i] = { ...result[i], name: match.name, acronym: match.acronym };
     }
@@ -189,10 +203,7 @@ export function splitAtDoubleEmpty(input: IEditorPart[]): IEditorPart[] {
  * browser's default Enter behavior or by paste) get a fresh key and have
  * their type detected from content.
  */
-export function parseEditorDOM(
-  editor: HTMLDivElement,
-  currentParts: IEditorPart[],
-): IEditorPart[] {
+export function parseEditorDOM(editor: HTMLDivElement, currentParts: IEditorPart[]): IEditorPart[] {
   // Build an index of every existing line by key so we can match across
   // parts (e.g. when a paste/Enter rearranges lines into different parts).
   const linesByKey = new Map<number, IEditorLine>();

@@ -1,43 +1,57 @@
-"use client"
+'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { IControllerSelection, IScheduleItem, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
-import { useController } from "@/hooks/useController";
-import { useServices } from "@/hooks/useServices";
-import { useSessionSocket } from "@/hooks/useSessionSocket";
-import { SelectorScreen } from "@/components/controller/selector-screen";
-import { ConnectionIndicator } from "@/components/receiver/connection-indicator";
-import i18next from "i18next";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import {
+  IControllerSelection,
+  IScheduleItem,
+  ITheme,
+  LyricsTheme,
+  SubtitlesTheme,
+  TeleprompterTheme,
+} from '@/types';
+import { useController } from '@/hooks/useController';
+import { useServices } from '@/hooks/useServices';
+import { useSessionSocket } from '@/hooks/useSessionSocket';
+import { SelectorScreen } from '@/components/controller/selector-screen';
+import { ConnectionIndicator } from '@/components/receiver/connection-indicator';
+import i18next from 'i18next';
 
 const SYNC_INTERVAL_MS = 60_000; // Re-sync state every 60 seconds
 const BASE_THEME_PARAMS = ['lyrics', 'subtitles', 'teleprompter'];
 const NO_THEMES: ITheme[] = [];
 
 export function Receiver() {
-
   const params = useParams();
 
-  const { schedule, scheduleItem, replaceSchedule, setScheduleItem, setSelection, setMode } = useController((s) => ({
-    schedule: s.schedule,
-    scheduleItem: s.scheduleItem,
-    replaceSchedule: s.replaceSchedule,
-    setScheduleItem: s.setScheduleItem,
-    setSelection: s.setSelection,
-    setMode: s.setMode,
-  }));
+  const { schedule, scheduleItem, replaceSchedule, setScheduleItem, setSelection, setMode } =
+    useController((s) => ({
+      schedule: s.schedule,
+      scheduleItem: s.scheduleItem,
+      replaceSchedule: s.replaceSchedule,
+      setScheduleItem: s.setScheduleItem,
+      setSelection: s.setSelection,
+      setMode: s.setMode,
+    }));
 
   const { sessionsService, themesService } = useServices();
   const orgId = Number(params.orgId);
   const sessionId = Number(params.sessionId);
 
-  const { data: session } = useSuspenseQuery(sessionsService.bySecretQuery(orgId, sessionId, params.secret));
+  const { data: session } = useSuspenseQuery(
+    sessionsService.bySecretQuery(orgId, sessionId, params.secret),
+  );
 
   // Not a suspense query: base-theme URLs skip it. Otherwise the route loader
   // has already cached it, so the themes are there on the first render.
   const { data: themes = NO_THEMES } = useQuery({
-    ...themesService.forSessionQuery(orgId, sessionId, params.secret, params.theme ? Number(params.theme) : undefined),
+    ...themesService.forSessionQuery(
+      orgId,
+      sessionId,
+      params.secret,
+      params.theme ? Number(params.theme) : undefined,
+    ),
     enabled: !params.theme || !BASE_THEME_PARAMS.includes(params.theme),
   });
 
@@ -48,16 +62,16 @@ export function Receiver() {
   // schedule item and externalSetScheduleItem reset the part to 0. Such a
   // selection is queued with the schedule/item references of that moment and
   // flushed as soon as either committed reference differs.
-  const pendingSelection = useRef<{
-    selection: IControllerSelection;
-    schedule: IScheduleItem[];
-    scheduleItem: IScheduleItem | undefined;
-  } | undefined>(undefined);
+  const pendingSelection = useRef<
+    | {
+        selection: IControllerSelection;
+        schedule: IScheduleItem[];
+        scheduleItem: IScheduleItem | undefined;
+      }
+    | undefined
+  >(undefined);
 
-  const applySelection = (
-    selection: IControllerSelection | undefined,
-    waitForCommit: boolean,
-  ) => {
+  const applySelection = (selection: IControllerSelection | undefined, waitForCommit: boolean) => {
     // Any newer selection replaces one that is still waiting.
     pendingSelection.current = undefined;
 
@@ -85,8 +99,8 @@ export function Receiver() {
   }, [schedule, scheduleItem, setSelection]);
 
   useEffect(() => {
-    replaceSchedule(session?.schedule ? session.schedule as IScheduleItem[] : []);
-    setScheduleItem(session?.scheduleItem ?? {} as IScheduleItem);
+    replaceSchedule(session?.schedule ? (session.schedule as IScheduleItem[]) : []);
+    setScheduleItem(session?.scheduleItem ?? ({} as IScheduleItem));
     applySelection(session?.selection as IControllerSelection | undefined, true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -160,11 +174,14 @@ export function Receiver() {
         eventName: 'selection',
         handler: (data) => {
           try {
-            applySelection({
-              scheduleItem: data.scheduleItem,
-              slide: data.slide,
-              part: data.part,
-            } as IControllerSelection, false);
+            applySelection(
+              {
+                scheduleItem: data.scheduleItem,
+                slide: data.slide,
+                part: data.part,
+              } as IControllerSelection,
+              false,
+            );
           } catch (e) {
             console.error(e);
           }
@@ -248,10 +265,14 @@ export function Receiver() {
       <div id="receiver" className="flex-1 h-full">
         <style>
           html, body {'{'}
-            background-color: transparent;
+          background-color: transparent;
           {'}'}
         </style>
-        <SelectorScreen setMode={setMode} themeOptions={selectedTheme ? [] : themes} defaultTheme={selectedTheme}></SelectorScreen>
+        <SelectorScreen
+          setMode={setMode}
+          themeOptions={selectedTheme ? [] : themes}
+          defaultTheme={selectedTheme}
+        ></SelectorScreen>
         <ConnectionIndicator isConnected={isConnected} reconnectAttempts={reconnectAttempts} />
       </div>
     </>

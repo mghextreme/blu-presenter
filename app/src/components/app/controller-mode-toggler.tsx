@@ -1,12 +1,20 @@
-import { useEffect, useState } from "react";
-import { useController } from "@/hooks/useController";
-import { Button } from "../ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { useTranslation } from "react-i18next";
+import { useEffect, useState } from 'react';
+import { useController } from '@/hooks/useController';
+import { Button } from '../ui/button';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../ui/dialog';
+import { useTranslation } from 'react-i18next';
 
 export function ControllerModeToggler() {
-
-  const { t } = useTranslation("controller");
+  const { t } = useTranslation('controller');
 
   const { mode, setMode, windows } = useController((s) => ({
     mode: s.mode,
@@ -28,7 +36,7 @@ export function ControllerModeToggler() {
           {t('mode.mode')}: {t('mode.' + mode)}
         </Button>
       )}
-      {(mode == 'part' && anyPartWindow) && (
+      {mode == 'part' && anyPartWindow && (
         <Dialog>
           <DialogTrigger asChild>
             <Button onClick={() => setMode('part')}>
@@ -38,9 +46,7 @@ export function ControllerModeToggler() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>{t('mode.areYouSure.title')}</DialogTitle>
-              <DialogDescription>
-                {t('mode.areYouSure.description')}
-              </DialogDescription>
+              <DialogDescription>{t('mode.areYouSure.description')}</DialogDescription>
             </DialogHeader>
             <DialogFooter className="sm:justify-start space-x-2">
               <DialogClose asChild>
@@ -56,5 +62,5 @@ export function ControllerModeToggler() {
         </Dialog>
       )}
     </>
-  )
+  );
 }

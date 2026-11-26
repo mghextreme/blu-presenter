@@ -3,7 +3,7 @@ import {
   ISubtitlesThemeConfig,
   ITeleprompterThemeConfig,
   ITheme,
-} from "./theme.interface";
+} from './theme.interface';
 
 export const LyricsTheme = {
   id: 0,
@@ -45,7 +45,7 @@ export const LyricsTheme = {
     },
     alignment: 'center',
     position: 'middle',
-  } as ILyricsThemeConfig
+  } as ILyricsThemeConfig,
 } as ITheme;
 
 export const SubtitlesTheme = {
@@ -66,7 +66,7 @@ export const SubtitlesTheme = {
         enabled: true,
         color: '#000000',
         blur: 0,
-        offset: 8
+        offset: 8,
       },
     },
     artist: {
@@ -79,7 +79,7 @@ export const SubtitlesTheme = {
         enabled: true,
         color: '#000000',
         blur: 0,
-        offset: 8
+        offset: 8,
       },
     },
     lyrics: {
@@ -92,12 +92,12 @@ export const SubtitlesTheme = {
         enabled: true,
         color: '#000000',
         blur: 0,
-        offset: 8
+        offset: 8,
       },
     },
     alignment: 'center',
     position: 'bottom',
-  } as ISubtitlesThemeConfig
+  } as ISubtitlesThemeConfig,
 } as ITheme;
 
 export const TeleprompterTheme = {
@@ -174,6 +174,6 @@ export const TeleprompterTheme = {
       shadow: {
         enabled: false,
       },
-    }
-  } as ITeleprompterThemeConfig
+    },
+  } as ITeleprompterThemeConfig,
 } as ITheme;

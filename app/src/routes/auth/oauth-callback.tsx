@@ -1,16 +1,15 @@
-import { useTranslation } from "react-i18next";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import { useServices } from "@/hooks/useServices";
-import { useEffect, useRef } from "react";
-import { toast } from "sonner";
-import { describeApiError } from "@/types";
-import { IAuthInvitationData, IExchangeCodeData } from "@/types/auth";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { STORAGE_KEYS } from "@/lib/storage-keys";
+import { useTranslation } from 'react-i18next';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
+import { useServices } from '@/hooks/useServices';
+import { useEffect, useRef } from 'react';
+import { toast } from 'sonner';
+import { describeApiError } from '@/types';
+import { IAuthInvitationData, IExchangeCodeData } from '@/types/auth';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 export function OAuthCallback() {
-
-  const { t } = useTranslation("auth");
+  const { t } = useTranslation('auth');
   const navigate = useNavigate();
 
   const [params] = useSearchParams();
@@ -61,7 +60,7 @@ export function OAuthCallback() {
     setTimeout(async () => {
       await navigate('/app', { replace: true });
     }, 100);
-  }
+  };
 
   useEffect(() => {
     if (startedRef.current) return;
@@ -72,9 +71,7 @@ export function OAuthCallback() {
   return (
     <>
       <div className="flex flex-col space-y-6 text-center items-center">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t('signIn.signingIn')}
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('signIn.signingIn')}</h1>
         <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
       </div>
     </>

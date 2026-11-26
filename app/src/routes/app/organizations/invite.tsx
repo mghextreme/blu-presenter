@@ -1,33 +1,40 @@
-import {useState} from "react";
-import {zodResolver} from "@hookform/resolvers/zod"
-import {useForm} from "react-hook-form";
-import {z} from "zod";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 
-import { useServices } from "@/hooks/useServices";
-import { PageContent } from "@/components/shared/page-content";
-import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {Link, useNavigate, useParams} from "react-router-dom";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
-import {CheckIcon} from "@radix-ui/react-icons";
-import {useTranslation} from "react-i18next";
-import {isRoleHigherOrEqualThan} from "@/types";
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
-import {Command, CommandGroup, CommandItem, CommandList} from "@/components/ui/command";
-import {cn} from "@/lib/utils";
-import { toast } from "sonner";
+import { useServices } from '@/hooks/useServices';
+import { PageContent } from '@/components/shared/page-content';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
+import ChevronDownIcon from '@heroicons/react/24/solid/ChevronDownIcon';
+import { CheckIcon } from '@radix-ui/react-icons';
+import { useTranslation } from 'react-i18next';
+import { isRoleHigherOrEqualThan } from '@/types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
-  email: z.string().email(),
-  role: z.enum(["admin", "member", "guest"]).default("guest"),
+  email: z.email(),
+  role: z.enum(['admin', 'member', 'guest']).default('guest'),
 });
 
 export function InviteOrganizationMember() {
-
-  const { t } = useTranslation("organizations");
+  const { t } = useTranslation('organizations');
 
   const navigate = useNavigate();
 
@@ -45,16 +52,16 @@ export function InviteOrganizationMember() {
   });
 
   const roles = [
-    {label: t('role.admin'), value: 'admin'},
-    {label: t('role.member'), value: 'member'},
-    {label: t('role.guest'), value: 'guest'},
+    { label: t('role.admin'), value: 'admin' },
+    { label: t('role.member'), value: 'member' },
+    { label: t('role.guest'), value: 'guest' },
   ] as { label: string; value: 'admin' | 'member' | 'guest' }[];
 
   const inviteMember = useMutation({
     mutationFn: (values: z.infer<typeof formSchema>) =>
       organizationsService.inviteMember(values.email, values.role, data.id),
     onSuccess: () => {
-      navigate(`/app/organization/${data.id}`, {replace: true});
+      navigate(`/app/organization/${data.id}`, { replace: true });
     },
     onError: (e) => {
       toast.error(t('error.inviteMember'), {
@@ -65,10 +72,10 @@ export function InviteOrganizationMember() {
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     inviteMember.mutate(values);
-  }
+  };
 
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);
-  const roleSelectorListId = "invite-role-selector-list";
+  const roleSelectorListId = 'invite-role-selector-list';
 
   if (!isRoleHigherOrEqualThan(data.role, 'admin')) {
     throw new Error(t('error.noPermission'));
@@ -76,30 +83,35 @@ export function InviteOrganizationMember() {
 
   return (
     <PageContent>
-      <title>{t('title.invite', {organization: data.name || t('defaultName')}) + ' - BluPresenter'}</title>
+      <title>
+        {t('title.invite', { organization: data.name || t('defaultName') }) + ' - BluPresenter'}
+      </title>
       <h2 className="text mb-4 opacity-50">{data.name || t('defaultName')}</h2>
       <Form {...form}>
         <form
           //@ts-expect-error // Erro nos parâmetros do handleSubmit/tipo inválido
-          onSubmit={form.handleSubmit(onSubmit)} className="max-w-lg space-y-3">
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="max-w-lg space-y-3"
+        >
           <FormField
             //@ts-expect-error // Erro na referência de control/tipo inválido
             control={form.control}
             name="email"
-            render={({field}) => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('input.email')}</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
-                <FormMessage/>
+                <FormMessage />
               </FormItem>
-            )}></FormField>
+            )}
+          ></FormField>
           <FormField
             //@ts-expect-error // Erro na referência de control/tipo inválido
             control={form.control}
             name="role"
-            render={({field}) => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('input.role')}</FormLabel>
                 <div>
@@ -112,16 +124,14 @@ export function InviteOrganizationMember() {
                           aria-expanded={openRoleSelector}
                           aria-controls={roleSelectorListId}
                           className={cn(
-                            "w-[200px] justify-between",
-                            !field.value && "text-muted-foreground"
+                            'w-[200px] justify-between',
+                            !field.value && 'text-muted-foreground',
                           )}
                         >
                           {field.value
-                            ? roles.find(
-                              (role) => role.value === field.value
-                            )?.label
+                            ? roles.find((role) => role.value === field.value)?.label
                             : t('input.selectRole')}
-                          <ChevronDownIcon className="size-3 shrink-0 opacity-50 ms-2"/>
+                          <ChevronDownIcon className="size-3 shrink-0 opacity-50 ms-2" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -134,15 +144,15 @@ export function InviteOrganizationMember() {
                                 value={role.label}
                                 key={role.value}
                                 onSelect={() => {
-                                  form.setValue("role", role.value);
+                                  form.setValue('role', role.value);
                                   setOpenRoleSelector(false);
                                 }}
                               >
                                 {role.label}
                                 <CheckIcon
                                   className={cn(
-                                    "ml-auto h-4 w-4",
-                                    role.value === field.value ? "opacity-100" : "opacity-0"
+                                    'ml-auto h-4 w-4',
+                                    role.value === field.value ? 'opacity-100' : 'opacity-0',
                                   )}
                                 />
                               </CommandItem>
@@ -156,9 +166,10 @@ export function InviteOrganizationMember() {
                 <FormDescription className="text-xs opacity-70">
                   {t('role.description.' + field.value)}
                 </FormDescription>
-                <FormMessage/>
+                <FormMessage />
               </FormItem>
-            )}></FormField>
+            )}
+          ></FormField>
           <div className="flex flex-row align-start space-x-2">
             <Button className="flex-0" type="submit" disabled={inviteMember.isPending}>
               {inviteMember.isPending && (

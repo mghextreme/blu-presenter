@@ -1,14 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 
 interface ClockProps {
-  format?: "24withSeconds" | "24" | "12withSeconds" | "12";
+  format?: '24withSeconds' | '24' | '12withSeconds' | '12';
 }
 
-export function Clock({
-  format = "24withSeconds"
-}: Readonly<ClockProps>) {
-
-  const [time, setTime] = useState<string>("00:00:00");
+export function Clock({ format = '24withSeconds' }: Readonly<ClockProps>) {
+  const [time, setTime] = useState<string>('00:00:00');
 
   const formatRef = useRef<Intl.DateTimeFormatOptions>({});
   const [formatConfig, setFormatConfig] = useState<Intl.DateTimeFormatOptions>({});
@@ -19,10 +16,10 @@ export function Clock({
 
   useEffect(() => {
     setFormatConfig({
-      hour12: format.startsWith("12"),
-      hour: format.startsWith("24") ? '2-digit' : 'numeric',
+      hour12: format.startsWith('12'),
+      hour: format.startsWith('24') ? '2-digit' : 'numeric',
       minute: '2-digit',
-      second: format.endsWith("withSeconds") ? '2-digit' : undefined,
+      second: format.endsWith('withSeconds') ? '2-digit' : undefined,
     });
   }, [format]);
 
@@ -35,10 +32,8 @@ export function Clock({
       if (tickInterval) {
         clearInterval(tickInterval);
       }
-    }
+    };
   }, []);
 
-  return (
-    <span className="font-source-code-pro">{time}</span>
-  );
+  return <span className="font-source-code-pro">{time}</span>;
 }

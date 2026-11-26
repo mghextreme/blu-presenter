@@ -1,4 +1,4 @@
 export interface ISongReference {
-  url: string
-  name?: string
+  url: string;
+  name?: string;
 }

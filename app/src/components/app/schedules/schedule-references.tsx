@@ -1,17 +1,17 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import {
   ISchedule,
   ISchedulePlaylistReference,
   ISongReference,
   isRoleHigherOrEqualThan,
-} from "@/types";
-import { ReferencePlayer } from "@/components/app/songs/reference-player";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+} from '@/types';
+import { ReferencePlayer } from '@/components/app/songs/reference-player';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -19,20 +19,20 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
+} from '@/components/ui/dialog';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
+import CheckIcon from '@heroicons/react/24/solid/CheckIcon';
 import {
   SCHEDULE_PLAYLIST_PROVIDERS,
   SchedulePlaylistCreateOptions,
   SchedulePlaylistProvider,
   SchedulePlaylistProviderStatus,
-} from "./playlist-providers";
-import { usePlaylistSync } from "./use-playlist-sync";
+} from './playlist-providers';
+import { usePlaylistSync } from './use-playlist-sync';
 import {
   SchedulePlaylistProviderStatuses,
   usePlaylistProviderStatuses,
-} from "./use-playlist-provider-statuses";
+} from './use-playlist-provider-statuses';
 
 interface ScheduleReferencesProps {
   schedule: ISchedule;
@@ -46,11 +46,8 @@ interface ScheduleReferencesProps {
  * playlist) and the up-to-date / re-sync state on each generated playlist's
  * row.
  */
-export function ScheduleReferences({
-  schedule,
-  onSynced,
-}: Readonly<ScheduleReferencesProps>) {
-  const { t } = useTranslation("schedules");
+export function ScheduleReferences({ schedule, onSynced }: Readonly<ScheduleReferencesProps>) {
+  const { t } = useTranslation('schedules');
   const { isBusy, connect, sync } = usePlaylistSync(schedule, onSynced);
 
   const [createFor, setCreateFor] = useState<SchedulePlaylistProvider | null>(null);
@@ -58,8 +55,7 @@ export function ScheduleReferences({
   const [playlistPublic, setPlaylistPublic] = useState(false);
 
   const canManage =
-    !!schedule.organization &&
-    isRoleHigherOrEqualThan(schedule.organization.role, 'member');
+    !!schedule.organization && isRoleHigherOrEqualThan(schedule.organization.role, 'member');
 
   // Only managers can create or sync playlists, so only they need the status.
   const statuses = usePlaylistProviderStatuses(canManage);
@@ -70,10 +66,9 @@ export function ScheduleReferences({
   // enabled for them and the schedule must not have that playlist yet.
   const availableProviders = canManage
     ? SCHEDULE_PLAYLIST_PROVIDERS.filter(
-      (provider) =>
-        statuses[provider.source]?.enabled &&
-        !provider.findReference(schedule.references),
-    )
+        (provider) =>
+          statuses[provider.source]?.enabled && !provider.findReference(schedule.references),
+      )
     : [];
 
   // Managers with an enabled provider see the section even without
@@ -83,9 +78,7 @@ export function ScheduleReferences({
     return null;
   }
 
-  const defaultName = schedule.date
-    ? `${schedule.title} — ${schedule.date}`
-    : schedule.title;
+  const defaultName = schedule.date ? `${schedule.title} — ${schedule.date}` : schedule.title;
 
   const openCreate = (provider: SchedulePlaylistProvider) => {
     setPlaylistName(defaultName);
@@ -107,16 +100,22 @@ export function ScheduleReferences({
     <div className="mt-6">
       <ReferencePlayer
         references={schedule.references ?? []}
-        renderRowActions={canManage ? ((reference) => (
-          <ReferenceRowActions
-            schedule={schedule}
-            reference={reference}
-            statuses={statuses}
-            isBusy={isBusy}
-            onSync={(provider) => { void syncAndClose(provider); }}
-            onConnect={connect}
-          />
-        )) : undefined}
+        renderRowActions={
+          canManage
+            ? (reference) => (
+                <ReferenceRowActions
+                  schedule={schedule}
+                  reference={reference}
+                  statuses={statuses}
+                  isBusy={isBusy}
+                  onSync={(provider) => {
+                    void syncAndClose(provider);
+                  }}
+                  onConnect={connect}
+                />
+              )
+            : undefined
+        }
       >
         {availableProviders.map((provider) => (
           <ProviderRow
@@ -131,7 +130,12 @@ export function ScheduleReferences({
         ))}
       </ReferencePlayer>
 
-      <Dialog open={!!createFor} onOpenChange={(open) => { if (!open) setCreateFor(null); }}>
+      <Dialog
+        open={!!createFor}
+        onOpenChange={(open) => {
+          if (!open) setCreateFor(null);
+        }}
+      >
         {createFor && (
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
@@ -213,7 +217,7 @@ function ProviderRow({
   onCreate,
   onConnect,
 }: Readonly<ProviderRowProps>) {
-  const { t } = useTranslation("schedules");
+  const { t } = useTranslation('schedules');
 
   const hasSongs = provider.getProjection(schedule).trackIds.length > 0;
 
@@ -222,9 +226,7 @@ function ProviderRow({
       <div className="flex items-center justify-center size-9 shrink-0 rounded-md bg-secondary text-secondary-foreground shadow-xs">
         <provider.Icon className="size-4" />
       </div>
-      <div className="flex-1 text-sm text-muted-foreground truncate">
-        {t(provider.nameKey)}
-      </div>
+      <div className="flex-1 text-sm text-muted-foreground truncate">{t(provider.nameKey)}</div>
       <Button
         type="button"
         variant="outline"
@@ -232,9 +234,7 @@ function ProviderRow({
         title={isConnected && !hasSongs ? t(`${provider.i18nPrefix}.noSongs`) : undefined}
         onClick={() => (isConnected ? onCreate(provider) : onConnect(provider))}
       >
-        {isConnected
-          ? t(`${provider.i18nPrefix}.create`)
-          : t(`${provider.i18nPrefix}.connect`)}
+        {isConnected ? t(`${provider.i18nPrefix}.create`) : t(`${provider.i18nPrefix}.connect`)}
       </Button>
     </div>
   );
@@ -260,8 +260,7 @@ function ReferenceRowActions({
   onConnect,
 }: Readonly<ReferenceRowActionsProps>) {
   const canManage =
-    !!schedule.organization &&
-    isRoleHigherOrEqualThan(schedule.organization.role, 'member');
+    !!schedule.organization && isRoleHigherOrEqualThan(schedule.organization.role, 'member');
 
   const provider = SCHEDULE_PLAYLIST_PROVIDERS.find(
     (candidate) => candidate.findReference(schedule.references) === reference,
@@ -307,7 +306,7 @@ function AutoReferenceState({
   onSync,
   onConnect,
 }: Readonly<AutoReferenceStateProps>) {
-  const { t } = useTranslation("schedules");
+  const { t } = useTranslation('schedules');
 
   // Only the creator can sync: wait for their status, and hide the sync
   // controls when the feature is not enabled for them.
@@ -318,12 +317,7 @@ function AutoReferenceState({
   // The creator disconnected their account: reconnect to re-enable syncing.
   if (reference.syncedByMe && !status?.connected) {
     return (
-      <Button
-        type="button"
-        variant="outline"
-        disabled={isBusy}
-        onClick={() => onConnect(provider)}
-      >
+      <Button type="button" variant="outline" disabled={isBusy} onClick={() => onConnect(provider)}>
         <provider.Icon className="size-4 me-1" />
         {t(`${provider.i18nPrefix}.connect`)}
       </Button>
@@ -362,7 +356,7 @@ export function PlaylistSyncState({
   isBusy,
   onSync,
 }: Readonly<PlaylistSyncStateProps>) {
-  const { t } = useTranslation("schedules");
+  const { t } = useTranslation('schedules');
   const prefix = provider.i18nPrefix;
 
   // Somebody else's playlist: read-only.

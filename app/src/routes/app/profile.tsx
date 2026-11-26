@@ -1,56 +1,66 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { useIsMutating, useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { useIsMutating, useMutation, useSuspenseQuery } from '@tanstack/react-query';
 
-import { useServices } from "@/hooks/useServices";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { PageContent } from "@/components/shared/page-content";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
-import { GoogleConnection } from "@/components/app/profile/google-connection";
-import { SpotifyConnection } from "@/components/app/profile/spotify-connection";
+import { useServices } from '@/hooks/useServices';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { PageContent } from '@/components/shared/page-content';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Link } from 'react-router-dom';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { GoogleConnection } from '@/components/app/profile/google-connection';
+import { SpotifyConnection } from '@/components/app/profile/spotify-connection';
 
 export function Profile() {
-
-  const { t } = useTranslation("profile");
+  const { t } = useTranslation('profile');
 
   const formSchema = z.object({
-    email: z.string().email(),
+    email: z.email(),
     nickname: z.string().min(2),
     name: z.string().min(2).optional().or(z.literal('')),
   });
 
-  const passwordChangeformSchema = z.object({
-    currentPassword: z.string().min(8),
-    password: z.string().min(8),
-    confirmPassword: z.string().min(8),
-  }).superRefine(({ confirmPassword, password }, ctx) => {
-    if (confirmPassword !== password) {
-      ctx.addIssue({
-        code: "custom",
-        message: t('input.messages.passwordsDontMatch'),
-        path: ['confirmPassword']
-      });
-    }
-  });
+  const passwordChangeformSchema = z
+    .object({
+      currentPassword: z.string().min(8),
+      password: z.string().min(8),
+      confirmPassword: z.string().min(8),
+    })
+    .superRefine(({ confirmPassword, password }, ctx) => {
+      if (confirmPassword !== password) {
+        ctx.addIssue({
+          code: 'custom',
+          message: t('input.messages.passwordsDontMatch'),
+          path: ['confirmPassword'],
+        });
+      }
+    });
 
-  const setPasswordFormSchema = z.object({
-    password: z.string().min(8),
-    confirmPassword: z.string().min(8),
-  }).superRefine(({ confirmPassword, password }, ctx) => {
-    if (confirmPassword !== password) {
-      ctx.addIssue({
-        code: "custom",
-        message: t('input.messages.passwordsDontMatch'),
-        path: ['confirmPassword']
-      });
-    }
-  });
+  const setPasswordFormSchema = z
+    .object({
+      password: z.string().min(8),
+      confirmPassword: z.string().min(8),
+    })
+    .superRefine(({ confirmPassword, password }, ctx) => {
+      if (confirmPassword !== password) {
+        ctx.addIssue({
+          code: 'custom',
+          message: t('input.messages.passwordsDontMatch'),
+          path: ['confirmPassword'],
+        });
+      }
+    });
 
   const { usersService, authService } = useServices();
   const { data: profile } = useSuspenseQuery(usersService.getProfileQuery());
@@ -104,10 +114,11 @@ export function Profile() {
   });
 
   const changePassword = useMutation({
-    mutationFn: (values: z.infer<typeof passwordChangeformSchema>) => authService.changePassword({
-      currentPassword: values.currentPassword,
-      newPassword: values.password,
-    }),
+    mutationFn: (values: z.infer<typeof passwordChangeformSchema>) =>
+      authService.changePassword({
+        currentPassword: values.currentPassword,
+        newPassword: values.password,
+      }),
     onSuccess: () => {
       toast.success(t('changePassword.succeeded'));
       passwordChangeForm.reset();
@@ -120,9 +131,10 @@ export function Profile() {
   });
 
   const setPassword = useMutation({
-    mutationFn: (values: z.infer<typeof setPasswordFormSchema>) => authService.setPassword({
-      newPassword: values.password,
-    }),
+    mutationFn: (values: z.infer<typeof setPasswordFormSchema>) =>
+      authService.setPassword({
+        newPassword: values.password,
+      }),
     onSuccess: () => {
       toast.success(t('setPassword.succeeded'));
       setPasswordForm.reset();
@@ -138,7 +150,10 @@ export function Profile() {
     <PageContent>
       <title>{t('title') + ' - BluPresenter'}</title>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit((values) => updateProfile.mutate(values))} className="max-w-lg space-y-3">
+        <form
+          onSubmit={form.handleSubmit((values) => updateProfile.mutate(values))}
+          className="max-w-lg space-y-3"
+        >
           <FormField
             control={form.control}
             name="email"
@@ -150,7 +165,8 @@ export function Profile() {
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            )}></FormField>
+            )}
+          ></FormField>
 
           <FormField
             control={form.control}
@@ -163,7 +179,8 @@ export function Profile() {
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            )}></FormField>
+            )}
+          ></FormField>
 
           <FormField
             control={form.control}
@@ -176,7 +193,8 @@ export function Profile() {
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            )}></FormField>
+            )}
+          ></FormField>
 
           <div className="flex flex-row align-start space-x-2">
             <Button className="flex-0" type="submit" disabled={isMutating}>
@@ -185,7 +203,11 @@ export function Profile() {
               )}
               {t('button.update')}
             </Button>
-            <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/profile'} reloadDocument={true}>{t('button.cancel')}</Link></Button>
+            <Button className="flex-0" type="button" variant="secondary" asChild>
+              <Link to={'/app/profile'} reloadDocument={true}>
+                {t('button.cancel')}
+              </Link>
+            </Button>
           </div>
         </form>
       </Form>
@@ -201,7 +223,10 @@ export function Profile() {
         <>
           <h2 className="text-2xl mt-6 mb-4">{t('changePassword.title')}</h2>
           <Form {...passwordChangeForm}>
-            <form onSubmit={passwordChangeForm.handleSubmit((values) => changePassword.mutate(values))} className="max-w-lg space-y-3">
+            <form
+              onSubmit={passwordChangeForm.handleSubmit((values) => changePassword.mutate(values))}
+              className="max-w-lg space-y-3"
+            >
               <FormField
                 control={passwordChangeForm.control}
                 name="currentPassword"
@@ -213,7 +238,8 @@ export function Profile() {
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}></FormField>
+                )}
+              ></FormField>
 
               <FormField
                 control={passwordChangeForm.control}
@@ -226,7 +252,8 @@ export function Profile() {
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}></FormField>
+                )}
+              ></FormField>
 
               <FormField
                 control={passwordChangeForm.control}
@@ -239,7 +266,8 @@ export function Profile() {
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}></FormField>
+                )}
+              ></FormField>
 
               <div className="flex flex-row align-start space-x-2">
                 <Button className="flex-0" type="submit" disabled={isMutating}>
@@ -256,7 +284,10 @@ export function Profile() {
         <>
           <h2 className="text-2xl mt-6 mb-4">{t('setPassword.title')}</h2>
           <Form {...setPasswordForm}>
-            <form onSubmit={setPasswordForm.handleSubmit((values) => setPassword.mutate(values))} className="max-w-lg space-y-3">
+            <form
+              onSubmit={setPasswordForm.handleSubmit((values) => setPassword.mutate(values))}
+              className="max-w-lg space-y-3"
+            >
               <FormField
                 control={setPasswordForm.control}
                 name="password"
@@ -268,7 +299,8 @@ export function Profile() {
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}></FormField>
+                )}
+              ></FormField>
 
               <FormField
                 control={setPasswordForm.control}
@@ -281,7 +313,8 @@ export function Profile() {
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}></FormField>
+                )}
+              ></FormField>
 
               <div className="flex flex-row align-start space-x-2">
                 <Button className="flex-0" type="submit" disabled={isMutating}>

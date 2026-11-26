@@ -1,17 +1,14 @@
-import { useEffect, useRef } from "react";
-import { ITheme, LyricsTheme } from "@/types";
-import { useController } from "@/hooks/useController";
-import { SingleSlideVisualizer } from "./single-slide-visualizer";
-import { ScrollingSongVisualizer } from "./scrolling-song-visualizer";
+import { useEffect, useRef } from 'react';
+import { ITheme, LyricsTheme } from '@/types';
+import { useController } from '@/hooks/useController';
+import { SingleSlideVisualizer } from './single-slide-visualizer';
+import { ScrollingSongVisualizer } from './scrolling-song-visualizer';
 
 type SlideVisualizerProps = {
-  theme?: ITheme
-}
+  theme?: ITheme;
+};
 
-export function SlideVisualizer({
-  theme = LyricsTheme,
-}: Readonly<SlideVisualizerProps>) {
-
+export function SlideVisualizer({ theme = LyricsTheme }: Readonly<SlideVisualizerProps>) {
   const { setSelection } = useController((s) => ({ setSelection: s.setSelection }));
 
   const componentRef = useRef<typeof ScrollingSongVisualizer | typeof SingleSlideVisualizer>(null);

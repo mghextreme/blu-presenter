@@ -1,17 +1,16 @@
-import { SessionsService, ThemesService } from "@/services";
-import { ITheme } from "@/types";
-import { Params } from "react-router-dom";
+import { SessionsService, ThemesService } from '@/services';
+import { ITheme } from '@/types';
+import { Params } from 'react-router-dom';
 
 export async function loader({
   params,
   sessionsService,
   themesService,
 }: {
-  params: Params,
-  sessionsService: SessionsService,
-  themesService: ThemesService,
+  params: Params;
+  sessionsService: SessionsService;
+  themesService: ThemesService;
 }) {
-
   const sessionPromise = sessionsService.getBySecret(
     Number(params.orgId),
     Number(params.sessionId),
@@ -31,5 +30,5 @@ export async function loader({
   return {
     session: await sessionPromise,
     themes,
-  }
+  };
 }

@@ -1,5 +1,5 @@
-import type { CSSProperties } from "react";
-import { IFontConfig, IShadowConfig } from "@/types";
+import type { CSSProperties } from 'react';
+import { IFontConfig, IShadowConfig } from '@/types';
 
 export const buildShadowStyle = (shadow?: IShadowConfig) => {
   if (!shadow || !shadow.enabled) {
@@ -15,7 +15,7 @@ export const buildShadowStyle = (shadow?: IShadowConfig) => {
   const blurEm = Number((shadow.blur ?? 0) / 100).toFixed(2);
 
   return `${offsetEm}em ${offsetEm}em ${blurEm}em ${shadow.color}`;
-}
+};
 
 export const buildStrokeStyle = (shadow?: IShadowConfig) => {
   if (!shadow || !shadow.enabled) {
@@ -29,9 +29,12 @@ export const buildStrokeStyle = (shadow?: IShadowConfig) => {
 
   const sizeEm = Number(size / 100).toFixed(2);
   return `${sizeEm}em ${shadow.strokeColor ?? '#000000'}`;
-}
+};
 
-export const buildFontStyle = (config?: IFontConfig, defaults?: Partial<IFontConfig> & { color?: string }) => {
+export const buildFontStyle = (
+  config?: IFontConfig,
+  defaults?: Partial<IFontConfig> & { color?: string },
+) => {
   if (!config) {
     return {};
   }
@@ -49,4 +52,4 @@ export const buildFontStyle = (config?: IFontConfig, defaults?: Partial<IFontCon
     WebkitTextStroke: stroke,
     paintOrder: stroke ? 'stroke fill' : undefined,
   } as CSSProperties;
-}
+};

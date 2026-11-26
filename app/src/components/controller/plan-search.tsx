@@ -1,44 +1,56 @@
-import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
-import { ISongWithRole } from "@/types";
-import { useServices } from "@/hooks/useServices";
-import { useController } from "@/hooks/useController";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BasicSearchForm } from "@/components/app/search/basic-search-form";
-import { SearchResultsList } from "@/components/app/search/search-results-list";
-import { AdvancedSearchForm } from "@/components/app/search/advanced-search-form";
-import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
-import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { ISongWithRole } from '@/types';
+import { useServices } from '@/hooks/useServices';
+import { useController } from '@/hooks/useController';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BasicSearchForm } from '@/components/app/search/basic-search-form';
+import { SearchResultsList } from '@/components/app/search/search-results-list';
+import { AdvancedSearchForm } from '@/components/app/search/advanced-search-form';
+import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
+import PlayIcon from '@heroicons/react/24/solid/PlayIcon';
 
 type PlanSearchProps = {
   showOpen?: boolean;
-}
+};
 
 export function PlanSearch({ showOpen = true }: Readonly<PlanSearchProps>) {
-
-  const { t } = useTranslation("controller");
+  const { t } = useTranslation('controller');
 
   const { songsService } = useServices();
-  const { addToSchedule, setScheduleItem } = useController((s) => ({ addToSchedule: s.addToSchedule, setScheduleItem: s.setScheduleItem }));
+  const { addToSchedule, setScheduleItem } = useController((s) => ({
+    addToSchedule: s.addToSchedule,
+    setScheduleItem: s.setScheduleItem,
+  }));
 
   const getButtonActions = (item: ISongWithRole) => {
     return (
       <>
-        <Button type="button" size="sm" title={t('schedule.items.addToSchedule')} onClick={() => {
-          addToSchedule(songsService.toScheduleSong(item));
-          toast.success(t('plan.search.addedToSchedule', { title: item.title }));
-        }}>
+        <Button
+          type="button"
+          size="sm"
+          title={t('schedule.items.addToSchedule')}
+          onClick={() => {
+            addToSchedule(songsService.toScheduleSong(item));
+            toast.success(t('plan.search.addedToSchedule', { title: item.title }));
+          }}
+        >
           <PlusIcon className="size-3"></PlusIcon>
         </Button>
         {showOpen && (
-          <Button type="button" size="sm" title={t('schedule.items.open')} onClick={() => setScheduleItem(songsService.toScheduleSong(item))}>
+          <Button
+            type="button"
+            size="sm"
+            title={t('schedule.items.open')}
+            onClick={() => setScheduleItem(songsService.toScheduleSong(item))}
+          >
             <PlayIcon className="size-3"></PlayIcon>
           </Button>
         )}
       </>
     );
-  }
+  };
 
   return (
     <>
@@ -61,5 +73,5 @@ export function PlanSearch({ showOpen = true }: Readonly<PlanSearchProps>) {
         </div>
       </div>
     </>
-  )
+  );
 }

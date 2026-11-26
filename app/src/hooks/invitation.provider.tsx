@@ -1,23 +1,29 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext } from 'react';
 
 type InvitationProviderProps = {
-  id?: number
-  secret?: string
-  email?: string
-  organization?: string
-  children: React.ReactNode
-}
+  id?: number;
+  secret?: string;
+  email?: string;
+  organization?: string;
+  children: React.ReactNode;
+};
 
 export type InvitationProviderState = {
   id?: number;
   secret?: string;
-  email?: string,
-  organization?: string
-}
+  email?: string;
+  organization?: string;
+};
 
 const InvitationContext = createContext<InvitationProviderState>({});
 
-export const InvitationProvider = ({ id, secret, email, organization, children }: Readonly<InvitationProviderProps>) => {
+export const InvitationProvider = ({
+  id,
+  secret,
+  email,
+  organization,
+  children,
+}: Readonly<InvitationProviderProps>) => {
   const value = {
     id,
     secret,

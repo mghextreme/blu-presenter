@@ -1,18 +1,14 @@
-import { useState, useEffect, useRef, useCallback, ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { safeExternalUrl } from "@/lib/utils";
-import { ISongReference } from "@/types";
-import { SpotifyCode } from "@/components/app/songs/spotify-code";
-import {
-  getEmbedInfo,
-  getReferenceType,
-  resolveDeezerShareUrl,
-} from "@/lib/songs";
-import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOnSquareIcon";
-import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
-import StopIcon from "@heroicons/react/24/solid/StopIcon";
-import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { useState, useEffect, useRef, useCallback, ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
+import { safeExternalUrl } from '@/lib/utils';
+import { ISongReference } from '@/types';
+import { SpotifyCode } from '@/components/app/songs/spotify-code';
+import { getEmbedInfo, getReferenceType, resolveDeezerShareUrl } from '@/lib/songs';
+import ArrowTopRightOnSquareIcon from '@heroicons/react/24/solid/ArrowTopRightOnSquareIcon';
+import PlayIcon from '@heroicons/react/24/solid/PlayIcon';
+import StopIcon from '@heroicons/react/24/solid/StopIcon';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 // Spotify iFrame API types
 interface SpotifyIFrameAPI {
@@ -62,8 +58,8 @@ function loadSpotifyIFrameApi(): Promise<SpotifyIFrameAPI> {
       resolve(api);
     };
 
-    const script = document.createElement("script");
-    script.src = "https://open.spotify.com/embed/iframe-api/v1";
+    const script = document.createElement('script');
+    script.src = 'https://open.spotify.com/embed/iframe-api/v1';
     script.async = true;
     document.head.appendChild(script);
   });
@@ -93,7 +89,7 @@ function SpotifyEmbed({ uri, height = 80 }: Readonly<{ uri: string; height?: num
         containerRef.current,
         {
           uri,
-          width: "100%",
+          width: '100%',
           height,
         },
         (controller) => {
@@ -102,7 +98,7 @@ function SpotifyEmbed({ uri, height = 80 }: Readonly<{ uri: string; height?: num
             return;
           }
           controllerRef.current = controller;
-          controller.addListener("ready", playWhenReady);
+          controller.addListener('ready', playWhenReady);
         },
       );
     });
@@ -110,7 +106,7 @@ function SpotifyEmbed({ uri, height = 80 }: Readonly<{ uri: string; height?: num
     return () => {
       destroyed = true;
       if (controllerRef.current) {
-        controllerRef.current.removeListener("ready", playWhenReady);
+        controllerRef.current.removeListener('ready', playWhenReady);
         controllerRef.current.destroy();
         controllerRef.current = null;
       }
@@ -120,7 +116,10 @@ function SpotifyEmbed({ uri, height = 80 }: Readonly<{ uri: string; height?: num
   return <div ref={containerRef} className="rounded-lg overflow-hidden" />;
 }
 
-function YouTubeEmbed({ videoId, playlistId }: Readonly<{ videoId?: string; playlistId?: string }>) {
+function YouTubeEmbed({
+  videoId,
+  playlistId,
+}: Readonly<{ videoId?: string; playlistId?: string }>) {
   const src = playlistId
     ? `https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(playlistId)}&autoplay=1`
     : `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
@@ -140,7 +139,7 @@ function YouTubeEmbed({ videoId, playlistId }: Readonly<{ videoId?: string; play
 }
 
 function DeezerEmbed({ trackId, shareUrl }: Readonly<{ trackId?: string; shareUrl?: string }>) {
-  const { t } = useTranslation("songs");
+  const { t } = useTranslation('songs');
   const [resolvedTrackId, setResolvedTrackId] = useState<string | null>(trackId ?? null);
   const [loading, setLoading] = useState(!trackId && !!shareUrl);
 
@@ -160,11 +159,17 @@ function DeezerEmbed({ trackId, shareUrl }: Readonly<{ trackId?: string; shareUr
       }
     });
 
-    return () => { controller.abort(); };
+    return () => {
+      controller.abort();
+    };
   }, [trackId, shareUrl, t]);
 
   if (loading) {
-    return <div className="h-20 flex items-center justify-center text-sm text-muted-foreground">Loading...</div>;
+    return (
+      <div className="h-20 flex items-center justify-center text-sm text-muted-foreground">
+        Loading...
+      </div>
+    );
   }
 
   if (!resolvedTrackId) return null;
@@ -242,14 +247,15 @@ export function ReferencePlayer({
   renderRowActions,
   children,
 }: Readonly<ReferencePlayerProps>) {
-  const { t } = useTranslation("songs");
+  const { t } = useTranslation('songs');
   const [activePlayerIndex, setActivePlayerIndex] = useState<number | null>(null);
 
   const togglePlayer = useCallback((index: number) => {
-    setActivePlayerIndex(prev => prev === index ? null : index);
+    setActivePlayerIndex((prev) => (prev === index ? null : index));
   }, []);
 
-  const activePlayerUrl = activePlayerIndex !== null ? references[activePlayerIndex]?.url ?? null : null;
+  const activePlayerUrl =
+    activePlayerIndex !== null ? (references[activePlayerIndex]?.url ?? null) : null;
   const embed = getEmbedInfo(activePlayerUrl);
 
   return (
@@ -276,7 +282,7 @@ export function ReferencePlayer({
             )}
             {isPlayable && (
               <Button
-                variant={isActive ? "default" : "secondary"}
+                variant={isActive ? 'default' : 'secondary'}
                 size="icon"
                 type="button"
                 title={isActive ? t('references.stopPlaying') : t('references.play')}
@@ -289,7 +295,12 @@ export function ReferencePlayer({
               {reference.name || reference.url}
             </div>
             {reference.url.includes('spotify.com') && (
-              <SpotifyCode songUrl={reference.url} imgWidth={320} className="max-w-28" colorScheme="theme" />
+              <SpotifyCode
+                songUrl={reference.url}
+                imgWidth={320}
+                className="max-w-28"
+                colorScheme="theme"
+              />
             )}
             {renderRowActions?.(reference)}
           </div>
@@ -322,11 +333,7 @@ export function ReferencePlayer({
       )}
       {embed?.type === 'deezer' && (
         <div className="mt-3 rounded-lg overflow-hidden">
-          <DeezerEmbed
-            key={activePlayerUrl!}
-            trackId={embed.trackId}
-            shareUrl={embed.shareUrl}
-          />
+          <DeezerEmbed key={activePlayerUrl!} trackId={embed.trackId} shareUrl={embed.shareUrl} />
         </div>
       )}
       {embed?.type === 'soundcloud' && (

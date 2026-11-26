@@ -1,16 +1,16 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlanSchedules } from "./plan-schedules";
-import { PlanSearch } from "./plan-search";
-import { PlanText } from "./plan-text";
-import { PlanComment } from "./plan-comment";
-import { PlanConfiguration } from "./plan-configuration";
-import CalendarIcon from "@heroicons/react/24/solid/CalendarIcon";
-import MusicalNoteIcon from "@heroicons/react/24/solid/MusicalNoteIcon";
-import Bars3BottomLeftIcon from "@heroicons/react/24/solid/Bars3BottomLeftIcon";
-import ChatBubbleLeftEllipsisIcon from "@heroicons/react/24/solid/ChatBubbleLeftEllipsisIcon";
-import Cog6ToothIcon from "@heroicons/react/24/solid/Cog6ToothIcon";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PlanSchedules } from './plan-schedules';
+import { PlanSearch } from './plan-search';
+import { PlanText } from './plan-text';
+import { PlanComment } from './plan-comment';
+import { PlanConfiguration } from './plan-configuration';
+import CalendarIcon from '@heroicons/react/24/solid/CalendarIcon';
+import MusicalNoteIcon from '@heroicons/react/24/solid/MusicalNoteIcon';
+import Bars3BottomLeftIcon from '@heroicons/react/24/solid/Bars3BottomLeftIcon';
+import ChatBubbleLeftEllipsisIcon from '@heroicons/react/24/solid/ChatBubbleLeftEllipsisIcon';
+import Cog6ToothIcon from '@heroicons/react/24/solid/Cog6ToothIcon';
 
 type PlanPanelProps = {
   showConfiguration?: boolean;
@@ -19,11 +19,16 @@ type PlanPanelProps = {
   /** Controlled active tab. When omitted the tabs manage their own state. */
   value?: string;
   onValueChange?: (tab: string) => void;
-}
+};
 
-export function PlanPanel({ showConfiguration = true, showSchedules = true, showOpen = true, value, onValueChange }: Readonly<PlanPanelProps>) {
-
-  const { t } = useTranslation("controller");
+export function PlanPanel({
+  showConfiguration = true,
+  showSchedules = true,
+  showOpen = true,
+  value,
+  onValueChange,
+}: Readonly<PlanPanelProps>) {
+  const { t } = useTranslation('controller');
 
   const [internalTab, setInternalTab] = useState<string>(showSchedules ? 'schedules' : 'search');
 
@@ -33,23 +38,32 @@ export function PlanPanel({ showConfiguration = true, showSchedules = true, show
   };
 
   return (
-    <div
-      id="plan"
-      className="flex flex-col justify-start items-stretch p-3 h-full">
+    <div id="plan" className="flex flex-col justify-start items-stretch p-3 h-full">
       <Tabs
         value={value}
         defaultValue={value === undefined ? internalTab : undefined}
         onValueChange={handleValueChange}
-        className="flex flex-col h-full">
+        className="flex flex-col h-full"
+      >
         <TabsList className="w-full">
           {showSchedules && (
-            <TabsTrigger value="schedules" title={t('plan.tabs.schedules')}><CalendarIcon className="size-4" /></TabsTrigger>
+            <TabsTrigger value="schedules" title={t('plan.tabs.schedules')}>
+              <CalendarIcon className="size-4" />
+            </TabsTrigger>
           )}
-          <TabsTrigger value="search" title={t('plan.tabs.searchSongs')}><MusicalNoteIcon className="size-4" /></TabsTrigger>
-          <TabsTrigger value="text" title={t('plan.tabs.text')}><Bars3BottomLeftIcon className="size-4" /></TabsTrigger>
-          <TabsTrigger value="comment" title={t('plan.tabs.comment')}><ChatBubbleLeftEllipsisIcon className="size-4" /></TabsTrigger>
+          <TabsTrigger value="search" title={t('plan.tabs.searchSongs')}>
+            <MusicalNoteIcon className="size-4" />
+          </TabsTrigger>
+          <TabsTrigger value="text" title={t('plan.tabs.text')}>
+            <Bars3BottomLeftIcon className="size-4" />
+          </TabsTrigger>
+          <TabsTrigger value="comment" title={t('plan.tabs.comment')}>
+            <ChatBubbleLeftEllipsisIcon className="size-4" />
+          </TabsTrigger>
           {showConfiguration && (
-            <TabsTrigger value="configuration" title={t('plan.tabs.configuration')}><Cog6ToothIcon className="size-4" /></TabsTrigger>
+            <TabsTrigger value="configuration" title={t('plan.tabs.configuration')}>
+              <Cog6ToothIcon className="size-4" />
+            </TabsTrigger>
           )}
         </TabsList>
         <hr className="border-t border-[1px]" />

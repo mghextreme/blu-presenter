@@ -1,12 +1,18 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { CheckIcon } from "@radix-ui/react-icons";
-import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
-import type { OptionalOrganization } from "./index";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
+import { CheckIcon } from '@radix-ui/react-icons';
+import ChevronDownIcon from '@heroicons/react/24/solid/ChevronDownIcon';
+import type { OptionalOrganization } from './index';
 
 interface OrganizationBarSelectorProps {
   organizations: OptionalOrganization[];
@@ -21,7 +27,7 @@ export function OrganizationBarSelector({
   onSelectedChange,
   subtitle,
 }: Readonly<OrganizationBarSelectorProps>) {
-  const { t } = useTranslation("organizations");
+  const { t } = useTranslation('organizations');
 
   const [openSelector, setOpenSelector] = useState<boolean>(false);
   const options = organizations.filter((org) => !!org);
@@ -53,8 +59,8 @@ export function OrganizationBarSelector({
                   {option!.name || t('defaultName')}
                   <CheckIcon
                     className={cn(
-                      "ml-auto h-4 w-4",
-                      selected?.id === option!.id ? "opacity-100" : "opacity-0"
+                      'ml-auto h-4 w-4',
+                      selected?.id === option!.id ? 'opacity-100' : 'opacity-0',
                     )}
                   />
                 </CommandItem>

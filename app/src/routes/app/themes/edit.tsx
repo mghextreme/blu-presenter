@@ -1,32 +1,52 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
-import { z } from "zod";
-import { filterOrganizationsByFeature, isRoleHigherOrEqualThan, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
-import { useAuth } from "@/hooks/useAuth";
-import { useServices } from "@/hooks/useServices";
-import { Button } from "@/components/ui/button";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import { useForm, type Resolver } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ControllerProvider } from "@/hooks/controller.provider";
-import { PreviewWindow } from "@/components/controller/preview-window";
-import { Controls } from "@/components/controller/controls";
-import { ThemePreviewSongForm } from "@/components/app/themes/theme-preview-song-form";
-import { ThemeSchema } from "@/types/schemas/theme.schema";
-import { ThemeConfigForm } from "@/components/app/themes/theme-config-form";
-import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
-import { PageContent } from "@/components/shared/page-content";
-import { NoOrganizationNotice } from "@/components/shared/no-organization-notice";
-import { toast } from "sonner";
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
+import {
+  filterOrganizationsByFeature,
+  isRoleHigherOrEqualThan,
+  ITheme,
+  LyricsTheme,
+  SubtitlesTheme,
+  TeleprompterTheme,
+} from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { useServices } from '@/hooks/useServices';
+import { Button } from '@/components/ui/button';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
+import { useForm, type Resolver } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ControllerProvider } from '@/hooks/controller.provider';
+import { PreviewWindow } from '@/components/controller/preview-window';
+import { Controls } from '@/components/controller/controls';
+import { ThemePreviewSongForm } from '@/components/app/themes/theme-preview-song-form';
+import { ThemeSchema } from '@/types/schemas/theme.schema';
+import { ThemeConfigForm } from '@/components/app/themes/theme-config-form';
+import { OrganizationBar, OptionalOrganization } from '@/components/app/organization-bar';
+import { PageContent } from '@/components/shared/page-content';
+import { NoOrganizationNotice } from '@/components/shared/no-organization-notice';
+import { toast } from 'sonner';
 
 type EditThemeProps = {
-  edit?: boolean
-}
+  edit?: boolean;
+};
 
 const newTheme: ITheme = {
   id: 0,
@@ -35,9 +55,7 @@ const newTheme: ITheme = {
   config: LyricsTheme.config,
 };
 
-export function EditTheme({
-  edit = true,
-}: Readonly<EditThemeProps>) {
+export function EditTheme({ edit = true }: Readonly<EditThemeProps>) {
   return edit ? <EditExistingTheme /> : <ThemeForm edit={false} data={newTheme} />;
 }
 
@@ -54,22 +72,18 @@ function EditExistingTheme() {
 }
 
 type ThemeFormProps = {
-  edit: boolean
-  data: ITheme
-}
+  edit: boolean;
+  data: ITheme;
+};
 
-function ThemeForm({
-  edit,
-  data,
-}: Readonly<ThemeFormProps>) {
-
-  const { t } = useTranslation("themes");
+function ThemeForm({ edit, data }: Readonly<ThemeFormProps>) {
+  const { t } = useTranslation('themes');
   const navigate = useNavigate();
   const { organization, organizations } = useAuth();
   const { themesService } = useServices();
 
-  const organizationsToAddTo = filterOrganizationsByFeature(organizations, 'themes').filter(
-    (org) => isRoleHigherOrEqualThan(org.role, 'member')
+  const organizationsToAddTo = filterOrganizationsByFeature(organizations, 'themes').filter((org) =>
+    isRoleHigherOrEqualThan(org.role, 'member'),
   );
 
   const [selectedOrganizations, setSelectedOrganizations] = useState<OptionalOrganization[]>(() => {
@@ -77,8 +91,8 @@ function ThemeForm({
       return [data.organization ?? null];
     }
 
-    const initial = organizationsToAddTo.find((org) => org.id === organization?.id)
-      ?? organizationsToAddTo[0];
+    const initial =
+      organizationsToAddTo.find((org) => org.id === organization?.id) ?? organizationsToAddTo[0];
     return initial ? [initial] : [];
   });
 
@@ -111,10 +125,10 @@ function ThemeForm({
 
     setExtendsValue(curExtends);
     switch (curExtends) {
-      case "subtitles":
+      case 'subtitles':
         form.setValue('config', SubtitlesTheme.config);
         return;
-      case "teleprompter":
+      case 'teleprompter':
         form.setValue('config', TeleprompterTheme.config);
         return;
     }
@@ -123,8 +137,16 @@ function ThemeForm({
   }, [form.watch('extends')]);
 
   const saveTheme = useMutation({
-    mutationFn: ({ values, organizationId }: { values: z.infer<typeof ThemeSchema>, organizationId: number }) =>
-      edit ? themesService.update(values.id, values, organizationId) : themesService.add(values, organizationId),
+    mutationFn: ({
+      values,
+      organizationId,
+    }: {
+      values: z.infer<typeof ThemeSchema>;
+      organizationId: number;
+    }) =>
+      edit
+        ? themesService.update(values.id, values, organizationId)
+        : themesService.add(values, organizationId),
     onSuccess: () => navigate(`/app/themes`),
     onError: (err) => {
       console.error(err);
@@ -149,11 +171,13 @@ function ThemeForm({
   const onSubmit = (values: z.infer<typeof ThemeSchema>) => {
     if (!organizationId) return;
     saveTheme.mutate({ values, organizationId });
-  }
+  };
 
   return (
     <>
-      <title>{(edit ? t('title.edit', { name: data.name }) : t('title.add')) + ' - BluPresenter'}</title>
+      <title>
+        {(edit ? t('title.edit', { name: data.name }) : t('title.add')) + ' - BluPresenter'}
+      </title>
       <OrganizationBar
         organizations={edit ? [data.organization ?? null] : organizationsToAddTo}
         selected={selectedOrganizations}
@@ -164,10 +188,17 @@ function ThemeForm({
       <PageContent>
         <ControllerProvider>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-row-reverse flex-wrap gap-3 justify-end">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="flex flex-row-reverse flex-wrap gap-3 justify-end"
+            >
               <div className="flex-1 min-w-sm max-w-lg">
                 <div className="relative w-full bg-[url(/images/sample-wallpaper.svg)] bg-cover bg-center rounded">
-                  <PreviewWindow theme={form.watch()} attachControllerMode={true} showThemeSelector={false} />
+                  <PreviewWindow
+                    theme={form.watch()}
+                    attachControllerMode={true}
+                    showThemeSelector={false}
+                  />
                 </div>
                 <Controls showBlank={false} className="px-0" />
                 {/* Preview content editor: a song-editor-driven form that pushes a synthetic schedule song into the controller above. */}
@@ -185,7 +216,8 @@ function ThemeForm({
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )}></FormField>
+                  )}
+                ></FormField>
 
                 <FormField
                   control={form.control}
@@ -207,7 +239,8 @@ function ThemeForm({
                       </Select>
                       <FormMessage />
                     </FormItem>
-                  )}></FormField>
+                  )}
+                ></FormField>
 
                 <hr />
 
@@ -220,7 +253,9 @@ function ThemeForm({
                     )}
                     {t('button.' + (edit ? 'update' : 'add'))}
                   </Button>
-                  <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/themes'}>{t('button.cancel')}</Link></Button>
+                  <Button className="flex-0" type="button" variant="secondary" asChild>
+                    <Link to={'/app/themes'}>{t('button.cancel')}</Link>
+                  </Button>
                 </div>
               </div>
             </form>

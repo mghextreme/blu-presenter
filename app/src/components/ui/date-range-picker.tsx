@@ -1,14 +1,14 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { format, isBefore, parse } from "date-fns";
-import type { DateRange } from "react-day-picker";
-import CalendarIcon from "@heroicons/react/24/solid/CalendarIcon";
-import XMarkIcon from "@heroicons/react/24/solid/XMarkIcon";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { format, isBefore, parse } from 'date-fns';
+import type { DateRange } from 'react-day-picker';
+import CalendarIcon from '@heroicons/react/24/solid/CalendarIcon';
+import XMarkIcon from '@heroicons/react/24/solid/XMarkIcon';
 
-import { cn } from "@/lib/utils";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { getLocaleConfig } from "@/components/ui/date-picker";
+import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { getLocaleConfig } from '@/components/ui/date-picker';
 
 type DateRangeValue = { from: string | null; to: string | null };
 
@@ -27,8 +27,8 @@ function toDateRange(value?: DateRangeValue | null): DateRange | undefined {
     return undefined;
   }
   return {
-    from: parse(value.from, "yyyy-MM-dd", new Date()),
-    to: value.to ? parse(value.to, "yyyy-MM-dd", new Date()) : undefined,
+    from: parse(value.from, 'yyyy-MM-dd', new Date()),
+    to: value.to ? parse(value.to, 'yyyy-MM-dd', new Date()) : undefined,
   };
 }
 
@@ -47,13 +47,13 @@ function DateRangePicker({
   // range mode already emits a complete single-day range on the first click.
   const [draft, setDraft] = useState<DateRange | undefined>(undefined);
 
-  const lang = i18n.language?.substring(0, 2) ?? "en";
+  const lang = i18n.language?.substring(0, 2) ?? 'en';
   const { dateFns, dayPicker, formatStr } = getLocaleConfig(lang);
 
   const formatDate = (dateStr: string | null | undefined): string | null => {
     if (!dateStr) return null;
     try {
-      return format(parse(dateStr, "yyyy-MM-dd", new Date()), formatStr, { locale: dateFns });
+      return format(parse(dateStr, 'yyyy-MM-dd', new Date()), formatStr, { locale: dateFns });
     } catch {
       return null;
     }
@@ -61,11 +61,8 @@ function DateRangePicker({
 
   const fromText = formatDate(value?.from);
   const toText = formatDate(value?.to);
-  const displayText = fromText && toText
-    ? `${fromText} - ${toText}`
-    : fromText
-      ? `${fromText} - …`
-      : null;
+  const displayText =
+    fromText && toText ? `${fromText} - ${toText}` : fromText ? `${fromText} - …` : null;
 
   const handleSelect = (_range: DateRange | undefined, clickedDate?: Date) => {
     if (!clickedDate) {
@@ -92,8 +89,8 @@ function DateRangePicker({
     // selects a single-day range).
     setDraft(undefined);
     onChange?.({
-      from: format(draft.from, "yyyy-MM-dd"),
-      to: format(clickedDate, "yyyy-MM-dd"),
+      from: format(draft.from, 'yyyy-MM-dd'),
+      to: format(clickedDate, 'yyyy-MM-dd'),
     });
     setOpen(false);
   };
@@ -101,7 +98,7 @@ function DateRangePicker({
   const handleOpenChange = (next: boolean) => {
     if (!next && draft?.from) {
       // Dismissed with only a start date picked: use it as the end date too.
-      const dateStr = format(draft.from, "yyyy-MM-dd");
+      const dateStr = format(draft.from, 'yyyy-MM-dd');
       onChange?.({ from: dateStr, to: dateStr });
     }
     setDraft(undefined);
@@ -120,11 +117,11 @@ function DateRangePicker({
   return (
     <div
       className={cn(
-        "flex h-9 w-full items-center overflow-hidden rounded-md border bg-background text-sm font-normal shadow-xs transition-colors outline-none",
-        "dark:border-input dark:bg-input/30",
-        "hover:bg-accent hover:text-accent-foreground dark:hover:bg-input/50",
-        "focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
-        !displayText && "text-muted-foreground",
+        'flex h-9 w-full items-center overflow-hidden rounded-md border bg-background text-sm font-normal shadow-xs transition-colors outline-none',
+        'dark:border-input dark:bg-input/30',
+        'hover:bg-accent hover:text-accent-foreground dark:hover:bg-input/50',
+        'focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50',
+        !displayText && 'text-muted-foreground',
         className,
       )}
     >
@@ -135,7 +132,7 @@ function DateRangePicker({
             className="flex h-full min-w-0 flex-1 cursor-pointer items-center gap-2 px-3 text-left"
           >
             <CalendarIcon className="size-4 shrink-0 opacity-50" />
-            <span className="truncate">{displayText ?? placeholder ?? ""}</span>
+            <span className="truncate">{displayText ?? placeholder ?? ''}</span>
           </button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">

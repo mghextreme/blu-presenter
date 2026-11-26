@@ -1,27 +1,29 @@
-import { ReactNode } from "react";
-import { INumberedSongPart, ISongPart, ISongPartLine, SongPartLineType } from "@/types";
-import { cn } from "./utils";
-import { api } from "./config";
+import { ReactNode } from 'react';
+import { INumberedSongPart, ISongPart, ISongPartLine, SongPartLineType } from '@/types';
+import { cn } from './utils';
+import { api } from './config';
 
 // ─── JSX rendering ────────────────────────────────────────────────────────────
 
-export const renderSongPartLines = (lines?: ISongPartLine[], options?: {
-  includeTypes?: SongPartLineType[];
-  lyricsClassName?: string;
-  lyricsStyle?: React.CSSProperties;
-  chordsClassName?: string;
-  chordsStyle?: React.CSSProperties;
-  commentsClassName?: string;
-  commentsStyle?: React.CSSProperties;
-  firstLineCompactMode?: boolean;
-}): ReactNode => {
-
+export const renderSongPartLines = (
+  lines?: ISongPartLine[],
+  options?: {
+    includeTypes?: SongPartLineType[];
+    lyricsClassName?: string;
+    lyricsStyle?: React.CSSProperties;
+    chordsClassName?: string;
+    chordsStyle?: React.CSSProperties;
+    commentsClassName?: string;
+    commentsStyle?: React.CSSProperties;
+    firstLineCompactMode?: boolean;
+  },
+): ReactNode => {
   if (!lines || lines.length === 0) {
     return null;
   }
 
   const filteredLines = options?.includeTypes
-    ? lines.filter(line => options.includeTypes!.includes(line.type))
+    ? lines.filter((line) => options.includeTypes!.includes(line.type))
     : lines;
 
   if (filteredLines.length === 0) {
@@ -37,9 +39,13 @@ export const renderSongPartLines = (lines?: ISongPartLine[], options?: {
   const resolvedCommentsClassName = cn('comments', options?.commentsClassName);
 
   if (options?.firstLineCompactMode) {
-    const firstLyricsLine = filteredLines.find(line => line.type === 'lyrics');
+    const firstLyricsLine = filteredLines.find((line) => line.type === 'lyrics');
     if (firstLyricsLine) {
-      return <p key="lyrics-firstLine" className={resolvedLyricsClassName} style={options?.lyricsStyle}>{firstLyricsLine.content}...</p>;
+      return (
+        <p key="lyrics-firstLine" className={resolvedLyricsClassName} style={options?.lyricsStyle}>
+          {firstLyricsLine.content}...
+        </p>
+      );
     }
     return null;
   }
@@ -54,54 +60,83 @@ export const renderSongPartLines = (lines?: ISongPartLine[], options?: {
 
         switch (line.type) {
           case 'chords':
-            return <p key={`chords-${ix}`} className={resolvedChordsClassName} style={options?.chordsStyle}>{content}</p>;
+            return (
+              <p
+                key={`chords-${ix}`}
+                className={resolvedChordsClassName}
+                style={options?.chordsStyle}
+              >
+                {content}
+              </p>
+            );
           case 'comments':
-            return <p key={`comments-${ix}`} className={resolvedCommentsClassName} style={options?.commentsStyle}>{content}</p>;
+            return (
+              <p
+                key={`comments-${ix}`}
+                className={resolvedCommentsClassName}
+                style={options?.commentsStyle}
+              >
+                {content}
+              </p>
+            );
           case 'lyrics':
           default:
-            return <p key={`lyrics-${ix}`} className={resolvedLyricsClassName} style={options?.lyricsStyle}>{content}</p>;
+            return (
+              <p
+                key={`lyrics-${ix}`}
+                className={resolvedLyricsClassName}
+                style={options?.lyricsStyle}
+              >
+                {content}
+              </p>
+            );
         }
       })}
     </>
   );
-}
+};
 
 // ─── Chord detection ──────────────────────────────────────────────────────────
 
-const chordsRegex = /(?<=\s)[A-G](#{1,2}|b{1,2})?\(?\d*(M|maj|m|min|sus|º|\+)?\d*(\(\d*[+-]?\))?([\\\/][A-G](#{1,2}|b{1,2})?)?\)?(?=\s)/gi;
+const chordsRegex =
+  /(?<=\s)[A-G](#{1,2}|b{1,2})?\(?\d*(M|maj|m|min|sus|º|\+)?\d*(\(\d*[+-]?\))?([\\\/][A-G](#{1,2}|b{1,2})?)?\)?(?=\s)/gi;
 export const getChordsData = (text: string) => {
-  const words = text.replace(/[\[\]\(\)]+/gi, '').replace(/\s+/gi, ' ').trim().split(/\s/gi);
-  const chordsIter = (` ${text} `).matchAll(chordsRegex);
-  const chords = Array.from(chordsIter, m => m[0].trim());
+  const words = text
+    .replace(/[\[\]\(\)]+/gi, '')
+    .replace(/\s+/gi, ' ')
+    .trim()
+    .split(/\s/gi);
+  const chordsIter = ` ${text} `.matchAll(chordsRegex);
+  const chords = Array.from(chordsIter, (m) => m[0].trim());
 
   return {
     wordCount: words.length,
     chordCount: chords.length,
     chords,
     proportion: words.length > 0 ? chords.length / words.length : 0,
-  }
-}
+  };
+};
 
 // ─── Capitalize ───────────────────────────────────────────────────────────────
 
 const capitalizeEachSentence = (text: string) => {
-  return text.replace(/([\.\?!])\s*([A-Za-zÀ-ÖØ-öø-ÿ])/gui, (match, punctuation, letter) => {
+  return text.replace(/([\.\?!])\s*([A-Za-zÀ-ÖØ-öø-ÿ])/giu, (match, punctuation, letter) => {
     return punctuation + match.slice(1, -1) + letter.toUpperCase();
-  })
-}
+  });
+};
 
 const capitalizeEachLine = (text: string) => {
-  return text.replace(/(\n)\s*([A-Za-zÀ-ÖØ-öø-ÿ])/gui, (match, newline, letter) => {
+  return text.replace(/(\n)\s*([A-Za-zÀ-ÖØ-öø-ÿ])/giu, (match, newline, letter) => {
     return newline + match.slice(1, -1) + letter.toUpperCase();
   });
-}
+};
 
 export const capitalizeText = (text: string) => {
   text = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
   text = capitalizeEachLine(text);
   text = capitalizeEachSentence(text);
   return text;
-}
+};
 
 // ─── Reference URL helpers ────────────────────────────────────────────────────
 
@@ -172,7 +207,11 @@ export function getYouTubePlaylistId(url: string): string | null {
   try {
     const parsed = new URL(url);
     const hostname = parsed.hostname.replace('www.', '');
-    if (hostname !== 'youtube.com' && hostname !== 'music.youtube.com' && hostname !== 'm.youtube.com') {
+    if (
+      hostname !== 'youtube.com' &&
+      hostname !== 'music.youtube.com' &&
+      hostname !== 'm.youtube.com'
+    ) {
       return null;
     }
     if (parsed.searchParams.has('v')) return null;
@@ -216,7 +255,10 @@ export function getDeezerShareUrl(url: string): string | null {
  * Resolves a Deezer share/short link to a track ID by calling the API's
  * resolve-redirect endpoint (needed because link.deezer.com blocks CORS).
  */
-export async function resolveDeezerShareUrl(url: string, signal?: AbortSignal): Promise<string | null> {
+export async function resolveDeezerShareUrl(
+  url: string,
+  signal?: AbortSignal,
+): Promise<string | null> {
   try {
     const timeoutMs = 20_000;
     const abortController = new AbortController();
@@ -225,10 +267,9 @@ export async function resolveDeezerShareUrl(url: string, signal?: AbortSignal): 
     const timeoutId = setTimeout(() => abortController.abort(), timeoutMs);
     signal?.addEventListener('abort', () => abortController.abort(), { once: true });
 
-    const response = await fetch(
-      `${api.url}/resolve-redirect?url=${encodeURIComponent(url)}`,
-      { signal: abortController.signal },
-    );
+    const response = await fetch(`${api.url}/resolve-redirect?url=${encodeURIComponent(url)}`, {
+      signal: abortController.signal,
+    });
     clearTimeout(timeoutId);
 
     if (!response.ok) return null;
@@ -330,7 +371,8 @@ export function getEmbedInfo(url: string | null): EmbedInfo {
 
   const deezerId = getDeezerTrackId(url);
   const deezerShare = getDeezerShareUrl(url);
-  if (deezerId || deezerShare) return { type: 'deezer', trackId: deezerId ?? undefined, shareUrl: deezerShare ?? undefined };
+  if (deezerId || deezerShare)
+    return { type: 'deezer', trackId: deezerId ?? undefined, shareUrl: deezerShare ?? undefined };
 
   const scUrl = getSoundCloudUrl(url);
   if (scUrl) return { type: 'soundcloud', trackUrl: scUrl };
@@ -347,7 +389,7 @@ export function getEmbedInfo(url: string | null): EmbedInfo {
 // ─── Chord transposition ──────────────────────────────────────────────────────
 
 const SHARPS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-const FLATS  = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+const FLATS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
 /** Returns the chromatic index (0–11) for a note name like C, C#, Db, Bb, etc. */
 function noteIndex(note: string): number {
@@ -363,7 +405,7 @@ function noteIndex(note: string): number {
 export function transposeNote(note: string, semitones: number, useFlats: boolean): string {
   const idx = noteIndex(note);
   if (idx === -1) return note; // unknown note — leave as-is
-  const newIdx = ((idx + semitones) % 12 + 12) % 12;
+  const newIdx = (((idx + semitones) % 12) + 12) % 12;
   return useFlats ? FLATS[newIdx] : SHARPS[newIdx];
 }
 
@@ -381,7 +423,7 @@ export function transposeChordToken(chord: string, semitones: number, useFlats: 
   const rawRoot = m[1] + (m[2] ?? '');
   let root = rawRoot;
   if (rawRoot.endsWith('##')) root = SHARPS[(noteIndex(m[1]) + 2) % 12];
-  else if (rawRoot.endsWith('bb')) root = FLATS[((noteIndex(m[1]) - 2) + 12) % 12];
+  else if (rawRoot.endsWith('bb')) root = FLATS[(noteIndex(m[1]) - 2 + 12) % 12];
 
   const transposedRoot = transposeNote(root, semitones, useFlats);
   const suffix = chord.slice(rawRoot.length);
@@ -393,7 +435,7 @@ export function transposeChordToken(chord: string, semitones: number, useFlats: 
     const rawBass = bassMatch[2] + (bassMatch[3] ?? '');
     let bass = rawBass;
     if (rawBass.endsWith('##')) bass = SHARPS[(noteIndex(bassMatch[2]) + 2) % 12];
-    else if (rawBass.endsWith('bb')) bass = FLATS[((noteIndex(bassMatch[2]) - 2) + 12) % 12];
+    else if (rawBass.endsWith('bb')) bass = FLATS[(noteIndex(bassMatch[2]) - 2 + 12) % 12];
     const transposedBass = transposeNote(bass, semitones, useFlats);
     const beforeBass = suffix.slice(0, bassMatch.index);
     const afterBass = bassMatch[4];
@@ -404,7 +446,8 @@ export function transposeChordToken(chord: string, semitones: number, useFlats: 
 }
 
 // Matches a chord token preceded by a captured whitespace run and followed by whitespace.
-const CHORD_TOKEN_WITH_SPACE_RE = /(\s)([A-G](#{1,2}|b{1,2})?\(?\d*(M|maj|m|min|sus|º|\+)?\d*(\(\d*[+-]?\))?([\\\/][A-G](#{1,2}|b{1,2})?)?\)?)(?=\s)/g;
+const CHORD_TOKEN_WITH_SPACE_RE =
+  /(\s)([A-G](#{1,2}|b{1,2})?\(?\d*(M|maj|m|min|sus|º|\+)?\d*(\(\d*[+-]?\))?([\\\/][A-G](#{1,2}|b{1,2})?)?\)?)(?=\s)/g;
 
 /**
  * Transposes all chord tokens in a chord-line string by `semitones`,
@@ -449,7 +492,7 @@ export function transposeLine(line: string, semitones: number, useFlats?: boolea
  */
 export function swapAccidentals(line: string): string {
   const sharpCount = (line.match(/[A-G]#/g) ?? []).length;
-  const flatCount  = (line.match(/[A-G]b/g) ?? []).length;
+  const flatCount = (line.match(/[A-G]b/g) ?? []).length;
   const targetFlats = sharpCount > flatCount;
   return transposeLine(line, 0, targetFlats);
 }
@@ -463,12 +506,14 @@ export function deriveAcronym(name: string): string {
 
   const trailingNumberMatch = /\s+(\d+)$/.exec(trimmed);
   const trailingNumber = trailingNumberMatch ? trailingNumberMatch[1] : '';
-  const withoutNumber = trailingNumber ? trimmed.slice(0, -trailingNumberMatch![0].length) : trimmed;
+  const withoutNumber = trailingNumber
+    ? trimmed.slice(0, -trailingNumberMatch![0].length)
+    : trimmed;
 
   const segments = withoutNumber.split(/[\s\-]+/).filter(Boolean);
   const initials = segments
     .slice(0, 3)
-    .map(s => s.charAt(0).toUpperCase())
+    .map((s) => s.charAt(0).toUpperCase())
     .join('');
 
   return initials + trailingNumber;
@@ -480,8 +525,8 @@ export function deriveAcronym(name: string): string {
  */
 export function isBlockEqual(a: Pick<ISongPart, 'lines'>, b: Pick<ISongPart, 'lines'>): boolean {
   if (a.lines.length !== b.lines.length) return false;
-  return a.lines.every((line, i) =>
-    line.type === b.lines[i].type && line.content === b.lines[i].content
+  return a.lines.every(
+    (line, i) => line.type === b.lines[i].type && line.content === b.lines[i].content,
   );
 }
 
@@ -510,7 +555,7 @@ export function computeNumberedBlocks(blocks: ISongPart[]): NumberedBlocksResult
   const sequencedBlocks: INumberedSongPart[] = [];
 
   for (let ix = 0; ix < blocks.length; ix++) {
-    const sourceBlock = blocks[ix] ?? { lines: [] } as ISongPart;
+    const sourceBlock = blocks[ix] ?? ({ lines: [] } as ISongPart);
     let added = false;
     let sequenceNumber: number | undefined = undefined;
 
@@ -527,7 +572,11 @@ export function computeNumberedBlocks(blocks: ISongPart[]): NumberedBlocksResult
     if (sequenceNumber) {
       sequencedBlocks.push({ ...sourceBlock, sequence: sequenceNumber, isFirstAppearance: false });
     } else {
-      sequencedBlocks.push({ ...sourceBlock, sequence: simplifiedBlocks.length + 1, isFirstAppearance: true });
+      sequencedBlocks.push({
+        ...sourceBlock,
+        sequence: simplifiedBlocks.length + 1,
+        isFirstAppearance: true,
+      });
     }
 
     if (!added) {
@@ -620,9 +669,10 @@ function extractBlockName(lines: ISongPartLine[]): { name?: string; lines: ISong
   }
 
   // Keep chord columns aligned with the lyrics line below, otherwise drop the indentation
-  const content = lines[1]?.type === 'lyrics'
-    ? ' '.repeat(header.prefix.length) + header.rest
-    : header.rest.trimStart();
+  const content =
+    lines[1]?.type === 'lyrics'
+      ? ' '.repeat(header.prefix.length) + header.rest
+      : header.rest.trimStart();
 
   return {
     name: header.name,
@@ -645,9 +695,9 @@ function unwrapParentheses(line: string): string | null {
 
 /** Removes wrapping parentheses from chord lines, e.g. "( C9  C )" → "C9  C", in blocks without lyrics. */
 function unwrapChordOnlyLines(lines: ISongPartLine[]): ISongPartLine[] {
-  if (lines.some(line => line.type === 'lyrics')) return lines;
+  if (lines.some((line) => line.type === 'lyrics')) return lines;
 
-  return lines.map(line => {
+  return lines.map((line) => {
     if (line.type !== 'chords') return line;
     const inner = unwrapParentheses(line.content);
     return inner ? { ...line, content: inner } : line;
@@ -675,18 +725,11 @@ export function parseSongText(fullText: string): ParsedSong {
     const secondLine = rawLines[1].trim();
     const thirdLine = rawLines[2].trim();
 
-    if (
-      isTitleCandidate(firstLine) &&
-      isTitleCandidate(secondLine) &&
-      thirdLine === ''
-    ) {
+    if (isTitleCandidate(firstLine) && isTitleCandidate(secondLine) && thirdLine === '') {
       title = firstLine;
       artist = secondLine;
       bodyStart = 3;
-    } else if (
-      isTitleCandidate(firstLine) &&
-      secondLine === ''
-    ) {
+    } else if (isTitleCandidate(firstLine) && secondLine === '') {
       title = firstLine;
       bodyStart = 2;
     }
@@ -694,10 +737,7 @@ export function parseSongText(fullText: string): ParsedSong {
     const firstLine = rawLines[0].trim();
     const secondLine = rawLines[1].trim();
 
-    if (
-      isTitleCandidate(firstLine) &&
-      secondLine === ''
-    ) {
+    if (isTitleCandidate(firstLine) && secondLine === '') {
       title = firstLine;
       bodyStart = 2;
     }

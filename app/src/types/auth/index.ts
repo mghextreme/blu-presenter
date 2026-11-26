@@ -1,6 +1,6 @@
-import type { Session, User } from "@supabase/supabase-js";
+import type { Session, User } from '@supabase/supabase-js';
 
-export type SupportedLocale = "en" | "pt";
+export type SupportedLocale = 'en' | 'pt';
 
 export interface IAuthInvitationData {
   id: number;
@@ -84,4 +84,3 @@ export interface IOtpSignInVerifyData {
   token: string;
   invite?: IAuthInvitationData;
 }
-

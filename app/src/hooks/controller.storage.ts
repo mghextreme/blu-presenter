@@ -1,8 +1,8 @@
-import { IScheduleItem } from "@/types";
-import { STORAGE_KEYS } from "@/lib/storage-keys";
+import { IScheduleItem } from '@/types';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 export interface IControllerConfig {
-  autoAdvanceScheduleItem: boolean
+  autoAdvanceScheduleItem: boolean;
 }
 
 export const DEFAULT_CONTROLLER_CONFIG: IControllerConfig = {
@@ -10,8 +10,9 @@ export const DEFAULT_CONTROLLER_CONFIG: IControllerConfig = {
 };
 
 export function loadStoredSchedule(): IScheduleItem[] {
-  const stored = localStorage.getItem(STORAGE_KEYS.controllerSchedule)
-    || sessionStorage.getItem(STORAGE_KEYS.controllerSchedule);
+  const stored =
+    localStorage.getItem(STORAGE_KEYS.controllerSchedule) ||
+    sessionStorage.getItem(STORAGE_KEYS.controllerSchedule);
   return parseOr(stored, []);
 }
 

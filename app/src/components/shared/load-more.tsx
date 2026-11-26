@@ -1,6 +1,6 @@
-import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 
 interface LoadMoreButtonProps {
   onClick: () => void;
@@ -8,16 +8,15 @@ interface LoadMoreButtonProps {
   disabled?: boolean;
 }
 
-export function LoadMoreButton({ onClick, isLoading, disabled = false }: Readonly<LoadMoreButtonProps>) {
-  const { t } = useTranslation("app");
+export function LoadMoreButton({
+  onClick,
+  isLoading,
+  disabled = false,
+}: Readonly<LoadMoreButtonProps>) {
+  const { t } = useTranslation('app');
 
   return (
-    <Button
-      variant="outline"
-      className="w-full"
-      onClick={onClick}
-      disabled={disabled || isLoading}
-    >
+    <Button variant="outline" className="w-full" onClick={onClick} disabled={disabled || isLoading}>
       {isLoading && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
       {t('actions.loadMore')}
     </Button>

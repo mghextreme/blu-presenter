@@ -1,8 +1,13 @@
-import { useMemo, useState } from "react";
-import { keepPreviousData, QueryKey, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { PAGE_SIZE } from "@/lib/pagination";
-import type { OptionalOrganization } from "@/components/app/organization-bar";
-import { selectionToFilter, useOrganizationFilter } from "@/hooks/use-organization-filter";
+import { useMemo, useState } from 'react';
+import {
+  keepPreviousData,
+  QueryKey,
+  useInfiniteQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { PAGE_SIZE } from '@/lib/pagination';
+import type { OptionalOrganization } from '@/components/app/organization-bar';
+import { selectionToFilter, useOrganizationFilter } from '@/hooks/use-organization-filter';
 
 /** Optional date range filter, as YYYY-MM-DD strings. */
 export type FilteredListDateRange = { from: string | null; to: string | null } | null;
@@ -29,9 +34,18 @@ interface UseFilteredListOptions<T> {
   auto?: boolean;
 }
 
-export function useFilteredList<T>({ queryKey, defaultValue, initialOrganizations, search, onError, auto = false }: UseFilteredListOptions<T>) {
+export function useFilteredList<T>({
+  queryKey,
+  defaultValue,
+  initialOrganizations,
+  search,
+  onError,
+  auto = false,
+}: UseFilteredListOptions<T>) {
   const queryClient = useQueryClient();
-  const [selectedOrganizations, setSelectedOrganizations] = useState<OptionalOrganization[]>(initialOrganizations ?? []);
+  const [selectedOrganizations, setSelectedOrganizations] = useState<OptionalOrganization[]>(
+    initialOrganizations ?? [],
+  );
   const [query, setQueryState] = useState<string>('');
   const [dateRange, setDateRangeState] = useState<FilteredListDateRange>(null);
   const [filtersChanged, setFiltersChanged] = useState<boolean>(false);
@@ -55,8 +69,10 @@ export function useFilteredList<T>({ queryKey, defaultValue, initialOrganization
       }
     },
     initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => (lastPage.length === PAGE_SIZE ? allPages.length + 1 : undefined),
-    initialData: !filtersChanged && defaultValue ? { pages: [defaultValue], pageParams: [1] } : undefined,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === PAGE_SIZE ? allPages.length + 1 : undefined,
+    initialData:
+      !filtersChanged && defaultValue ? { pages: [defaultValue], pageParams: [1] } : undefined,
     enabled: auto || filtersChanged || defaultValue !== undefined,
     placeholderData: keepPreviousData,
   });

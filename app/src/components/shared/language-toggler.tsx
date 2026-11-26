@@ -1,29 +1,26 @@
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Button } from "../ui/button";
-import { useState } from "react";
-import { FlagBr, FlagGb } from "@/components/logos/flags";
-import i18next from "i18next";
-import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
-import { Command, CommandGroup, CommandItem } from "../ui/command";
-import { useTranslation } from "react-i18next";
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Button } from '../ui/button';
+import { useState } from 'react';
+import { FlagBr, FlagGb } from '@/components/logos/flags';
+import i18next from 'i18next';
+import ChevronDownIcon from '@heroicons/react/24/solid/ChevronDownIcon';
+import { Command, CommandGroup, CommandItem } from '../ui/command';
+import { useTranslation } from 'react-i18next';
 
 type LanguageTogglerProps = {
   variant?: 'ghost' | 'outline';
-}
+};
 
-export function LanguageToggler({
-  variant = 'outline',
-}: Readonly<LanguageTogglerProps>) {
-
-  const { t } = useTranslation("navbar");
+export function LanguageToggler({ variant = 'outline' }: Readonly<LanguageTogglerProps>) {
+  const { t } = useTranslation('navbar');
   const curLang = i18next.resolvedLanguage || 'en';
 
   const [open, setOpen] = useState(false);
-  const languageListId = "language-selector-list";
+  const languageListId = 'language-selector-list';
 
   const setValue = (lang: string) => {
     i18next.changeLanguage(lang);
-  }
+  };
 
   const languages = [
     {
@@ -61,8 +58,8 @@ export function LanguageToggler({
                 key={lang.value}
                 value={lang.value}
                 onSelect={(currentValue) => {
-                  setValue(currentValue)
-                  setOpen(false)
+                  setValue(currentValue);
+                  setOpen(false);
                 }}
               >
                 {lang.flag}
@@ -73,5 +70,5 @@ export function LanguageToggler({
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }

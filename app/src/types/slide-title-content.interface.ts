@@ -1,6 +1,6 @@
-import { ISlideContent } from "./slide-content.interface";
+import { ISlideContent } from './slide-content.interface';
 
 export interface ISlideTitleContent extends ISlideContent {
-  title: string
-  subtitle?: string
+  title: string;
+  subtitle?: string;
 }

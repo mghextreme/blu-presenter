@@ -1,11 +1,11 @@
-import { useTranslation } from "react-i18next";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
-import { useServices } from "@/hooks/useServices";
-import { describeApiError } from "@/types";
-import { SpotifyIcon } from "@/components/logos/spotify";
-import { Button } from "@/components/ui/button";
+import { useServices } from '@/hooks/useServices';
+import { describeApiError } from '@/types';
+import { SpotifyIcon } from '@/components/logos/spotify';
+import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,31 +16,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import QueueListIcon from "@heroicons/react/24/outline/QueueListIcon";
-import { IUserIdentitiesResponse } from "@/types/auth";
+} from '@/components/ui/alert-dialog';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
+import QueueListIcon from '@heroicons/react/24/outline/QueueListIcon';
+import { IUserIdentitiesResponse } from '@/types/auth';
 
 interface SpotifyConnectionProps {
   identities: IUserIdentitiesResponse;
 }
 
-export function SpotifyConnection({
-  identities,
-}: Readonly<SpotifyConnectionProps>) {
-  const { t } = useTranslation("profile");
+export function SpotifyConnection({ identities }: Readonly<SpotifyConnectionProps>) {
+  const { t } = useTranslation('profile');
   const { spotifyService, authService } = useServices();
 
-  const spotifyIdentity = identities.identities.find(i => i.provider === 'spotify');
+  const spotifyIdentity = identities.identities.find((i) => i.provider === 'spotify');
 
   const { data: status } = useQuery({ ...spotifyService.getStatusQuery(), retry: false });
 
   // Sign-in is always offered; playlists are an opt-in feature, kept visible
   // for users who already connected so they can still disconnect.
   const showPlaylists = !!status?.playlistsEnabled || !!status?.connected;
-  const playlistsAccount = status?.connected
-    ? status.accountName || status.accountId
-    : null;
+  const playlistsAccount = status?.connected ? status.accountName || status.accountId : null;
 
   const connectSignIn = useMutation({
     mutationFn: () => authService.linkIdentity('spotify'),
@@ -97,8 +93,10 @@ export function SpotifyConnection({
   });
 
   // A successful connect stays busy: the page is about to redirect to the provider.
-  const isSignInBusy = connectSignIn.isPending || connectSignIn.isSuccess || disconnectSignIn.isPending;
-  const isPlaylistsBusy = connectPlaylists.isPending || connectPlaylists.isSuccess || disconnectPlaylists.isPending;
+  const isSignInBusy =
+    connectSignIn.isPending || connectSignIn.isSuccess || disconnectSignIn.isPending;
+  const isPlaylistsBusy =
+    connectPlaylists.isPending || connectPlaylists.isSuccess || disconnectPlaylists.isPending;
   const isLoading = isSignInBusy || isPlaylistsBusy;
 
   return (
@@ -128,18 +126,26 @@ export function SpotifyConnection({
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>{t('connectedAccounts.confirmDisconnect.cancel')}</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" onClick={() => disconnectSignIn.mutate(spotifyIdentity.identityId)}>
+                <AlertDialogCancel>
+                  {t('connectedAccounts.confirmDisconnect.cancel')}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={() => disconnectSignIn.mutate(spotifyIdentity.identityId)}
+                >
                   {t('connectedAccounts.confirmDisconnect.confirm')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         ) : (
-          <Button variant="outline" size="sm" disabled={isLoading} onClick={() => connectSignIn.mutate()}>
-            {isSignInBusy && (
-              <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
-            )}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isLoading}
+            onClick={() => connectSignIn.mutate()}
+          >
+            {isSignInBusy && <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>}
             {t('connectedAccounts.connect')}
           </Button>
         )}
@@ -171,15 +177,25 @@ export function SpotifyConnection({
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>{t('connectedAccounts.confirmDisconnect.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" onClick={() => disconnectPlaylists.mutate()}>
+                  <AlertDialogCancel>
+                    {t('connectedAccounts.confirmDisconnect.cancel')}
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    variant="destructive"
+                    onClick={() => disconnectPlaylists.mutate()}
+                  >
                     {t('connectedAccounts.confirmDisconnect.confirm')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           ) : (
-            <Button variant="outline" size="sm" disabled={isLoading} onClick={() => connectPlaylists.mutate()}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isLoading}
+              onClick={() => connectPlaylists.mutate()}
+            >
               {isPlaylistsBusy && (
                 <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
               )}

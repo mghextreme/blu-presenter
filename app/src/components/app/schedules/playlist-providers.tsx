@@ -1,22 +1,22 @@
-import type { ComponentType, SVGProps } from "react";
-import type { UseQueryOptions } from "@tanstack/react-query";
+import type { ComponentType, SVGProps } from 'react';
+import type { UseQueryOptions } from '@tanstack/react-query';
 
 import {
   ISchedule,
   ISchedulePlaylistReference,
   ISchedulePlaylistSyncResult,
   ISongReference,
-} from "@/types";
+} from '@/types';
 import {
   findAutoReference,
   getSchedulePlaylistProjection,
   SchedulePlaylistProjection,
-} from "@/lib/schedule-playlists";
-import { getSpotifyTrackId, getYouTubeVideoId } from "@/lib/songs";
-import type { ServicesProviderState } from "@/hooks/services.provider";
-import type { IPlaylistConnectionStatus } from "@/services/playlist-integration.service";
-import { SpotifyIcon } from "@/components/logos/spotify";
-import { YouTubeIcon } from "@/components/logos/youtube";
+} from '@/lib/schedule-playlists';
+import { getSpotifyTrackId, getYouTubeVideoId } from '@/lib/songs';
+import type { ServicesProviderState } from '@/hooks/services.provider';
+import type { IPlaylistConnectionStatus } from '@/services/playlist-integration.service';
+import { SpotifyIcon } from '@/components/logos/spotify';
+import { YouTubeIcon } from '@/components/logos/youtube';
 
 /** The current user's access to a provider's playlist feature. */
 export interface SchedulePlaylistProviderStatus {
@@ -43,7 +43,7 @@ export interface SchedulePlaylistCreateOptions {
  */
 export interface SchedulePlaylistProvider {
   /** Value written to the generated reference's `source` field. */
-  source: ISchedulePlaylistReference["source"];
+  source: ISchedulePlaylistReference['source'];
   /** Logo shown next to every action for this provider. */
   Icon: ComponentType<Readonly<SVGProps<SVGSVGElement>>>;
   /** i18n key prefix (schedules namespace) holding this provider's strings. */

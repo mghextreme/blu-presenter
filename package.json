@@ -1,0 +1,9 @@
+{
+  "name": "blu-presenter",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "packageManager": "pnpm@12.15.0",
+  "devDependencies": {
+    "vite-plus": "catalog:"
+  }
+}

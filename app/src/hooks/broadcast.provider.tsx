@@ -1,20 +1,20 @@
-import { createContext, useEffect, useMemo, useState } from "react"
-import { BaseTheme, IBroadcastSession } from "@/types"
-import { useController } from "./useController"
-import { useServices } from "./useServices"
-import { STORAGE_KEYS } from "@/lib/storage-keys"
+import { createContext, useEffect, useMemo, useState } from 'react';
+import { BaseTheme, IBroadcastSession } from '@/types';
+import { useController } from './useController';
+import { useServices } from './useServices';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 type BroadcastProviderProps = {
-  children: React.ReactNode
-}
+  children: React.ReactNode;
+};
 
 type BroadcastProviderState = {
-  session?: IBroadcastSession,
-  setSession: (session?: IBroadcastSession) => void,
+  session?: IBroadcastSession;
+  setSession: (session?: IBroadcastSession) => void;
 
-  urlTheme?: {label: string; value: BaseTheme | number},
-  setUrlTheme: (theme?: {label: string; value: BaseTheme | number}) => void,
-}
+  urlTheme?: { label: string; value: BaseTheme | number };
+  setUrlTheme: (theme?: { label: string; value: BaseTheme | number }) => void;
+};
 
 const initialState: BroadcastProviderState = {
   session: undefined,
@@ -22,7 +22,7 @@ const initialState: BroadcastProviderState = {
 
   urlTheme: undefined,
   setUrlTheme: () => null,
-}
+};
 
 export const BroadcastProviderContext = createContext<BroadcastProviderState>(initialState);
 
@@ -32,11 +32,7 @@ export const BroadcastProviderContext = createContext<BroadcastProviderState>(in
  * change is persisted through the API, and the API fans the state out to
  * the room — only receiver pages need a socket to receive it.
  */
-export function BroadcastProvider({
-  children,
-  ...props
-}: Readonly<BroadcastProviderProps>) {
-
+export function BroadcastProvider({ children, ...props }: Readonly<BroadcastProviderProps>) {
   const { schedule, scheduleItem, selection } = useController((s) => ({
     schedule: s.schedule,
     scheduleItem: s.scheduleItem,
@@ -62,7 +58,8 @@ export function BroadcastProvider({
   useEffect(() => {
     if (!session?.id || !session?.orgId) return;
 
-    broadcastService.setSchedule(session.id, session.orgId, schedule)
+    broadcastService
+      .setSchedule(session.id, session.orgId, schedule)
       .catch((e) => console.warn('Failed to broadcast schedule:', e));
   }, [broadcastService, schedule, session]);
 
@@ -72,7 +69,8 @@ export function BroadcastProvider({
     // Nothing selected yet: skip instead of clearing the live schedule item.
     if (!scheduleItem) return;
 
-    broadcastService.setScheduleItem(session.id, session.orgId, scheduleItem)
+    broadcastService
+      .setScheduleItem(session.id, session.orgId, scheduleItem)
       .catch((e) => console.warn('Failed to broadcast schedule item:', e));
   }, [broadcastService, scheduleItem, session]);
 
@@ -88,9 +86,11 @@ export function BroadcastProvider({
       selection.scheduleItem === undefined &&
       selection.slide === undefined &&
       selection.part === undefined
-    ) return;
+    )
+      return;
 
-    broadcastService.setSelection(session.id, session.orgId, selection)
+    broadcastService
+      .setSelection(session.id, session.orgId, selection)
       .catch((e) => console.warn('Failed to broadcast selection:', e));
   }, [broadcastService, selection, session]);
 
@@ -102,7 +102,7 @@ export function BroadcastProvider({
     }
 
     setSession(newBroadcastSession);
-  }
+  };
 
   const [urlTheme, setUrlTheme] = useState<BaseTheme | number | undefined>(undefined);
 
@@ -114,13 +114,11 @@ export function BroadcastProvider({
       urlTheme,
       setUrlTheme,
     } as BroadcastProviderState;
-  }, [
-    session, urlTheme,
-  ]);
+  }, [session, urlTheme]);
 
   return (
     <BroadcastProviderContext.Provider {...props} value={value}>
       {children}
     </BroadcastProviderContext.Provider>
-  )
+  );
 }

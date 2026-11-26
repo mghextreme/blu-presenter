@@ -1,24 +1,24 @@
-import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
-import { LineStyle } from '@/types/line-style.interface'
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { LineStyle } from '@/types/line-style.interface';
 
 interface PrintConfigState {
-  fontSize: number
-  increaseFontSize: () => void
-  decreaseFontSize: () => void
-  resetFontSize: () => void
-  showNumbers: boolean
-  toggleNumbers: () => void
-  columns: number
-  toggleColumns: () => void
-  showSpotifyCode: boolean
-  toggleSpotifyCode: () => void
-  compactMode?: 'compact' | 'firstLine'
-  setCompactMode: (mode: 'compact' | 'firstLine' | undefined) => void
-  chordsStyle: LineStyle
-  setChordsStyle: (style: Partial<LineStyle>) => void
-  commentsStyle: LineStyle
-  setCommentsStyle: (style: Partial<LineStyle>) => void
+  fontSize: number;
+  increaseFontSize: () => void;
+  decreaseFontSize: () => void;
+  resetFontSize: () => void;
+  showNumbers: boolean;
+  toggleNumbers: () => void;
+  columns: number;
+  toggleColumns: () => void;
+  showSpotifyCode: boolean;
+  toggleSpotifyCode: () => void;
+  compactMode?: 'compact' | 'firstLine';
+  setCompactMode: (mode: 'compact' | 'firstLine' | undefined) => void;
+  chordsStyle: LineStyle;
+  setChordsStyle: (style: Partial<LineStyle>) => void;
+  commentsStyle: LineStyle;
+  setCommentsStyle: (style: Partial<LineStyle>) => void;
 }
 
 export const usePrintConfig = create<PrintConfigState>()(
@@ -77,7 +77,7 @@ export const usePrintConfig = create<PrintConfigState>()(
       },
     }),
     {
-      name: "printConfig",
+      name: 'printConfig',
       partialize: (state: PrintConfigState) => ({
         fontSize: state.fontSize,
         showNumbers: state.showNumbers,
@@ -88,6 +88,6 @@ export const usePrintConfig = create<PrintConfigState>()(
         commentsStyle: state.commentsStyle,
       }),
       storage: createJSONStorage(() => localStorage),
-    }
-  )
+    },
+  ),
 );

@@ -1,27 +1,26 @@
-import { isRoleHigherOrEqualThan } from "@/types";
-import { Button } from "@/components/ui/button";
-import { Link, useParams } from "react-router-dom";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
-import { useAuth } from "@/hooks/useAuth";
-import { useServices } from "@/hooks/useServices";
-import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
-import PrinterIcon from "@heroicons/react/24/solid/PrinterIcon";
-import ShareIcon from "@heroicons/react/24/solid/ShareIcon";
-import { ControllerProvider } from "@/hooks/controller.provider";
-import { SongPreview } from "@/components/app/songs/song-preview";
-import { PreviewIcon } from "@/components/icons/preview";
-import { CopySongToOrganization } from "@/components/app/songs/copy-song-to-organization";
-import { ExportSongDialog } from "@/components/app/songs/export-song-dialog";
-import { SongViewer } from "@/components/app/songs/song-viewer";
-import { OrganizationBar } from "@/components/app/organization-bar";
-import { pageContentColumn } from "@/components/shared/page-content";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { isRoleHigherOrEqualThan } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Link, useParams } from 'react-router-dom';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/hooks/useAuth';
+import { useServices } from '@/hooks/useServices';
+import PencilIcon from '@heroicons/react/24/solid/PencilIcon';
+import PrinterIcon from '@heroicons/react/24/solid/PrinterIcon';
+import ShareIcon from '@heroicons/react/24/solid/ShareIcon';
+import { ControllerProvider } from '@/hooks/controller.provider';
+import { SongPreview } from '@/components/app/songs/song-preview';
+import { PreviewIcon } from '@/components/icons/preview';
+import { CopySongToOrganization } from '@/components/app/songs/copy-song-to-organization';
+import { ExportSongDialog } from '@/components/app/songs/export-song-dialog';
+import { SongViewer } from '@/components/app/songs/song-viewer';
+import { OrganizationBar } from '@/components/app/organization-bar';
+import { pageContentColumn } from '@/components/shared/page-content';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export function ViewSong() {
-
-  const { t } = useTranslation("songs");
+  const { t } = useTranslation('songs');
 
   const params = useParams();
   const { songsService } = useServices();
@@ -41,7 +40,7 @@ export function ViewSong() {
 
   const copyShareableUrlToClipboard = async () => {
     const currentUrl = new URL(window.location.href);
-    const shareUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/view/${data.id}/${data.secret ?? ''}`
+    const shareUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/view/${data.id}/${data.secret ?? ''}`;
     const clipboard = navigator.clipboard;
     if (!!clipboard) {
       await navigator.clipboard.writeText(shareUrl);
@@ -51,27 +50,46 @@ export function ViewSong() {
     } else {
       window.open(shareUrl, '_blank');
     }
-  }
+  };
 
   return (
     <>
-      <title>{t('title.view', { title: data.title, artist: data.artist }) + ' - BluPresenter'}</title>
+      <title>
+        {t('title.view', { title: data.title, artist: data.artist }) + ' - BluPresenter'}
+      </title>
       <OrganizationBar organizations={[data.organization ?? null]}>
-        {isLoggedIn && <CopySongToOrganization songId={data.id} title={data.title} artist={data.artist} sourceOrgId={data.organization?.id} variant="default" />}
+        {isLoggedIn && (
+          <CopySongToOrganization
+            songId={data.id}
+            title={data.title}
+            artist={data.artist}
+            sourceOrgId={data.organization?.id}
+            variant="default"
+          />
+        )}
         <Button
           type="button"
           size="sm"
           title={t('actions.share')}
-          onClick={copyShareableUrlToClipboard}>
+          onClick={copyShareableUrlToClipboard}
+        >
           <ShareIcon className="size-3" />
         </Button>
-        <ExportSongDialog songId={data.id} title={data.title} artist={data.artist} secret={params.secret} variant="default" />
-        <Button
-          type="button"
-          size="sm"
-          title={t('actions.print')}
-          asChild>
-          <Link to={hasAccess ? `/app/songs/${data.id}/print` : `/shared/print/${data.id}/${data.secret ?? ''}`}>
+        <ExportSongDialog
+          songId={data.id}
+          title={data.title}
+          artist={data.artist}
+          secret={params.secret}
+          variant="default"
+        />
+        <Button type="button" size="sm" title={t('actions.print')} asChild>
+          <Link
+            to={
+              hasAccess
+                ? `/app/songs/${data.id}/print`
+                : `/shared/print/${data.id}/${data.secret ?? ''}`
+            }
+          >
             <PrinterIcon className="size-3" />
           </Link>
         </Button>
@@ -80,7 +98,8 @@ export function ViewSong() {
           size="sm"
           title={t('actions.edit')}
           asChild={canEdit}
-          disabled={!canEdit}>
+          disabled={!canEdit}
+        >
           {canEdit ? (
             <Link to={`/app/songs/${data.id}/edit`}>
               <PencilIcon className="size-3" />
@@ -89,21 +108,24 @@ export function ViewSong() {
             <PencilIcon className="size-3" />
           )}
         </Button>
-        {hasAccess && <ControllerProvider>
-          <SongPreview getSong={() => data}>
-            <Button
-              type="button"
-              size="sm"
-              title={t('actions.preview')}>
-              <PreviewIcon className="size-5" />
-            </Button>
-          </SongPreview>
-        </ControllerProvider>}
+        {hasAccess && (
+          <ControllerProvider>
+            <SongPreview getSong={() => data}>
+              <Button type="button" size="sm" title={t('actions.preview')}>
+                <PreviewIcon className="size-5" />
+              </Button>
+            </SongPreview>
+          </ControllerProvider>
+        )}
       </OrganizationBar>
       <SongViewer song={data} />
-      {isLoggedIn && <div className={cn(pageContentColumn, "pb-8 flex flex-row align-start space-x-2")}>
-        <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/songs'}>{t('button.back')}</Link></Button>
-      </div>}
+      {isLoggedIn && (
+        <div className={cn(pageContentColumn, 'pb-8 flex flex-row align-start space-x-2')}>
+          <Button className="flex-0" type="button" variant="secondary" asChild>
+            <Link to={'/app/songs'}>{t('button.back')}</Link>
+          </Button>
+        </div>
+      )}
     </>
   );
 }

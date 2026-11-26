@@ -1,6 +1,6 @@
-import { queryOptions } from "@tanstack/react-query";
-import { ApiService } from "./api.service";
-import { ISession } from "@/types"
+import { queryOptions } from '@tanstack/react-query';
+import { ApiService } from './api.service';
+import { ISession } from '@/types';
 
 export interface SessionSearchPayload {
   query?: string;
@@ -13,12 +13,12 @@ const sessionKeys = {
   all: ['sessions'] as const,
   detail: (sessionId: number) => ['sessions', 'id', sessionId] as const,
   allForUser: ['sessions', 'allForUser'] as const,
-  shared: (orgId: number, sessionId: number, secret?: string) => ['sessions', 'shared', orgId, sessionId, secret || null] as const,
+  shared: (orgId: number, sessionId: number, secret?: string) =>
+    ['sessions', 'shared', orgId, sessionId, secret || null] as const,
   search: (payload: SessionSearchPayload) => ['sessions', 'search', payload] as const,
 };
 
 export class SessionsService extends ApiService {
-
   public invalidateCache(): Promise<void> {
     return this.queryClient.invalidateQueries({ queryKey: sessionKeys.all });
   }
@@ -26,9 +26,10 @@ export class SessionsService extends ApiService {
   public searchQuery(payload: SessionSearchPayload) {
     return queryOptions({
       queryKey: sessionKeys.search(payload),
-      queryFn: async () => await this.postRequest('/sessions/search', JSON.stringify(payload), {
-        'content-type': 'application/json',
-      }) as ISession[],
+      queryFn: async () =>
+        (await this.postRequest('/sessions/search', JSON.stringify(payload), {
+          'content-type': 'application/json',
+        })) as ISession[],
     });
   }
 
@@ -39,7 +40,7 @@ export class SessionsService extends ApiService {
   public allForUserQuery() {
     return queryOptions({
       queryKey: sessionKeys.allForUser,
-      queryFn: async () => await this.getRequest('/sessions/user/all') as ISession[],
+      queryFn: async () => (await this.getRequest('/sessions/user/all')) as ISession[],
     });
   }
 
@@ -55,7 +56,10 @@ export class SessionsService extends ApiService {
 
     return queryOptions({
       queryKey: sessionKeys.shared(orgId, sessionId, secret),
-      queryFn: async () => await this.getRequest(`/sessions/org/${orgId}/${sessionId}?${params.toString()}`) as ISession,
+      queryFn: async () =>
+        (await this.getRequest(
+          `/sessions/org/${orgId}/${sessionId}?${params.toString()}`,
+        )) as ISession,
     });
   }
 
@@ -66,7 +70,7 @@ export class SessionsService extends ApiService {
   public byIdQuery(sessionId: number) {
     return queryOptions({
       queryKey: sessionKeys.detail(sessionId),
-      queryFn: async () => await this.getRequest(`/sessions/${sessionId}`) as ISession | null,
+      queryFn: async () => (await this.getRequest(`/sessions/${sessionId}`)) as ISession | null,
     });
   }
 
@@ -75,29 +79,28 @@ export class SessionsService extends ApiService {
   }
 
   public async add(value: ISession, orgId: number): Promise<ISession | null> {
-    const response = await this.postRequest('/sessions', JSON.stringify(value), {
+    const response = (await this.postRequest('/sessions', JSON.stringify(value), {
       'content-type': 'application/json',
-      'Organization': orgId.toString(),
-    }) as ISession;
+      Organization: orgId.toString(),
+    })) as ISession;
     void this.invalidateCache();
     return response;
   }
 
   public async update(id: number, value: ISession, orgId: number): Promise<ISession | null> {
-    const response = await this.putRequest(`/sessions/${id}`, JSON.stringify(value), {
+    const response = (await this.putRequest(`/sessions/${id}`, JSON.stringify(value), {
       'content-type': 'application/json',
-      'Organization': orgId.toString(),
-    }) as ISession;
+      Organization: orgId.toString(),
+    })) as ISession;
     void this.invalidateCache();
     return response;
   }
 
   public async delete(sessionId: number, orgId: number): Promise<void> {
     await this.deleteRequest(`/sessions/${sessionId}`, {
-      'Organization': orgId.toString(),
+      Organization: orgId.toString(),
     });
     this.queryClient.removeQueries({ queryKey: sessionKeys.detail(sessionId) });
     void this.invalidateCache();
   }
-
 }

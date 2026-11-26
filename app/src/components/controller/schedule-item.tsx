@@ -1,25 +1,33 @@
-import { ReactNode, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardHeaderActions, CardHeaderText, CardTitle } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useController } from "@/hooks/useController";
-import { IScheduleItem, IScheduleSong, IScheduleText } from "@/types";
-import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
-import ChevronUpDownIcon from "@heroicons/react/24/solid/ChevronUpDownIcon";
-import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import { SlideSelector } from "./slide-selector";
-import { useTranslation } from "react-i18next";
-import { cn } from "@/lib/utils";
-import { OrgBadge } from "@/components/shared/org-badge";
+import { ReactNode, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardHeaderActions,
+  CardHeaderText,
+  CardTitle,
+} from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useController } from '@/hooks/useController';
+import { IScheduleItem, IScheduleSong, IScheduleText } from '@/types';
+import PlayIcon from '@heroicons/react/24/solid/PlayIcon';
+import ChevronUpDownIcon from '@heroicons/react/24/solid/ChevronUpDownIcon';
+import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
+import { SlideSelector } from './slide-selector';
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import { OrgBadge } from '@/components/shared/org-badge';
 
 type ScheduleItemParams = {
-  item: IScheduleItem
-  selected?: boolean
-  index: number
+  item: IScheduleItem;
+  selected?: boolean;
+  index: number;
   buttonsOverride?: ReactNode;
   showOpen?: boolean;
   showOrganization?: boolean;
-}
+};
 
 export function ScheduleItem({
   item,
@@ -29,37 +37,43 @@ export function ScheduleItem({
   showOpen = true,
   showOrganization = false,
 }: Readonly<ScheduleItemParams>) {
+  const { t } = useTranslation('controller');
 
-  const { t } = useTranslation("controller");
-
-  const { setScheduleItem, removeFromSchedule } = useController((s) => ({ setScheduleItem: s.setScheduleItem, removeFromSchedule: s.removeFromSchedule }));
+  const { setScheduleItem, removeFromSchedule } = useController((s) => ({
+    setScheduleItem: s.setScheduleItem,
+    removeFromSchedule: s.removeFromSchedule,
+  }));
 
   const loadItem = () => {
     setScheduleItem(index);
-  }
+  };
 
   const removeItem = () => {
     removeFromSchedule(index);
-  }
+  };
 
   const [isExpanded, setExpanded] = useState<boolean>(false);
   const song = item as IScheduleSong;
   const text = item as IScheduleText;
 
   return (
-    <Card variant={item.type === 'comment' ? 'secondary' : 'default'} className="mt-3 animate-in fade-in-0 slide-in-from-top-2 duration-300">
-      <Collapsible
-        open={isExpanded}
-        onOpenChange={setExpanded}
-        className="w-full">
-        <CardHeader className={cn(
-          item.type === 'comment' && 'py-2',
-          selected && (item.type === 'comment' ? 'bg-gray-300 dark:bg-gray-700' : 'bg-selected'),
-        )}>
+    <Card
+      variant={item.type === 'comment' ? 'secondary' : 'default'}
+      className="mt-3 animate-in fade-in-0 slide-in-from-top-2 duration-300"
+    >
+      <Collapsible open={isExpanded} onOpenChange={setExpanded} className="w-full">
+        <CardHeader
+          className={cn(
+            item.type === 'comment' && 'py-2',
+            selected && (item.type === 'comment' ? 'bg-gray-300 dark:bg-gray-700' : 'bg-selected'),
+          )}
+        >
           <CardHeaderText>
-            <CardTitle className={cn(
-              item.type === 'comment' && 'font-normal text-sm text-muted-foreground'
-            )}>{item?.title}</CardTitle>
+            <CardTitle
+              className={cn(item.type === 'comment' && 'font-normal text-sm text-muted-foreground')}
+            >
+              {item?.title}
+            </CardTitle>
             {item.type === 'song' && !!song?.artist && (
               <CardDescription>{song?.artist}</CardDescription>
             )}
@@ -71,7 +85,9 @@ export function ScheduleItem({
             {item.type === 'song' && showOrganization && (
               <OrgBadge organization={song?.organization} />
             )}
-            {buttonsOverride ? buttonsOverride : (
+            {buttonsOverride ? (
+              buttonsOverride
+            ) : (
               <>
                 {item.type === 'song' && (
                   <CollapsibleTrigger asChild>
@@ -80,11 +96,21 @@ export function ScheduleItem({
                     </Button>
                   </CollapsibleTrigger>
                 )}
-                <Button size="sm" title={t('schedule.items.removeFromSchedule')} onClick={removeItem} variant={item.type === 'comment' ? 'secondary' : 'default'}>
+                <Button
+                  size="sm"
+                  title={t('schedule.items.removeFromSchedule')}
+                  onClick={removeItem}
+                  variant={item.type === 'comment' ? 'secondary' : 'default'}
+                >
                   <TrashIcon className="size-3"></TrashIcon>
                 </Button>
                 {showOpen && (
-                  <Button size="sm" title={t('schedule.items.open')} onClick={loadItem} variant={item.type === 'comment' ? 'secondary' : 'default'}>
+                  <Button
+                    size="sm"
+                    title={t('schedule.items.open')}
+                    onClick={loadItem}
+                    variant={item.type === 'comment' ? 'secondary' : 'default'}
+                  >
                     <PlayIcon className="size-3"></PlayIcon>
                   </Button>
                 )}
@@ -96,12 +122,17 @@ export function ScheduleItem({
           <CollapsibleContent>
             <CardContent className="bg-background pt-3">
               {item?.slides.map((s, ix) => (
-                <SlideSelector key={ix} slide={s} index={ix} scheduleItemIndex={index}></SlideSelector>
+                <SlideSelector
+                  key={ix}
+                  slide={s}
+                  index={ix}
+                  scheduleItemIndex={index}
+                ></SlideSelector>
               ))}
             </CardContent>
           </CollapsibleContent>
         )}
       </Collapsible>
     </Card>
-  )
+  );
 }

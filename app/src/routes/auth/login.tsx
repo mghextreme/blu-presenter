@@ -1,17 +1,14 @@
-import { LoginForm } from "@/components/auth/login-form";
-import { useTranslation } from "react-i18next";
+import { LoginForm } from '@/components/auth/login-form';
+import { useTranslation } from 'react-i18next';
 
 export function Login() {
-
-  const { t } = useTranslation("auth");
+  const { t } = useTranslation('auth');
 
   return (
     <>
       <title>{t('signIn.title') + ' - BluPresenter'}</title>
       <div className="flex flex-col space-y-2 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t('signIn.title')}
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('signIn.title')}</h1>
       </div>
       <LoginForm />
     </>

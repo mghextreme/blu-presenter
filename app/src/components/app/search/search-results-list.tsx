@@ -1,20 +1,14 @@
-import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
-import { useSearch } from "@/hooks/search.provider";
-import { SearchResultItem, SearchResultItemProps } from "./search-result-item";
-import { LoadMoreButton } from "@/components/shared/load-more";
-import { EmptyList } from "@/components/shared/empty-list";
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { useSearch } from '@/hooks/search.provider';
+import { SearchResultItem, SearchResultItemProps } from './search-result-item';
+import { LoadMoreButton } from '@/components/shared/load-more';
+import { EmptyList } from '@/components/shared/empty-list';
 
 export function SearchResultsList(props: Readonly<SearchResultItemProps>) {
-
   const { t } = useTranslation('songs');
 
-  const {
-    results,
-    hasMore,
-    loadMore,
-    isSearching,
-  } = useSearch();
+  const { results, hasMore, loadMore, isSearching } = useSearch();
 
   const handleLoadMore = () => {
     loadMore().catch((e) => {
@@ -29,12 +23,8 @@ export function SearchResultsList(props: Readonly<SearchResultItemProps>) {
       {results.map((item) => (
         <SearchResultItem key={item.id} item={item} {...props} />
       ))}
-      {hasMore && (
-        <LoadMoreButton onClick={handleLoadMore} isLoading={isSearching} />
-      )}
-      {!isSearching && results.length === 0 && (
-        <EmptyList className="mt-2" />
-      )}
+      {hasMore && <LoadMoreButton onClick={handleLoadMore} isLoading={isSearching} />}
+      {!isSearching && results.length === 0 && <EmptyList className="mt-2" />}
     </>
   );
 }

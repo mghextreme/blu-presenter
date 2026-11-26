@@ -1,7 +1,9 @@
-import { z } from "zod";
-import { BASE_THEME_TYPES } from "@/types/theme.interface";
+import { z } from 'zod';
+import { BASE_THEME_TYPES } from '@/types/theme.interface';
 
-export const ColorField = z.string().regex(/^#[0-9a-f]{6}([0-9a-f]{2})?$/i, { message: "Invalid color hexadecimal" });
+export const ColorField = z
+  .string()
+  .regex(/^#[0-9a-f]{6}([0-9a-f]{2})?$/i, { message: 'Invalid color hexadecimal' });
 
 export const ShadowSchema = z.object({
   enabled: z.boolean(),

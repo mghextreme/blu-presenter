@@ -1,15 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import {
-  getDefaultThemeConfig,
-  mergeThemeConfig,
-  mergeTheme,
-} from '../theme-config';
-import {
-  ITeleprompterThemeConfig,
-  ITheme,
-  TeleprompterTheme,
-  LyricsTheme,
-} from '@/types';
+import { describe, it, expect } from 'vite-plus/test';
+import { getDefaultThemeConfig, mergeThemeConfig, mergeTheme } from '../theme-config';
+import { ITeleprompterThemeConfig, ITheme, TeleprompterTheme, LyricsTheme } from '@/types';
 
 describe('theme-config', () => {
   describe('getDefaultThemeConfig', () => {

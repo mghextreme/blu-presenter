@@ -1,11 +1,11 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
-import { IScheduleItem } from "@/types/schedule-item.interface"
-import { IScheduleSong } from "@/types/schedule-song.interface"
-import { IScheduleText } from "@/types/schedule-text.interface"
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+import { IScheduleItem } from '@/types/schedule-item.interface';
+import { IScheduleSong } from '@/types/schedule-song.interface';
+import { IScheduleText } from '@/types/schedule-text.interface';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**

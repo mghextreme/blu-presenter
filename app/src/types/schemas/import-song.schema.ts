@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { SONG_PART_LINE_TYPES } from "@/types/song-part.interface";
+import { z } from 'zod';
+import { SONG_PART_LINE_TYPES } from '@/types/song-part.interface';
 
 export const ImportSongSchema = z.object({
   fullText: z.string().min(2),

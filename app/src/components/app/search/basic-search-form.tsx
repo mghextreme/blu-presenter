@@ -1,12 +1,12 @@
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useTranslation } from "react-i18next";
-import { useSearch } from "@/hooks/search.provider";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
+import { useSearch } from '@/hooks/search.provider';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 
 const basicSearchFormSchema = z.object({
   query: z.string().min(3),
@@ -16,41 +16,46 @@ interface BasicSearchFormProps {
   includeBlocks?: boolean;
 }
 
-export function BasicSearchForm({
-  includeBlocks = false,
-}: Readonly<BasicSearchFormProps>) {
-
+export function BasicSearchForm({ includeBlocks = false }: Readonly<BasicSearchFormProps>) {
   const { t } = useTranslation('songs');
-  const {
-    search,
-    isSearching,
-  } = useSearch();
+  const { search, isSearching } = useSearch();
 
   const form = useForm<z.infer<typeof basicSearchFormSchema>>({
     resolver: zodResolver(basicSearchFormSchema),
     defaultValues: {
-      query: "",
+      query: '',
     },
   });
 
   const onSubmit = async (values: z.infer<typeof basicSearchFormSchema>) => {
     await search(values.query, includeBlocks);
-  }
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={(e) => { e.stopPropagation(); form.handleSubmit(onSubmit)(e); }} className="flex flex-row w-full justify-stretch space-x-3">
+      <form
+        onSubmit={(e) => {
+          e.stopPropagation();
+          form.handleSubmit(onSubmit)(e);
+        }}
+        className="flex flex-row w-full justify-stretch space-x-3"
+      >
         <FormField
           control={form.control}
           name="query"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem className="flex-1">
               <FormControl>
-                <Input placeholder={t('searchInput.basicSearchPlaceholder')} autoComplete="off" {...field} />
+                <Input
+                  placeholder={t('searchInput.basicSearchPlaceholder')}
+                  autoComplete="off"
+                  {...field}
+                />
               </FormControl>
-              <FormMessage/>
+              <FormMessage />
             </FormItem>
-          )}></FormField>
+          )}
+        ></FormField>
         <Button className="flex-0" type="submit" disabled={isSearching}>
           {isSearching ? (
             <>
@@ -59,7 +64,8 @@ export function BasicSearchForm({
             </>
           ) : (
             <span>{t('actions.search')}</span>
-          )}</Button>
+          )}
+        </Button>
       </form>
     </Form>
   );

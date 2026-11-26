@@ -1,5 +1,5 @@
-import Dexie, { Table } from "dexie";
-import { ISchedule, ISongWithRole, ITheme } from "@/types";
+import Dexie, { Table } from 'dexie';
+import { ISchedule, ISongWithRole, ITheme } from '@/types';
 
 /**
  * Local offline content store ("downloads"), backed by IndexedDB via Dexie.
@@ -48,12 +48,12 @@ export class OfflineDatabase extends Dexie {
   meta!: Table<OfflineMetaRow, string>;
 
   constructor() {
-    super("blu-presenter-offline");
+    super('blu-presenter-offline');
     this.version(1).stores({
-      songs: "id, orgId, title, artist, updatedAt",
-      schedules: "id, orgId, title, date",
-      themes: "id, orgId, name",
-      meta: "key",
+      songs: 'id, orgId, title, artist, updatedAt',
+      schedules: 'id, orgId, title, date',
+      themes: 'id, orgId, name',
+      meta: 'key',
     });
   }
 }
@@ -64,4 +64,4 @@ export class OfflineDatabase extends Dexie {
  */
 export const offlineDb = new OfflineDatabase();
 
-export const REVALIDATED_AT_KEY = "lastRevalidatedAt";
+export const REVALIDATED_AT_KEY = 'lastRevalidatedAt';

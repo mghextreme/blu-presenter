@@ -259,28 +259,31 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
    * and joining the new session. Also stores the join params so the hook
    * can auto-rejoin on reconnect or "notInSession" errors.
    */
-  const switchSession = useCallback((params: JoinSessionParams | null) => {
-    if (!params) {
-      rejoinParamsRef.current = null;
-      disconnect();
-      return;
-    }
+  const switchSession = useCallback(
+    (params: JoinSessionParams | null) => {
+      if (!params) {
+        rejoinParamsRef.current = null;
+        disconnect();
+        return;
+      }
 
-    if (params.sessionId === connectedSessionIdRef.current) return;
+      if (params.sessionId === connectedSessionIdRef.current) return;
 
-    if (connectedSessionIdRef.current) {
-      leaveSession(connectedSessionIdRef.current);
-    }
+      if (connectedSessionIdRef.current) {
+        leaveSession(connectedSessionIdRef.current);
+      }
 
-    rejoinParamsRef.current = params;
+      rejoinParamsRef.current = params;
 
-    // Ensure the socket is created and connecting/connected.
-    // If already connected, connect() is a no-op.
-    // Then emit joinSession — if the socket is still connecting,
-    // socket.io will buffer the emit and send it once connected.
-    connect();
-    joinSession(params);
-  }, [connect, disconnect, joinSession, leaveSession]);
+      // Ensure the socket is created and connecting/connected.
+      // If already connected, connect() is a no-op.
+      // Then emit joinSession — if the socket is still connecting,
+      // socket.io will buffer the emit and send it once connected.
+      connect();
+      joinSession(params);
+    },
+    [connect, disconnect, joinSession, leaveSession],
+  );
 
   useEffect(() => {
     return () => {

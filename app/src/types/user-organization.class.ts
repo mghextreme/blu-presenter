@@ -1,18 +1,18 @@
-import { OrganizationRoleOptions } from "./organization-user.interface";
-import { OrganizationFeature } from "./organization-feature.type";
+import { OrganizationRoleOptions } from './organization-user.interface';
+import { OrganizationFeature } from './organization-feature.type';
 
 export class UserOrganization {
-  id: number
-  role: OrganizationRoleOptions
+  id: number;
+  role: OrganizationRoleOptions;
 
-  name?: string
-  disabledFeatures?: OrganizationFeature[]
+  name?: string;
+  disabledFeatures?: OrganizationFeature[];
 
   constructor(
     id: number,
     role: OrganizationRoleOptions,
     name?: string,
-    disabledFeatures?: OrganizationFeature[]
+    disabledFeatures?: OrganizationFeature[],
   ) {
     this.id = id;
     this.role = role;
@@ -21,6 +21,6 @@ export class UserOrganization {
   }
 
   public isOwner(): boolean {
-    return this.role === "owner";
+    return this.role === 'owner';
   }
 }

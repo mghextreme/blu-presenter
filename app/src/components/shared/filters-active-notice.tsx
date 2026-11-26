@@ -1,13 +1,13 @@
-import { useTranslation } from "react-i18next";
-import XMarkIcon from "@heroicons/react/24/solid/XMarkIcon";
-import { Button } from "@/components/ui/button";
+import { useTranslation } from 'react-i18next';
+import XMarkIcon from '@heroicons/react/24/solid/XMarkIcon';
+import { Button } from '@/components/ui/button';
 
 interface FiltersActiveNoticeProps {
   onReset: () => void;
 }
 
 export function FiltersActiveNotice({ onReset }: Readonly<FiltersActiveNoticeProps>) {
-  const { t } = useTranslation("app");
+  const { t } = useTranslation('app');
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">

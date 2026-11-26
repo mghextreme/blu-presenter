@@ -1,26 +1,32 @@
-import { useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
-import { cn } from "@/lib/utils";
-import QRCode from "react-qr-code";
-import { INumberedSongPart, isRoleHigherOrEqualThan, LineStyle } from "@/types";
-import { usePrintConfig } from "@/hooks/usePrintConfig";
-import { useServices } from "@/hooks/useServices";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
-import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
-import PrinterIcon from "@heroicons/react/24/solid/PrinterIcon";
-import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
-import MinusIcon from "@heroicons/react/24/solid/MinusIcon";
-import AdjustmentsHorizontalIcon from "@heroicons/react/24/solid/AdjustmentsHorizontalIcon";
-import { SpotifyCode } from "@/components/app/songs/spotify-code";
-import { SpotifyIcon } from "@/components/logos/spotify";
-import { renderSongPartLines, computeNumberedBlocks, findSpotifyUrl } from "@/lib/songs";
-import { lineStyleToCSS } from "@/types";
+import { useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import QRCode from 'react-qr-code';
+import { INumberedSongPart, isRoleHigherOrEqualThan, LineStyle } from '@/types';
+import { usePrintConfig } from '@/hooks/usePrintConfig';
+import { useServices } from '@/hooks/useServices';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import EyeIcon from '@heroicons/react/24/solid/EyeIcon';
+import PencilIcon from '@heroicons/react/24/solid/PencilIcon';
+import PrinterIcon from '@heroicons/react/24/solid/PrinterIcon';
+import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
+import MinusIcon from '@heroicons/react/24/solid/MinusIcon';
+import AdjustmentsHorizontalIcon from '@heroicons/react/24/solid/AdjustmentsHorizontalIcon';
+import { SpotifyCode } from '@/components/app/songs/spotify-code';
+import { SpotifyIcon } from '@/components/logos/spotify';
+import { renderSongPartLines, computeNumberedBlocks, findSpotifyUrl } from '@/lib/songs';
+import { lineStyleToCSS } from '@/types';
 
 // ─── LineStyleEditor ──────────────────────────────────────────────────────────
 
@@ -34,8 +40,16 @@ interface LineStyleEditorProps {
   italicId: string;
 }
 
-function LineStyleEditor({ label, style, onChange, showLabel, enabledId, boldId, italicId }: Readonly<LineStyleEditorProps>) {
-  const { t } = useTranslation("songs");
+function LineStyleEditor({
+  label,
+  style,
+  onChange,
+  showLabel,
+  enabledId,
+  boldId,
+  italicId,
+}: Readonly<LineStyleEditorProps>) {
+  const { t } = useTranslation('songs');
   return (
     <div className="flex flex-col gap-2">
       <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{label}</span>
@@ -46,7 +60,9 @@ function LineStyleEditor({ label, style, onChange, showLabel, enabledId, boldId,
             checked={style.enabled}
             onCheckedChange={(v) => onChange({ enabled: v })}
           />
-          <Label htmlFor={enabledId} className="text-sm">{showLabel}</Label>
+          <Label htmlFor={enabledId} className="text-sm">
+            {showLabel}
+          </Label>
         </div>
         {style.enabled && (
           <>
@@ -65,7 +81,9 @@ function LineStyleEditor({ label, style, onChange, showLabel, enabledId, boldId,
                 checked={style.bold}
                 onCheckedChange={(v) => onChange({ bold: v })}
               />
-              <Label htmlFor={boldId} className="text-sm">{t('print.bold')}</Label>
+              <Label htmlFor={boldId} className="text-sm">
+                {t('print.bold')}
+              </Label>
             </div>
             <div className="flex items-center gap-2">
               <Switch
@@ -73,7 +91,9 @@ function LineStyleEditor({ label, style, onChange, showLabel, enabledId, boldId,
                 checked={style.italic}
                 onCheckedChange={(v) => onChange({ italic: v })}
               />
-              <Label htmlFor={italicId} className="text-sm">{t('print.italic')}</Label>
+              <Label htmlFor={italicId} className="text-sm">
+                {t('print.italic')}
+              </Label>
             </div>
           </>
         )}
@@ -84,11 +104,10 @@ function LineStyleEditor({ label, style, onChange, showLabel, enabledId, boldId,
 
 // ─── PrintSong ────────────────────────────────────────────────────────────────
 
-const SECTION_LABEL_CLASS = "text-xs font-semibold text-slate-500 uppercase tracking-wide";
+const SECTION_LABEL_CLASS = 'text-xs font-semibold text-slate-500 uppercase tracking-wide';
 
 export function PrintSong() {
-
-  const { t } = useTranslation("songs");
+  const { t } = useTranslation('songs');
 
   const params = useParams();
   const { songsService } = useServices();
@@ -123,9 +142,9 @@ export function PrintSong() {
     throw new Error(t('error.noPermission'));
   }
 
-  let orgName: string | undefined = t("organizations.publicArchive");
+  let orgName: string | undefined = t('organizations.publicArchive');
   if (data.organization) {
-    orgName = data.organization.name || t("organizations.defaultName");
+    orgName = data.organization.name || t('organizations.defaultName');
   }
 
   const canEdit = isRoleHigherOrEqualThan(data.organization?.role, 'member');
@@ -138,7 +157,7 @@ export function PrintSong() {
   );
 
   const showBlocks: INumberedSongPart[] = useMemo(
-    () => compactMode === 'compact' ? compactedBlocks : numberedBlocks,
+    () => (compactMode === 'compact' ? compactedBlocks : numberedBlocks),
     [numberedBlocks, compactedBlocks, compactMode],
   );
 
@@ -147,19 +166,18 @@ export function PrintSong() {
     return `${currentUrl.protocol}//${currentUrl.host}/shared/view/${data.id}/${data.secret ?? ''}`;
   }, [data.id, data.secret]);
 
-  const spotifyUrl = useMemo(
-    () => findSpotifyUrl(data.references),
-    [data.references],
-  );
+  const spotifyUrl = useMemo(() => findSpotifyUrl(data.references), [data.references]);
 
   // Detect which line types exist in the song
   const hasChordLines = useMemo(
-    () => data?.blocks?.some(block => block.lines.some(line => line.type === 'chords')) ?? false,
+    () =>
+      data?.blocks?.some((block) => block.lines.some((line) => line.type === 'chords')) ?? false,
     [data?.blocks],
   );
 
   const hasCommentLines = useMemo(
-    () => data?.blocks?.some(block => block.lines.some(line => line.type === 'comments')) ?? false,
+    () =>
+      data?.blocks?.some((block) => block.lines.some((line) => line.type === 'comments')) ?? false,
     [data?.blocks],
   );
 
@@ -177,19 +195,24 @@ export function PrintSong() {
 
   return (
     <>
-      <title>{t('title.print', { title: data.title, artist: data.artist }) + ' - BluPresenter'}</title>
+      <title>
+        {t('title.print', { title: data.title, artist: data.artist }) + ' - BluPresenter'}
+      </title>
 
       {/* Top toolbar */}
       <div className="w-full bg-slate-200 print:hidden">
         <div className="max-w-3xl mx-auto flex flex-col md:flex-row flex-wrap items-center px-2 py-3 gap-y-2 gap-x-2">
-          <span className="text-sm w-full md:w-auto">{t('input.organization')}:<br/><b>{orgName}</b></span>
+          <span className="text-sm w-full md:w-auto">
+            {t('input.organization')}:<br />
+            <b>{orgName}</b>
+          </span>
           <div className="buttons flex-1 flex flex-wrap justify-start md:justify-end items-center gap-x-2 gap-y-2">
             <Button
               type="button"
               variant="print"
               size="sm"
               title={t('print.customize')}
-              onClick={() => setCustomizeOpen(v => !v)}
+              onClick={() => setCustomizeOpen((v) => !v)}
               className={cn(customizeOpen && 'bg-slate-300')}
             >
               <AdjustmentsHorizontalIcon className="size-3 me-1" />
@@ -197,36 +220,29 @@ export function PrintSong() {
             </Button>
             <div className="h-7 border-s-1 border-slate-400"></div>
             <div className="flex-0 flex gap-x-2">
-              {hasAccess ? <>
-                <Button
-                  type="button"
-                  variant="print"
-                  size="sm"
-                  title={t('actions.view')}
-                  asChild>
-                  <Link to={`/app/songs/${data.id}/view`}>
-                    <EyeIcon className="size-3" />
-                  </Link>
-                </Button>
-                {canEdit && (
-                  <Button
-                    type="button"
-                    variant="print"
-                    size="sm"
-                    title={t('actions.edit')}
-                    asChild>
-                    <Link to={`/app/songs/${data.id}/edit`}>
-                      <PencilIcon className="size-3" />
+              {hasAccess ? (
+                <>
+                  <Button type="button" variant="print" size="sm" title={t('actions.view')} asChild>
+                    <Link to={`/app/songs/${data.id}/view`}>
+                      <EyeIcon className="size-3" />
                     </Link>
                   </Button>
-                )}
-              </> : (
-                <Button
-                  type="button"
-                  variant="print"
-                  size="sm"
-                  title={t('actions.view')}
-                  asChild>
+                  {canEdit && (
+                    <Button
+                      type="button"
+                      variant="print"
+                      size="sm"
+                      title={t('actions.edit')}
+                      asChild
+                    >
+                      <Link to={`/app/songs/${data.id}/edit`}>
+                        <PencilIcon className="size-3" />
+                      </Link>
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <Button type="button" variant="print" size="sm" title={t('actions.view')} asChild>
                   <Link to={`/shared/view/${data.id}/${data.secret ?? ''}`}>
                     <EyeIcon className="size-3" />
                   </Link>
@@ -237,7 +253,8 @@ export function PrintSong() {
                 variant="print"
                 size="sm"
                 title={t('actions.print')}
-                onClick={() => window.print()}>
+                onClick={() => window.print()}
+              >
                 <PrinterIcon className="size-3" />
               </Button>
             </div>
@@ -249,12 +266,18 @@ export function PrintSong() {
       {customizeOpen && (
         <div className="w-full bg-white border-b border-slate-200 print:hidden">
           <div className="max-w-3xl mx-auto px-4 py-4 flex flex-col gap-5">
-
             {/* Font size */}
             <div className="flex flex-col gap-1.5">
               <span className={SECTION_LABEL_CLASS}>{t('print.fontSize')}</span>
               <div className="flex items-center gap-2">
-                <Button type="button" variant="outline" size="icon" className="size-7" title={t('actions.decreaseFont')} onClick={decreaseFontSize}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="size-7"
+                  title={t('actions.decreaseFont')}
+                  onClick={decreaseFontSize}
+                >
                   <MinusIcon className="size-3" />
                 </Button>
                 <button
@@ -265,7 +288,14 @@ export function PrintSong() {
                 >
                   {fontSize}px
                 </button>
-                <Button type="button" variant="outline" size="icon" className="size-7" title={t('actions.increaseFont')} onClick={increaseFontSize}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="size-7"
+                  title={t('actions.increaseFont')}
+                  onClick={increaseFontSize}
+                >
                   <PlusIcon className="size-3" />
                 </Button>
               </div>
@@ -276,7 +306,9 @@ export function PrintSong() {
               <span className={SECTION_LABEL_CLASS}>{t('print.compactMode')}</span>
               <Select
                 value={compactMode ?? 'off'}
-                onValueChange={(val) => setCompactMode(val === 'off' ? undefined : val as 'compact' | 'firstLine')}
+                onValueChange={(val) =>
+                  setCompactMode(val === 'off' ? undefined : (val as 'compact' | 'firstLine'))
+                }
               >
                 <SelectTrigger className="w-48 h-8 text-sm">
                   <SelectValue />
@@ -319,19 +351,17 @@ export function PrintSong() {
             <div className="flex flex-col gap-2">
               <span className={SECTION_LABEL_CLASS}>{t('print.numbering')}</span>
               <div className="flex items-center gap-2">
-                <Switch
-                  id="show-numbers"
-                  checked={showNumbers}
-                  onCheckedChange={toggleNumbers}
-                />
-                <Label htmlFor="show-numbers" className="text-sm">{t('print.showNumbers')}</Label>
+                <Switch id="show-numbers" checked={showNumbers} onCheckedChange={toggleNumbers} />
+                <Label htmlFor="show-numbers" className="text-sm">
+                  {t('print.showNumbers')}
+                </Label>
               </div>
             </div>
 
             {/* Spotify code */}
             {spotifyUrl && (
               <div className="flex flex-col gap-2">
-                <span className={cn(SECTION_LABEL_CLASS, "flex items-center gap-1")}>
+                <span className={cn(SECTION_LABEL_CLASS, 'flex items-center gap-1')}>
                   <SpotifyIcon className="size-3" />
                   {t('print.spotifyCode')}
                 </span>
@@ -341,11 +371,12 @@ export function PrintSong() {
                     checked={showSpotifyCode}
                     onCheckedChange={toggleSpotifyCode}
                   />
-                  <Label htmlFor="show-spotify" className="text-sm">{t('print.showSpotifyCode')}</Label>
+                  <Label htmlFor="show-spotify" className="text-sm">
+                    {t('print.showSpotifyCode')}
+                  </Label>
                 </div>
               </div>
             )}
-
           </div>
         </div>
       )}
@@ -353,23 +384,30 @@ export function PrintSong() {
       <style>
         @page {'{'} size: A4; margin: 0; {'}'}
       </style>
-      <div className={cn(
-        'w-full px-2 print:px-8 font-source-code-pro flex flex-col justify-center items-stretch',
-       )} style={{ fontSize: `${fontSize}px` }}>
+      <div
+        className={cn(
+          'w-full px-2 print:px-8 font-source-code-pro flex flex-col justify-center items-stretch',
+        )}
+        style={{ fontSize: `${fontSize}px` }}
+      >
         <div
-          className={cn(
-            'mx-auto w-full max-w-[21cm] flex flex-col justify-start items-stretch',
-          )}
-          style={{'breakInside': columns > 1 ? 'avoid' : undefined}}
+          className={cn('mx-auto w-full max-w-[21cm] flex flex-col justify-start items-stretch')}
+          style={{ breakInside: columns > 1 ? 'avoid' : undefined }}
         >
           <div className="flex flex-row justify-between items-center flex-0">
             <div>
-              <h1 className="font-bold" style={{ fontSize: '1.5em' }}>{data.title}</h1>
-              <h2 className="text-slate-600 mb-[.5em]" style={{ fontSize: '1.125em' }}>{data.artist}</h2>
+              <h1 className="font-bold" style={{ fontSize: '1.5em' }}>
+                {data.title}
+              </h1>
+              <h2 className="text-slate-600 mb-[.5em]" style={{ fontSize: '1.125em' }}>
+                {data.artist}
+              </h2>
             </div>
-            {qrCodeUrl && <div className="w-[4em] h-[4em] flex-shrink-0">
-              <QRCode value={qrCodeUrl} className="w-full h-full" />
-            </div>}
+            {qrCodeUrl && (
+              <div className="w-[4em] h-[4em] flex-shrink-0">
+                <QRCode value={qrCodeUrl} className="w-full h-full" />
+              </div>
+            )}
           </div>
           <div
             className={cn(
@@ -378,38 +416,45 @@ export function PrintSong() {
             )}
             style={{ fontSize: '0.875em' }}
           >
-            {compactMode && showNumbers && <div className="absolute top-0 right-0 flex flex-col justify-start items-end">
-              <b>{t('print.sequence')}</b>
-              {acronymSequence.map((item, ix) => (
-                <span className="border-t-1 border-slate-300 text-center min-w-[1em] my-[.2em] py-[.2em]" key={`sequence-${ix}`}>{item}</span>
-              ))}
-            </div>}
+            {compactMode && showNumbers && (
+              <div className="absolute top-0 right-0 flex flex-col justify-start items-end">
+                <b>{t('print.sequence')}</b>
+                {acronymSequence.map((item, ix) => (
+                  <span
+                    className="border-t-1 border-slate-300 text-center min-w-[1em] my-[.2em] py-[.2em]"
+                    key={`sequence-${ix}`}
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            )}
             {showBlocks.map((block, ix) => (
               <div
                 key={`chords-${ix}`}
-                className={cn(
-                  'flex flex-row justify-stretch items-stretch'
-                )}
+                className={cn('flex flex-row justify-stretch items-stretch')}
               >
                 {showNumbers && (
                   <div className="pt-[.5em] pb-[.2em] min-w-[1.2em] flex-0 text-center leading-[1.1em]">
                     <p className="text-slate-600">{block.acronym ?? block.sequence}</p>
-                    {compactMode !== 'compact' && <p className="text-slate-400 text-[.8em]">{ix + 1}</p>}
+                    {compactMode !== 'compact' && (
+                      <p className="text-slate-400 text-[.8em]">{ix + 1}</p>
+                    )}
                   </div>
                 )}
-                <div className={cn(
-                  'max-w-full flex-1 border-s-1 border-slate-300 ps-[.75em] py-[.2em] min-h-[.75em] text-slate-800 whitespace-pre-wrap',
-                  showNumbers && 'ms-[.75em]',
-                )} style={{'breakInside': 'avoid'}}>
-                  {renderSongPartLines(
-                    block.lines,
-                    {
-                      includeTypes,
-                      chordsStyle: chordsInlineStyle,
-                      commentsStyle: commentsInlineStyle,
-                      firstLineCompactMode: compactMode === 'firstLine' && !block.isFirstAppearance,
-                    },
+                <div
+                  className={cn(
+                    'max-w-full flex-1 border-s-1 border-slate-300 ps-[.75em] py-[.2em] min-h-[.75em] text-slate-800 whitespace-pre-wrap',
+                    showNumbers && 'ms-[.75em]',
                   )}
+                  style={{ breakInside: 'avoid' }}
+                >
+                  {renderSongPartLines(block.lines, {
+                    includeTypes,
+                    chordsStyle: chordsInlineStyle,
+                    commentsStyle: commentsInlineStyle,
+                    firstLineCompactMode: compactMode === 'firstLine' && !block.isFirstAppearance,
+                  })}
                 </div>
               </div>
             ))}

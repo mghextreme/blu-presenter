@@ -1,25 +1,39 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { useTranslation } from "react-i18next";
-import { useServices } from "@/hooks/useServices";
-import { slugify } from "@/lib/utils";
-import { toast } from "sonner";
-import ArrowDownTrayIcon from "@heroicons/react/24/solid/ArrowDownTrayIcon";
-import ClipboardDocumentIcon from "@heroicons/react/24/solid/ClipboardDocumentIcon";
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { useTranslation } from 'react-i18next';
+import { useServices } from '@/hooks/useServices';
+import { slugify } from '@/lib/utils';
+import { toast } from 'sonner';
+import ArrowDownTrayIcon from '@heroicons/react/24/solid/ArrowDownTrayIcon';
+import ClipboardDocumentIcon from '@heroicons/react/24/solid/ClipboardDocumentIcon';
 
 interface ExportSongDialogProps {
   songId: number;
   title: string;
   artist?: string;
   secret?: string;
-  variant?: "default" | "secondary";
+  variant?: 'default' | 'secondary';
 }
 
-export function ExportSongDialog({ songId, title, artist, secret, variant = "secondary" }: Readonly<ExportSongDialogProps>) {
-
-  const { t } = useTranslation("songs");
+export function ExportSongDialog({
+  songId,
+  title,
+  artist,
+  secret,
+  variant = 'secondary',
+}: Readonly<ExportSongDialogProps>) {
+  const { t } = useTranslation('songs');
   const { songsService } = useServices();
 
   const [open, setOpen] = useState<boolean>(false);
@@ -36,7 +50,7 @@ export function ExportSongDialog({ songId, title, artist, secret, variant = "sec
         description: t('message.export.copiedDescription'),
       });
     }
-  }
+  };
 
   const downloadExport = () => {
     if (!text) {
@@ -50,7 +64,7 @@ export function ExportSongDialog({ songId, title, artist, secret, variant = "sec
     anchor.download = exportFilename;
     anchor.click();
     URL.revokeObjectURL(url);
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -63,7 +77,9 @@ export function ExportSongDialog({ songId, title, artist, secret, variant = "sec
         <DialogHeader>
           <DialogTitle>{t('message.export.title')}</DialogTitle>
           <DialogDescription>
-            <span className="block mb-2">{t('message.export.songDescription', { title: title, artist: artist })}</span>
+            <span className="block mb-2">
+              {t('message.export.songDescription', { title: title, artist: artist })}
+            </span>
           </DialogDescription>
         </DialogHeader>
         {exportedSong.isError ? (
@@ -85,10 +101,12 @@ export function ExportSongDialog({ songId, title, artist, secret, variant = "sec
             {t('button.copy')}
           </Button>
           <DialogClose asChild>
-            <Button type="button" variant="secondary">{t('actions.close')}</Button>
+            <Button type="button" variant="secondary">
+              {t('actions.close')}
+            </Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

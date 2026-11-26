@@ -1,38 +1,56 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ISchedule, IScheduleItem, filterOrganizationsByFeature, isRoleHigherOrEqualThan } from "@/types";
-import { ScheduleSchema } from "@/types/schemas/schedule.schema";
-import { useAuth } from "@/hooks/useAuth";
-import { useServices } from "@/hooks/useServices";
-import { useController } from "@/hooks/useController";
-import { ControllerProvider } from "@/hooks/controller.provider";
-import { SearchProvider } from "@/hooks/search.provider";
-import { PlanPanel } from "@/components/controller/plan-panel";
-import { SchedulePanel } from "@/components/controller/schedule-panel";
-import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
-import { PageContent } from "@/components/shared/page-content";
-import { NoOrganizationNotice } from "@/components/shared/no-organization-notice";
-import { Input } from "@/components/ui/input";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { EditSongReferences } from "@/components/app/songs/edit-references";
-import { EditPlaylistReference } from "@/components/app/schedules/edit-playlist-reference";
-import { SCHEDULE_PLAYLIST_PROVIDERS } from "@/components/app/schedules/playlist-providers";
-import { toast } from "sonner";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import PlusIcon from "@heroicons/react/24/solid/PlusIcon";
-import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  ISchedule,
+  IScheduleItem,
+  filterOrganizationsByFeature,
+  isRoleHigherOrEqualThan,
+} from '@/types';
+import { ScheduleSchema } from '@/types/schemas/schedule.schema';
+import { useAuth } from '@/hooks/useAuth';
+import { useServices } from '@/hooks/useServices';
+import { useController } from '@/hooks/useController';
+import { ControllerProvider } from '@/hooks/controller.provider';
+import { SearchProvider } from '@/hooks/search.provider';
+import { PlanPanel } from '@/components/controller/plan-panel';
+import { SchedulePanel } from '@/components/controller/schedule-panel';
+import { OrganizationBar, OptionalOrganization } from '@/components/app/organization-bar';
+import { PageContent } from '@/components/shared/page-content';
+import { NoOrganizationNotice } from '@/components/shared/no-organization-notice';
+import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { EditSongReferences } from '@/components/app/songs/edit-references';
+import { EditPlaylistReference } from '@/components/app/schedules/edit-playlist-reference';
+import { SCHEDULE_PLAYLIST_PROVIDERS } from '@/components/app/schedules/playlist-providers';
+import { toast } from 'sonner';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
+import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
+import EyeIcon from '@heroicons/react/24/solid/EyeIcon';
 
 type EditScheduleProps = {
-  edit?: boolean
-}
+  edit?: boolean;
+};
 
 const newSchedule: ISchedule = {
   id: 0,
@@ -41,9 +59,7 @@ const newSchedule: ISchedule = {
   items: [],
 };
 
-export function EditSchedule({
-  edit = true,
-}: Readonly<EditScheduleProps>) {
+export function EditSchedule({ edit = true }: Readonly<EditScheduleProps>) {
   return edit ? <EditSavedSchedule /> : <ScheduleEditor edit={false} data={newSchedule} />;
 }
 
@@ -59,18 +75,14 @@ function EditSavedSchedule() {
   return <ScheduleEditor edit={true} data={data} />;
 }
 
-function ScheduleEditor({
-  edit,
-  data,
-}: Readonly<{ edit: boolean, data: ISchedule }>) {
-
-  const { t } = useTranslation("schedules");
+function ScheduleEditor({ edit, data }: Readonly<{ edit: boolean; data: ISchedule }>) {
+  const { t } = useTranslation('schedules');
   const navigate = useNavigate();
   const { organization, organizations } = useAuth();
   const { schedulesService, songsService } = useServices();
 
   const organizationsToAddTo = filterOrganizationsByFeature(organizations, 'schedules').filter(
-    (org) => isRoleHigherOrEqualThan(org.role, 'member')
+    (org) => isRoleHigherOrEqualThan(org.role, 'member'),
   );
 
   const [selectedOrganizations, setSelectedOrganizations] = useState<OptionalOrganization[]>(() => {
@@ -78,8 +90,8 @@ function ScheduleEditor({
       return [data.organization ?? null];
     }
 
-    const initial = organizationsToAddTo.find((org) => org.id === organization?.id)
-      ?? organizationsToAddTo[0];
+    const initial =
+      organizationsToAddTo.find((org) => org.id === organization?.id) ?? organizationsToAddTo[0];
     return initial ? [initial] : [];
   });
 
@@ -115,7 +127,9 @@ function ScheduleEditor({
 
   return (
     <>
-      <title>{(edit ? t('title.edit', { name: data.title }) : t('title.add')) + ' - BluPresenter'}</title>
+      <title>
+        {(edit ? t('title.edit', { name: data.title }) : t('title.add')) + ' - BluPresenter'}
+      </title>
       <OrganizationBar
         organizations={edit ? [data.organization ?? null] : organizationsToAddTo}
         selected={selectedOrganizations}
@@ -124,11 +138,7 @@ function ScheduleEditor({
         onOrganizationsChange={setSelectedOrganizations}
       >
         {edit && (
-          <Button
-            type="button"
-            size="sm"
-            title={t('actions.view')}
-            asChild>
+          <Button type="button" size="sm" title={t('actions.view')} asChild>
             <Link to={`/app/schedules/${data.id}/view`}>
               <EyeIcon className="size-3" />
             </Link>
@@ -165,16 +175,19 @@ function EditScheduleForm({
   navigate,
   t,
 }: Readonly<{
-  form: ReturnType<typeof useForm<z.infer<typeof ScheduleSchema>>>,
-  edit: boolean,
-  data: ISchedule,
-  organizationId: number | undefined,
-  schedulesService: ReturnType<typeof useServices>['schedulesService'],
-  songsService: ReturnType<typeof useServices>['songsService'],
-  navigate: ReturnType<typeof useNavigate>,
-  t: ReturnType<typeof useTranslation>['t'],
+  form: ReturnType<typeof useForm<z.infer<typeof ScheduleSchema>>>;
+  edit: boolean;
+  data: ISchedule;
+  organizationId: number | undefined;
+  schedulesService: ReturnType<typeof useServices>['schedulesService'];
+  songsService: ReturnType<typeof useServices>['songsService'];
+  navigate: ReturnType<typeof useNavigate>;
+  t: ReturnType<typeof useTranslation>['t'];
 }>) {
-  const { schedule, replaceSchedule } = useController((s) => ({ schedule: s.schedule, replaceSchedule: s.replaceSchedule }));
+  const { schedule, replaceSchedule } = useController((s) => ({
+    schedule: s.schedule,
+    replaceSchedule: s.replaceSchedule,
+  }));
   const services = useServices();
   const [addItemOpen, setAddItemOpen] = useState<boolean>(false);
   const [initialized, setInitialized] = useState<boolean>(false);
@@ -187,7 +200,15 @@ function EditScheduleForm({
   }, [data.items]);
 
   const saveSchedule = useMutation({
-    mutationFn: async ({ scheduleId, payload, organizationId }: { scheduleId: number, payload: Partial<ISchedule>, organizationId: number }) => {
+    mutationFn: async ({
+      scheduleId,
+      payload,
+      organizationId,
+    }: {
+      scheduleId: number;
+      payload: Partial<ISchedule>;
+      organizationId: number;
+    }) => {
       if (!edit) {
         return await schedulesService.add(payload, organizationId);
       }
@@ -197,8 +218,7 @@ function EditScheduleForm({
       // meantime), so the ones the user removed are detached explicitly.
       const removedPlaylistProviders = SCHEDULE_PLAYLIST_PROVIDERS.filter(
         (provider) =>
-          !!provider.findReference(data.references) &&
-          !provider.findReference(payload.references),
+          !!provider.findReference(data.references) && !provider.findReference(payload.references),
       );
 
       const savedSchedule = await schedulesService.update(scheduleId, payload, organizationId);
@@ -216,15 +236,19 @@ function EditScheduleForm({
 
   const onSubmit = (values: z.infer<typeof ScheduleSchema>) => {
     if (!organizationId) {
-      console.error(
-        'Cannot save schedule: no organization selected (organizationId is undefined)',
-      );
+      console.error('Cannot save schedule: no organization selected (organizationId is undefined)');
       return;
     }
 
     const items = schedule.map((item: IScheduleItem) => {
       if (item.type === 'song') {
-        return { type: item.type, id: item.id, secret: (item as any).secret, title: item.title, artist: (item as any).artist };
+        return {
+          type: item.type,
+          id: item.id,
+          secret: (item as any).secret,
+          title: item.title,
+          artist: (item as any).artist,
+        };
       }
       if (item.type === 'text') {
         return { type: item.type, title: item.title, subtitle: (item as any).subtitle };
@@ -243,7 +267,7 @@ function EditScheduleForm({
     };
 
     saveSchedule.mutate({ scheduleId: values.id, payload, organizationId });
-  }
+  };
 
   return (
     <Form {...form}>
@@ -330,7 +354,9 @@ function EditScheduleForm({
             )}
             {t('button.' + (edit ? 'update' : 'add'))}
           </Button>
-          <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/schedules'}>{t('button.cancel')}</Link></Button>
+          <Button className="flex-0" type="button" variant="secondary" asChild>
+            <Link to={'/app/schedules'}>{t('button.cancel')}</Link>
+          </Button>
         </div>
       </form>
     </Form>

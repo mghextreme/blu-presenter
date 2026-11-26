@@ -1,30 +1,30 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from 'vite-plus/test';
+import { act, renderHook, waitFor } from '@testing-library/react';
 
-import { useFilteredList } from "../use-filtered-list";
-import { useOrganizationFilter } from "../use-organization-filter";
-import { PAGE_SIZE } from "@/lib/pagination";
-import { createQueryWrapper } from "@/test/test-utils";
+import { useFilteredList } from '../use-filtered-list';
+import { useOrganizationFilter } from '../use-organization-filter';
+import { PAGE_SIZE } from '@/lib/pagination';
+import { createQueryWrapper } from '@/test/test-utils';
 
-const renderList = <T,>(callback: () => T) => renderHook(callback, { wrapper: createQueryWrapper() });
+const renderList = <T,>(callback: () => T) =>
+  renderHook(callback, { wrapper: createQueryWrapper() });
 
 const makeItems = (count: number, startId = 1) =>
   Array.from({ length: count }, (_, i) => ({ id: startId + i, title: `Item ${startId + i}` }));
 
-describe("useFilteredList", () => {
-  const buildSearchMock = () =>
-    vi.fn(async () => makeItems(PAGE_SIZE));
+describe('useFilteredList', () => {
+  const buildSearchMock = () => vi.fn(async () => makeItems(PAGE_SIZE));
 
   beforeEach(() => {
     useOrganizationFilter.getState().reset();
     localStorage.clear();
   });
 
-  it("initializes results from the default value", () => {
+  it('initializes results from the default value', () => {
     const defaultValue = makeItems(3);
 
     const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], defaultValue, search: buildSearchMock() }),
+      useFilteredList({ queryKey: ['items'], defaultValue, search: buildSearchMock() }),
     );
 
     expect(result.current.results).toEqual(defaultValue);
@@ -32,25 +32,23 @@ describe("useFilteredList", () => {
     expect(result.current.selectedOrganizations).toEqual([]);
   });
 
-  it("marks hasMore when the default value fills a whole page", () => {
+  it('marks hasMore when the default value fills a whole page', () => {
     const defaultValue = makeItems(PAGE_SIZE);
 
     const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], defaultValue, search: buildSearchMock() }),
+      useFilteredList({ queryKey: ['items'], defaultValue, search: buildSearchMock() }),
     );
 
     expect(result.current.hasMore).toBe(true);
   });
 
-  it("searches with the selected organizations and resets to page 1", async () => {
+  it('searches with the selected organizations and resets to page 1', async () => {
     const search = buildSearchMock();
 
-    const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search }),
-    );
+    const { result } = renderList(() => useFilteredList({ queryKey: ['items'], search }));
 
     await act(async () => {
-      result.current.setOrganizations([{ id: 5, name: "Org" }]);
+      result.current.setOrganizations([{ id: 5, name: 'Org' }]);
     });
 
     expect(search).toHaveBeenCalledWith({
@@ -58,15 +56,13 @@ describe("useFilteredList", () => {
       page: 1,
       itemsPerPage: PAGE_SIZE,
     });
-    expect(result.current.selectedOrganizations).toEqual([{ id: 5, name: "Org" }]);
+    expect(result.current.selectedOrganizations).toEqual([{ id: 5, name: 'Org' }]);
   });
 
-  it("treats an empty organization selection as all organizations", async () => {
+  it('treats an empty organization selection as all organizations', async () => {
     const search = buildSearchMock();
 
-    const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search }),
-    );
+    const { result } = renderList(() => useFilteredList({ queryKey: ['items'], search }));
 
     await act(async () => {
       result.current.setOrganizations([]);
@@ -78,40 +74,30 @@ describe("useFilteredList", () => {
     });
   });
 
-  it("ignores queries shorter than two characters", async () => {
+  it('ignores queries shorter than two characters', async () => {
     const search = buildSearchMock();
 
-    const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search }),
-    );
+    const { result } = renderList(() => useFilteredList({ queryKey: ['items'], search }));
 
     await act(async () => {
       result.current.setQuery('a');
     });
 
-    expect(search).toHaveBeenCalledWith(
-      expect.not.objectContaining({ query: expect.anything() }),
-    );
+    expect(search).toHaveBeenCalledWith(expect.not.objectContaining({ query: expect.anything() }));
 
     await act(async () => {
       result.current.setQuery('ab');
     });
 
-    expect(search).toHaveBeenLastCalledWith(
-      expect.objectContaining({ query: 'ab' }),
-    );
+    expect(search).toHaveBeenLastCalledWith(expect.objectContaining({ query: 'ab' }));
   });
 
-  it("appends results when loading more", async () => {
+  it('appends results when loading more', async () => {
     const page1 = makeItems(PAGE_SIZE, 1);
     const page2 = makeItems(PAGE_SIZE, PAGE_SIZE + 1);
-    const search = vi.fn()
-      .mockResolvedValueOnce(page1)
-      .mockResolvedValueOnce(page2);
+    const search = vi.fn().mockResolvedValueOnce(page1).mockResolvedValueOnce(page2);
 
-    const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search }),
-    );
+    const { result } = renderList(() => useFilteredList({ queryKey: ['items'], search }));
 
     await act(async () => {
       result.current.setOrganizations([]);
@@ -123,16 +109,14 @@ describe("useFilteredList", () => {
     });
 
     await waitFor(() => expect(result.current.results).toEqual([...page1, ...page2]));
-    expect(search).toHaveBeenLastCalledWith(
-      expect.objectContaining({ page: 2 }),
-    );
+    expect(search).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2 }));
   });
 
-  it("runs an initial search on mount when auto is set", async () => {
+  it('runs an initial search on mount when auto is set', async () => {
     const search = buildSearchMock();
 
     const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search, auto: true }),
+      useFilteredList({ queryKey: ['items'], search, auto: true }),
     );
 
     await waitFor(() => expect(result.current.results).toEqual(makeItems(PAGE_SIZE)));
@@ -142,23 +126,25 @@ describe("useFilteredList", () => {
     });
   });
 
-  it("does not run a search on mount by default", async () => {
+  it('does not run a search on mount by default', async () => {
     const search = buildSearchMock();
 
-    renderList(() =>
-      useFilteredList({ queryKey: ["items"], search }),
-    );
+    renderList(() => useFilteredList({ queryKey: ['items'], search }));
 
     await act(async () => {});
 
     expect(search).not.toHaveBeenCalled();
   });
 
-  it("sends the date range filter and resets to page 1", async () => {
+  it('sends the date range filter and resets to page 1', async () => {
     const search = buildSearchMock();
 
     const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search, initialOrganizations: [{ id: 5, name: "Org" }] }),
+      useFilteredList({
+        queryKey: ['items'],
+        search,
+        initialOrganizations: [{ id: 5, name: 'Org' }],
+      }),
     );
 
     await act(async () => {
@@ -166,47 +152,41 @@ describe("useFilteredList", () => {
     });
 
     await act(async () => {
-      result.current.setDateRange({ from: "2026-01-01", to: "2026-01-31" });
+      result.current.setDateRange({ from: '2026-01-01', to: '2026-01-31' });
     });
 
     expect(search).toHaveBeenLastCalledWith({
       organizations: [5],
-      dateFrom: "2026-01-01",
-      dateTo: "2026-01-31",
+      dateFrom: '2026-01-01',
+      dateTo: '2026-01-31',
       page: 1,
       itemsPerPage: PAGE_SIZE,
     });
   });
 
-  it("supports a partial date range with only the start date", async () => {
+  it('supports a partial date range with only the start date', async () => {
     const search = buildSearchMock();
 
-    const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search }),
-    );
+    const { result } = renderList(() => useFilteredList({ queryKey: ['items'], search }));
 
     await act(async () => {
-      result.current.setDateRange({ from: "2026-01-01", to: null });
+      result.current.setDateRange({ from: '2026-01-01', to: null });
     });
 
-    expect(search).toHaveBeenLastCalledWith(
-      expect.objectContaining({ dateFrom: "2026-01-01" }),
-    );
+    expect(search).toHaveBeenLastCalledWith(expect.objectContaining({ dateFrom: '2026-01-01' }));
     expect(search).toHaveBeenLastCalledWith(
       expect.not.objectContaining({ dateTo: expect.anything() }),
     );
-    expect(result.current.dateRange).toEqual({ from: "2026-01-01", to: null });
+    expect(result.current.dateRange).toEqual({ from: '2026-01-01', to: null });
   });
 
-  it("clears the date range filter", async () => {
+  it('clears the date range filter', async () => {
     const search = buildSearchMock();
 
-    const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search }),
-    );
+    const { result } = renderList(() => useFilteredList({ queryKey: ['items'], search }));
 
     await act(async () => {
-      result.current.setDateRange({ from: "2026-01-01", to: "2026-01-31" });
+      result.current.setDateRange({ from: '2026-01-01', to: '2026-01-31' });
     });
 
     await act(async () => {
@@ -222,15 +202,13 @@ describe("useFilteredList", () => {
     expect(result.current.dateRange).toBeNull();
   });
 
-  it("keeps the date range filter when refreshing", async () => {
+  it('keeps the date range filter when refreshing', async () => {
     const search = buildSearchMock();
 
-    const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search }),
-    );
+    const { result } = renderList(() => useFilteredList({ queryKey: ['items'], search }));
 
     await act(async () => {
-      result.current.setDateRange({ from: "2026-01-01", to: "2026-01-31" });
+      result.current.setDateRange({ from: '2026-01-01', to: '2026-01-31' });
     });
 
     await act(async () => {
@@ -239,21 +217,20 @@ describe("useFilteredList", () => {
 
     expect(search).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        dateFrom: "2026-01-01",
-        dateTo: "2026-01-31",
+        dateFrom: '2026-01-01',
+        dateTo: '2026-01-31',
         page: 1,
       }),
     );
   });
 
-  it("stops offering more results when a page is not full", async () => {
-    const search = vi.fn()
+  it('stops offering more results when a page is not full', async () => {
+    const search = vi
+      .fn()
       .mockResolvedValueOnce(makeItems(PAGE_SIZE))
       .mockResolvedValueOnce(makeItems(10));
 
-    const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search }),
-    );
+    const { result } = renderList(() => useFilteredList({ queryKey: ['items'], search }));
 
     await act(async () => {
       result.current.setOrganizations([]);
@@ -267,18 +244,17 @@ describe("useFilteredList", () => {
     expect(result.current.hasMore).toBe(false);
   });
 
-  it("refreshes back to page 1 with the current filters", async () => {
-    const search = vi.fn()
+  it('refreshes back to page 1 with the current filters', async () => {
+    const search = vi
+      .fn()
       .mockResolvedValueOnce(makeItems(PAGE_SIZE))
       .mockResolvedValueOnce(makeItems(PAGE_SIZE, PAGE_SIZE + 1))
       .mockResolvedValueOnce(makeItems(5));
 
-    const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search }),
-    );
+    const { result } = renderList(() => useFilteredList({ queryKey: ['items'], search }));
 
     await act(async () => {
-      result.current.setOrganizations([{ id: 7, name: "Org" }]);
+      result.current.setOrganizations([{ id: 7, name: 'Org' }]);
     });
     await waitFor(() => expect(result.current.hasMore).toBe(true));
     await act(async () => {
@@ -297,13 +273,11 @@ describe("useFilteredList", () => {
     expect(result.current.results).toHaveLength(5);
   });
 
-  it("reports errors through the onError callback", async () => {
+  it('reports errors through the onError callback', async () => {
     const onError = vi.fn();
-    const search = vi.fn().mockRejectedValue(new Error("boom"));
+    const search = vi.fn().mockRejectedValue(new Error('boom'));
 
-    const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search, onError }),
-    );
+    const { result } = renderList(() => useFilteredList({ queryKey: ['items'], search, onError }));
 
     await act(async () => {
       result.current.setOrganizations([]);
@@ -312,13 +286,13 @@ describe("useFilteredList", () => {
     expect(onError).toHaveBeenCalled();
   });
 
-  it("syncs organization changes to the persisted shared filter", async () => {
+  it('syncs organization changes to the persisted shared filter', async () => {
     const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search: buildSearchMock() }),
+      useFilteredList({ queryKey: ['items'], search: buildSearchMock() }),
     );
 
     await act(async () => {
-      result.current.setOrganizations([{ id: 5, name: "Org" }, null]);
+      result.current.setOrganizations([{ id: 5, name: 'Org' }, null]);
     });
 
     const state = useOrganizationFilter.getState();
@@ -333,12 +307,17 @@ describe("useFilteredList", () => {
     expect(useOrganizationFilter.getState().searchPublicArchive).toBe(false);
   });
 
-  it("restores the selection from initialOrganizations and keeps it for pagination", async () => {
+  it('restores the selection from initialOrganizations and keeps it for pagination', async () => {
     const search = buildSearchMock();
-    const initialOrganizations = [{ id: 5, name: "Org" }];
+    const initialOrganizations = [{ id: 5, name: 'Org' }];
 
     const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search, initialOrganizations, defaultValue: makeItems(PAGE_SIZE) }),
+      useFilteredList({
+        queryKey: ['items'],
+        search,
+        initialOrganizations,
+        defaultValue: makeItems(PAGE_SIZE),
+      }),
     );
 
     expect(result.current.selectedOrganizations).toEqual(initialOrganizations);
@@ -347,16 +326,22 @@ describe("useFilteredList", () => {
       result.current.loadMore();
     });
 
-    await waitFor(() => expect(search).toHaveBeenLastCalledWith(
-      expect.objectContaining({ organizations: [5], page: 2 }),
-    ));
+    await waitFor(() =>
+      expect(search).toHaveBeenLastCalledWith(
+        expect.objectContaining({ organizations: [5], page: 2 }),
+      ),
+    );
   });
 
-  it("clears the persisted filter when resetting organizations", async () => {
+  it('clears the persisted filter when resetting organizations', async () => {
     const search = buildSearchMock();
 
     const { result } = renderList(() =>
-      useFilteredList({ queryKey: ["items"], search, initialOrganizations: [{ id: 5, name: "Org" }] }),
+      useFilteredList({
+        queryKey: ['items'],
+        search,
+        initialOrganizations: [{ id: 5, name: 'Org' }],
+      }),
     );
 
     await act(async () => {
@@ -365,9 +350,7 @@ describe("useFilteredList", () => {
 
     expect(result.current.selectedOrganizations).toEqual([]);
     expect(useOrganizationFilter.getState().organizations).toBeUndefined();
-    expect(search).toHaveBeenLastCalledWith(
-      expect.objectContaining({ page: 1 }),
-    );
+    expect(search).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }));
     expect(search).toHaveBeenLastCalledWith(
       expect.not.objectContaining({ organizations: expect.anything() }),
     );

@@ -1,16 +1,16 @@
-import { create } from 'zustand'
+import { create } from 'zustand';
 
-export type ControllerPanel = 'plan' | 'schedule' | 'live'
+export type ControllerPanel = 'plan' | 'schedule' | 'live';
 
 interface ControllerPanelsState {
   /** Which controller panel is active (drives the mobile panel tabs). */
-  activePanel: ControllerPanel
+  activePanel: ControllerPanel;
   /** Active tab inside the Plan panel. */
-  planTab: string
-  setActivePanel: (panel: ControllerPanel) => void
-  setPlanTab: (tab: string) => void
+  planTab: string;
+  setActivePanel: (panel: ControllerPanel) => void;
+  setPlanTab: (tab: string) => void;
   /** Opens the Plan panel on the configuration (broadcast settings) tab. */
-  openBroadcastSettings: () => void
+  openBroadcastSettings: () => void;
 }
 
 // Shared, non-persisted UI state for the controller panels. Lives outside the
@@ -22,4 +22,4 @@ export const useControllerPanels = create<ControllerPanelsState>()((set) => ({
   setActivePanel: (panel) => set({ activePanel: panel }),
   setPlanTab: (tab) => set({ planTab: tab }),
   openBroadcastSettings: () => set({ activePanel: 'plan', planTab: 'configuration' }),
-}))
+}));

@@ -1,5 +1,5 @@
-import { ISlideContent } from "./slide-content.interface";
+import { ISlideContent } from './slide-content.interface';
 
 export interface ISlideTextContent extends ISlideContent {
-  text: string
+  text: string;
 }

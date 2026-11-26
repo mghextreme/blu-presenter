@@ -1,8 +1,8 @@
-import { ReactNode, useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { useServices } from "@/hooks/useServices";
-import { isTokenExpired } from "@/lib/utils";
+import { ReactNode, useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useServices } from '@/hooks/useServices';
+import { isTokenExpired } from '@/lib/utils';
 
 export function ProtectedRoute({ children }: Readonly<{ children: ReactNode }>) {
   const { isLoggedIn, session } = useAuth();
@@ -21,8 +21,11 @@ export function ProtectedRoute({ children }: Readonly<{ children: ReactNode }>) 
     // failure is transient (offline, 5xx, 429): performRefresh only clears
     // the session when the server rejects the refresh token (400/401/403),
     // and every other failure keeps the session as-is.
-    authService.tryRefreshSession()
-      .catch(() => { /* offline or transient failure — keep cached session */ })
+    authService
+      .tryRefreshSession()
+      .catch(() => {
+        /* offline or transient failure — keep cached session */
+      })
       .finally(() => {
         setIsValidating(false);
       });

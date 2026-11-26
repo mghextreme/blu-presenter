@@ -1,15 +1,15 @@
-import { ISongPart } from "./song-part.interface";
-import { ISongReference } from "./song-reference.interface";
-import { SupportedLanguage } from "./supported-language.type";
+import { ISongPart } from './song-part.interface';
+import { ISongReference } from './song-reference.interface';
+import { SupportedLanguage } from './supported-language.type';
 
 export interface ISong {
-  id: number
+  id: number;
   language?: SupportedLanguage;
-  title: string
-  artist?: string
-  updatedAt?: string
-  blocks?: ISongPart[]
-  references?: ISongReference[]
-  secret?: string
-  hasChords?: boolean
+  title: string;
+  artist?: string;
+  updatedAt?: string;
+  blocks?: ISongPart[];
+  references?: ISongReference[];
+  secret?: string;
+  hasChords?: boolean;
 }

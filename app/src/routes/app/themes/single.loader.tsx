@@ -1,6 +1,12 @@
-import { ThemesService } from "@/services";
-import { Params } from "react-router-dom";
+import { ThemesService } from '@/services';
+import { Params } from 'react-router-dom';
 
-export async function loader({ params, themesService }: { params: Params, themesService: ThemesService }) {
+export async function loader({
+  params,
+  themesService,
+}: {
+  params: Params;
+  themesService: ThemesService;
+}) {
   return await themesService.getById(Number(params.id));
 }

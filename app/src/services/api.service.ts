@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useAuth } from "@/hooks/useAuth";
-import { ApiError } from "@/types";
-import { IAuthResponse } from "@/types/auth";
-import { DefaultError, QueryClient, QueryExecuteOptions, QueryKey } from "@tanstack/react-query";
+import { useAuth } from '@/hooks/useAuth';
+import { ApiError } from '@/types';
+import { IAuthResponse } from '@/types/auth';
+import { DefaultError, QueryClient, QueryExecuteOptions, QueryKey } from '@tanstack/react-query';
 
 // Statuses from POST /auth/refresh that mean the refresh token itself is no
 // longer valid. Anything else (5xx, 429, network) is transient: the session
@@ -14,7 +14,6 @@ const INVALID_REFRESH_STATUSES = [400, 401, 403];
 let refreshPromise: Promise<void> | null = null;
 
 export abstract class ApiService {
-
   protected queryClient: QueryClient;
   protected url: string;
 
@@ -40,15 +39,20 @@ export abstract class ApiService {
     } finally {
       refreshPromise = null;
     }
-  }
+  };
 
   private performRefresh = async () => {
     try {
-      const { user, session } = await this.postRequest('/auth/refresh', JSON.stringify({
-        refreshToken: this.session?.refresh_token,
-      }), {
-        'content-type': 'application/json',
-      }, false) as IAuthResponse;
+      const { user, session } = (await this.postRequest(
+        '/auth/refresh',
+        JSON.stringify({
+          refreshToken: this.session?.refresh_token,
+        }),
+        {
+          'content-type': 'application/json',
+        },
+        false,
+      )) as IAuthResponse;
 
       if (!user || !session) {
         throw new ApiError(401, 'Unauthorized');
@@ -59,8 +63,7 @@ export abstract class ApiService {
         user: user,
         session: session,
       });
-    }
-    catch (e) {
+    } catch (e) {
       if (e instanceof ApiError && INVALID_REFRESH_STATUSES.includes(e.status)) {
         useAuth.setState({
           isLoggedIn: false,
@@ -73,7 +76,7 @@ export abstract class ApiService {
         throw e;
       }
     }
-  }
+  };
 
   /** Fetches through the cache, bypassing freshness: always requests the API. */
   protected fetchFresh<TData, TKey extends QueryKey>(
@@ -86,7 +89,10 @@ export abstract class ApiService {
    * Runs `request`, answering from the offline store instead when the browser
    * is offline or the request never reached the API.
    */
-  protected async withOfflineFallback<T>(request: () => Promise<T>, offline: () => Promise<T>): Promise<T> {
+  protected async withOfflineFallback<T>(
+    request: () => Promise<T>,
+    offline: () => Promise<T>,
+  ): Promise<T> {
     if (this.isOffline()) {
       return await offline();
     }
@@ -102,18 +108,17 @@ export abstract class ApiService {
 
   /** True when the browser reports no network connection. */
   protected isOffline = (): boolean =>
-    typeof navigator !== "undefined" && navigator.onLine === false;
+    typeof navigator !== 'undefined' && navigator.onLine === false;
 
   /**
    * Distinguishes transport failures (fetch TypeError, timeouts — i.e. the
    * request never reached the API) from API errors (ApiError carries a
    * status). Read paths fall back to the offline store on transport failures.
    */
-  protected isNetworkError = (e: unknown): boolean =>
-    !(e instanceof ApiError);
+  protected isNetworkError = (e: unknown): boolean => !(e instanceof ApiError);
 
-  private getHeaders = (baseHeaders: {[key: string]: string}): {[key: string]: string} => {
-    const result = {...baseHeaders};
+  private getHeaders = (baseHeaders: { [key: string]: string }): { [key: string]: string } => {
+    const result = { ...baseHeaders };
 
     const session = this.session;
     if (session) {
@@ -121,13 +126,21 @@ export abstract class ApiService {
     }
 
     return result;
-  }
+  };
 
-  protected getRequest = async (path: string, headers: {[key: string]: string} = {}, refreshAuth: boolean = true): Promise<any> => {
+  protected getRequest = async (
+    path: string,
+    headers: { [key: string]: string } = {},
+    refreshAuth: boolean = true,
+  ): Promise<any> => {
     return await this.internalFetch(path, 'GET', undefined, headers, refreshAuth);
-  }
+  };
 
-  protected getTextRequest = async (path: string, headers: {[key: string]: string} = {}, refreshAuth: boolean = true): Promise<string> => {
+  protected getTextRequest = async (
+    path: string,
+    headers: { [key: string]: string } = {},
+    refreshAuth: boolean = true,
+  ): Promise<string> => {
     const headersWithAuth = this.getHeaders(headers);
     const response = await fetch(this.url + path, {
       method: 'GET',
@@ -140,23 +153,43 @@ export abstract class ApiService {
       await this.refreshSession();
       return await this.getTextRequest(path, headers, false);
     } else {
-      throw new ApiError(response.status, `API Error: ${response.status}`, response)
+      throw new ApiError(response.status, `API Error: ${response.status}`, response);
     }
-  }
+  };
 
-  protected postRequest = async (path: string, body?: string, headers: {[key: string]: string} = {}, refreshAuth: boolean = true): Promise<any> => {
+  protected postRequest = async (
+    path: string,
+    body?: string,
+    headers: { [key: string]: string } = {},
+    refreshAuth: boolean = true,
+  ): Promise<any> => {
     return await this.internalFetch(path, 'POST', body, headers, refreshAuth);
-  }
+  };
 
-  protected putRequest = async (path: string, body?: string, headers: {[key: string]: string} = {}, refreshAuth: boolean = true): Promise<any> => {
+  protected putRequest = async (
+    path: string,
+    body?: string,
+    headers: { [key: string]: string } = {},
+    refreshAuth: boolean = true,
+  ): Promise<any> => {
     return await this.internalFetch(path, 'PUT', body, headers, refreshAuth);
-  }
+  };
 
-  protected deleteRequest = async (path: string, headers: {[key: string]: string} = {}, refreshAuth: boolean = true): Promise<any> => {
+  protected deleteRequest = async (
+    path: string,
+    headers: { [key: string]: string } = {},
+    refreshAuth: boolean = true,
+  ): Promise<any> => {
     return await this.internalFetch(path, 'DELETE', undefined, headers, refreshAuth);
-  }
+  };
 
-  private internalFetch = async (path: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE', body?: string, baseHeaders: {[key: string]: string} = {}, refreshAuth: boolean = true): Promise<any> => {
+  private internalFetch = async (
+    path: string,
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    body?: string,
+    baseHeaders: { [key: string]: string } = {},
+    refreshAuth: boolean = true,
+  ): Promise<any> => {
     const headers = this.getHeaders(baseHeaders);
     const response = await fetch(this.url + path, {
       method,
@@ -167,16 +200,14 @@ export abstract class ApiService {
     if (response.ok) {
       try {
         return await response.json();
-      }
-      catch (e) {
+      } catch (e) {
         return null;
       }
     } else if (refreshAuth && response.status === 401 && headers['Authorization']) {
       await this.refreshSession();
       return await this.internalFetch(path, method, body, baseHeaders, false);
     } else {
-      throw new ApiError(response.status, `API Error: ${response.status}`, response)
+      throw new ApiError(response.status, `API Error: ${response.status}`, response);
     }
-  }
-
+  };
 }

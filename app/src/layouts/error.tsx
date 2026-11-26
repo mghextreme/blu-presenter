@@ -1,19 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isRouteErrorResponse, Link, useNavigate, useRouteError } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { LanguageToggler } from "@/components/shared/language-toggler";
-import { ThemeToggler } from "@/components/shared/theme-toggler";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { BluPresenterLogo } from "@/components/shared/logo";
-import { ApiError } from "@/types";
+import { isRouteErrorResponse, Link, useNavigate, useRouteError } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { LanguageToggler } from '@/components/shared/language-toggler';
+import { ThemeToggler } from '@/components/shared/theme-toggler';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { BluPresenterLogo } from '@/components/shared/logo';
+import { ApiError } from '@/types';
 
 function errorLayout(error: any) {
   if (isRouteErrorResponse(error)) {
     return (
       <>
         {error.status && (
-          <>{error.status} - {error.statusText}<br/></>
+          <>
+            {error.status} - {error.statusText}
+            <br />
+          </>
         )}
         {error?.data?.message}
       </>
@@ -21,7 +24,8 @@ function errorLayout(error: any) {
   } else if (error instanceof Error) {
     return (
       <>
-        {error.message}<br/>
+        {error.message}
+        <br />
         <pre className="overflow-x-auto">{error.stack}</pre>
       </>
     );
@@ -47,7 +51,7 @@ export function ErrorLayout() {
   const signOutAndRedirect = async () => {
     signOut();
     navigate('/login');
-  }
+  };
 
   return (
     <div className="container relative flex min-h-svh flex-col gap-6 py-4 lg:grid lg:h-screen lg:max-w-none lg:grid-cols-2 lg:items-center lg:gap-0 lg:overflow-hidden lg:px-0 lg:py-0 bg-card">
@@ -66,7 +70,9 @@ export function ErrorLayout() {
       <div className="relative hidden h-full flex-col p-10 text-foreground lg:flex dark:border-r">
         <div className="absolute inset-0 bg-background" />
         <div className="relative z-20 flex items-center">
-          <Link to={homeLink} className="text-lg font-medium">BluPresenter</Link>
+          <Link to={homeLink} className="text-lg font-medium">
+            BluPresenter
+          </Link>
         </div>
       </div>
       <div className="flex flex-1 flex-col justify-center lg:p-8">
@@ -80,18 +86,20 @@ export function ErrorLayout() {
               isAuthError ? (
                 <Button onClick={signOutAndRedirect}>{t('actions.signOut')}</Button>
               ) : (
-                <Button asChild><Link to="/app">{t('actions.app')}</Link></Button>
+                <Button asChild>
+                  <Link to="/app">{t('actions.app')}</Link>
+                </Button>
               )
             ) : (
-              <Button asChild><Link to="/">{t('actions.home')}</Link></Button>
+              <Button asChild>
+                <Link to="/">{t('actions.home')}</Link>
+              </Button>
             )}
           </div>
           {!isAuthError && (
             <div>
               <h4 className="text-md mb-1">{t('details')}</h4>
-              <div className="text-sm text-muted-foreground">
-                {errorLayout(error)}
-              </div>
+              <div className="text-sm text-muted-foreground">{errorLayout(error)}</div>
             </div>
           )}
         </div>

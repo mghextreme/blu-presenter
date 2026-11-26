@@ -1,5 +1,5 @@
-import { ISchedule, ISongWithRole, ITheme } from "@/types";
-import { offlineDb } from "./db";
+import { ISchedule, ISongWithRole, ITheme } from '@/types';
+import { offlineDb } from './db';
 
 /**
  * Read-only queries over the offline download store ("reads" half of the
@@ -20,13 +20,18 @@ export async function searchOfflineSongs(payload: {
   const query = payload.query?.trim().toLowerCase() ?? '';
   let rows = await offlineDb.songs.toArray();
   if (query) {
-    rows = rows.filter(row =>
-      row.title.toLowerCase().includes(query)
-      || (row.artist ?? '').toLowerCase().includes(query));
+    rows = rows.filter(
+      (row) =>
+        row.title.toLowerCase().includes(query) || (row.artist ?? '').toLowerCase().includes(query),
+    );
   }
   // Newest (highest id) first, mirroring the API ordering.
   rows.sort((a, b) => b.id - a.id);
-  return paginate(rows.map(row => row.payload), payload.page, payload.itemsPerPage);
+  return paginate(
+    rows.map((row) => row.payload),
+    payload.page,
+    payload.itemsPerPage,
+  );
 }
 
 export async function getOfflineScheduleById(id: number): Promise<ISchedule | null> {
@@ -44,22 +49,26 @@ export async function searchOfflineSchedules(payload: {
   const query = payload.query?.trim().toLowerCase() ?? '';
   let rows = await offlineDb.schedules.toArray();
   if (query) {
-    rows = rows.filter(row => row.title.toLowerCase().includes(query));
+    rows = rows.filter((row) => row.title.toLowerCase().includes(query));
   }
   if (payload.dateFrom) {
-    rows = rows.filter(row => (row.date ?? '') >= payload.dateFrom!);
+    rows = rows.filter((row) => (row.date ?? '') >= payload.dateFrom!);
   }
   if (payload.dateTo) {
-    rows = rows.filter(row => (row.date ?? '') <= payload.dateTo!);
+    rows = rows.filter((row) => (row.date ?? '') <= payload.dateTo!);
   }
   // Next date first (upcoming schedules at the top), undated last.
   rows.sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
-  return paginate(rows.map(row => row.payload), payload.page, payload.itemsPerPage);
+  return paginate(
+    rows.map((row) => row.payload),
+    payload.page,
+    payload.itemsPerPage,
+  );
 }
 
 export async function getOfflineThemes(): Promise<ITheme[]> {
   const rows = await offlineDb.themes.toArray();
-  return rows.map(row => row.payload);
+  return rows.map((row) => row.payload);
 }
 
 export async function getOfflineThemeById(id: number): Promise<ITheme | null> {
@@ -75,10 +84,14 @@ export async function searchOfflineThemes(payload: {
   const query = payload.query?.trim().toLowerCase() ?? '';
   let rows = await offlineDb.themes.toArray();
   if (query) {
-    rows = rows.filter(row => row.name.toLowerCase().includes(query));
+    rows = rows.filter((row) => row.name.toLowerCase().includes(query));
   }
   rows.sort((a, b) => a.name.localeCompare(b.name));
-  return paginate(rows.map(row => row.payload), payload.page, payload.itemsPerPage);
+  return paginate(
+    rows.map((row) => row.payload),
+    payload.page,
+    payload.itemsPerPage,
+  );
 }
 
 /** Applies page/itemsPerPage after they, mirroring the REST list endpoints. */

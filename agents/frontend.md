@@ -5,7 +5,9 @@
 ```bash
 pnpm dev                      # dev server
 pnpm build                    # type check + production build
-pnpm lint                     # ESLint (check only)
+pnpm check                    # format check + lint + type-check (Vite+: Oxfmt, Oxlint)
+pnpm lint                     # Oxlint only
+pnpm fmt                      # format with Oxfmt (rewrites files)
 pnpm test run                 # all tests, once
 pnpm test run <file-pattern>  # specific tests, once
 ```
@@ -42,10 +44,10 @@ pnpm test run <file-pattern>  # specific tests, once
 - **shadcn/ui first:** check whether shadcn provides a component before building one. Add components with `pnpm dlx shadcn@latest add <component>`. The CLI can overwrite customized files (e.g. `button.tsx`), so check the diff and restore customizations. For composite patterns (e.g. date pickers) follow shadcn's documented composition (Popover + Calendar) instead of writing wrappers. Config: `components.json`.
 - **Translations:** use `useTranslation('<namespace>')`; namespaces are the files in `locales/<lang>/`. Add every key to both `en` and `pt`.
 - **User-supplied URLs:** open or link them only through `safeExternalUrl()` from `@/lib/utils`, which allows `http(s)` only.
-- Build config and vendor chunk splitting: `vite.config.ts`.
+- Build, test config and vendor chunk splitting: `app/vite.config.ts`. Lint and format rules live in the repo-root `vite.config.ts` (Vite+ reads them only from the workspace root).
 
 ## Tests
 
-- Vitest + Testing Library, in `__tests__/` next to the code, named `*.spec.ts(x)`.
+- Vitest (through Vite+) + Testing Library, in `__tests__/` next to the code, named `*.spec.ts(x)`. Import test APIs from `vite-plus/test`, not `vitest` (enforced by lint).
 - Render with `render` from `@/test/test-utils`.
 - When mocking named exports, put the export's name in the mock object, not `default`.

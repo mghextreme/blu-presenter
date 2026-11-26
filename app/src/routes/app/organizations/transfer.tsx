@@ -1,34 +1,41 @@
-import { useState } from "react";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from 'react';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 
-import { useServices } from "@/hooks/useServices";
-import { PageContent } from "@/components/shared/page-content";
-import { Button } from "@/components/ui/button";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
-import { CheckIcon } from "@radix-ui/react-icons";
-import { useTranslation } from "react-i18next";
-import { IOrganizationUser, isRoleHigherOrEqualThan } from "@/types";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import { Label } from "@/components/ui/label";
+import { useServices } from '@/hooks/useServices';
+import { PageContent } from '@/components/shared/page-content';
+import { Button } from '@/components/ui/button';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
+import ChevronDownIcon from '@heroicons/react/24/solid/ChevronDownIcon';
+import { CheckIcon } from '@radix-ui/react-icons';
+import { useTranslation } from 'react-i18next';
+import { IOrganizationUser, isRoleHigherOrEqualThan } from '@/types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { Label } from '@/components/ui/label';
 
 export function TransferOrganization() {
-
-  const { t } = useTranslation("organizations");
+  const { t } = useTranslation('organizations');
 
   const params = useParams();
   const navigate = useNavigate();
   const { organizationsService } = useServices();
   const { data } = useSuspenseQuery(organizationsService.currentQuery(Number(params.orgId)));
-  const members = data.users?.filter(x => x.role !== 'owner') || [];
+  const members = data.users?.filter((x) => x.role !== 'owner') || [];
   const [selectedMember, setSelectedMember] = useState<IOrganizationUser | undefined>(undefined);
 
   const transferOwnership = useMutation({
-    mutationFn: (member: IOrganizationUser) => organizationsService.transferOwnership(member.id, data.id),
+    mutationFn: (member: IOrganizationUser) =>
+      organizationsService.transferOwnership(member.id, data.id),
     onSuccess: () => {
       navigate(`/app/organization/${data.id}`, { replace: true });
     },
@@ -46,10 +53,10 @@ export function TransferOrganization() {
     }
 
     transferOwnership.mutate(selectedMember);
-  }
+  };
 
   const [openRoleSelector, setOpenRoleSelector] = useState<boolean>(false);
-  const memberSelectorListId = "transfer-member-selector-list";
+  const memberSelectorListId = 'transfer-member-selector-list';
 
   // After the transfer the organization is refetched with the user no longer
   // owner, while this page is still shown until the navigation completes.
@@ -59,7 +66,9 @@ export function TransferOrganization() {
 
   return (
     <PageContent>
-      <title>{t('title.transfer', {organization: data.name || t('defaultName')}) + ' - BluPresenter'}</title>
+      <title>
+        {t('title.transfer', { organization: data.name || t('defaultName') }) + ' - BluPresenter'}
+      </title>
       <div className="max-w-lg space-y-3">
         <Label data-slot="form-label">{t('input.transferMember')}</Label>
         <div>
@@ -70,13 +79,12 @@ export function TransferOrganization() {
                 role="combobox"
                 aria-expanded={openRoleSelector}
                 aria-controls={memberSelectorListId}
-                className={cn(
-                  "w-full justify-between",
-                  !selectedMember && "text-muted-foreground"
-                )}
+                className={cn('w-full justify-between', !selectedMember && 'text-muted-foreground')}
               >
                 {selectedMember ? (
-                  <>{selectedMember.name} ({selectedMember.email})</>
+                  <>
+                    {selectedMember.name} ({selectedMember.email})
+                  </>
                 ) : (
                   <>{t('members.selectMember')}</>
                 )}
@@ -101,8 +109,8 @@ export function TransferOrganization() {
                         {member.name} ({member.email})
                         <CheckIcon
                           className={cn(
-                            "ml-auto h-4 w-4",
-                            member.id === selectedMember?.id ? "opacity-100" : "opacity-0"
+                            'ml-auto h-4 w-4',
+                            member.id === selectedMember?.id ? 'opacity-100' : 'opacity-0',
                           )}
                         />
                       </CommandItem>
@@ -113,19 +121,24 @@ export function TransferOrganization() {
             </PopoverContent>
           </Popover>
           {members.length === 0 && (
-            <div className="text-xs text-muted-foreground mt-2">
-              {t('members.noOtherMembers')}
-            </div>
+            <div className="text-xs text-muted-foreground mt-2">{t('members.noOtherMembers')}</div>
           )}
         </div>
         <div className="flex flex-row align-start space-x-2">
-          <Button className="flex-0" type="button" disabled={transferOwnership.isPending || !selectedMember} onClick={onSubmit}>
+          <Button
+            className="flex-0"
+            type="button"
+            disabled={transferOwnership.isPending || !selectedMember}
+            onClick={onSubmit}
+          >
             {transferOwnership.isPending && (
               <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
             )}
             {t('button.transfer')}
           </Button>
-          <Button className="flex-0" type="button" variant="secondary" asChild><Link to={`/app/organization/${data.id}`}>{t('button.cancel')}</Link></Button>
+          <Button className="flex-0" type="button" variant="secondary" asChild>
+            <Link to={`/app/organization/${data.id}`}>{t('button.cancel')}</Link>
+          </Button>
         </div>
       </div>
     </PageContent>

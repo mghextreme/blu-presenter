@@ -7,12 +7,9 @@ import {
   LyricsTheme,
   SubtitlesTheme,
   TeleprompterTheme,
-} from "@/types";
+} from '@/types';
 
-export type AnyThemeConfig =
-  | ILyricsThemeConfig
-  | ISubtitlesThemeConfig
-  | ITeleprompterThemeConfig;
+export type AnyThemeConfig = ILyricsThemeConfig | ISubtitlesThemeConfig | ITeleprompterThemeConfig;
 
 /**
  * Returns the default config for the given base theme.
@@ -20,11 +17,11 @@ export type AnyThemeConfig =
  */
 export function getDefaultThemeConfig(extendsType: BaseTheme): AnyThemeConfig {
   switch (extendsType) {
-    case "subtitles":
+    case 'subtitles':
       return structuredClone(SubtitlesTheme.config) as ISubtitlesThemeConfig;
-    case "teleprompter":
+    case 'teleprompter':
       return structuredClone(TeleprompterTheme.config) as ITeleprompterThemeConfig;
-    case "lyrics":
+    case 'lyrics':
     default:
       return structuredClone(LyricsTheme.config) as ILyricsThemeConfig;
   }
@@ -63,7 +60,7 @@ export function mergeTheme(theme: ITheme): ITheme {
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
-  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
     return false;
   }
   const proto = Object.getPrototypeOf(value);
@@ -97,4 +94,3 @@ function deepMerge(
   }
   return out;
 }
-

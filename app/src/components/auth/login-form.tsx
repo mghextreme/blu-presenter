@@ -1,42 +1,41 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"
+'use client';
 
-import { useState, HTMLAttributes } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { Link, Navigate } from "react-router-dom";
-import { Turnstile } from '@marsidev/react-turnstile'
+import { useState, HTMLAttributes } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { Link, Navigate } from 'react-router-dom';
+import { Turnstile } from '@marsidev/react-turnstile';
 
-import { cn } from "@/lib/utils"
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslation } from "react-i18next";
-import { useInvitation } from "@/hooks/invitation.provider";
-import { useServices } from "@/hooks/useServices";
-import { toast } from "sonner";
-import { ApiError } from "@/types";
-import { SocialLogin } from "./social-login";
-import { useSocialSignIn } from "./use-social-sign-in";
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
+import { useInvitation } from '@/hooks/invitation.provider';
+import { useServices } from '@/hooks/useServices';
+import { toast } from 'sonner';
+import { ApiError } from '@/types';
+import { SocialLogin } from './social-login';
+import { useSocialSignIn } from './use-social-sign-in';
 
-import { captcha } from "@/lib/config";
+import { captcha } from '@/lib/config';
 
 interface LoginFormProps extends HTMLAttributes<HTMLDivElement> {}
 
 const formSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8),
 });
 
 export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
-
-  const { t } = useTranslation("auth");
+  const { t } = useTranslation('auth');
   const { email: invitedEmail, id, secret } = useInvitation();
 
   const { isLoggedIn } = useAuth();
@@ -60,7 +59,7 @@ export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
           invite: {
             id,
             secret,
-          }
+          },
         };
       }
 
@@ -95,14 +94,14 @@ export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
     }
 
     signIn.mutate(values);
-  }
+  };
 
   if (isLoggedIn) {
     return <Navigate to="/app" />;
   }
 
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div className={cn('grid gap-6', className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-col-1 space-y-2">
           <FormField
@@ -111,14 +110,25 @@ export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input type="email" placeholder={t('input.email')} autoComplete="email" autoCorrect="off" autoCapitalize="none" disabled={isLoading || !!invitedEmail} {...field} />
+                  <Input
+                    type="email"
+                    placeholder={t('input.email')}
+                    autoComplete="email"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    disabled={isLoading || !!invitedEmail}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
                 {invitedEmail && (
-                  <Button variant="link" className="text-xs px-2 text-muted-foreground" asChild><Link to="/login">{t('invitation.notYourEmail')}</Link></Button>
+                  <Button variant="link" className="text-xs px-2 text-muted-foreground" asChild>
+                    <Link to="/login">{t('invitation.notYourEmail')}</Link>
+                  </Button>
                 )}
               </FormItem>
-            )}></FormField>
+            )}
+          ></FormField>
 
           <FormField
             control={form.control}
@@ -126,11 +136,17 @@ export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input type="password" placeholder={t('input.password')} disabled={isLoading} {...field} />
+                  <Input
+                    type="password"
+                    placeholder={t('input.password')}
+                    disabled={isLoading}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            )}></FormField>
+            )}
+          ></FormField>
 
           <div className="flex justify-end">
             <Button variant="link" className="text-xs px-0 h-auto text-muted-foreground" asChild>
@@ -142,15 +158,13 @@ export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
             <Turnstile
               siteKey={captcha.siteKey}
               onSuccess={(token) => {
-                setCaptchaToken(token)
+                setCaptchaToken(token);
               }}
             />
           )}
 
           <Button type="submit" disabled={isLoading}>
-            {isLoading && (
-              <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
-            )}
+            {isLoading && <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>}
             {t('button.signIn')}
           </Button>
         </form>
@@ -160,9 +174,7 @@ export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 text-muted-foreground">
-            {t('socials.or')}
-          </span>
+          <span className="bg-card px-2 text-muted-foreground">{t('socials.or')}</span>
         </div>
       </div>
       <Button variant="outline" asChild disabled={isLoading}>
@@ -173,12 +185,10 @@ export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 text-muted-foreground">
-            {t('socials.continueWith')}
-          </span>
+          <span className="bg-card px-2 text-muted-foreground">{t('socials.continueWith')}</span>
         </div>
       </div>
       <SocialLogin disabled={isLoading} onSignIn={socialSignIn.mutate} />
     </div>
-  )
+  );
 }

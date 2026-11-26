@@ -1,5 +1,5 @@
-import { OrganizationRoleOptions } from "./organization-user.interface";
-import { ISong } from "./song.interface";
+import { OrganizationRoleOptions } from './organization-user.interface';
+import { ISong } from './song.interface';
 
 export interface ISongWithRole extends ISong {
   organization?: {
