@@ -129,6 +129,9 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // React Router 8 is ESM-only; when Node loads it outside Vitest's module
+    // graph, `vi.mock('react-router')` stops reaching the app's imports.
+    server: { deps: { inline: ['react-router'] } },
     css: true,
     coverage: {
       provider: 'v8',
