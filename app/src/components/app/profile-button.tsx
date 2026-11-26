@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import ChevronDownIcon from '@heroicons/react/24/solid/ChevronDownIcon';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useServices } from '@/hooks/useServices';
 import { useQuery } from '@tanstack/react-query';
 
@@ -23,13 +23,13 @@ export function ProfileButton() {
   const { data } = useQuery(usersService.getProfileQuery());
 
   const goToProfile = () => {
-    navigate('/app/profile', { replace: true });
+    void navigate('/app/profile', { replace: true });
   };
 
   const onSignOut = async () => {
     await authService.signOut();
     signOut();
-    navigate('/login', { replace: true });
+    void navigate('/login', { replace: true });
   };
 
   return (

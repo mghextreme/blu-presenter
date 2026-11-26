@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { useWindow } from '@/hooks/window.provider';
+import { useWindow } from '@/hooks/useWindow';
 import { useTranslation } from 'react-i18next';
 import { IBrowserWindow, IScreenDetails } from '@/types/browser';
 import { ControllerMode, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from '@/types';
@@ -10,6 +10,11 @@ import { SlideVisualizer } from './slide-visualizer';
 import { useServices } from '@/hooks/useServices';
 
 const NO_THEMES: ITheme[] = [];
+
+function canChooseScreen(browserWindow: IBrowserWindow | undefined): boolean {
+  const browserScreen = browserWindow?.screen ?? browserWindow?.currentScreen;
+  return !!browserScreen?.isExtended && !!browserWindow?.getScreenDetails;
+}
 
 interface SelectorScreenProps {
   setMode: (mode: ControllerMode) => void;
@@ -27,15 +32,15 @@ export function SelectorScreen({
   const { t } = useTranslation('controller');
 
   const [selectedTheme, setSelectedTheme] = useState<ITheme | undefined>(defaultTheme);
-  useEffect(() => {
-    if (!!selectedTheme) return;
-
+  if (!selectedTheme && defaultTheme) {
     setSelectedTheme(defaultTheme);
-  }, [defaultTheme]);
+  }
 
-  const [selectedScreen, setSelectedScreen] = useState(false);
-  const [displayOptions, setDisplayOptions] = useState<IScreenDetails[]>([]);
   const { childWindow } = useWindow();
+  const [selectedScreen, setSelectedScreen] = useState(
+    () => !canChooseScreen(childWindow as unknown as IBrowserWindow),
+  );
+  const [displayOptions, setDisplayOptions] = useState<IScreenDetails[]>([]);
 
   const setFullScreen = (ix: number) => {
     if (ix < 0 || ix >= displayOptions.length) return;
@@ -61,29 +66,23 @@ export function SelectorScreen({
     setSelectedScreen(true);
   };
 
-  useEffect(() => {
+  const loadDisplayOptions = useEffectEvent(() => {
     const browserWindow = childWindow as unknown as IBrowserWindow;
-    const browserScreen = browserWindow?.screen || browserWindow?.currentScreen;
+    if (!canChooseScreen(browserWindow)) return;
 
-    if (!browserScreen || !browserScreen?.isExtended || !browserWindow?.getScreenDetails) {
-      setSelectedScreen(true);
-      return;
-    }
-
-    const screenDetailsPromise = browserWindow?.getScreenDetails();
-    if (screenDetailsPromise) {
-      screenDetailsPromise.then((details: { screens: IScreenDetails[] }) => {
-        if (details.screens.length < 2) {
+    Promise.resolve(browserWindow.getScreenDetails())
+      .then((details: { screens: IScreenDetails[] } | undefined) => {
+        if (!details || details.screens.length < 2) {
           setSelectedScreen(true);
           return;
         }
 
         setDisplayOptions(details.screens);
-      });
-    } else {
-      setSelectedScreen(true);
-    }
-  }, []);
+      })
+      // The window-management permission was denied: fall back to windowed mode.
+      .catch(() => setSelectedScreen(true));
+  });
+  useEffect(() => loadDisplayOptions(), []);
 
   const setThemeAndMode = (theme: ITheme) => {
     setSelectedTheme(theme);

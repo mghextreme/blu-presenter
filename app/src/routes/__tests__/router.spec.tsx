@@ -5,9 +5,12 @@ import { I18nextProvider, initReactI18next } from 'react-i18next';
 
 const createBrowserRouter = vi.hoisted(() => vi.fn(() => ({})));
 
-vi.mock('react-router-dom', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('react-router-dom')>()),
+vi.mock('react-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('react-router')>()),
   createBrowserRouter,
+}));
+
+vi.mock('react-router/dom', () => ({
   RouterProvider: () => null,
 }));
 

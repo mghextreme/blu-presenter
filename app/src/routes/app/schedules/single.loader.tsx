@@ -1,5 +1,5 @@
 import { SchedulesService } from '@/services';
-import { Params } from 'react-router-dom';
+import { Params } from 'react-router';
 
 export async function loader({
   params,

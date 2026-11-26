@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearch } from '@/hooks/search.provider';
+import { useSearch } from '@/hooks/useSearch';
 import {
   Form,
   FormControl,
@@ -64,7 +64,7 @@ export function AdvancedSearchForm({ includeBlocks = false }: Readonly<AdvancedS
       <form
         onSubmit={(e) => {
           e.stopPropagation();
-          form.handleSubmit(onSubmit)(e);
+          void form.handleSubmit(onSubmit)(e);
         }}
         className="flex w-full flex-wrap flex-col sm:flex-row space-x-2 space-y-2 items-stretch"
       >

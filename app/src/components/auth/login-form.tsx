@@ -3,7 +3,7 @@
 
 import { useState, HTMLAttributes } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router';
 import { Turnstile } from '@marsidev/react-turnstile';
 
 import { cn } from '@/lib/utils';
@@ -18,7 +18,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { useInvitation } from '@/hooks/invitation.provider';
+import { useInvitation } from '@/hooks/useInvitation';
 import { useServices } from '@/hooks/useServices';
 import { toast } from 'sonner';
 import { ApiError } from '@/types';

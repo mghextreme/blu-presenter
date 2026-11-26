@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router';
 import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 import ChevronDownIcon from '@heroicons/react/24/solid/ChevronDownIcon';
 import { CheckIcon } from '@radix-ui/react-icons';
@@ -61,7 +61,7 @@ export function InviteOrganizationMember() {
     mutationFn: (values: z.infer<typeof formSchema>) =>
       organizationsService.inviteMember(values.email, values.role, data.id),
     onSuccess: () => {
-      navigate(`/app/organization/${data.id}`, { replace: true });
+      void navigate(`/app/organization/${data.id}`, { replace: true });
     },
     onError: (e) => {
       toast.error(t('error.inviteMember'), {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface ConnectionIndicatorProps {
@@ -10,18 +10,12 @@ export function ConnectionIndicator({
   isConnected,
   reconnectAttempts,
 }: Readonly<ConnectionIndicatorProps>) {
-  const hasConnectedOnceRef = useRef(false);
-  const [visible, setVisible] = useState(false);
+  const [hasConnectedOnce, setHasConnectedOnce] = useState(isConnected);
+  if (isConnected && !hasConnectedOnce) {
+    setHasConnectedOnce(true);
+  }
 
-  useEffect(() => {
-    if (isConnected) {
-      hasConnectedOnceRef.current = true;
-      setVisible(false);
-    } else if (hasConnectedOnceRef.current) {
-      setVisible(true);
-    }
-  }, [isConnected]);
-
+  const visible = !isConnected && hasConnectedOnce;
   if (!visible) return null;
 
   const isReconnecting = reconnectAttempts > 0;

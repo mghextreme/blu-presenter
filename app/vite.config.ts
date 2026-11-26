@@ -6,6 +6,56 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 import { cloudflare } from '@cloudflare/vite-plugin';
 
+const vendorChunks: Record<string, string[]> = {
+  // Core React libraries - most frequently used, cache separately
+  'vendor-react': ['react', 'react-dom', 'react-router'],
+
+  // UI component library - Radix UI components used throughout the app
+  'vendor-radix': [
+    '@radix-ui/react-accordion',
+    '@radix-ui/react-alert-dialog',
+    '@radix-ui/react-checkbox',
+    '@radix-ui/react-collapsible',
+    '@radix-ui/react-dialog',
+    '@radix-ui/react-dropdown-menu',
+    '@radix-ui/react-icons',
+    '@radix-ui/react-label',
+    '@radix-ui/react-popover',
+    '@radix-ui/react-select',
+    '@radix-ui/react-slot',
+    '@radix-ui/react-switch',
+    '@radix-ui/react-tabs',
+    '@radix-ui/react-toast',
+    '@radix-ui/react-toggle',
+  ],
+
+  // Data fetching and state management
+  'vendor-data': ['@tanstack/react-query', 'zustand'],
+
+  // Real-time communication - used by controller
+  'vendor-socket': ['socket.io-client'],
+
+  // Internationalization - used across all pages
+  'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+
+  // Forms and validation - heavy usage in edit pages
+  'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+
+  // Drag and drop - controller specific functionality
+  'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/modifiers', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+
+  // UI utilities and icons
+  'vendor-ui-utils': [
+    '@heroicons/react',
+    'lucide-react',
+    'sonner',
+    'next-themes',
+    'react-qr-code',
+    'react-hotkeys-hook',
+    'cmdk',
+  ],
+};
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: lazyPlugins(() => [
@@ -89,77 +139,13 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks(id: string) {
-          if (!id.includes('node_modules')) return undefined;
-
-          const vendors: Record<string, string[]> = {
-            // Core React libraries - most frequently used, cache separately
-            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-
-            // UI component library - Radix UI components used throughout the app
-            'vendor-radix': [
-              '@radix-ui/react-accordion',
-              '@radix-ui/react-alert-dialog',
-              '@radix-ui/react-checkbox',
-              '@radix-ui/react-collapsible',
-              '@radix-ui/react-dialog',
-              '@radix-ui/react-dropdown-menu',
-              '@radix-ui/react-icons',
-              '@radix-ui/react-label',
-              '@radix-ui/react-popover',
-              '@radix-ui/react-select',
-              '@radix-ui/react-slot',
-              '@radix-ui/react-switch',
-              '@radix-ui/react-tabs',
-              '@radix-ui/react-toast',
-              '@radix-ui/react-toggle',
-            ],
-
-            // Data fetching and state management
-            'vendor-data': ['@tanstack/react-query', 'zustand'],
-
-            // Real-time communication - used by controller
-            'vendor-socket': ['socket.io-client'],
-
-            // Internationalization - used across all pages
-            'vendor-i18n': [
-              'i18next',
-              'react-i18next',
-              'i18next-browser-languagedetector',
-              'i18next-localstorage-cache',
-            ],
-
-            // Forms and validation - heavy usage in edit pages
-            'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
-
-            // Drag and drop - controller specific functionality
-            'vendor-dnd': [
-              '@dnd-kit/core',
-              '@dnd-kit/modifiers',
-              '@dnd-kit/sortable',
-              '@dnd-kit/utilities',
-            ],
-
-            // UI utilities and icons
-            'vendor-ui-utils': [
-              '@heroicons/react',
-              'lucide-react',
-              'sonner',
-              'next-themes',
-              'react-qr-code',
-              'react-hotkeys-hook',
-              'cmdk',
-            ],
-          };
-
-          for (const [chunk, packages] of Object.entries(vendors)) {
-            if (packages.some((pkg) => id.includes(`node_modules/${pkg}/`))) {
-              return chunk;
-            }
-          }
-          return undefined;
+        codeSplitting: {
+          groups: Object.entries(vendorChunks).map(([name, packages]) => ({
+            name,
+            test: (id: string) => packages.some((pkg) => id.includes(`node_modules/${pkg}/`)),
+          })),
         },
       },
     },

@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { describeApiError } from '@/types';
 import { IAuthInvitationData, IExchangeCodeData } from '@/types/auth';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 export function OAuthCallback() {
@@ -65,7 +65,7 @@ export function OAuthCallback() {
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
-    validateTokens();
+    void validateTokens();
   });
 
   return (

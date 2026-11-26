@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useEffectEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ISong } from '@/types';
 import {
@@ -51,9 +51,7 @@ export function SongPreview({
     }
   };
 
-  useEffect(() => {
-    if (!song) return;
-
+  const showSongInPreview = useEffectEvent((song: ISong) => {
     const slides = songsService.toScheduleSong(song);
     slides.slides = slides.slides.slice(0, -1);
     setScheduleItem(slides);
@@ -97,6 +95,10 @@ export function SongPreview({
       slide: clampedSlide,
       part: targetPart,
     });
+  });
+
+  useEffect(() => {
+    if (song) showSongInPreview(song);
   }, [song]);
 
   return (

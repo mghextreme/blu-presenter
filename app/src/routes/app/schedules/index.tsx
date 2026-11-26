@@ -1,4 +1,4 @@
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link, useLoaderData } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import { format, parse } from 'date-fns';
 import EyeIcon from '@heroicons/react/24/solid/EyeIcon';

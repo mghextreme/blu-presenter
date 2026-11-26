@@ -1,6 +1,6 @@
 import { ISongPart, ISongWithRole, isRoleHigherOrEqualThan, SupportedLanguage } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useSuspenseQuery } from '@tanstack/react-query';

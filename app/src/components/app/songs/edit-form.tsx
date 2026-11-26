@@ -1,7 +1,7 @@
-import { forwardRef, ReactNode, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, ReactNode, useImperativeHandle, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 
 import { ILanguage, supportedLanguagesMap } from '@/types';
 import { useServices } from '@/hooks/useServices';
@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 import { useTranslation } from 'react-i18next';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -96,6 +96,30 @@ export const EditSongForm = forwardRef<EditSongFormHandle, EditSongFormProps>(
   },
 );
 
+const UPPERCASE_BLOCKS_WARNING_THRESHOLD = 3;
+
+function hasTooManyUppercaseBlocks(blocks: z.infer<typeof SongSchema>['blocks']): boolean {
+  let uppercaseCount = 0;
+  for (const block of blocks ?? []) {
+    const lyricsLines = block?.lines?.filter((line) => line.type === 'lyrics') ?? [];
+    const blockText = lyricsLines
+      .map((line) => line.content)
+      .join('\n')
+      .trim();
+    if (!blockText) continue;
+
+    if (blockText === blockText.toUpperCase()) {
+      uppercaseCount++;
+    }
+
+    if (uppercaseCount >= UPPERCASE_BLOCKS_WARNING_THRESHOLD) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 const EditSongFormContent = forwardRef<EditSongFormHandle, EditSongFormProps>(
   (
     {
@@ -160,41 +184,10 @@ const EditSongFormContent = forwardRef<EditSongFormHandle, EditSongFormProps>(
     });
 
     const [ignoreWarning, setIgnoreWarning] = useState<boolean>(false);
-    const [hasUppercaseWarning, setHasUppercaseWarning] = useState<boolean>(false);
+    const watchedBlocks = useWatch({ control: form.control, name: 'blocks' });
+    const hasUppercaseWarning = hasTooManyUppercaseBlocks(watchedBlocks);
     const [openLanguageSelector, setOpenLanguageSelector] = useState<boolean>(false);
     const languageListId = 'song-language-selector-list';
-    const checkUppercase = () => {
-      const blocks = form.watch('blocks');
-
-      let uppercaseCount = 0;
-      let addUppercaseWarning = false;
-      for (const block of blocks) {
-        const lyricsLines = block?.lines?.filter((line) => line.type === 'lyrics') ?? [];
-        const blockText = lyricsLines
-          .map((line) => line.content)
-          .join('\n')
-          .trim();
-        if (!blockText) continue;
-
-        if (blockText.length > 0 && blockText === blockText.toUpperCase()) {
-          uppercaseCount++;
-        }
-
-        if (uppercaseCount >= 3) {
-          addUppercaseWarning = true;
-          break;
-        }
-      }
-
-      setHasUppercaseWarning(addUppercaseWarning);
-    };
-
-    // NOTE: form.watch('blocks') as a useEffect dependency is a react-hook-form
-    // anti-pattern (returns a new reference on every render), but it is intentional
-    // here — we want checkUppercase to re-run whenever the blocks value changes.
-    useEffect(() => {
-      checkUppercase();
-    }, [form.watch('blocks')]);
 
     const autoFixUppercase = () => {
       const blocks = form.getValues('blocks');
@@ -211,7 +204,6 @@ const EditSongFormContent = forwardRef<EditSongFormHandle, EditSongFormProps>(
       }
 
       songEditorRef.current?.loadBlocks(blocks);
-      checkUppercase();
     };
 
     return (

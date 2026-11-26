@@ -15,7 +15,7 @@ export function ContentSelector({
   selected = false,
   disabled = false,
   slideIndex,
-  scheduleItemIndex = undefined,
+  scheduleItemIndex,
   contentIndex,
 }: Readonly<ContentSelectorParams>) {
   const { mode, setSelection } = useController((s) => ({

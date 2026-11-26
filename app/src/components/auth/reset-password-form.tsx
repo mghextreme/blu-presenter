@@ -2,7 +2,7 @@
 
 import { HTMLAttributes, useEffect, useMemo } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -80,7 +80,7 @@ export function ResetPasswordForm({ className, ...props }: Readonly<ResetPasswor
       }),
     onSuccess: () => {
       toast.success(t('resetPassword.success'));
-      navigate('/login');
+      void navigate('/login');
     },
     onError: async (e: unknown) => {
       const error = e as ApiError;

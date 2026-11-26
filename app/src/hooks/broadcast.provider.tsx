@@ -1,30 +1,13 @@
-import { createContext, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BaseTheme, IBroadcastSession } from '@/types';
 import { useController } from './useController';
 import { useServices } from './useServices';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
+import { BroadcastProviderContext, type BroadcastProviderState } from './broadcast.context';
 
 type BroadcastProviderProps = {
   children: React.ReactNode;
 };
-
-type BroadcastProviderState = {
-  session?: IBroadcastSession;
-  setSession: (session?: IBroadcastSession) => void;
-
-  urlTheme?: { label: string; value: BaseTheme | number };
-  setUrlTheme: (theme?: { label: string; value: BaseTheme | number }) => void;
-};
-
-const initialState: BroadcastProviderState = {
-  session: undefined,
-  setSession: () => null,
-
-  urlTheme: undefined,
-  setUrlTheme: () => null,
-};
-
-export const BroadcastProviderContext = createContext<BroadcastProviderState>(initialState);
 
 /**
  * Drives the REST write path for live broadcast state (controller →

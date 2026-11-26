@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { useServices } from '@/hooks/useServices';
-import { useInvitation } from '@/hooks/invitation.provider';
+import { useInvitation } from '@/hooks/useInvitation';
 import { ApiError } from '@/types';
 import { IAuthInvitationData } from '@/types/auth';
 import { STORAGE_KEYS } from '@/lib/storage-keys';

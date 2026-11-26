@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { SlideVisualizer } from './slide-visualizer';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from '@/types';
 import { IBrowserWindow, IScreenDetails } from '@/types/browser';
@@ -45,6 +45,21 @@ const defaultRatioOptions = [
   },
 ];
 
+function toScreenRatioOptions(screens: IScreenDetails[]): { value: string; label: string }[] {
+  return screens.map((s, ix: number) => {
+    const screenZoom = s.devicePixelRatio;
+    const w = Math.round(s.width * screenZoom);
+    const h = Math.round(s.height * screenZoom);
+    const name = s.label == '' ? 'Display ' + (ix + 1) : s.label;
+    const resolution = '(' + (screenZoom != 1 ? 'aprox. ' : '') + w + ' x ' + h + ')';
+
+    return {
+      value: `${w}/${h}`,
+      label: `${name} ${resolution}`,
+    };
+  });
+}
+
 interface PreviewWindowProps {
   closeWindow?: () => void;
   attachControllerMode?: boolean;
@@ -68,7 +83,8 @@ export function PreviewWindow({
   } = usePreviewConfig();
 
   const [openPreviewThemeSelector, setOpenPreviewThemeSelector] = useState<boolean>(false);
-  const [previewTheme, setPreviewTheme] = useState<ITheme>(showThemeSelector ? storedTheme : theme);
+  const [selectedPreviewTheme, setSelectedPreviewTheme] = useState<ITheme>(storedTheme);
+  const previewTheme = showThemeSelector ? selectedPreviewTheme : theme;
   const [openPreviewRatioSelector, setOpenPreviewRatioSelector] = useState<boolean>(false);
   const [previewRatio, setPreviewRatio] = useState<string>(storedRatio);
   const [ratioOptions, setRatioOptions] =
@@ -78,17 +94,16 @@ export function PreviewWindow({
 
   const { themesService } = useServices();
 
-  const updatePreviewTheme = (theme: ITheme) => {
-    setPreviewTheme(theme);
-
-    if (showThemeSelector) {
-      storeSetPreviewTheme(theme);
-    }
-
+  const attachModeToTheme = (theme: ITheme) => {
     if (attachControllerMode && mode !== 'part') {
       const newMode = theme.extends === 'subtitles' ? 'part' : 'slide';
       setMode(newMode);
     }
+  };
+  const updatePreviewTheme = (theme: ITheme) => {
+    setSelectedPreviewTheme(theme);
+    storeSetPreviewTheme(theme);
+    attachModeToTheme(theme);
   };
   const updatePreviewRatio = (ratio: string) => {
     if (ratio === previewRatio) return;
@@ -97,37 +112,29 @@ export function PreviewWindow({
     storeSetPreviewRatio(ratio);
   };
 
-  useEffect(() => {
+  const initializeMode = useEffectEvent(() => {
     setMode(previewTheme?.extends === 'subtitles' ? 'part' : 'slide');
+  });
+  useEffect(() => {
+    initializeMode();
 
     const browserWindow = window as unknown as IBrowserWindow;
     if (!browserWindow?.getScreenDetails) return;
-    const screenDetailsPromise = browserWindow?.getScreenDetails();
-    if (screenDetailsPromise) {
-      screenDetailsPromise.then((details: { screens: IScreenDetails[] }) => {
-        const screenRatioOptions = details.screens.map((s, ix: number) => {
-          const screenZoom = s.devicePixelRatio;
-          const w = Math.round(s.width * screenZoom);
-          const h = Math.round(s.height * screenZoom);
-          const name = s.label == '' ? 'Display ' + (ix + 1) : s.label;
-          const resolution = '(' + (screenZoom != 1 ? 'aprox. ' : '') + w + ' x ' + h + ')';
-
-          return {
-            value: `${w}/${h}`,
-            label: `${name} ${resolution}`,
-          };
-        });
-
-        setRatioOptions([...defaultRatioOptions, ...screenRatioOptions]);
-      });
-    }
+    Promise.resolve(browserWindow.getScreenDetails())
+      .then((details: { screens: IScreenDetails[] } | undefined) => {
+        if (!details) return;
+        setRatioOptions([...defaultRatioOptions, ...toScreenRatioOptions(details.screens)]);
+      })
+      // The window-management permission was denied: keep the default ratios.
+      .catch(() => undefined);
   }, []);
 
-  useEffect(() => {
+  const onThemePropChange = useEffectEvent((nextTheme: ITheme) => {
     if (!showThemeSelector) {
-      updatePreviewTheme(theme);
+      attachModeToTheme(nextTheme);
     }
-  }, [theme]);
+  });
+  useEffect(() => onThemePropChange(theme), [theme]);
 
   const { data: customThemes } = useQuery({
     ...themesService.allForUserQuery(),

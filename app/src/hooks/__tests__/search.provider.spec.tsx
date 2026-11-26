@@ -6,7 +6,8 @@ import { SongsService } from '@/services';
 import { PAGE_SIZE } from '@/lib/pagination';
 import { ISongWithRole } from '@/types';
 
-import { SearchProvider, useSearch } from '../search.provider';
+import { SearchProvider } from '../search.provider';
+import { useSearch } from '../useSearch';
 
 const fetchMock = vi.fn();
 

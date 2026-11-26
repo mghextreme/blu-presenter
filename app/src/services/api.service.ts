@@ -194,7 +194,7 @@ export abstract class ApiService {
     const response = await fetch(this.url + path, {
       method,
       headers,
-      body,
+      ...(body === undefined ? {} : { body }),
     });
 
     if (response.ok) {

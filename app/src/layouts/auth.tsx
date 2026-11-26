@@ -1,9 +1,8 @@
-import { Link, Outlet, useLoaderData, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLoaderData, useLocation } from 'react-router';
 
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { ThemeToggler } from '@/components/shared/theme-toggler';
-import { useEffect, useState } from 'react';
 import { LanguageToggler } from '@/components/shared/language-toggler';
 import { Trans, useTranslation } from 'react-i18next';
 import { Toaster } from '@/components/ui/sonner';
@@ -22,10 +21,7 @@ export function AuthLayout() {
     params = `?id=${inviteData.id}&secret=${inviteData.secret}`;
   }
 
-  const [isLogin, setIsLogin] = useState<boolean>(false);
-  useEffect(() => {
-    setIsLogin(location.pathname == '/login');
-  }, [location]);
+  const isLogin = location.pathname == '/login';
 
   return (
     <div className="container relative h-screen flex-col items-center justify-stretch grid lg:max-w-none lg:grid-cols-2 lg:px-0 bg-card">

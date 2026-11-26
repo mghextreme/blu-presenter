@@ -42,6 +42,7 @@ function DateRangePicker({
 }: Readonly<DateRangePickerProps>) {
   const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [currentYear] = useState(() => new Date().getFullYear());
   // In-progress selection: the start date is picked, the end date is pending.
   // react-day-picker cannot drive this directly because (without min/max) its
   // range mode already emits a complete single-day range on the first click.
@@ -111,7 +112,6 @@ function DateRangePicker({
     setOpen(false);
   };
 
-  const today = new Date();
   const hasValue = !!(value?.from || value?.to);
 
   return (
@@ -143,8 +143,8 @@ function DateRangePicker({
             onSelect={handleSelect}
             locale={dayPicker}
             captionLayout="dropdown"
-            startMonth={new Date(today.getFullYear() - 5, 0)}
-            endMonth={new Date(today.getFullYear() + 5, 11)}
+            startMonth={new Date(currentYear - 5, 0)}
+            endMonth={new Date(currentYear + 5, 11)}
           />
         </PopoverContent>
       </Popover>

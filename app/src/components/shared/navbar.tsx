@@ -3,7 +3,7 @@ import { LanguageToggler } from '@/components/shared/language-toggler';
 import { useAuth } from '@/hooks/useAuth';
 import { BluPresenterLogo } from '@/components/shared/logo';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 
 export function SharedNavbar() {

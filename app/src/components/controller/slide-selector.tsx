@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useController } from '@/hooks/useController';
 import { ContentSelector } from './content-selector';
 import { ISlide } from '@/types';
@@ -15,7 +14,7 @@ export function SlideSelector({
   slide,
   selected = false,
   disabled = false,
-  scheduleItemIndex = undefined,
+  scheduleItemIndex,
   index,
 }: Readonly<SlideSelectorParams>) {
   const { mode, selection, setSelection } = useController((s) => ({
@@ -24,16 +23,8 @@ export function SlideSelector({
     setSelection: s.setSelection,
   }));
 
-  const [isSelected, setSelected] = useState<boolean>(false);
-  const [isEmpty, setEmpty] = useState<boolean>(false);
-
-  useEffect(() => {
-    setEmpty((slide?.content?.length ?? 0) == 0);
-  }, [slide]);
-
-  useEffect(() => {
-    setSelected((mode == 'slide' || isEmpty) && selected);
-  }, [isEmpty, selected, mode]);
+  const isEmpty = (slide?.content?.length ?? 0) == 0;
+  const isSelected = (mode == 'slide' || isEmpty) && selected;
 
   return (
     <div

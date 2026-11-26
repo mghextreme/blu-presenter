@@ -1,21 +1,12 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { WindowProviderContext } from './window.context';
 
 type WindowProviderProps = {
   id: string;
   onClose?: () => void;
   children: React.ReactNode;
 };
-
-type WindowProviderState = {
-  childWindow?: Window;
-};
-
-const initialState: WindowProviderState = {
-  childWindow: undefined,
-};
-
-const WindowProviderContext = createContext<WindowProviderState>(initialState);
 
 export function WindowProvider({ id, onClose, children, ...props }: Readonly<WindowProviderProps>) {
   const [externalWind, setExternalWind] = useState<Window | undefined>(undefined);
@@ -78,7 +69,7 @@ export function WindowProvider({ id, onClose, children, ...props }: Readonly<Win
     return () => {
       externalDocument?.close();
     };
-  }, []);
+  }, [id]);
 
   const initialValue = {
     childWindow: externalWind,
@@ -92,11 +83,3 @@ export function WindowProvider({ id, onClose, children, ...props }: Readonly<Win
     </WindowProviderContext.Provider>
   );
 }
-
-export const useWindow = () => {
-  const context = useContext(WindowProviderContext);
-
-  if (context === undefined) throw new Error('useWindow must be used within a WindowProvider');
-
-  return context;
-};

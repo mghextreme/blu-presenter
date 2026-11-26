@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { useSearch } from '@/hooks/search.provider';
+import { useSearch } from '@/hooks/useSearch';
 import { SearchResultItem, SearchResultItemProps } from './search-result-item';
 import { LoadMoreButton } from '@/components/shared/load-more';
 import { EmptyList } from '@/components/shared/empty-list';

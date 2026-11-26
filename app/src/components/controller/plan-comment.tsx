@@ -52,7 +52,7 @@ export function PlanComment() {
   const handleAdd = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
-    form.handleSubmit(add)();
+    void form.handleSubmit(add)();
   };
 
   return (

@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Link, MemoryRouter, Route, Routes } from 'react-router-dom';
+import { Link, MemoryRouter, Route, Routes } from 'react-router';
 import { createTestQueryClient, render } from '@/test/test-utils';
 import { IOrganization } from '@/types';
 

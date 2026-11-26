@@ -4,7 +4,7 @@ import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { useServices } from '@/hooks/useServices';
 import { PageContent } from '@/components/shared/page-content';
 import { Button } from '@/components/ui/button';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router';
 import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 import ChevronDownIcon from '@heroicons/react/24/solid/ChevronDownIcon';
 import { CheckIcon } from '@radix-ui/react-icons';
@@ -37,7 +37,7 @@ export function TransferOrganization() {
     mutationFn: (member: IOrganizationUser) =>
       organizationsService.transferOwnership(member.id, data.id),
     onSuccess: () => {
-      navigate(`/app/organization/${data.id}`, { replace: true });
+      void navigate(`/app/organization/${data.id}`, { replace: true });
     },
     onError: (e) => {
       toast.error(t('error.transfer'), {

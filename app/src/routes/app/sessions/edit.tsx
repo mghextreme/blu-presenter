@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router';
 import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { TFunction } from 'i18next';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -100,6 +100,12 @@ type SessionFormProps = {
   data: ISession;
 };
 
+function sharedSessionUrl(session: ISession, theme: BaseTheme | number | null | undefined): string {
+  const currentUrl = new URL(window.location.href);
+  const themeParam = theme ? `/${theme}` : '';
+  return `${currentUrl.protocol}//${currentUrl.host}/shared/session/${session.organization?.id}/${session.id}/${session.secret ?? ''}${themeParam}`;
+}
+
 function SessionForm({ edit, data }: Readonly<SessionFormProps>) {
   const { t } = useTranslation('sessions');
   const navigate = useNavigate();
@@ -180,23 +186,6 @@ function SessionForm({ edit, data }: Readonly<SessionFormProps>) {
     [t],
   );
 
-  const nameFromTheme = (
-    item?: { label: string; value: BaseTheme | number } | BaseTheme | number | null,
-  ) => {
-    if (!item) return t('theme.letUserPick');
-
-    if (typeof item === 'number' || typeof item === 'string') {
-      const customTheme = consolidatedOptions.find(
-        (theme) => theme.value.toString() == item.toString(),
-      );
-      if (customTheme) {
-        return customTheme.label;
-      }
-    }
-
-    return (item as { label: string })?.label;
-  };
-
   const { data: customThemes } = useQuery({
     ...themesService.searchQuery({
       organizations: organizationId ? [organizationId] : undefined,
@@ -215,29 +204,26 @@ function SessionForm({ edit, data }: Readonly<SessionFormProps>) {
     [customThemes, defaultThemeOptions],
   );
 
-  const watchedTheme = form.watch('theme');
-  const [selectedThemeName, setSelectedThemeName] = useState<string>(() =>
-    nameFromTheme(selectedTheme),
-  );
-  useEffect(() => {
-    const theme = form.getValues('theme');
-    setSelectedThemeName(nameFromTheme(theme));
-  }, [selectedTheme, consolidatedOptions, watchedTheme]);
+  const nameFromTheme = (
+    item?: { label: string; value: BaseTheme | number } | BaseTheme | number | null,
+  ) => {
+    if (!item) return t('theme.letUserPick');
 
-  const [sessionQrCodeUrl, setSessionQrCodeUrl] = useState<string | undefined>(undefined);
-  useEffect(() => {
-    if (!edit) {
-      setSessionQrCodeUrl(undefined);
-      return;
+    if (typeof item === 'number' || typeof item === 'string') {
+      const customTheme = consolidatedOptions.find(
+        (theme) => theme.value.toString() == item.toString(),
+      );
+      if (customTheme) {
+        return customTheme.label;
+      }
     }
 
-    const theme = form.getValues('theme');
+    return (item as { label: string })?.label;
+  };
 
-    const currentUrl = new URL(window.location.href);
-    const themeParam = theme ? `/${theme}` : '';
-    const completeUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/session/${data?.organization?.id}/${data.id}/${data.secret ?? ''}${themeParam}`;
-    setSessionQrCodeUrl(completeUrl);
-  }, [edit, data, form, watchedTheme]);
+  const watchedTheme = useWatch({ control: form.control, name: 'theme' });
+  const selectedThemeName = nameFromTheme(watchedTheme);
+  const sessionQrCodeUrl = edit ? sharedSessionUrl(data, watchedTheme) : undefined;
 
   const copyShareableUrlToClipboard = async () => {
     if (!sessionQrCodeUrl) return;

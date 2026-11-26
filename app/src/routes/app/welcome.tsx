@@ -10,7 +10,7 @@ import CheckIcon from '@heroicons/react/24/solid/CheckIcon';
 import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
 import PencilIcon from '@heroicons/react/24/solid/PencilIcon';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { toast } from 'sonner';
 
 export function Welcome() {

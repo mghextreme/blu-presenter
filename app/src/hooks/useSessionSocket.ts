@@ -41,6 +41,7 @@ interface UseSessionSocketReturn {
 
 export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionSocketReturn {
   const socketRef = useRef<Socket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
   const [connectedSessionId, setConnectedSessionId] = useState<number | null>(null);
   const connectedSessionIdRef = useRef<number | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -117,98 +118,101 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
     isSubscribedRef.current = false;
   };
 
-  const subscribe = (socket: Socket) => {
-    if (isSubscribedRef.current) return;
+  const subscribe = useCallback(
+    (socket: Socket) => {
+      if (isSubscribedRef.current) return;
 
-    socket.on('connect', () => {
-      setIsConnected(true);
-      setReconnectAttempts(0);
+      socket.on('connect', () => {
+        setIsConnected(true);
+        setReconnectAttempts(0);
 
-      // Auto-rejoin: if the socket reconnects after a drop and we're not
-      // currently in a session, rejoin the last session automatically.
-      if (!connectedSessionIdRef.current && rejoinParamsRef.current) {
-        joinSession(rejoinParamsRef.current);
-      }
+        // Auto-rejoin: if the socket reconnects after a drop and we're not
+        // currently in a session, rejoin the last session automatically.
+        if (!connectedSessionIdRef.current && rejoinParamsRef.current) {
+          joinSession(rejoinParamsRef.current);
+        }
 
-      configRef.current.onConnect?.(socket);
-    });
-
-    socket.on('disconnect', (reason) => {
-      setIsConnected(false);
-      updateConnectedSessionId(null);
-      configRef.current.onDisconnect?.(reason);
-    });
-
-    socket.on('error', (data) => {
-      console.error('socketError', data);
-
-      switch (data.code) {
-        case 'unauthorized':
-          updateConnectedSessionId(null);
-          break;
-
-        case 'notInSession':
-          updateConnectedSessionId(null);
-          // Auto-rejoin on "notInSession" (e.g., server restart while transport survived)
-          if (rejoinParamsRef.current) {
-            joinSession(rejoinParamsRef.current);
-          }
-          break;
-      }
-
-      configRef.current.onError?.(data);
-    });
-
-    socket.on('exception', (data) => {
-      // NestJS emits 'exception' (not 'error') when a server-side guard or
-      // handler rejects a message — e.g. an expired auth token. Surface it
-      // through the same onError channel so the failure is not silent.
-      console.error('socketException', data);
-      configRef.current.onError?.({ code: 'exception', ...data });
-    });
-
-    socket.on('joinedSession', (data) => {
-      updateConnectedSessionId(Number(data.id));
-      configRef.current.onJoinedSession?.(data);
-    });
-
-    socket.on('leftSession', (data) => {
-      if (connectedSessionIdRef.current === data.id) {
-        updateConnectedSessionId(null);
-      }
-      configRef.current.onLeftSession?.(data);
-    });
-
-    // Reconnection events live on the Manager (socket.io), not the Socket
-    socket.io.on('reconnect', (attemptNumber: number) => {
-      setReconnectAttempts(0);
-      configRef.current.onReconnect?.(attemptNumber);
-    });
-
-    socket.io.on('reconnect_attempt', (attemptNumber: number) => {
-      setReconnectAttempts(attemptNumber);
-      configRef.current.onReconnectAttempt?.(attemptNumber);
-    });
-
-    socket.io.on('error', (error: Error) => {
-      configRef.current.onConnectError?.(error);
-    });
-
-    if (configRef.current.additionalEvents) {
-      configRef.current.additionalEvents.forEach(({ eventName }) => {
-        socket.on(eventName, (data: any) => {
-          const currentHandler = configRef.current.additionalEvents?.find(
-            (e) => e.eventName === eventName,
-          )?.handler;
-          currentHandler?.(data);
-        });
+        configRef.current.onConnect?.(socket);
       });
-    }
 
-    isSubscribedRef.current = true;
-  };
+      socket.on('disconnect', (reason) => {
+        setIsConnected(false);
+        updateConnectedSessionId(null);
+        configRef.current.onDisconnect?.(reason);
+      });
 
-  const ensureSocket = () => {
+      socket.on('error', (data) => {
+        console.error('socketError', data);
+
+        switch (data.code) {
+          case 'unauthorized':
+            updateConnectedSessionId(null);
+            break;
+
+          case 'notInSession':
+            updateConnectedSessionId(null);
+            // Auto-rejoin on "notInSession" (e.g., server restart while transport survived)
+            if (rejoinParamsRef.current) {
+              joinSession(rejoinParamsRef.current);
+            }
+            break;
+        }
+
+        configRef.current.onError?.(data);
+      });
+
+      socket.on('exception', (data) => {
+        // NestJS emits 'exception' (not 'error') when a server-side guard or
+        // handler rejects a message — e.g. an expired auth token. Surface it
+        // through the same onError channel so the failure is not silent.
+        console.error('socketException', data);
+        configRef.current.onError?.({ code: 'exception', ...data });
+      });
+
+      socket.on('joinedSession', (data) => {
+        updateConnectedSessionId(Number(data.id));
+        configRef.current.onJoinedSession?.(data);
+      });
+
+      socket.on('leftSession', (data) => {
+        if (connectedSessionIdRef.current === data.id) {
+          updateConnectedSessionId(null);
+        }
+        configRef.current.onLeftSession?.(data);
+      });
+
+      // Reconnection events live on the Manager (socket.io), not the Socket
+      socket.io.on('reconnect', (attemptNumber: number) => {
+        setReconnectAttempts(0);
+        configRef.current.onReconnect?.(attemptNumber);
+      });
+
+      socket.io.on('reconnect_attempt', (attemptNumber: number) => {
+        setReconnectAttempts(attemptNumber);
+        configRef.current.onReconnectAttempt?.(attemptNumber);
+      });
+
+      socket.io.on('error', (error: Error) => {
+        configRef.current.onConnectError?.(error);
+      });
+
+      if (configRef.current.additionalEvents) {
+        configRef.current.additionalEvents.forEach(({ eventName }) => {
+          socket.on(eventName, (data: any) => {
+            const currentHandler = configRef.current.additionalEvents?.find(
+              (e) => e.eventName === eventName,
+            )?.handler;
+            currentHandler?.(data);
+          });
+        });
+      }
+
+      isSubscribedRef.current = true;
+    },
+    [joinSession, updateConnectedSessionId],
+  );
+
+  const ensureSocket = useCallback(() => {
     if (socketRef.current) return socketRef.current;
 
     const newSocket = io(config.api.url, {
@@ -225,17 +229,18 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
     });
 
     socketRef.current = newSocket;
+    setSocket(newSocket);
     subscribe(newSocket);
 
     return newSocket;
-  };
+  }, [subscribe]);
 
   const connect = useCallback(() => {
     const socket = ensureSocket();
     if (!socket.connected) {
       socket.connect();
     }
-  }, []);
+  }, [ensureSocket]);
 
   const disconnect = useCallback(() => {
     if (!socketRef.current) return;
@@ -250,6 +255,7 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
     unsubscribe(socketRef.current);
     socketRef.current.disconnect();
     socketRef.current = null;
+    setSocket(null);
     setIsConnected(false);
   }, [leaveSession, updateConnectedSessionId]);
 
@@ -321,7 +327,7 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
   }, []);
 
   return {
-    socket: socketRef.current,
+    socket,
     connectedSessionId,
     connectedSessionIdRef,
     isConnected,

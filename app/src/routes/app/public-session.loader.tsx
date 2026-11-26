@@ -1,6 +1,6 @@
 import { SessionsService, ThemesService } from '@/services';
 import { ITheme } from '@/types';
-import { Params } from 'react-router-dom';
+import { Params } from 'react-router';
 
 export async function loader({
   params,

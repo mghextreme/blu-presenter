@@ -8,7 +8,7 @@ import {
 } from '@/types';
 import { useController } from '@/hooks/useController';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { useWindow } from '@/hooks/window.provider';
+import { useWindow } from '@/hooks/useWindow';
 import { cn } from '@/lib/utils';
 import { buildFontStyle } from '@/lib/style';
 
@@ -60,22 +60,19 @@ const SingleSlideVisualizerContent = forwardRef(
       };
     }, [childWindow]);
 
-    const [toShow, setToShow] = useState<ISlideContent[]>([]);
-    const updateContent = () => {
+    const getContentToShow = (): ISlideContent[] => {
       if (overrideSlide !== undefined) {
-        setToShow(overrideSlide.content ?? []);
-        return;
+        return overrideSlide.content ?? [];
       }
 
       const content = selectedSlide?.content ?? [];
 
       if (theme.extends === 'subtitles') {
-        setToShow(content.length > 0 ? [content[selection.part ?? 0]] : []);
-      } else {
-        setToShow(content);
+        return content.length > 0 ? [content[selection.part ?? 0]] : [];
       }
+      return content;
     };
-    useEffect(updateContent, [selectedSlide, overrideSlide, selection]);
+    const toShow = getContentToShow();
 
     const getTitleContent = (content: ISlideTitleContent) => {
       return (
@@ -130,13 +127,8 @@ const SingleSlideVisualizerContent = forwardRef(
       );
     };
 
-    const update = () => {
-      updateFontSize();
-      updateContent();
-    };
-
     useImperativeHandle(ref, () => ({
-      update,
+      update: updateFontSize,
     }));
 
     return (

@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { useSearch } from '@/hooks/search.provider';
+import { useSearch } from '@/hooks/useSearch';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,7 @@ export function BasicSearchForm({ includeBlocks = false }: Readonly<BasicSearchF
       <form
         onSubmit={(e) => {
           e.stopPropagation();
-          form.handleSubmit(onSubmit)(e);
+          void form.handleSubmit(onSubmit)(e);
         }}
         className="flex flex-row w-full justify-stretch space-x-3"
       >

@@ -80,11 +80,11 @@ export function PlanText({ showOpen = true }: Readonly<PlanTextProps>) {
   const handleAdd = (e?: React.BaseSyntheticEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
-    form.handleSubmit(add)();
+    void form.handleSubmit(add)();
   };
 
   const handleOpen = () => {
-    form.handleSubmit(open)();
+    void form.handleSubmit(open)();
   };
 
   return (

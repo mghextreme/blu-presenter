@@ -2,7 +2,7 @@
 
 import { HTMLAttributes, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { Turnstile } from '@marsidev/react-turnstile';
 
 import { cn } from '@/lib/utils';
@@ -16,7 +16,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
-import { useInvitation } from '@/hooks/invitation.provider';
+import { useInvitation } from '@/hooks/useInvitation';
 import { useServices } from '@/hooks/useServices';
 import { toast } from 'sonner';
 import { ApiError } from '@/types';
@@ -55,7 +55,7 @@ export function OtpRequestForm({ className, ...props }: Readonly<OtpRequestFormP
     onSuccess: (_, values) => {
       // Forward to verify step. Invitation context flows via AuthLayout/provider
       // (URL query string id/secret), so it is preserved without extra plumbing.
-      navigate('/login/otp/verify', { state: { email: values.email } });
+      void navigate('/login/otp/verify', { state: { email: values.email } });
     },
     onError: async (e: unknown) => {
       const error = e as ApiError;

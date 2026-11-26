@@ -27,7 +27,7 @@ const makeMultiPartItem = (id: number, title: string) => ({
   ],
 });
 
-vi.mock('react-router-dom', () => ({
+vi.mock('react-router', () => ({
   useParams: () => ({ orgId: '3', sessionId: '7', secret: 's3cr3t' }),
 }));
 

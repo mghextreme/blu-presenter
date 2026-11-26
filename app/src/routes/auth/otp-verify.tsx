@@ -1,5 +1,5 @@
 import { OtpVerifyForm } from '@/components/auth/otp-verify-form';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 
 export function OtpVerify() {

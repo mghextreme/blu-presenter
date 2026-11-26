@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useController } from '@/hooks/useController';
 import { Button } from '../ui/button';
 import {
@@ -22,12 +21,7 @@ export function ControllerModeToggler() {
     windows: s.windows,
   }));
 
-  const [anyPartWindow, setAnyPartWindow] = useState<boolean>(false);
-
-  useEffect(() => {
-    const partWind = windows.find((w) => w.theme?.extends === 'subtitles');
-    setAnyPartWindow(partWind !== undefined);
-  }, [windows]);
+  const anyPartWindow = windows.some((w) => w.theme?.extends === 'subtitles');
 
   return (
     <>

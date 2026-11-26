@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 
 import { ProtectedRoute } from '@/components/protected-route';
 import { AppSidebar } from '@/components/app/sidebar';
@@ -17,7 +17,7 @@ export function AppLayout() {
     authService.refreshOrganizations().catch(() => {
       /* keep cached orgs */
     });
-  }, []);
+  }, [authService]);
 
   return (
     <ProtectedRoute>

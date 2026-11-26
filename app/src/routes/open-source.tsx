@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { OpenSourceInitiative } from '@/components/icons/open-source';
 import ServerStackIcon from '@heroicons/react/24/outline/ServerStackIcon';

@@ -1,4 +1,4 @@
-import { Params } from 'react-router-dom';
+import { Params } from 'react-router';
 import { OrganizationsService } from '@/services';
 
 export async function loader({

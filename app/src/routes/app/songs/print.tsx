@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
@@ -170,15 +170,14 @@ export function PrintSong() {
 
   // Detect which line types exist in the song
   const hasChordLines = useMemo(
-    () =>
-      data?.blocks?.some((block) => block.lines.some((line) => line.type === 'chords')) ?? false,
-    [data?.blocks],
+    () => data.blocks?.some((block) => block.lines.some((line) => line.type === 'chords')) ?? false,
+    [data.blocks],
   );
 
   const hasCommentLines = useMemo(
     () =>
-      data?.blocks?.some((block) => block.lines.some((line) => line.type === 'comments')) ?? false,
-    [data?.blocks],
+      data.blocks?.some((block) => block.lines.some((line) => line.type === 'comments')) ?? false,
+    [data.blocks],
   );
 
   // Build the includeTypes array for renderSongPartLines

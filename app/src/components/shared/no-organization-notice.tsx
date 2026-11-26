@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { PageContent } from '@/components/shared/page-content';
 import { Button } from '@/components/ui/button';
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router';
 import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 import { toast } from 'sonner';
 
@@ -78,7 +78,7 @@ export function OAuthLinkCallback() {
       finish({ type: 'success', title: t('connectedAccounts.linked') });
     };
 
-    run();
+    void run();
   }, [t, navigate, authService, code, error, errorDescription]);
 
   return (

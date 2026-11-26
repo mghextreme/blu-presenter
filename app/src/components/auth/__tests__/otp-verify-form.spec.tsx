@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vite-plus/test';
 import { screen, waitFor } from '@testing-library/react';
 import { render } from '@/test/test-utils';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router';
 import { ReactNode } from 'react';
 
 import { OtpVerifyForm } from '../otp-verify-form';
@@ -30,7 +30,7 @@ vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ isLoggedIn: authState.isLoggedIn }),
 }));
 
-vi.mock('@/hooks/invitation.provider', () => ({
+vi.mock('@/hooks/useInvitation', () => ({
   useInvitation: () => invitationMock.current,
 }));
 

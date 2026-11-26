@@ -14,7 +14,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router';
 import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 import ChevronDownIcon from '@heroicons/react/24/solid/ChevronDownIcon';
 import { CheckIcon } from '@radix-ui/react-icons';
@@ -67,7 +67,7 @@ export function EditMember() {
     mutationFn: (role: OrganizationRoleOptions) =>
       organizationsService.editMember(data.id, role, organization?.id ?? 0),
     onSuccess: () => {
-      navigate(`/app/organization/${organization?.id ?? 0}`, { replace: true });
+      void navigate(`/app/organization/${organization?.id ?? 0}`, { replace: true });
     },
     onError: (e) => {
       toast.error(t('error.editMember'), {

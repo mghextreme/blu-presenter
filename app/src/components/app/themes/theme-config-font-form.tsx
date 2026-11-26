@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { UseFormReturn } from 'react-hook-form';
+import { UseFormReturn, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { ThemeSchema } from '@/types/schemas/theme.schema';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -15,7 +15,6 @@ import { Toggle } from '@/components/ui/toggle';
 import { UppercaseIcon } from '@/components/icons/uppercase';
 import ItalicIcon from '@heroicons/react/24/solid/ItalicIcon';
 import { TextShadowIcon } from '@/components/icons/text-shadow';
-import { useEffect, useState } from 'react';
 import { ColorForm } from './color-form';
 
 const fontOptions = [
@@ -98,6 +97,8 @@ const fontOptions = [
   },
 ];
 
+const monospaceFontOptions = fontOptions.filter((font) => font.isMonospace);
+
 interface ThemeConfigFontFormProps {
   form: UseFormReturn<z.infer<typeof ThemeSchema>>;
   name: 'title' | 'artist' | 'lyrics' | 'chords' | 'clock' | 'comments';
@@ -111,21 +112,9 @@ export function ThemeConfigFontForm({
 }: Readonly<ThemeConfigFontFormProps>) {
   const { t } = useTranslation('themes');
 
-  const [fontsToShow, setFontsToShow] = useState<typeof fontOptions>(fontOptions);
-  const [defaultFont, setDefaultFont] = useState<string>('font-open-sans');
-
-  useEffect(() => {
-    const monospaceOnly = form.getValues('extends') === 'teleprompter';
-
-    if (!monospaceOnly) {
-      setDefaultFont('font-open-sans');
-      setFontsToShow(fontOptions);
-      return;
-    }
-
-    setFontsToShow(fontOptions.filter((font) => font.isMonospace));
-    setDefaultFont('font-source-code-pro');
-  }, [form.watch('extends')]);
+  const monospaceOnly = useWatch({ control: form.control, name: 'extends' }) === 'teleprompter';
+  const fontsToShow = monospaceOnly ? monospaceFontOptions : fontOptions;
+  const defaultFont = monospaceOnly ? 'font-source-code-pro' : 'font-open-sans';
 
   const toggleShadow = (field, value: boolean) => {
     field.onChange(value);

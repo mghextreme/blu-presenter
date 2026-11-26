@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vite-plus/test';
 import { screen, waitFor } from '@testing-library/react';
 import { render } from '@/test/test-utils';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { ReactNode } from 'react';
 
 import { ForgotPasswordForm } from '../forgot-password-form';

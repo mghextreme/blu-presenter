@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vite-plus/test';
 import { render, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { toast } from 'sonner';
 
 import { OAuthLinkCallback } from '../oauth-link-callback';
@@ -13,8 +13,8 @@ vi.mock('@/hooks/useServices', () => ({
   useServices: useServicesMock,
 }));
 
-vi.mock('react-router-dom', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('react-router-dom')>()),
+vi.mock('react-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('react-router')>()),
   useNavigate: () => navigateMock,
 }));
 

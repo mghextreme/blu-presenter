@@ -1,8 +1,22 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useEffectEvent,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
-import { IScheduleSong, ITeleprompterThemeConfig, ITheme, TeleprompterTheme } from '@/types';
+import {
+  IScheduleItem,
+  IScheduleSong,
+  ITeleprompterThemeConfig,
+  ITheme,
+  TeleprompterTheme,
+} from '@/types';
 import { useController } from '@/hooks/useController';
-import { useWindow } from '@/hooks/window.provider';
+import { useWindow } from '@/hooks/useWindow';
 import { Clock } from './clock';
 import { renderSongPartLines } from '@/lib/songs';
 import { buildFontStyle } from '@/lib/style';
@@ -10,6 +24,27 @@ import { cn } from '@/lib/utils';
 
 interface ScrollingSongVisualizerProps {
   theme?: ITheme;
+}
+
+interface DisplayedSong {
+  scheduleSong?: IScheduleSong;
+  nextUpTitle?: string;
+}
+
+function getNextUpTitle(
+  schedule: IScheduleItem[] | undefined,
+  scheduleItem: IScheduleItem | undefined,
+): string | undefined {
+  if (
+    !schedule ||
+    !scheduleItem ||
+    scheduleItem.index === undefined ||
+    scheduleItem.index >= schedule.length - 1
+  ) {
+    return undefined;
+  }
+
+  return schedule[scheduleItem.index + 1]?.title;
 }
 
 export const ScrollingSongVisualizer = forwardRef(
@@ -41,15 +76,18 @@ export const ScrollingSongVisualizer = forwardRef(
       setFontSize((minRel / 3).toFixed(2) + 'px');
     };
 
-    const [scheduleSong, setScheduleSong] = useState<IScheduleSong | undefined>(undefined);
-    const updateSong = () => {
-      const scheduleItemAsSong = scheduleItem as IScheduleSong;
-      if (!scheduleItemAsSong) return;
-
-      setScheduleSong(scheduleItemAsSong);
-      updatePosition();
-    };
-    useEffect(updateSong, [scheduleItem]);
+    // Keeps showing the last song when the schedule item is cleared.
+    const [displayedSong, setDisplayedSong] = useState<DisplayedSong>(() => ({
+      scheduleSong: scheduleItem as IScheduleSong | undefined,
+      nextUpTitle: getNextUpTitle(schedule, scheduleItem),
+    }));
+    if (scheduleItem && scheduleItem !== displayedSong.scheduleSong) {
+      setDisplayedSong({
+        scheduleSong: scheduleItem as IScheduleSong,
+        nextUpTitle: getNextUpTitle(schedule, scheduleItem),
+      });
+    }
+    const { scheduleSong, nextUpTitle } = displayedSong;
 
     useEffect(() => {
       updateFontSize();
@@ -114,11 +152,14 @@ export const ScrollingSongVisualizer = forwardRef(
         }
       }
     };
-    useEffect(updatePosition, [selection, scheduleSong]);
+    const onPositionSourceChange = useEffectEvent(updatePosition);
+    useEffect(() => onPositionSourceChange(), [selection, scheduleSong]);
 
     const update = () => {
       updateFontSize();
-      updateSong();
+      if (scheduleItem) {
+        updatePosition();
+      }
       setTimeout(updatePosition, 100);
     };
 
@@ -132,21 +173,6 @@ export const ScrollingSongVisualizer = forwardRef(
     const isInvisible = useMemo(() => {
       return selectedSlide?.isEmpty === true && theme.config?.invisibleOnEmptyItems === true;
     }, [selectedSlide, theme.config?.invisibleOnEmptyItems]);
-
-    const [nextUpTitle, setNextUpTitle] = useState<string | undefined>(undefined);
-    useEffect(() => {
-      if (
-        !schedule ||
-        !scheduleItem ||
-        scheduleItem.index === undefined ||
-        scheduleItem.index >= schedule.length - 1
-      ) {
-        setNextUpTitle(undefined);
-        return;
-      }
-
-      setNextUpTitle(schedule[scheduleItem.index + 1]?.title);
-    }, [scheduleSong]);
 
     return (
       <div

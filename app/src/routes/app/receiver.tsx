@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import {
   IControllerSelection,
@@ -21,6 +21,23 @@ import i18next from 'i18next';
 const SYNC_INTERVAL_MS = 60_000; // Re-sync state every 60 seconds
 const BASE_THEME_PARAMS = ['lyrics', 'subtitles', 'teleprompter'];
 const NO_THEMES: ITheme[] = [];
+
+function resolveTheme(toTheme: string | null | undefined, themes: ITheme[]): ITheme | undefined {
+  switch (toTheme) {
+    case undefined:
+    case null:
+    case '':
+      return undefined;
+    case 'lyrics':
+      return LyricsTheme;
+    case 'subtitles':
+      return SubtitlesTheme;
+    case 'teleprompter':
+      return TeleprompterTheme;
+    default:
+      return themes.find((theme) => theme.id === Number(toTheme));
+  }
+}
 
 export function Receiver() {
   const params = useParams();
@@ -227,38 +244,15 @@ export function Receiver() {
 
   useEffect(() => {
     if (!session || !session.language) return;
-    i18next.changeLanguage(session.language);
+    void i18next.changeLanguage(session.language);
   }, [session]);
 
-  const [selectedTheme, setSelectedTheme] = useState<ITheme | undefined>(undefined);
-  useEffect(() => {
-    if (!session?.theme && !params.theme) return;
-
-    const toTheme = params.theme ?? session?.theme;
-
-    switch (toTheme) {
-      case 'lyrics':
-        setSelectedTheme(LyricsTheme);
-        break;
-      case 'subtitles':
-        setSelectedTheme(SubtitlesTheme);
-        break;
-      case 'teleprompter':
-        setSelectedTheme(TeleprompterTheme);
-        break;
-      default:
-        try {
-          const themeId = Number(toTheme);
-          const curTheme = themes.find((theme) => theme.id === themeId);
-          if (curTheme) {
-            setSelectedTheme(curTheme);
-          }
-        } catch (e) {
-          console.warn(e);
-        }
-        break;
-    }
-  }, [themes, session, params]);
+  const resolvedTheme = resolveTheme(params.theme ?? session?.theme, themes);
+  // Keeps the last resolved theme when the session or params stop naming one.
+  const [selectedTheme, setSelectedTheme] = useState<ITheme | undefined>(resolvedTheme);
+  if (resolvedTheme && resolvedTheme !== selectedTheme) {
+    setSelectedTheme(resolvedTheme);
+  }
 
   return (
     <>

@@ -1,4 +1,4 @@
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router';
 
 import { AppNavbar } from '@/components/app/navbar';
 import { Toaster } from '@/components/ui/sonner';
@@ -15,8 +15,12 @@ export function AppSharedLayout() {
   const { isLoggedIn } = useAuth();
 
   useEffect(() => {
-    authService.refreshOrganizations();
-  }, []);
+    // Failure (e.g. offline or signed out) is fine: organizations come from the
+    // persisted auth store.
+    authService.refreshOrganizations().catch(() => {
+      /* keep cached orgs */
+    });
+  }, [authService]);
 
   return (
     <div className="flex h-screen overflow-hidden">

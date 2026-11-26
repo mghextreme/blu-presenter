@@ -1,16 +1,15 @@
 import { SongSearchFilters, SongsService } from '@/services';
 import { ISongWithRole, SupportedLanguage } from '@/types';
 import i18next from 'i18next';
-import { createContext, useContext, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
 import { STORAGE_KEYS } from '@/lib/storage-keys';
 import type { OrganizationFilter } from '@/hooks/use-organization-filter';
-
-export type AdvancedSearchOptions = {
-  languages?: SupportedLanguage[];
-  organizations?: number[];
-  searchPublicArchive?: boolean;
-};
+import {
+  SearchContext,
+  type AdvancedSearchOptions,
+  type SearchProviderState,
+} from './search.context';
 
 type SearchProviderProps = {
   songsService: SongsService;
@@ -32,36 +31,6 @@ type SearchRequest =
       query: string | undefined;
       options: AdvancedSearchOptions & { includeBlocks?: boolean };
     };
-
-export type SearchProviderState = {
-  formValues: AdvancedSearchOptions;
-  search: (query: string, includeBlocks: boolean) => Promise<void>;
-  advancedSearch: (
-    query: string | undefined,
-    options: AdvancedSearchOptions & { includeBlocks?: boolean },
-  ) => Promise<void>;
-  setOrganizationFilter: (filter: OrganizationFilter) => Promise<void>;
-  resetFilters: () => Promise<void>;
-  loadMore: () => Promise<void>;
-  isSearching: boolean;
-  hasMore: boolean;
-  /** Incremented every time the persisted filters are reset, so forms can clear their fields. */
-  filtersResetAt: number;
-  results: ISongWithRole[];
-};
-
-const SearchContext = createContext<SearchProviderState>({
-  formValues: {},
-  search: () => Promise.resolve(),
-  advancedSearch: () => Promise.resolve(),
-  setOrganizationFilter: () => Promise.resolve(),
-  resetFilters: () => Promise.resolve(),
-  loadMore: () => Promise.resolve(),
-  isSearching: false,
-  hasMore: false,
-  filtersResetAt: 0,
-  results: [],
-});
 
 function readStoredFormValues(): AdvancedSearchOptions {
   try {
@@ -142,7 +111,7 @@ export const SearchProvider = ({
 
     return {
       formValues,
-      search: async (query: string, includeBlocks: boolean = false) => {
+      search: async (query: string, includeBlocks: boolean) => {
         await runSearch({ type: 'basic', query, includeBlocks }, organizationFilter);
       },
       advancedSearch: async (query, options) => {
@@ -178,8 +147,4 @@ export const SearchProvider = ({
   ]);
 
   return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;
-};
-
-export const useSearch = () => {
-  return useContext(SearchContext);
 };

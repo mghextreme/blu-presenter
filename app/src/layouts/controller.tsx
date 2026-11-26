@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 
 import { ProtectedRoute } from '@/components/protected-route';
 import { ControllerNavbar } from '@/components/controller/navbar';

@@ -82,7 +82,7 @@ function SpotifyEmbed({ uri, height = 80 }: Readonly<{ uri: string; height?: num
       }
     };
 
-    loadSpotifyIFrameApi().then((api) => {
+    void loadSpotifyIFrameApi().then((api) => {
       if (destroyed || !containerRef.current) return;
 
       api.createController(
@@ -140,19 +140,22 @@ function YouTubeEmbed({
 
 function DeezerEmbed({ trackId, shareUrl }: Readonly<{ trackId?: string; shareUrl?: string }>) {
   const { t } = useTranslation('songs');
-  const [resolvedTrackId, setResolvedTrackId] = useState<string | null>(trackId ?? null);
-  const [loading, setLoading] = useState(!trackId && !!shareUrl);
+  const [resolution, setResolution] = useState<{
+    shareUrl: string;
+    trackId: string | null;
+  } | null>(null);
+  const isShareUrlResolved = resolution !== null && resolution.shareUrl === shareUrl;
+  const loading = !trackId && !!shareUrl && !isShareUrlResolved;
+  const resolvedTrackId = trackId ?? (isShareUrlResolved ? resolution.trackId : null);
 
   useEffect(() => {
     if (trackId || !shareUrl) return;
 
     const controller = new AbortController();
-    setLoading(true);
 
-    resolveDeezerShareUrl(shareUrl, controller.signal).then((id) => {
+    void resolveDeezerShareUrl(shareUrl, controller.signal).then((id) => {
       if (controller.signal.aborted) return;
-      setResolvedTrackId(id);
-      setLoading(false);
+      setResolution({ shareUrl, trackId: id });
 
       if (!id) {
         toast.error(t('references.embedFailed'));
@@ -196,7 +199,6 @@ function SoundCloudEmbed({ trackUrl }: Readonly<{ trackUrl: string }>) {
       width="100%"
       height={166}
       allow="autoplay"
-      scrolling="no"
       loading="lazy"
       className="rounded-lg border-0"
     />

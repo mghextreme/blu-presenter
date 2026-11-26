@@ -1,11 +1,12 @@
-import { Link, useLoaderData } from 'react-router-dom';
+import { Link, useLoaderData } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { IOrganization, ISongWithRole } from '@/types';
 import { useServices } from '@/hooks/useServices';
 import { useAuth } from '@/hooks/useAuth';
-import { SearchProvider, useSearch } from '@/hooks/search.provider';
+import { SearchProvider } from '@/hooks/search.provider';
+import { useSearch } from '@/hooks/useSearch';
 import { AdvancedSearchForm } from '@/components/app/search/advanced-search-form';
 import { SongSearchResultsList } from '@/components/app/search/song-search-results-list';
 import { OrganizationBar, OptionalOrganization } from '@/components/app/organization-bar';

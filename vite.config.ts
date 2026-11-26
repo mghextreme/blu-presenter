@@ -43,5 +43,14 @@ export default defineConfig({
       'unicorn/prefer-node-protocol': 'error',
       'typescript/prefer-regexp-exec': 'error',
     },
+    overrides: [
+      {
+        // shadcn/ui files export their cva variants next to the component;
+        // splitting them would diverge from what `shadcn add` regenerates.
+        // Test utilities are never hot-reloaded.
+        files: ['app/src/components/ui/**', 'app/src/test/**'],
+        rules: { 'react/only-export-components': 'off' },
+      },
+    ],
   },
 });

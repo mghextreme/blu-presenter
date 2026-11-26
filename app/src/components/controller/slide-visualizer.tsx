@@ -22,7 +22,7 @@ export function SlideVisualizer({ theme = LyricsTheme }: Readonly<SlideVisualize
     if (componentRef.current) {
       (componentRef.current as any)?.update();
     }
-  }, [theme]);
+  }, [theme, setSelection]);
 
   return theme.extends === 'teleprompter' ? (
     <ScrollingSongVisualizer ref={componentRef} theme={theme}></ScrollingSongVisualizer>

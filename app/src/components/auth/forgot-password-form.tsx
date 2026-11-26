@@ -2,7 +2,7 @@
 
 import { HTMLAttributes, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Turnstile } from '@marsidev/react-turnstile';
 
 import { cn } from '@/lib/utils';

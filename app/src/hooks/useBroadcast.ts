@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { BroadcastProviderContext } from './broadcast.provider';
+import { BroadcastProviderContext } from './broadcast.context';
 
 export const useBroadcast = () => {
   const context = useContext(BroadcastProviderContext);

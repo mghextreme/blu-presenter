@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -15,7 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useServices } from '@/hooks/useServices';
 import { Button } from '@/components/ui/button';
 import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
-import { useForm, type Resolver } from 'react-hook-form';
+import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,
@@ -54,6 +54,17 @@ const newTheme: ITheme = {
   extends: 'lyrics',
   config: LyricsTheme.config,
 };
+
+function presetConfigFor(baseTheme: string): ITheme['config'] {
+  switch (baseTheme) {
+    case 'subtitles':
+      return SubtitlesTheme.config;
+    case 'teleprompter':
+      return TeleprompterTheme.config;
+    default:
+      return LyricsTheme.config;
+  }
+}
 
 export function EditTheme({ edit = true }: Readonly<EditThemeProps>) {
   return edit ? <EditExistingTheme /> : <ThemeForm edit={false} data={newTheme} />;
@@ -116,25 +127,17 @@ function ThemeForm({ edit, data }: Readonly<ThemeFormProps>) {
     },
   });
 
-  const [extendsValue, setExtendsValue] = useState(data.extends);
-  useEffect(() => {
-    const curExtends = form.getValues('extends');
-    if (curExtends === extendsValue) {
-      return;
-    }
+  const [themeId, themeName, baseTheme, themeConfig] = useWatch({
+    control: form.control,
+    name: ['id', 'name', 'extends', 'config'],
+  });
+  const previewTheme = { id: themeId, name: themeName, extends: baseTheme, config: themeConfig };
 
-    setExtendsValue(curExtends);
-    switch (curExtends) {
-      case 'subtitles':
-        form.setValue('config', SubtitlesTheme.config);
-        return;
-      case 'teleprompter':
-        form.setValue('config', TeleprompterTheme.config);
-        return;
+  const resetConfigOnBaseThemeChange = (baseTheme: string) => {
+    if (baseTheme !== form.getValues('extends')) {
+      form.setValue('config', presetConfigFor(baseTheme));
     }
-
-    form.setValue('config', LyricsTheme.config);
-  }, [form.watch('extends')]);
+  };
 
   const saveTheme = useMutation({
     mutationFn: ({
@@ -195,14 +198,14 @@ function ThemeForm({ edit, data }: Readonly<ThemeFormProps>) {
               <div className="flex-1 min-w-sm max-w-lg">
                 <div className="relative w-full bg-[url(/images/sample-wallpaper.svg)] bg-cover bg-center rounded">
                   <PreviewWindow
-                    theme={form.watch()}
+                    theme={previewTheme}
                     attachControllerMode={true}
                     showThemeSelector={false}
                   />
                 </div>
                 <Controls showBlank={false} className="px-0" />
                 {/* Preview content editor: a song-editor-driven form that pushes a synthetic schedule song into the controller above. */}
-                <ThemePreviewSongForm baseTheme={form.watch('extends')} />
+                <ThemePreviewSongForm baseTheme={baseTheme} />
               </div>
               <div className="min-w-sm max-w-lg space-y-3 flex-1">
                 <FormField
@@ -225,7 +228,13 @@ function ThemeForm({ edit, data }: Readonly<ThemeFormProps>) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('input.baseTheme')}</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={(value) => {
+                          resetConfigOnBaseThemeChange(value);
+                          field.onChange(value);
+                        }}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder={t('input.baseTheme')} />

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isRouteErrorResponse, Link, useNavigate, useRouteError } from 'react-router-dom';
+import { isRouteErrorResponse, Link, useNavigate, useRouteError } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { LanguageToggler } from '@/components/shared/language-toggler';
 import { ThemeToggler } from '@/components/shared/theme-toggler';
@@ -50,7 +50,7 @@ export function ErrorLayout() {
 
   const signOutAndRedirect = async () => {
     signOut();
-    navigate('/login');
+    void navigate('/login');
   };
 
   return (

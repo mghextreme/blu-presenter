@@ -34,14 +34,14 @@ export function SongEditorSeparator({
   const { t } = useTranslation('songs');
 
   // Keep local state in sync when props change (e.g. propagation from another part)
-  const prevName = useRef(name);
-  const prevAcronym = useRef(acronym);
-  if (prevName.current !== name) {
-    prevName.current = name;
+  const [prevName, setPrevName] = useState(name);
+  const [prevAcronym, setPrevAcronym] = useState(acronym);
+  if (prevName !== name) {
+    setPrevName(name);
     if (!isEditingName) setLocalName(name);
   }
-  if (prevAcronym.current !== acronym) {
-    prevAcronym.current = acronym;
+  if (prevAcronym !== acronym) {
+    setPrevAcronym(acronym);
     if (!isEditingAcronym) setLocalAcronym(acronym);
   }
 

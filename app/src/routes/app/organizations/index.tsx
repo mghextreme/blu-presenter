@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router';
 import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 import PencilIcon from '@heroicons/react/24/solid/PencilIcon';
 import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
@@ -117,13 +117,13 @@ function OrganizationPage({ organization, edit }: Readonly<OrganizationPageProps
         : organizationsService.add({ ...values }),
     onSuccess: (result) => {
       if (!edit && result) {
-        authService.getAndSetOrganizations(result.id);
+        void authService.getAndSetOrganizations(result.id);
       }
       if (edit) {
         // Keep the locally stored organizations (with their features) in sync
-        authService.refreshOrganizations();
+        void authService.refreshOrganizations();
       }
-      navigate(`/app/organization/${edit ? organization.id : result?.id}`, { replace: true });
+      void navigate(`/app/organization/${edit ? organization.id : result?.id}`, { replace: true });
     },
     onError: (e) => {
       toast.error(t('update.failed'), {
@@ -134,7 +134,7 @@ function OrganizationPage({ organization, edit }: Readonly<OrganizationPageProps
 
   const onOrganizationLeft = () => {
     setOrganizationById();
-    navigate('/app', { replace: true });
+    void navigate('/app', { replace: true });
   };
 
   const leaveOrganization = useMutation({
@@ -193,7 +193,7 @@ function OrganizationPage({ organization, edit }: Readonly<OrganizationPageProps
     onSuccess: () => {
       toast.success(t('features.updateSuccess'));
       // Keep the locally stored organizations (with their features) in sync
-      authService.refreshOrganizations();
+      void authService.refreshOrganizations();
     },
     onError: (e) => {
       toast.error(t('error.update'), {
@@ -205,7 +205,7 @@ function OrganizationPage({ organization, edit }: Readonly<OrganizationPageProps
   const onOrganizationSelected = (orgs: OptionalOrganization[]) => {
     const org = orgs[0];
     if (org && org.id !== organization.id) {
-      navigate(`/app/organization/${org.id}`);
+      void navigate(`/app/organization/${org.id}`);
     }
   };
 

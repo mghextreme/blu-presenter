@@ -13,7 +13,7 @@ import {
   SchedulePlaylistProjection,
 } from '@/lib/schedule-playlists';
 import { getSpotifyTrackId, getYouTubeVideoId } from '@/lib/songs';
-import type { ServicesProviderState } from '@/hooks/services.provider';
+import type { ServicesProviderState } from '@/hooks/services.context';
 import type { IPlaylistConnectionStatus } from '@/services/playlist-integration.service';
 import { SpotifyIcon } from '@/components/logos/spotify';
 import { YouTubeIcon } from '@/components/logos/youtube';

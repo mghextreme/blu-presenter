@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 import { SharedFooter } from '@/components/shared/footer';
 import { SharedNavbar } from '@/components/shared/navbar';
 

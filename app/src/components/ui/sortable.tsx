@@ -126,6 +126,9 @@ function Sortable<T>(props: Readonly<SortableProps<T>>) {
     flatCursor = false,
     getItemValue: getItemValueProp,
     accessibility,
+    onDragStart: onDragStartProp,
+    onDragEnd: onDragEndProp,
+    onDragCancel: onDragCancelProp,
     ...sortableProps
   } = props;
 
@@ -157,18 +160,18 @@ function Sortable<T>(props: Readonly<SortableProps<T>>) {
 
   const onDragStart = React.useCallback(
     (event: DragStartEvent) => {
-      sortableProps.onDragStart?.(event);
+      onDragStartProp?.(event);
 
       if (event.activatorEvent.defaultPrevented) return;
 
       setActiveId(event.active.id);
     },
-    [sortableProps.onDragStart],
+    [onDragStartProp],
   );
 
   const onDragEnd = React.useCallback(
     (event: DragEndEvent) => {
-      sortableProps.onDragEnd?.(event);
+      onDragEndProp?.(event);
 
       if (event.activatorEvent.defaultPrevented) return;
 
@@ -185,18 +188,18 @@ function Sortable<T>(props: Readonly<SortableProps<T>>) {
       }
       setActiveId(null);
     },
-    [value, onValueChange, onMove, getItemValue, sortableProps.onDragEnd],
+    [value, onValueChange, onMove, getItemValue, onDragEndProp],
   );
 
   const onDragCancel = React.useCallback(
     (event: DragEndEvent) => {
-      sortableProps.onDragCancel?.(event);
+      onDragCancelProp?.(event);
 
       if (event.activatorEvent.defaultPrevented) return;
 
       setActiveId(null);
     },
-    [sortableProps.onDragCancel],
+    [onDragCancelProp],
   );
 
   const announcements: Announcements = React.useMemo(
@@ -508,10 +511,7 @@ function SortableOverlay(props: Readonly<SortableOverlayProps>) {
 
   const context = useSortableContext(OVERLAY_NAME);
 
-  const [mounted, setMounted] = React.useState(false);
-  React.useLayoutEffect(() => setMounted(true), []);
-
-  const container = containerProp ?? (mounted ? globalThis.document?.body : null);
+  const container = containerProp ?? globalThis.document?.body;
 
   if (!container) return null;
 

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { z } from 'zod';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
@@ -69,7 +69,7 @@ export function ImportSong() {
         toast.success(t('message.import.successTitle'), {
           description: t('message.import.successDescription'),
         });
-        navigate(`/app/songs/${song.id}/edit`);
+        void navigate(`/app/songs/${song.id}/edit`);
         return;
       }
 

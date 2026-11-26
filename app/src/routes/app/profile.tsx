@@ -15,7 +15,7 @@ import {
 import { PageContent } from '@/components/shared/page-content';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';

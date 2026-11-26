@@ -1,19 +1,23 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useEffectEvent } from 'react';
+import { useNavigate } from 'react-router';
 import { useAuth } from '@/hooks/useAuth';
 
 export function OrganizationRedirect() {
   const navigate = useNavigate();
   const { organization, organizations } = useAuth();
 
-  useEffect(() => {
+  const redirectToOrganization = useEffectEvent(() => {
     const target = organizations.find((org) => org.id === organization?.id) ?? organizations[0];
 
     if (target) {
-      navigate(`/app/organization/${target.id}`, { replace: true });
+      void navigate(`/app/organization/${target.id}`, { replace: true });
     } else {
-      navigate('/app/organizations/add', { replace: true });
+      void navigate('/app/organizations/add', { replace: true });
     }
+  });
+
+  useEffect(() => {
+    redirectToOrganization();
   }, []);
 
   return null;

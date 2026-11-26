@@ -1,4 +1,4 @@
-import { createContext, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   AuthService,
   BroadcastService,
@@ -14,41 +14,12 @@ import {
 } from '@/services';
 import * as config from '@/lib/config';
 import { QueryClient } from '@tanstack/react-query';
+import { ServicesContext, type ServicesProviderState } from './services.context';
 
 type ServicesProviderProps = {
   queryClient: QueryClient;
   children: React.ReactNode;
 };
-
-export type ServicesProviderState = {
-  authService: AuthService;
-  songsService: SongsService;
-  usersService: UsersService;
-  organizationsService: OrganizationsService;
-  themesService: ThemesService;
-  sessionsService: SessionsService;
-  schedulesService: SchedulesService;
-  broadcastService: BroadcastService;
-  offlineDownloadsService: OfflineDownloadsService;
-  spotifyService: SpotifyService;
-  youtubeService: YoutubeService;
-};
-
-const initialState: ServicesProviderState = {
-  authService: {} as AuthService,
-  songsService: {} as SongsService,
-  usersService: {} as UsersService,
-  organizationsService: {} as OrganizationsService,
-  themesService: {} as ThemesService,
-  sessionsService: {} as SessionsService,
-  schedulesService: {} as SchedulesService,
-  broadcastService: {} as BroadcastService,
-  offlineDownloadsService: {} as OfflineDownloadsService,
-  spotifyService: {} as SpotifyService,
-  youtubeService: {} as YoutubeService,
-};
-
-export const ServicesContext = createContext<ServicesProviderState>(initialState);
 
 export const ServicesProvider = ({ queryClient, children }: Readonly<ServicesProviderProps>) => {
   const songsService = useMemo(() => new SongsService(queryClient, config.api), [queryClient]);

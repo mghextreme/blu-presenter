@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
@@ -72,15 +72,16 @@ export function PlanConfiguration() {
 
   const { data: sessions = NO_SESSIONS } = useQuery(sessionsService.allForUserQuery());
 
-  const [selectedSession, setSelectedSession] = useState<ISession | undefined>(undefined);
-  useEffect(() => {
-    const theSession = sessions.find((session) => session.id == form.getValues('broadcastSession'));
-    setSelectedSession(theSession);
-  }, [sessions, session]);
+  const broadcastSessionId = useWatch({ control: form.control, name: 'broadcastSession' });
+  const selectedSession = sessions.find((session) => session.id == broadcastSessionId);
 
+  const autoAdvanceScheduleItem = useWatch({
+    control: form.control,
+    name: 'autoAdvanceScheduleItem',
+  });
   useEffect(() => {
     setConfig(form.getValues() as IControllerConfig);
-  }, [form.watch('autoAdvanceScheduleItem')]);
+  }, [autoAdvanceScheduleItem, form, setConfig]);
 
   const nameFromSession = (item?: ISession) => {
     if (!item) return t('session.dontBroadcast');
@@ -128,16 +129,13 @@ export function PlanConfiguration() {
     ],
     [session, customThemes, defaultThemeOptions],
   );
-  const [selectedUrlTheme, setSelectedUrlTheme] = useState<
-    { label: string; value: BaseTheme | number } | undefined
-  >(undefined);
-
-  useEffect(() => {
-    const theUrlTheme = consolidatedOptions.find(
-      (theme) => theme.value == form.getValues('broadcastSessionUrlTheme')?.value,
-    );
-    setSelectedUrlTheme(theUrlTheme);
-  }, [urlTheme, consolidatedOptions, session]);
+  const broadcastSessionUrlTheme = useWatch({
+    control: form.control,
+    name: 'broadcastSessionUrlTheme',
+  });
+  const selectedUrlTheme = consolidatedOptions.find(
+    (theme) => theme.value == broadcastSessionUrlTheme?.value,
+  );
 
   const nameFromTheme = (item?: { label: string; value: string | number }) => {
     if (!item) return t('session.urlTheme.letUserPick');
@@ -145,18 +143,14 @@ export function PlanConfiguration() {
     return item.label;
   };
 
-  const [sessionQrCodeUrl, setSessionQrCodeUrl] = useState<string | undefined>(undefined);
-  useEffect(() => {
-    if (!selectedSession) {
-      setSessionQrCodeUrl(undefined);
-      return;
-    }
+  const getSessionQrCodeUrl = (): string | undefined => {
+    if (!selectedSession) return undefined;
 
     const currentUrl = new URL(window.location.href);
     const theme = selectedUrlTheme?.value ? `/${selectedUrlTheme.value}` : '';
-    const completeUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/session/${selectedSession.organization?.id}/${selectedSession.id}/${selectedSession.secret ?? ''}${theme}`;
-    setSessionQrCodeUrl(completeUrl);
-  }, [selectedSession, selectedUrlTheme]);
+    return `${currentUrl.protocol}//${currentUrl.host}/shared/session/${selectedSession.organization?.id}/${selectedSession.id}/${selectedSession.secret ?? ''}${theme}`;
+  };
+  const sessionQrCodeUrl = getSessionQrCodeUrl();
 
   const copyShareableUrlToClipboard = async () => {
     if (!sessionQrCodeUrl) return;

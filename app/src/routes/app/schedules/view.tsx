@@ -14,8 +14,8 @@ import MusicalNoteIcon from '@heroicons/react/24/solid/MusicalNoteIcon';
 import PencilIcon from '@heroicons/react/24/solid/PencilIcon';
 import ShareIcon from '@heroicons/react/24/solid/ShareIcon';
 import PlayIcon from '@heroicons/react/24/solid/PlayIcon';
-import { parse, format } from 'date-fns';
-import { Link, useParams } from 'react-router-dom';
+import { parseISO, format } from 'date-fns';
+import { Link, useParams } from 'react-router';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { getLocaleConfig } from '@/components/ui/date-picker';
@@ -42,7 +42,7 @@ export function ViewSchedule() {
 
   let formattedDate = '';
   if (data.date) {
-    const parsed = parse(data.date, 'yyyy-MM-dd', new Date());
+    const parsed = parseISO(data.date);
     formattedDate = format(parsed, formatStr, { locale: dateFns });
   }
 

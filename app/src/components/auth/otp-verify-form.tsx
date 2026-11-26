@@ -2,7 +2,7 @@
 
 import { HTMLAttributes, useCallback, useEffect, useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Link, Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
-import { useInvitation } from '@/hooks/invitation.provider';
+import { useInvitation } from '@/hooks/useInvitation';
 import { useServices } from '@/hooks/useServices';
 import { toast } from 'sonner';
 import { ApiError } from '@/types';

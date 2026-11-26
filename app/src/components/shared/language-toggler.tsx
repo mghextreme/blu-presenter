@@ -19,7 +19,7 @@ export function LanguageToggler({ variant = 'outline' }: Readonly<LanguageToggle
   const languageListId = 'language-selector-list';
 
   const setValue = (lang: string) => {
-    i18next.changeLanguage(lang);
+    void i18next.changeLanguage(lang);
   };
 
   const languages = [

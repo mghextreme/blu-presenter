@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router';
 import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 import { toast } from 'sonner';
 
@@ -87,7 +87,7 @@ function PlaylistConnectCallback({
       finish({ type: 'success', title: t(`${i18nPrefix}.connected`) });
     };
 
-    run();
+    void run();
   }, [t, navigate, service, i18nPrefix, afterConnect, code, state, error]);
 
   return (

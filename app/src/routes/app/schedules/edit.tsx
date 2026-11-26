@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -190,14 +190,14 @@ function EditScheduleForm({
   }));
   const services = useServices();
   const [addItemOpen, setAddItemOpen] = useState<boolean>(false);
-  const [initialized, setInitialized] = useState<boolean>(false);
+  const scheduleLoadedRef = useRef<boolean>(false);
 
   useEffect(() => {
-    if (!initialized && data.items && data.items.length > 0) {
+    if (!scheduleLoadedRef.current && data.items && data.items.length > 0) {
       replaceSchedule(songsService.resolveScheduleItems(data.items));
-      setInitialized(true);
+      scheduleLoadedRef.current = true;
     }
-  }, [data.items]);
+  }, [data.items, replaceSchedule, songsService]);
 
   const saveSchedule = useMutation({
     mutationFn: async ({

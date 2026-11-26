@@ -1,10 +1,10 @@
 import {
   LoaderFunctionArgs,
   Route,
-  RouterProvider,
   createBrowserRouter,
   createRoutesFromElements,
-} from 'react-router-dom';
+} from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18next from 'i18next';

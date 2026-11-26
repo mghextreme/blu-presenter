@@ -37,11 +37,12 @@ type DatePickerProps = {
 function DatePicker({ value, onChange, placeholder, className }: Readonly<DatePickerProps>) {
   const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [currentYear] = useState(() => new Date().getFullYear());
 
   const lang = i18n.language?.substring(0, 2) ?? 'en';
   const { dateFns, dayPicker, formatStr } = getLocaleConfig(lang);
 
-  const dateValue = value ? parse(value, 'yyyy-MM-dd', new Date()) : undefined;
+  const dateValue = value ? parse(value, 'yyyy-MM-dd', new Date(0)) : undefined;
 
   const displayText = dateValue ? format(dateValue, formatStr, { locale: dateFns }) : null;
 
@@ -53,8 +54,6 @@ function DatePicker({ value, onChange, placeholder, className }: Readonly<DatePi
     }
     setOpen(false);
   };
-
-  const today = new Date();
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -80,8 +79,8 @@ function DatePicker({ value, onChange, placeholder, className }: Readonly<DatePi
           locale={dayPicker}
           captionLayout="dropdown"
           defaultMonth={dateValue}
-          startMonth={new Date(today.getFullYear() - 5, 0)}
-          endMonth={new Date(today.getFullYear() + 5, 11)}
+          startMonth={new Date(currentYear - 5, 0)}
+          endMonth={new Date(currentYear + 5, 11)}
         />
       </PopoverContent>
     </Popover>
