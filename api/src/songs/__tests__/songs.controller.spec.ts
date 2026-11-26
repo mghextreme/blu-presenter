@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { SongsController } from '../songs.controller';
 import { SongsService } from '../songs.service';
 import { SongTextFormatService } from '../text-format/song-text-format.service';

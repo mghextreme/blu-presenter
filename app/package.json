@@ -83,7 +83,7 @@
     "jsdom": "^31.0.1",
     "postcss": "^8.5.33",
     "tailwindcss": "^4.3.5",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "vite": "catalog:",
     "vite-plugin-i18next-loader": "^4.1.0",
     "vite-plugin-pwa": "^2.0.0",
