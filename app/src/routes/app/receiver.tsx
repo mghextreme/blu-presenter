@@ -1,36 +1,76 @@
-"use client"
+'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useLoaderData, useParams } from "react-router-dom";
-import { IControllerSelection, IScheduleItem, ISession, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from "@/types";
-import { useController } from "@/hooks/useController";
-import { useSessionSocket } from "@/hooks/useSessionSocket";
-import { SelectorScreen } from "@/components/controller/selector-screen";
-import { ConnectionIndicator } from "@/components/receiver/connection-indicator";
-import i18next from "i18next";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import {
+  isBaseTheme,
+  IControllerSelection,
+  IScheduleItem,
+  ITheme,
+  LyricsTheme,
+  SubtitlesTheme,
+  TeleprompterTheme,
+} from '@/types';
+import { useController } from '@/hooks/useController';
+import { useServices } from '@/hooks/useServices';
+import { useSessionSocket } from '@/hooks/useSessionSocket';
+import { SelectorScreen } from '@/components/controller/selector-screen';
+import { ConnectionIndicator } from '@/components/receiver/connection-indicator';
+import i18next from 'i18next';
 
 const SYNC_INTERVAL_MS = 60_000; // Re-sync state every 60 seconds
+const NO_THEMES: ITheme[] = [];
+
+function resolveTheme(toTheme: string | null | undefined, themes: ITheme[]): ITheme | undefined {
+  switch (toTheme) {
+    case undefined:
+    case null:
+    case '':
+      return undefined;
+    case 'lyrics':
+      return LyricsTheme;
+    case 'subtitles':
+      return SubtitlesTheme;
+    case 'teleprompter':
+      return TeleprompterTheme;
+    default:
+      return themes.find((theme) => theme.id === Number(toTheme));
+  }
+}
 
 export function Receiver() {
-
   const params = useParams();
 
-  const {
-    schedule,
-    scheduleItem,
-    replaceSchedule,
-    setScheduleItem,
-    setSelection,
-    setMode,
-  } = useController();
+  const { schedule, scheduleItem, replaceSchedule, setScheduleItem, setSelection, setMode } =
+    useController((s) => ({
+      schedule: s.schedule,
+      scheduleItem: s.scheduleItem,
+      replaceSchedule: s.replaceSchedule,
+      setScheduleItem: s.setScheduleItem,
+      setSelection: s.setSelection,
+      setMode: s.setMode,
+    }));
 
-  const {
-    session,
-    themes,
-  } = useLoaderData() as {
-    session: ISession,
-    themes: ITheme[],
-  };
+  const { sessionsService, themesService } = useServices();
+  const orgId = Number(params.orgId);
+  const sessionId = Number(params.sessionId);
+
+  const { data: session } = useSuspenseQuery(
+    sessionsService.bySecretQuery(orgId, sessionId, params.secret),
+  );
+
+  // Not a suspense query: base-theme URLs skip it. Otherwise the route loader
+  // has already cached it, so the themes are there on the first render.
+  const { data: themes = NO_THEMES } = useQuery({
+    ...themesService.forSessionQuery(
+      orgId,
+      sessionId,
+      params.secret,
+      params.theme ? Number(params.theme) : undefined,
+    ),
+    enabled: !isBaseTheme(params.theme),
+  });
 
   // The provider's setters resolve against committed state, so a selection
   // that arrives together with a new schedule/schedule item must be applied
@@ -39,16 +79,16 @@ export function Receiver() {
   // schedule item and externalSetScheduleItem reset the part to 0. Such a
   // selection is queued with the schedule/item references of that moment and
   // flushed as soon as either committed reference differs.
-  const pendingSelection = useRef<{
-    selection: IControllerSelection;
-    schedule: IScheduleItem[];
-    scheduleItem: IScheduleItem | undefined;
-  } | undefined>(undefined);
+  const pendingSelection = useRef<
+    | {
+        selection: IControllerSelection;
+        schedule: IScheduleItem[];
+        scheduleItem: IScheduleItem | undefined;
+      }
+    | undefined
+  >(undefined);
 
-  const applySelection = (
-    selection: IControllerSelection | undefined,
-    waitForCommit: boolean,
-  ) => {
+  const applySelection = (selection: IControllerSelection | undefined, waitForCommit: boolean) => {
     // Any newer selection replaces one that is still waiting.
     pendingSelection.current = undefined;
 
@@ -76,8 +116,8 @@ export function Receiver() {
   }, [schedule, scheduleItem, setSelection]);
 
   useEffect(() => {
-    replaceSchedule(session?.schedule ? session.schedule as IScheduleItem[] : []);
-    setScheduleItem(session?.scheduleItem ?? {} as IScheduleItem);
+    replaceSchedule(session?.schedule ? (session.schedule as IScheduleItem[]) : []);
+    setScheduleItem(session?.scheduleItem ?? ({} as IScheduleItem));
     applySelection(session?.selection as IControllerSelection | undefined, true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -94,8 +134,8 @@ export function Receiver() {
 
   const { connect, socket, isConnected, reconnectAttempts, joinSession } = useSessionSocket({
     auth: {
-      orgId: Number(params.orgId),
-      sessionId: Number(params.sessionId),
+      orgId,
+      sessionId,
       secret: params.secret,
     },
     onJoinedSession: (data) => {
@@ -151,11 +191,14 @@ export function Receiver() {
         eventName: 'selection',
         handler: (data) => {
           try {
-            applySelection({
-              scheduleItem: data.scheduleItem,
-              slide: data.slide,
-              part: data.part,
-            } as IControllerSelection, false);
+            applySelection(
+              {
+                scheduleItem: data.scheduleItem,
+                slide: data.slide,
+                part: data.part,
+              } as IControllerSelection,
+              false,
+            );
           } catch (e) {
             console.error(e);
           }
@@ -201,48 +244,29 @@ export function Receiver() {
 
   useEffect(() => {
     if (!session || !session.language) return;
-    i18next.changeLanguage(session.language);
+    void i18next.changeLanguage(session.language);
   }, [session]);
 
-  const [selectedTheme, setSelectedTheme] = useState<ITheme | undefined>(undefined);
-  useEffect(() => {
-    if (!session?.theme && !params.theme) return;
-
-    const toTheme = params.theme ?? session?.theme;
-
-    switch (toTheme) {
-      case 'lyrics':
-        setSelectedTheme(LyricsTheme);
-        break;
-      case 'subtitles':
-        setSelectedTheme(SubtitlesTheme);
-        break;
-      case 'teleprompter':
-        setSelectedTheme(TeleprompterTheme);
-        break;
-      default:
-        try {
-          const themeId = Number(toTheme);
-          const curTheme = themes.find((theme) => theme.id === themeId);
-          if (curTheme) {
-            setSelectedTheme(curTheme);
-          }
-        } catch (e) {
-          console.warn(e);
-        }
-        break;
-    }
-  }, [themes, session, params]);
+  const resolvedTheme = resolveTheme(params.theme ?? session?.theme, themes);
+  // Keeps the last resolved theme when the session or params stop naming one.
+  const [selectedTheme, setSelectedTheme] = useState<ITheme | undefined>(resolvedTheme);
+  if (resolvedTheme && resolvedTheme !== selectedTheme) {
+    setSelectedTheme(resolvedTheme);
+  }
 
   return (
     <>
       <div id="receiver" className="flex-1 h-full">
         <style>
           html, body {'{'}
-            background-color: transparent;
+          background-color: transparent;
           {'}'}
         </style>
-        <SelectorScreen setMode={setMode} themeOptions={selectedTheme ? [] : themes} defaultTheme={selectedTheme}></SelectorScreen>
+        <SelectorScreen
+          setMode={setMode}
+          themeOptions={selectedTheme ? [] : themes}
+          defaultTheme={selectedTheme}
+        ></SelectorScreen>
         <ConnectionIndicator isConnected={isConnected} reconnectAttempts={reconnectAttempts} />
       </div>
     </>

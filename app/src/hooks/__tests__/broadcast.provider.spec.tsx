@@ -1,28 +1,29 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, waitFor, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { act, useContext } from 'react'
-import { ControllerProvider, ControllerProviderContext } from '../controller.provider'
-import { BroadcastProvider } from '../broadcast.provider'
-import { mockScheduleItems } from '@/test/mockData/scheduleItems'
-import { STORAGE_KEYS } from '@/lib/storage-keys'
-import { useAuth } from '../useAuth'
-import { IScheduleSong, ISlideTextContent } from '@/types'
+import { describe, it, expect, beforeEach, vi } from 'vite-plus/test';
+import { render, waitFor, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { act } from 'react';
+import { ControllerProvider } from '../controller.provider';
+import { useController } from '../useController';
+import { BroadcastProvider } from '../broadcast.provider';
+import { mockScheduleItems } from '@/test/mockData/scheduleItems';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
+import { useAuth } from '../useAuth';
+import { IScheduleSong, ISlideTextContent } from '@/types';
 
 const broadcastMocks = {
   setSchedule: vi.fn().mockResolvedValue(undefined),
   setScheduleItem: vi.fn().mockResolvedValue(undefined),
   setSelection: vi.fn().mockResolvedValue(undefined),
-}
+};
 
 vi.mock('../useServices', () => ({
   useServices: () => ({
     broadcastService: broadcastMocks,
   }),
-}))
+}));
 
 const TestConsumer = () => {
-  const context = useContext(ControllerProviderContext)
+  const context = useController((s) => s);
   const multiPartItem: IScheduleSong = {
     ...mockScheduleItems[0],
     id: 99,
@@ -37,30 +38,38 @@ const TestConsumer = () => {
         ],
       },
     ],
-  }
+  };
   return (
     <div>
-      <button onClick={() => context.addToSchedule(structuredClone(multiPartItem))}>Add Item</button>
+      <button onClick={() => context.addToSchedule(structuredClone(multiPartItem))}>
+        Add Item
+      </button>
       <button onClick={() => context.setScheduleItem(0)}>Set First Item</button>
-      <button onClick={() => context.setSelection({ scheduleItem: 0, slide: 0, part: 2 })}>Select Part 2</button>
-      <button onClick={() => context.setScheduleItem(structuredClone(multiPartItem))}>Open Outside Schedule</button>
-      <button onClick={() => context.setSelection({ slide: 0, part: 1 } as never)}>Select Part 1</button>
+      <button onClick={() => context.setSelection({ scheduleItem: 0, slide: 0, part: 2 })}>
+        Select Part 2
+      </button>
+      <button onClick={() => context.setScheduleItem(structuredClone(multiPartItem))}>
+        Open Outside Schedule
+      </button>
+      <button onClick={() => context.setSelection({ slide: 0, part: 1 } as never)}>
+        Select Part 1
+      </button>
     </div>
-  )
-}
+  );
+};
 
 describe('BroadcastProvider (REST write path)', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-    sessionStorage.clear()
-    localStorage.clear()
+    vi.clearAllMocks();
+    sessionStorage.clear();
+    localStorage.clear();
     // REST auth is read from the auth store (zustand) by ApiService
     useAuth.setState({
       isLoggedIn: true,
       user: { id: 1, name: 'E2E' } as never,
       session: { access_token: 'token123', refresh_token: 'r' } as never,
-    })
-  })
+    });
+  });
 
   it('does not write without a broadcast session', async () => {
     render(
@@ -69,24 +78,24 @@ describe('BroadcastProvider (REST write path)', () => {
           <TestConsumer />
         </BroadcastProvider>
       </ControllerProvider>,
-    )
+    );
 
-    const user = userEvent.setup()
-    await user.click(screen.getByText('Add Item'))
-    await user.click(screen.getByText('Set First Item'))
-    await user.click(screen.getByText('Select Part 2'))
+    const user = userEvent.setup();
+    await user.click(screen.getByText('Add Item'));
+    await user.click(screen.getByText('Set First Item'));
+    await user.click(screen.getByText('Select Part 2'));
 
     await waitFor(() => {
-      expect(broadcastMocks.setSchedule).not.toHaveBeenCalled()
-      expect(broadcastMocks.setSelection).not.toHaveBeenCalled()
-    })
-  })
+      expect(broadcastMocks.setSchedule).not.toHaveBeenCalled();
+      expect(broadcastMocks.setSelection).not.toHaveBeenCalled();
+    });
+  });
 
   it('seeds the restored schedule on load without clearing the live item/part', async () => {
     sessionStorage.setItem(
       STORAGE_KEYS.broadcastSession,
       JSON.stringify({ id: 7, orgId: 3, secret: 's3cr3t' }),
-    )
+    );
 
     const { getByText } = render(
       <ControllerProvider storeState={false}>
@@ -94,33 +103,35 @@ describe('BroadcastProvider (REST write path)', () => {
           <TestConsumer />
         </BroadcastProvider>
       </ControllerProvider>,
-    )
+    );
 
     // Load push happens with the initial (empty) controller state
-    await act(async () => { await Promise.resolve() })
-    expect(broadcastMocks.setSchedule).toHaveBeenCalledWith(7, 3, [])
-    expect(broadcastMocks.setScheduleItem).not.toHaveBeenCalled()
-    expect(broadcastMocks.setSelection).not.toHaveBeenCalled()
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(broadcastMocks.setSchedule).toHaveBeenCalledWith(7, 3, []);
+    expect(broadcastMocks.setScheduleItem).not.toHaveBeenCalled();
+    expect(broadcastMocks.setSelection).not.toHaveBeenCalled();
 
-    broadcastMocks.setSchedule.mockClear()
+    broadcastMocks.setSchedule.mockClear();
 
     // User-driven changes broadcast right away
-    const user = userEvent.setup()
-    await user.click(getByText('Add Item'))
+    const user = userEvent.setup();
+    await user.click(getByText('Add Item'));
     await waitFor(() => {
       expect(broadcastMocks.setSchedule).toHaveBeenCalledWith(
         7,
         3,
         expect.arrayContaining([expect.objectContaining({ id: 99 })]),
-      )
-    })
-  })
+      );
+    });
+  });
 
   it('broadcasts item and part-only selection changes', async () => {
     sessionStorage.setItem(
       STORAGE_KEYS.broadcastSession,
       JSON.stringify({ id: 7, orgId: 3, secret: 's3cr3t' }),
-    )
+    );
 
     const { getByText } = render(
       <ControllerProvider storeState={false}>
@@ -128,41 +139,43 @@ describe('BroadcastProvider (REST write path)', () => {
           <TestConsumer />
         </BroadcastProvider>
       </ControllerProvider>,
-    )
+    );
     // Clear the load-time writes
-    await act(async () => { await Promise.resolve() })
-    broadcastMocks.setSchedule.mockClear()
-    broadcastMocks.setScheduleItem.mockClear()
-    broadcastMocks.setSelection.mockClear()
+    await act(async () => {
+      await Promise.resolve();
+    });
+    broadcastMocks.setSchedule.mockClear();
+    broadcastMocks.setScheduleItem.mockClear();
+    broadcastMocks.setSelection.mockClear();
 
-    const user = userEvent.setup()
-    await user.click(getByText('Add Item'))
+    const user = userEvent.setup();
+    await user.click(getByText('Add Item'));
 
     // Selecting an item explicitly schedules the item broadcast
-    await user.click(getByText('Set First Item'))
+    await user.click(getByText('Set First Item'));
     await waitFor(() => {
       expect(broadcastMocks.setScheduleItem).toHaveBeenCalledWith(
         7,
         3,
         expect.objectContaining({ id: 99, uniqueId: expect.any(String) }),
-      )
-    })
+      );
+    });
 
     // Changing only the part must carry the schedule item index
-    await user.click(getByText('Select Part 2'))
+    await user.click(getByText('Select Part 2'));
     await waitFor(() => {
       expect(broadcastMocks.setSelection).toHaveBeenCalledWith(
         7,
         3,
         expect.objectContaining({ scheduleItem: 0, slide: 0, part: 2 }),
-      )
-    })
-  })
+      );
+    });
+  });
   it('broadcasts slide/part changes of an item opened outside the schedule', async () => {
     sessionStorage.setItem(
       STORAGE_KEYS.broadcastSession,
       JSON.stringify({ id: 7, orgId: 3, secret: 's3cr3t' }),
-    )
+    );
 
     const { getByText } = render(
       <ControllerProvider storeState={false}>
@@ -170,21 +183,23 @@ describe('BroadcastProvider (REST write path)', () => {
           <TestConsumer />
         </BroadcastProvider>
       </ControllerProvider>,
-    )
-    await act(async () => { await Promise.resolve() })
-    broadcastMocks.setSelection.mockClear()
+    );
+    await act(async () => {
+      await Promise.resolve();
+    });
+    broadcastMocks.setSelection.mockClear();
 
-    const user = userEvent.setup()
+    const user = userEvent.setup();
     // e.g. a song opened from search: no schedule index
-    await user.click(getByText('Open Outside Schedule'))
-    await user.click(getByText('Select Part 1'))
+    await user.click(getByText('Open Outside Schedule'));
+    await user.click(getByText('Select Part 1'));
 
     await waitFor(() => {
       expect(broadcastMocks.setSelection).toHaveBeenCalledWith(
         7,
         3,
         expect.objectContaining({ scheduleItem: undefined, slide: 0, part: 1 }),
-      )
-    })
-  })
-})
+      );
+    });
+  });
+});

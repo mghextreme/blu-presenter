@@ -1,40 +1,48 @@
-import { useRef, useState } from "react";
-import { z } from "zod";
-import { Link, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import i18next from "i18next";
-import { useTranslation } from "react-i18next";
-import { SupportedLanguage, isRoleHigherOrEqualThan } from "@/types";
-import { SongSchema } from "@/types/schemas/song.schema";
-import { ImportSongSchema } from "@/types/schemas/import-song.schema";
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useAuth } from "@/hooks/useAuth";
-import { useServices } from "@/hooks/useServices";
-import { ControllerProvider } from "@/hooks/controller.provider";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { EditSongForm, EditSongFormHandle } from "@/components/app/songs/edit-form";
-import { SongPreview } from "@/components/app/songs/song-preview";
-import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
-import { PageContent } from "@/components/shared/page-content";
-import { PreviewIcon } from "@/components/icons/preview";
-import { parseSongText } from "@/lib/songs";
-import { toast } from "sonner";
+import { useRef, useState } from 'react';
+import { z } from 'zod';
+import { Link, useNavigate } from 'react-router';
+import { useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
+import i18next from 'i18next';
+import { useTranslation } from 'react-i18next';
+import { SupportedLanguage, isRoleHigherOrEqualThan } from '@/types';
+import { SongSchema } from '@/types/schemas/song.schema';
+import { ImportSongSchema } from '@/types/schemas/import-song.schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useAuth } from '@/hooks/useAuth';
+import { useServices } from '@/hooks/useServices';
+import { ControllerProvider } from '@/hooks/controller.provider';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { EditSongForm, EditSongFormHandle } from '@/components/app/songs/edit-form';
+import { SongPreview } from '@/components/app/songs/song-preview';
+import { OrganizationBar, OptionalOrganization } from '@/components/app/organization-bar';
+import { PageContent } from '@/components/shared/page-content';
+import { PreviewIcon } from '@/components/icons/preview';
+import { parseSongText } from '@/lib/songs';
+import { toast } from 'sonner';
 
 export function ImportSong() {
-
-  const { t } = useTranslation("songs");
+  const { t } = useTranslation('songs');
   const { organization, organizations } = useAuth();
   const curLang = (i18next.resolvedLanguage || 'en') as SupportedLanguage;
 
-  const organizationsToAddTo = organizations.filter(
-    (org) => isRoleHigherOrEqualThan(org.role, 'member')
+  const organizationsToAddTo = organizations.filter((org) =>
+    isRoleHigherOrEqualThan(org.role, 'member'),
   );
 
   const [selectedOrganizations, setSelectedOrganizations] = useState<OptionalOrganization[]>(() => {
-    const initial = organizationsToAddTo.find((org) => org.id === organization?.id)
-      ?? organizationsToAddTo[0];
+    const initial =
+      organizationsToAddTo.find((org) => org.id === organization?.id) ?? organizationsToAddTo[0];
     return initial ? [initial] : [];
   });
 
@@ -42,6 +50,11 @@ export function ImportSong() {
 
   const navigate = useNavigate();
   const { songsService } = useServices();
+
+  const importSongText = useMutation({
+    mutationFn: ({ text, orgId }: { text: string; orgId: number }) =>
+      songsService.importText(text, orgId),
+  });
 
   const form = useForm<z.infer<typeof ImportSongSchema>>({
     resolver: zodResolver(ImportSongSchema),
@@ -56,13 +69,13 @@ export function ImportSong() {
     const orgId = selectedOrganizations[0]?.id;
 
     if (text.startsWith('---') && !!orgId) {
-      const song = await songsService.importText(text, orgId).catch(() => null);
+      const song = await importSongText.mutateAsync({ text, orgId }).catch(() => null);
 
       if (song) {
         toast.success(t('message.import.successTitle'), {
           description: t('message.import.successDescription'),
         });
-        navigate(`/app/songs/${song.id}/edit`);
+        void navigate(`/app/songs/${song.id}/edit`);
         return;
       }
 
@@ -81,9 +94,11 @@ export function ImportSong() {
       references: [],
     });
     setStep(2);
-  }
+  };
 
-  const [initialFormValues, setInitialFormValues] = useState<z.infer<typeof SongSchema> | null>(null);
+  const [initialFormValues, setInitialFormValues] = useState<z.infer<typeof SongSchema> | null>(
+    null,
+  );
 
   const editFormRef = useRef<EditSongFormHandle>(null);
 
@@ -100,10 +115,7 @@ export function ImportSong() {
         {step === 2 && (
           <ControllerProvider>
             <SongPreview getSong={() => editFormRef.current?.getFormValues()}>
-              <Button
-                type="button"
-                size="sm"
-                title={t('actions.preview')}>
+              <Button type="button" size="sm" title={t('actions.preview')}>
                 <PreviewIcon className="size-5" />
               </Button>
             </SongPreview>
@@ -127,11 +139,16 @@ export function ImportSong() {
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )}></FormField>
+                  )}
+                ></FormField>
 
                 <div className="flex flex-row align-start space-x-2">
-                  <Button className="flex-0" type="submit">{t('button.continue')}</Button>
-                  <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/songs'}>{t('button.cancel')}</Link></Button>
+                  <Button className="flex-0" type="submit" disabled={importSongText.isPending}>
+                    {t('button.continue')}
+                  </Button>
+                  <Button className="flex-0" type="button" variant="secondary" asChild>
+                    <Link to={'/app/songs'}>{t('button.cancel')}</Link>
+                  </Button>
                 </div>
               </div>
             </form>
@@ -143,9 +160,16 @@ export function ImportSong() {
             formValues={initialFormValues ?? undefined}
             organizationId={selectedOrganizations[0]?.id}
             ref={editFormRef}
-            additionalSubmitButtons={(
-              <Button className="flex-0" type="button" variant="secondary" onClick={() => setStep(1)}>{t('button.back')}</Button>
-            )}
+            additionalSubmitButtons={
+              <Button
+                className="flex-0"
+                type="button"
+                variant="secondary"
+                onClick={() => setStep(1)}
+              >
+                {t('button.back')}
+              </Button>
+            }
           />
         )}
       </PageContent>

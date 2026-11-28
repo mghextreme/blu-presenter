@@ -1,4 +1,4 @@
-import { useTheme } from "@/hooks/useTheme";
+import { useTheme } from '@/hooks/useTheme';
 
 interface SpotifyCodeProps extends React.HTMLAttributes<HTMLImageElement> {
   songUrl: string;
@@ -12,7 +12,6 @@ export function SpotifyCode({
   colorScheme = 'print',
   ...props
 }: Readonly<SpotifyCodeProps>) {
-
   let backgroundColor = 'ffffff';
   let foregroundColor = 'black';
 
@@ -37,7 +36,5 @@ export function SpotifyCode({
 
   const imgUrl = `https://scannables.scdn.co/uri/plain/svg/${backgroundColor}/${foregroundColor}/${imgWidth}/spotify:track:${trackBits[1]}`;
 
-  return (
-    <img src={imgUrl} alt="Spotify code" {...props} />
-  );
+  return <img src={imgUrl} alt="Spotify code" {...props} />;
 }

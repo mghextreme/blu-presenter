@@ -1,14 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { In } from 'typeorm';
-import {
-  ForbiddenException,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ThemesService } from '../themes.service';
-import { Theme } from '../../entities';
+import { Theme, User } from '../../entities';
 import { CreateThemeDto, SearchThemeDto, UpdateThemeDto } from '../../types';
 import { UsersService } from '../../users/users.service';
 import { OrganizationsService } from '../../organizations/organizations.service';
@@ -17,7 +12,7 @@ import { SessionsService } from '../../sessions/sessions.service';
 describe('ThemesService', () => {
   let service: ThemesService;
 
-  const mockTheme: Theme = {
+  const mockTheme = {
     id: 1,
     orgId: 1,
     name: 'Test Theme',
@@ -30,14 +25,9 @@ describe('ThemesService', () => {
     organization: null,
     createdAt: new Date(),
     updatedAt: new Date(),
-  };
+  } as unknown as Theme;
 
-  const mockRequest = {
-    user: {
-      internal: { id: 1 },
-      organization: 1,
-    },
-  };
+  const user = { id: 1 } as User;
 
   const mockThemesRepository = {
     findOne: jest.fn(),
@@ -82,15 +72,10 @@ describe('ThemesService', () => {
           provide: SessionsService,
           useValue: mockSessionsService,
         },
-        {
-          provide: REQUEST,
-          useValue: mockRequest,
-        },
       ],
     }).compile();
 
-    // Use resolve() for request-scoped providers
-    service = await module.resolve<ThemesService>(ThemesService);
+    service = module.get<ThemesService>(ThemesService);
   });
 
   afterEach(() => {
@@ -146,7 +131,7 @@ describe('ThemesService', () => {
       mockUsersService.findUserOrganizations.mockResolvedValue(userOrgs);
       mockThemesRepository.findOne.mockResolvedValue(mockTheme);
 
-      const result = await service.findOneInAnyOrg(1);
+      const result = await service.findOneInAnyOrg(1, user);
 
       expect(result.organization).toEqual({
         id: 1,
@@ -159,7 +144,7 @@ describe('ThemesService', () => {
       mockUsersService.findUserOrganizations.mockResolvedValue([]);
       mockThemesRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findOneInAnyOrg(999)).rejects.toThrow(
+      await expect(service.findOneInAnyOrg(999, user)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -175,7 +160,7 @@ describe('ThemesService', () => {
       mockUsersService.findUserOrganizations.mockResolvedValue(userOrgs);
       mockThemesRepository.find.mockResolvedValue([mockTheme]);
 
-      const result = await service.search({});
+      const result = await service.search({}, user);
 
       expect(result).toEqual([
         {
@@ -200,7 +185,7 @@ describe('ThemesService', () => {
 
       const searchDto: SearchThemeDto = { organizations: [2] };
 
-      await service.search(searchDto);
+      await service.search(searchDto, user);
 
       expect(mockThemesRepository.find).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -217,7 +202,7 @@ describe('ThemesService', () => {
 
       const searchDto: SearchThemeDto = { organizations: [999] };
 
-      await expect(service.search(searchDto)).rejects.toThrow(
+      await expect(service.search(searchDto, user)).rejects.toThrow(
         ForbiddenException,
       );
     });
@@ -230,7 +215,7 @@ describe('ThemesService', () => {
 
       const searchDto: SearchThemeDto = { organizations: [1] };
 
-      await expect(service.search(searchDto)).rejects.toThrow(
+      await expect(service.search(searchDto, user)).rejects.toThrow(
         ForbiddenException,
       );
     });
@@ -238,7 +223,7 @@ describe('ThemesService', () => {
     it('should return an empty array if the user has no qualifying organizations', async () => {
       mockUsersService.findUserOrganizations.mockResolvedValue([]);
 
-      const result = await service.search({});
+      const result = await service.search({}, user);
 
       expect(result).toEqual([]);
       expect(mockThemesRepository.find).not.toHaveBeenCalled();
@@ -251,7 +236,7 @@ describe('ThemesService', () => {
       mockUsersService.findUserOrganizations.mockResolvedValue(userOrgs);
       mockThemesRepository.find.mockResolvedValue([mockTheme]);
 
-      const result = await service.search({});
+      const result = await service.search({}, user);
 
       expect(result[0].organization).toEqual({
         id: 1,
@@ -270,45 +255,10 @@ describe('ThemesService', () => {
       mockUsersService.findUserOrganizations.mockResolvedValue(userOrgs);
       mockThemesRepository.find.mockResolvedValue([mockTheme]);
 
-      const result = await service.findAllForUserOrgs();
+      const result = await service.findAllForUserOrgs(user);
 
       expect(result).toEqual([mockTheme]);
       expect(mockUsersService.findUserOrganizations).toHaveBeenCalledWith(1);
-    });
-
-    it('should throw UnauthorizedException if user is not authenticated', async () => {
-      const moduleWithoutUser = await Test.createTestingModule({
-        providers: [
-          ThemesService,
-          {
-            provide: getRepositoryToken(Theme),
-            useValue: mockThemesRepository,
-          },
-          {
-            provide: UsersService,
-            useValue: mockUsersService,
-          },
-          {
-            provide: OrganizationsService,
-            useValue: mockOrganizationsService,
-          },
-          {
-            provide: SessionsService,
-            useValue: mockSessionsService,
-          },
-          {
-            provide: REQUEST,
-            useValue: { user: undefined },
-          },
-        ],
-      }).compile();
-
-      const serviceWithoutUser =
-        await moduleWithoutUser.resolve<ThemesService>(ThemesService);
-
-      await expect(serviceWithoutUser.findAllForUserOrgs()).rejects.toThrow(
-        UnauthorizedException,
-      );
     });
   });
 
@@ -414,7 +364,7 @@ describe('ThemesService', () => {
       ]);
       mockThemesRepository.find.mockResolvedValue([]);
 
-      await service.search({});
+      await service.search({}, user);
 
       expect(mockThemesRepository.find).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -430,7 +380,7 @@ describe('ThemesService', () => {
       mockThemesRepository.findOne.mockResolvedValue(mockTheme);
       mockOrganizationsService.isFeatureEnabledInOrg.mockResolvedValue(false);
 
-      await expect(service.findOneInAnyOrg(1)).rejects.toThrow(
+      await expect(service.findOneInAnyOrg(1, user)).rejects.toThrow(
         ForbiddenException,
       );
     });
@@ -453,9 +403,9 @@ describe('ThemesService', () => {
         new NotFoundException('Themes not found'),
       );
 
-      await expect(service.copyToOrganization(1, 2)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.copyToOrganization(1, 1, 2, user.id),
+      ).rejects.toThrow(NotFoundException);
       expect(
         mockOrganizationsService.assertFeatureEnabled,
       ).toHaveBeenCalledWith(1, 'themes', { notFound: true });
@@ -544,6 +494,21 @@ describe('ThemesService', () => {
       const result = await service.findAllForSession(1, 7, 'bad-secret');
       expect(result).toEqual([]);
       expect(mockThemesRepository.find).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('copyToOrganization', () => {
+    it('propagates a failure from creating the copy (e.g. feature disabled in target)', async () => {
+      mockThemesRepository.findOne.mockResolvedValue(mockTheme);
+      mockOrganizationsService.userRole.mockResolvedValue('member');
+      mockOrganizationsService.assertFeatureEnabled.mockRejectedValueOnce(
+        new ForbiddenException('Themes are disabled'),
+      );
+
+      await expect(
+        service.copyToOrganization(1, 1, 2, user.id),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockThemesRepository.insert).not.toHaveBeenCalled();
     });
   });
 });

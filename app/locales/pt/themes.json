@@ -148,6 +148,7 @@
     "copyToOrganization": "Erro ao copiar tema",
     "noPermission": "Você não tem permissão para acessar este tema",
     "save": "Erro ao salvar tema",
-    "search": "Erro ao buscar temas"
+    "search": "Erro ao buscar temas",
+    "notFound": "Tema não encontrado"
   }
 }

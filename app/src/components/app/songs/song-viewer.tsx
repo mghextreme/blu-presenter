@@ -1,12 +1,12 @@
-import { ReactNode } from "react";
-import { ISong } from "@/types";
-import { Toggle } from "@/components/ui/toggle";
-import { renderSongPartLines } from "@/lib/songs";
-import { cn } from "@/lib/utils";
-import { ReferencePlayer } from "@/components/app/songs/reference-player";
-import { PageContent } from "@/components/shared/page-content";
-import { useTranslation } from "react-i18next";
-import { useSongViewConfig } from "@/hooks/useSongViewConfig";
+import { ReactNode } from 'react';
+import { ISong } from '@/types';
+import { Toggle } from '@/components/ui/toggle';
+import { renderSongPartLines } from '@/lib/songs';
+import { cn } from '@/lib/utils';
+import { ReferencePlayer } from '@/components/app/songs/reference-player';
+import { PageContent } from '@/components/shared/page-content';
+import { useTranslation } from 'react-i18next';
+import { useSongViewConfig } from '@/hooks/useSongViewConfig';
 
 interface SongViewerProps {
   song: ISong;
@@ -15,11 +15,13 @@ interface SongViewerProps {
 }
 
 export function SongViewer({ song, showReferences = true, children }: Readonly<SongViewerProps>) {
-  const { t } = useTranslation("songs");
+  const { t } = useTranslation('songs');
 
   const { viewMode, toggleViewMode } = useSongViewConfig();
 
-  const hasChords = song.blocks?.some(block => block.lines?.some(line => line.type === 'chords'));
+  const hasChords = song.blocks?.some((block) =>
+    block.lines?.some((line) => line.type === 'chords'),
+  );
 
   return (
     <PageContent>
@@ -30,24 +32,27 @@ export function SongViewer({ song, showReferences = true, children }: Readonly<S
         <ReferencePlayer references={song.references} />
       )}
       {hasChords && (
-        <Toggle variant="outline" pressed={viewMode === 'chords'} onPressedChange={toggleViewMode} className="mb-3 mt-3">
+        <Toggle
+          variant="outline"
+          pressed={viewMode === 'chords'}
+          onPressedChange={toggleViewMode}
+          className="mb-3 mt-3"
+        >
           {t('input.viewChords')}
         </Toggle>
       )}
-      <div className={cn(
-        'max-w-lg space-y-3',
-        viewMode === 'chords' && 'font-source-code-pro'
-      )}>
+      <div className={cn('max-w-lg space-y-3', viewMode === 'chords' && 'font-source-code-pro')}>
         {song.blocks?.map((block, ix) => (
-          <div key={`block-${ix}`} className="border-s-1 ps-[.75em] py-[.2em] min-h-[.75em] whitespace-pre">
-            {renderSongPartLines(
-              block.lines,
-              {
-                includeTypes: hasChords && viewMode === 'chords' ? ['lyrics', 'chords', 'comments'] : ['lyrics'],
-                chordsClassName: 'font-bold text-primary',
-                commentsClassName: 'italic text-green-600 dark:text-green-600',
-              }
-            )}
+          <div
+            key={`block-${ix}`}
+            className="border-s-1 ps-[.75em] py-[.2em] min-h-[.75em] whitespace-pre"
+          >
+            {renderSongPartLines(block.lines, {
+              includeTypes:
+                hasChords && viewMode === 'chords' ? ['lyrics', 'chords', 'comments'] : ['lyrics'],
+              chordsClassName: 'font-bold text-primary',
+              commentsClassName: 'italic text-green-600 dark:text-green-600',
+            })}
           </div>
         ))}
       </div>

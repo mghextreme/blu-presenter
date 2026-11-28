@@ -1,13 +1,13 @@
 import {
   BadRequestException,
   ForbiddenException,
-  Inject,
   Injectable,
-  Scope,
+  HttpException,
+  HttpStatus,
+  Logger,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { REQUEST } from '@nestjs/core';
-import { Request as ExpRequest } from 'express';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { createHash, randomBytes } from 'node:crypto';
 import { OrganizationsService } from 'src/organizations/organizations.service';
@@ -15,6 +15,7 @@ import { Supabase } from 'src/supabase/supabase';
 import {
   AccessTokenDto,
   AuthDto,
+  AuthInvitationDataDto,
   ChangePasswordDto,
   ForgotPasswordDto,
   OAuthRedirectDto,
@@ -30,25 +31,21 @@ import {
 } from 'src/types';
 import { User } from 'src/entities';
 import { UsersService } from 'src/users/users.service';
+import { fetchWithTimeout } from 'src/utils/fetch-with-timeout';
 
 /** OAuth providers supported for sign-in and identity linking. */
 const SSO_PROVIDERS = ['google', 'spotify'];
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class AuthService {
-  public supabaseClient: SupabaseClient;
+  private readonly logger = new Logger(AuthService.name);
+  private readonly supabaseClient: SupabaseClient;
 
   constructor(
-    @Inject(Supabase)
-    private readonly supabase: Supabase,
-    @Inject(ConfigService)
+    supabase: Supabase,
     private readonly configService: ConfigService,
-    @Inject(UsersService)
     private readonly usersService: UsersService,
-    @Inject(OrganizationsService)
-    readonly organizationsService: OrganizationsService,
-    @Inject(REQUEST)
-    private readonly request: ExpRequest,
+    private readonly organizationsService: OrganizationsService,
   ) {
     this.supabaseClient = supabase.getClient();
   }
@@ -80,26 +77,10 @@ export class AuthService {
       }
     }
 
-    let inviteOrgId = undefined;
-    if (signInDto.invite) {
-      try {
-        const invite = await this.organizationsService.getInvitation(
-          signInDto.invite.id,
-          signInDto.invite.secret,
-        );
-
-        const user = await this.usersService.findByAuthId(data.user.id);
-        if (!this.request.user) {
-          this.request.user = {};
-        }
-        this.request.user['internal'] = user;
-
-        await this.organizationsService.acceptInvitation(invite.id);
-        inviteOrgId = invite.orgId;
-      } catch (e) {
-        console.warn(`Error accepting invite: ${e}`);
-      }
-    }
+    const inviteOrgId = await this.acceptInviteForAuthUser(
+      data.user?.id,
+      signInDto.invite,
+    );
 
     return {
       user: data.user,
@@ -130,7 +111,7 @@ export class AuthService {
       code_challenge_method: 's256',
     });
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${this.supabaseUrl}/auth/v1/authorize?${params.toString()}`,
       {
         headers: { apikey: this.supabaseKey },
@@ -157,7 +138,7 @@ export class AuthService {
     codeVerifier: string,
     _locale?: string,
   ): Promise<AccessTokenDto> {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${this.supabaseUrl}/auth/v1/token?grant_type=pkce`,
       {
         method: 'POST',
@@ -209,26 +190,10 @@ export class AuthService {
       }
     }
 
-    let inviteOrgId = undefined;
-    if (signUpDto.invite) {
-      try {
-        const invite = await this.organizationsService.getInvitation(
-          signUpDto.invite.id,
-          signUpDto.invite.secret,
-        );
-
-        const user = await this.usersService.findByAuthId(data.user.id);
-        if (!this.request.user) {
-          this.request.user = {};
-        }
-        this.request.user['internal'] = user;
-
-        await this.organizationsService.acceptInvitation(invite.id);
-        inviteOrgId = invite.orgId;
-      } catch (e) {
-        console.warn(`Error accepting invite: ${e}`);
-      }
-    }
+    const inviteOrgId = await this.acceptInviteForAuthUser(
+      data.user?.id,
+      signUpDto.invite,
+    );
 
     return {
       user: data.user,
@@ -245,6 +210,18 @@ export class AuthService {
     });
 
     if (error) {
+      // The app signs the user out on 400/403 from this endpoint, so only an
+      // invalid refresh token may map to those. Rate limits and Supabase
+      // outages must stay distinguishable so a transient failure does not
+      // end the session.
+      if (error.status === 429) {
+        throw new HttpException(error.message, HttpStatus.TOO_MANY_REQUESTS);
+      }
+      if (!error.status || error.status >= 500) {
+        throw new ServiceUnavailableException(
+          'Authentication service unavailable',
+        );
+      }
       switch (error.status) {
         case 401:
         case 403:
@@ -260,8 +237,66 @@ export class AuthService {
     };
   }
 
-  async changePassword(changePasswordDto: ChangePasswordDto): Promise<void> {
-    const user = this.request.user['internal'] as User;
+  /**
+   * Accepts the invitation the user signed in or up with. Failures are
+   * logged and ignored: they must not fail the sign-in itself.
+   * Returns the organization joined, if any.
+   */
+  private async acceptInviteForAuthUser(
+    authUserId: string | undefined,
+    inviteData: AuthInvitationDataDto | undefined,
+  ): Promise<number | undefined> {
+    if (!inviteData || !authUserId) {
+      return undefined;
+    }
+
+    try {
+      const invite = await this.organizationsService.getInvitation(
+        inviteData.id,
+        inviteData.secret,
+      );
+      const user = await this.usersService.findByAuthId(authUserId);
+      if (!invite || !user) {
+        return undefined;
+      }
+
+      await this.organizationsService.acceptInvitation(invite.id, user);
+      return invite.orgId;
+    } catch (e) {
+      this.logger.warn(`Error accepting invite: ${e}`);
+      return undefined;
+    }
+  }
+
+  /**
+   * Links an invitation to a user who signed in through OAuth. Failures are
+   * logged and ignored. Returns the organization joined, if any.
+   */
+  async associateInvite(
+    authUserId: string,
+    inviteData: AuthInvitationDataDto,
+  ): Promise<number | undefined> {
+    try {
+      const invitation = await this.organizationsService.associateInvite(
+        authUserId,
+        inviteData,
+      );
+      return invitation.orgId;
+    } catch (e) {
+      this.logger.warn(`Error associating invite: ${e}`);
+      return undefined;
+    }
+  }
+
+  async changePassword(
+    user: User,
+    accessToken: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<void> {
+    if (!user.email) {
+      throw new BadRequestException('Your account has no email address');
+    }
+
     const { error: authError } =
       await this.supabaseClient.auth.signInWithPassword({
         email: user.email,
@@ -272,16 +307,18 @@ export class AuthService {
       throw new ForbiddenException(authError.message);
     }
 
-    const jwt = this.extractJwt();
-    const response = await fetch(`${this.supabaseUrl}/auth/v1/user`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${jwt}`,
-        apikey: this.supabaseKey,
-        'Content-Type': 'application/json',
+    const response = await fetchWithTimeout(
+      `${this.supabaseUrl}/auth/v1/user`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          apikey: this.supabaseKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: changePasswordDto.newPassword }),
       },
-      body: JSON.stringify({ password: changePasswordDto.newPassword }),
-    });
+    );
 
     if (!response.ok) {
       const body = await response.text();
@@ -293,10 +330,8 @@ export class AuthService {
     }
   }
 
-  async getIdentities(): Promise<UserIdentitiesResponseDto> {
-    const jwt = this.extractJwt();
-
-    const { data, error } = await this.supabaseClient.auth.getUser(jwt);
+  async getIdentities(accessToken: string): Promise<UserIdentitiesResponseDto> {
+    const { data, error } = await this.supabaseClient.auth.getUser(accessToken);
     if (error) {
       throw new BadRequestException(error.message);
     }
@@ -317,16 +352,16 @@ export class AuthService {
     return { identities, hasPassword };
   }
 
-  async linkIdentity(provider: string): Promise<OAuthRedirectDto> {
+  async linkIdentity(
+    provider: string,
+    accessToken: string,
+  ): Promise<OAuthRedirectDto> {
     if (!SSO_PROVIDERS.includes(provider)) {
       throw new BadRequestException(
         `Provider ${provider} not supported for identity linking`,
       );
     }
 
-    const jwt = this.extractJwt();
-    const supabaseUrl = this.configService.get('supabase.url');
-    const supabaseKey = this.configService.get('supabase.key');
     const redirectTo =
       this.configService.get('app.baseUrl') + '/oauth/link-callback';
 
@@ -341,13 +376,13 @@ export class AuthService {
       skip_http_redirect: 'true',
     });
 
-    const response = await fetch(
-      `${supabaseUrl}/auth/v1/user/identities/authorize?${params.toString()}`,
+    const response = await fetchWithTimeout(
+      `${this.supabaseUrl}/auth/v1/user/identities/authorize?${params.toString()}`,
       {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${jwt}`,
-          apikey: supabaseKey,
+          Authorization: `Bearer ${accessToken}`,
+          apikey: this.supabaseKey,
         },
         redirect: 'manual',
       },
@@ -373,11 +408,9 @@ export class AuthService {
     return { url: data.url, codeVerifier };
   }
 
-  async unlinkIdentity(identityId: string): Promise<void> {
-    const jwt = this.extractJwt();
-
+  async unlinkIdentity(identityId: string, accessToken: string): Promise<void> {
     // Verify the user has more than one identity before unlinking
-    const { identities } = await this.getIdentities();
+    const { identities } = await this.getIdentities(accessToken);
     if (identities.length <= 1) {
       throw new BadRequestException(
         'Cannot unlink the only identity. You must have at least one sign-in method.',
@@ -399,16 +432,13 @@ export class AuthService {
       }
     }
 
-    const supabaseUrl = this.configService.get('supabase.url');
-    const supabaseKey = this.configService.get('supabase.key');
-
-    const response = await fetch(
-      `${supabaseUrl}/auth/v1/user/identities/${identityId}`,
+    const response = await fetchWithTimeout(
+      `${this.supabaseUrl}/auth/v1/user/identities/${identityId}`,
       {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${jwt}`,
-          apikey: supabaseKey,
+          Authorization: `Bearer ${accessToken}`,
+          apikey: this.supabaseKey,
         },
       },
     );
@@ -419,29 +449,30 @@ export class AuthService {
     }
   }
 
-  async setPassword(setPasswordDto: SetPasswordDto): Promise<void> {
-    const jwt = this.extractJwt();
-
+  async setPassword(
+    setPasswordDto: SetPasswordDto,
+    accessToken: string,
+  ): Promise<void> {
     // Verify user doesn't already have a password
-    const { hasPassword } = await this.getIdentities();
+    const { hasPassword } = await this.getIdentities(accessToken);
     if (hasPassword) {
       throw new BadRequestException(
         'User already has a password. Use changePassword instead.',
       );
     }
 
-    const supabaseUrl = this.configService.get('supabase.url');
-    const supabaseKey = this.configService.get('supabase.key');
-
-    const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${jwt}`,
-        apikey: supabaseKey,
-        'Content-Type': 'application/json',
+    const response = await fetchWithTimeout(
+      `${this.supabaseUrl}/auth/v1/user`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          apikey: this.supabaseKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: setPasswordDto.newPassword }),
       },
-      body: JSON.stringify({ password: setPasswordDto.newPassword }),
-    });
+    );
 
     if (!response.ok) {
       const body = await response.text();
@@ -477,7 +508,7 @@ export class AuthService {
       if (forgotPasswordDto.captchaToken && /captcha/i.test(error.message)) {
         throw new BadRequestException(error.message);
       }
-      console.warn(
+      this.logger.warn(
         `forgotPassword: suppressed Supabase error: ${error.message}`,
       );
     }
@@ -491,15 +522,18 @@ export class AuthService {
   async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<void> {
     const jwt = resetPasswordDto.accessToken;
 
-    const response = await fetch(`${this.supabaseUrl}/auth/v1/user`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${jwt}`,
-        apikey: this.supabaseKey,
-        'Content-Type': 'application/json',
+    const response = await fetchWithTimeout(
+      `${this.supabaseUrl}/auth/v1/user`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+          apikey: this.supabaseKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: resetPasswordDto.newPassword }),
       },
-      body: JSON.stringify({ password: resetPasswordDto.newPassword }),
-    });
+    );
 
     if (!response.ok) {
       const body = await response.text();
@@ -532,7 +566,7 @@ export class AuthService {
       if (dto.captchaToken && /captcha/i.test(error.message)) {
         throw new BadRequestException(error.message);
       }
-      console.warn(
+      this.logger.warn(
         `requestSignInOtp: suppressed Supabase error: ${error.message}`,
       );
     }
@@ -563,40 +597,16 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired code');
     }
 
-    let inviteOrgId: number | undefined = undefined;
-    if (dto.invite) {
-      try {
-        const invite = await this.organizationsService.getInvitation(
-          dto.invite.id,
-          dto.invite.secret,
-        );
-
-        const user = await this.usersService.findByAuthId(data.user.id);
-        if (!this.request.user) {
-          this.request.user = {};
-        }
-        this.request.user['internal'] = user;
-
-        await this.organizationsService.acceptInvitation(invite.id);
-        inviteOrgId = invite.orgId;
-      } catch (e) {
-        console.warn(`Error accepting invite: ${e}`);
-      }
-    }
+    const inviteOrgId = await this.acceptInviteForAuthUser(
+      data.user?.id,
+      dto.invite,
+    );
 
     return {
       user: data.user,
       session: data.session,
       inviteOrgId,
     } as AccessTokenDto;
-  }
-
-  private extractJwt(): string {
-    const authHeader = this.request.headers.authorization;
-    if (!authHeader) {
-      throw new ForbiddenException('No authorization header');
-    }
-    return authHeader.replace('Bearer ', '');
   }
 
   private generatePKCEVerifier(): string {

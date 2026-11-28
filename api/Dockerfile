@@ -5,15 +5,22 @@
 #
 # Uses the workspace pnpm-lock.yaml as the single source of truth, then
 # `pnpm deploy` produces a self-contained dir with prod deps for runtime.
+#
+# NODE_VERSION defaults to the repo's .nvmrc; CI passes it from that file
+# (--build-arg NODE_VERSION=$(cat .nvmrc)) so the two cannot drift.
 
-FROM node:24-slim AS builder
+ARG NODE_VERSION=26
 
-RUN npm install -g pnpm@12.15.0
+FROM node:${NODE_VERSION}-slim AS builder
 
 WORKDIR /workspace
 
 # Copy workspace manifests first for better layer caching.
-COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Corepack is no longer bundled with Node (removed in Node 25), so pnpm is
+# installed directly.
+RUN npm install -g "pnpm@$(node -p "require('./package.json').packageManager.split('@')[1]")"
 COPY api/package.json ./api/
 COPY app/package.json ./app/
 
@@ -38,14 +45,25 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm deploy --legacy --filter=blu-presenter-api --prod /deploy --store-dir=/pnpm/store && \
     cp -r api/dist /deploy/dist
 
-FROM node:24-slim
+FROM node:${NODE_VERSION}-slim
+
+ENV NODE_ENV=production
 
 WORKDIR /app
 
+# Files stay root-owned (read-only for the app); the process runs as the
+# unprivileged "node" user that ships with the official image.
 COPY --from=builder /deploy/dist ./dist
 COPY --from=builder /deploy/node_modules ./node_modules
 COPY --from=builder /deploy/package.json ./package.json
 
+USER node
+
 EXPOSE 3000
+
+# GET / is the public health route (AppController.healthCheck). The slim
+# image has no curl, so use Node's built-in fetch.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD ["node", "-e", "fetch('http://127.0.0.1:3000/').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
 
 CMD ["node", "dist/main"]

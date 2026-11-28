@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { SongsController } from '../songs.controller';
 import { SongsService } from '../songs.service';
 import { SongTextFormatService } from '../text-format/song-text-format.service';
@@ -49,7 +49,11 @@ describe('SongsController export', () => {
     expect(response.text).toBe(
       '---\nschemaVersion: 1\nlanguage: en\n---\n\n# Ámazing Gráce\n## John Newton\n',
     );
-    expect(findOneInAnyOrgOrBySecret).toHaveBeenCalledWith('7', 'topsecret');
+    expect(findOneInAnyOrgOrBySecret).toHaveBeenCalledWith(
+      '7',
+      'topsecret',
+      undefined,
+    );
   });
 
   it('falls back to a song-id filename when the title has no latin characters', async () => {

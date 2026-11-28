@@ -1,7 +1,10 @@
-import { IsNotEmpty } from 'class-validator';
-import { OrganizationRoleOptions } from './organization-role.type';
+import { IsIn } from 'class-validator';
+import {
+  ORGANIZATION_ROLES,
+  OrganizationRoleOptions,
+} from './organization-role.type';
 
 export class EditMemberDto {
-  @IsNotEmpty()
+  @IsIn(ORGANIZATION_ROLES)
   role: OrganizationRoleOptions;
 }

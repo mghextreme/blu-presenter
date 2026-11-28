@@ -1,9 +1,9 @@
-import { ISlideContent } from "./slide-content.interface"
+import { ISlideContent } from './slide-content.interface';
 
 export interface ISlide {
-  id?: string
-  index?: number
+  id?: string;
+  index?: number;
 
-  content?: ISlideContent[]
-  isEmpty?: boolean
+  content?: ISlideContent[];
+  isEmpty?: boolean;
 }

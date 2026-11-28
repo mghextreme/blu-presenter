@@ -1,20 +1,21 @@
-import { useRef, useState } from "react";
-import { UseFieldArrayRemove, UseFormReturn } from "react-hook-form";
-import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import LinkIcon from "@heroicons/react/24/solid/LinkIcon";
-import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import ChatBubbleLeftEllipsisIcon from "@heroicons/react/24/solid/ChatBubbleLeftEllipsisIcon";
-import ChevronUpDownIcon from "@heroicons/react/24/solid/ChevronUpDownIcon";
-import ArrowTopRightOnSquareIcon from "@heroicons/react/24/solid/ArrowTopRightOnSquareIcon";
+import { useRef, useState } from 'react';
+import { UseFieldArrayRemove, UseFormReturn } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { safeExternalUrl } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import LinkIcon from '@heroicons/react/24/solid/LinkIcon';
+import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
+import ChatBubbleLeftEllipsisIcon from '@heroicons/react/24/solid/ChatBubbleLeftEllipsisIcon';
+import ChevronUpDownIcon from '@heroicons/react/24/solid/ChevronUpDownIcon';
+import ArrowTopRightOnSquareIcon from '@heroicons/react/24/solid/ArrowTopRightOnSquareIcon';
 
 interface EditSongReferencesItemProps {
   // Generic on purpose: any form with a `references` array field works
   // (song editor, schedule editor).
-  form: UseFormReturn<any>,
-  ix: number,
-  remove: UseFieldArrayRemove,
+  form: UseFormReturn<any>;
+  ix: number;
+  remove: UseFieldArrayRemove;
 }
 
 export function EditSongReferencesItem({
@@ -22,8 +23,7 @@ export function EditSongReferencesItem({
   ix,
   remove,
 }: Readonly<EditSongReferencesItemProps>) {
-
-  const { t } = useTranslation("songs");
+  const { t } = useTranslation('songs');
 
   const nameInput = useRef<HTMLInputElement>(null);
   const urlInput = useRef<HTMLInputElement>(null);
@@ -37,7 +37,7 @@ export function EditSongReferencesItem({
     form.setValue('references', newReferences);
 
     setTimeout(checkValidUrl, 100);
-  }
+  };
 
   const checkValidUrl = async () => {
     const url = form.getValues(`references.${ix}.url`);
@@ -50,14 +50,14 @@ export function EditSongReferencesItem({
     } else {
       setError(undefined);
     }
-  }
+  };
 
   const openUrl = () => {
     if (!!error) return;
 
-    const url = form.getValues(`references.${ix}.url`);
-    window.open(url, '_blank');
-  }
+    const url = safeExternalUrl(form.getValues(`references.${ix}.url`));
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <li className="flex justify-stretch align-start space-x-2">
@@ -66,21 +66,44 @@ export function EditSongReferencesItem({
       </div>
       <div className="flex flex-col w-full flex-1 space-y-2">
         <div className="flex space-x-2" title={t('input.placeholders.referenceUrl')}>
-          <Button variant="secondary" size="icon" type="button" onClick={() => urlInput.current?.focus()}><LinkIcon className="size-4" /></Button>
-          <Input placeholder={t('input.placeholders.referenceUrl')} className="flex-1" {...form.register(`references.${ix}.url`)} onBlur={updateReferences} />
+          <Button
+            variant="secondary"
+            size="icon"
+            type="button"
+            onClick={() => urlInput.current?.focus()}
+          >
+            <LinkIcon className="size-4" />
+          </Button>
+          <Input
+            placeholder={t('input.placeholders.referenceUrl')}
+            className="flex-1"
+            {...form.register(`references.${ix}.url`)}
+            onBlur={updateReferences}
+          />
           {hasValue && !error && (
-            <Button variant="secondary" size="icon" type="button" onClick={openUrl}><ArrowTopRightOnSquareIcon className="size-4" /></Button>
+            <Button variant="secondary" size="icon" type="button" onClick={openUrl}>
+              <ArrowTopRightOnSquareIcon className="size-4" />
+            </Button>
           )}
         </div>
         {expanded && (
           <div className="flex space-x-2" title={t('input.placeholders.referenceName')}>
-            <Button variant="secondary" size="icon" type="button" onClick={() => nameInput.current?.focus()}><ChatBubbleLeftEllipsisIcon className="size-4" /></Button>
-            <Input placeholder={t('input.placeholders.referenceName')} className="flex-1" {...form.register(`references.${ix}.name`)} />
+            <Button
+              variant="secondary"
+              size="icon"
+              type="button"
+              onClick={() => nameInput.current?.focus()}
+            >
+              <ChatBubbleLeftEllipsisIcon className="size-4" />
+            </Button>
+            <Input
+              placeholder={t('input.placeholders.referenceName')}
+              className="flex-1"
+              {...form.register(`references.${ix}.name`)}
+            />
           </div>
         )}
-        {error && (
-          <span className="text-destructive">{error}</span>
-        )}
+        {error && <span className="text-destructive">{error}</span>}
       </div>
       <Button
         type="button"
@@ -103,5 +126,5 @@ export function EditSongReferencesItem({
         <TrashIcon className="size-3" />
       </Button>
     </li>
-  )
+  );
 }

@@ -1,20 +1,15 @@
-import { useEffect, useRef } from "react";
-import { ITheme, LyricsTheme } from "@/types";
-import { useController } from "@/hooks/useController";
-import { SingleSlideVisualizer } from "./single-slide-visualizer";
-import { ScrollingSongVisualizer } from "./scrolling-song-visualizer";
+import { useEffect, useRef } from 'react';
+import { ITheme, LyricsTheme } from '@/types';
+import { useController } from '@/hooks/useController';
+import { SingleSlideVisualizer } from './single-slide-visualizer';
+import { ScrollingSongVisualizer } from './scrolling-song-visualizer';
 
 type SlideVisualizerProps = {
-  theme?: ITheme
-}
+  theme?: ITheme;
+};
 
-export function SlideVisualizer({
-  theme = LyricsTheme,
-}: Readonly<SlideVisualizerProps>) {
-
-  const {
-    setSelection,
-  } = useController();
+export function SlideVisualizer({ theme = LyricsTheme }: Readonly<SlideVisualizerProps>) {
+  const { setSelection } = useController((s) => ({ setSelection: s.setSelection }));
 
   const componentRef = useRef<typeof ScrollingSongVisualizer | typeof SingleSlideVisualizer>(null);
   useEffect(() => {
@@ -27,7 +22,7 @@ export function SlideVisualizer({
     if (componentRef.current) {
       (componentRef.current as any)?.update();
     }
-  }, [theme]);
+  }, [theme, setSelection]);
 
   return theme.extends === 'teleprompter' ? (
     <ScrollingSongVisualizer ref={componentRef} theme={theme}></ScrollingSongVisualizer>

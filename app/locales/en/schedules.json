@@ -73,7 +73,8 @@
     "noPermission": "You don't have permission to manage schedules",
     "save": "Error saving schedule",
     "search": "Error searching schedules",
-    "validation": "Cannot save: some fields are invalid. Please review the form and try again."
+    "validation": "Cannot save: some fields are invalid. Please review the form and try again.",
+    "notFound": "Schedule not found"
   },
   "message": {
     "share": {

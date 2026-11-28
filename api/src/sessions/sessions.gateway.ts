@@ -1,4 +1,4 @@
-import { Injectable, UseGuards } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -8,17 +8,14 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { SkipThrottle } from '@nestjs/throttler';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { SessionsService } from './sessions.service';
-import { AuthenticatedSocket } from 'src/types';
-import { OrganizationsBaseService } from 'src/organizations/organizations.service';
-import { OptionalWebsocketGuard } from 'src/supabase/supabase.guard';
+import { OrganizationsService } from 'src/organizations/organizations.service';
 
 interface JoinSessionDto {
   orgId: number;
   sessionId: number;
   secret: string;
-  token?: string;
 }
 
 interface LeaveSessionDto {
@@ -36,20 +33,19 @@ export class SessionsGateway implements OnGatewayConnection {
 
   constructor(
     private readonly sessionsService: SessionsService,
-    private readonly organizationsBaseService: OrganizationsBaseService,
+    private readonly organizationsService: OrganizationsService,
   ) {}
 
-  async handleConnection(client: AuthenticatedSocket) {
+  async handleConnection(client: Socket) {
     client.emit('connected', {
       message: 'Successfully connected',
       socketId: client.id,
     });
   }
 
-  @UseGuards(OptionalWebsocketGuard)
   @SubscribeMessage('joinSession')
   async handleJoinRoom(
-    @ConnectedSocket() client: AuthenticatedSocket,
+    @ConnectedSocket() client: Socket,
     @MessageBody() data: JoinSessionDto,
   ) {
     if (!data.orgId) {
@@ -70,7 +66,7 @@ export class SessionsGateway implements OnGatewayConnection {
 
     try {
       if (
-        !(await this.organizationsBaseService.isFeatureEnabledInOrg(
+        !(await this.organizationsService.isFeatureEnabledInOrg(
           data.orgId,
           'sessions',
         ))
@@ -120,21 +116,13 @@ export class SessionsGateway implements OnGatewayConnection {
     }
   }
 
-  @UseGuards(OptionalWebsocketGuard)
   @SubscribeMessage('leaveSession')
   async handleLeaveRoom(
-    @ConnectedSocket() client: AuthenticatedSocket,
+    @ConnectedSocket() client: Socket,
     @MessageBody() data: LeaveSessionDto,
   ) {
     try {
       await client.leave(`session:${data.sessionId}`);
-
-      // Clear cached sessionId so the WebsocketGuard
-      // re-verifies on the next joinSession for a different session.
-      // Keep userId and orgId — they are user-level, not session-level.
-      if (client.sessionId === data.sessionId) {
-        client.sessionId = undefined;
-      }
 
       client.emit('leftSession', { id: data.sessionId });
     } catch (error) {

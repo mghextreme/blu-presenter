@@ -1,0 +1,64 @@
+{
+  "version": 2,
+  "skills": {
+    "nestjs": {
+      "source": "nestjs/agent-skills",
+      "commit": "bbcc011bd4b90fa5d7408a0e9966ea8c4eaf09f2",
+      "sourceType": "github",
+      "skillPath": "plugins/nestjs/skills/nestjs/SKILL.md",
+      "computedHash": "7e8020077ee6b03a9e95b51084a480c1b6ba63b0a6b6f609d2c9773761c76cee"
+    },
+    "nestjs-auth": {
+      "source": "nestjs/agent-skills",
+      "commit": "bbcc011bd4b90fa5d7408a0e9966ea8c4eaf09f2",
+      "sourceType": "github",
+      "skillPath": "plugins/nestjs/skills/nestjs-auth/SKILL.md",
+      "computedHash": "868f0cd3611dd8d6073e3b3e59fab1ad2c11cecab50c7eb864ea4c0ab383ce1f"
+    },
+    "nestjs-best-practices": {
+      "source": "kadajett/agent-nestjs-skills",
+      "sourceType": "github",
+      "computedHash": ""
+    },
+    "nestjs-data": {
+      "source": "nestjs/agent-skills",
+      "commit": "bbcc011bd4b90fa5d7408a0e9966ea8c4eaf09f2",
+      "sourceType": "github",
+      "skillPath": "plugins/nestjs/skills/nestjs-data/SKILL.md",
+      "computedHash": "56d73232e867fa67a60d668fb923569d9f9d6faaee4b060e1bcc6b1a90ce66df"
+    },
+    "nestjs-feature": {
+      "source": "nestjs/agent-skills",
+      "commit": "bbcc011bd4b90fa5d7408a0e9966ea8c4eaf09f2",
+      "sourceType": "github",
+      "skillPath": "plugins/nestjs/skills/nestjs-feature/SKILL.md",
+      "computedHash": "8831f1049023a69412b23ed5680525f56855ceb911085d9790042e2dbd8e7e78"
+    },
+    "nestjs-production": {
+      "source": "nestjs/agent-skills",
+      "commit": "bbcc011bd4b90fa5d7408a0e9966ea8c4eaf09f2",
+      "sourceType": "github",
+      "skillPath": "plugins/nestjs/skills/nestjs-production/SKILL.md",
+      "computedHash": "8c764e23242b00967a19083760323dc87dd8bd25b771ba6bf58a1dca11cd9a66"
+    },
+    "nestjs-testing": {
+      "source": "nestjs/agent-skills",
+      "commit": "bbcc011bd4b90fa5d7408a0e9966ea8c4eaf09f2",
+      "sourceType": "github",
+      "skillPath": "plugins/nestjs/skills/nestjs-testing/SKILL.md",
+      "computedHash": "8fe4c16f00372cb49e98296db2eb029b473065a83492062e781004f9eccc17d5"
+    },
+    "react-doctor": {
+      "source": "millionco/react-doctor",
+      "commit": "b6ba66ef427bf81995555e380eeba679f8b5d305",
+      "sourceType": "github",
+      "skillPath": "skills/react-doctor/SKILL.md",
+      "computedHash": "fb85d8da83256d13f6280994fd32151e50121da25c44887a05515d5e98e67e02"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": ""
+    }
+  }
+}

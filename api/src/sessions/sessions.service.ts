@@ -1,45 +1,37 @@
 import {
   BadRequestException,
   ForbiddenException,
-  Inject,
   Injectable,
   NotFoundException,
-  Scope,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, In, Repository } from 'typeorm';
-import { OrganizationUser, Session } from 'src/entities';
-import { REQUEST } from '@nestjs/core';
-import { Request as ExpRequest } from 'express';
+import { Session, User } from 'src/entities';
 import { UsersService } from 'src/users/users.service';
-import {
-  OrganizationsBaseService,
-  OrganizationsService,
-} from 'src/organizations/organizations.service';
+import { OrganizationsService } from 'src/organizations/organizations.service';
 import {
   CreateSessionDto,
   isFeatureEnabled,
-  OrganizationRoleOptions,
   SearchSessionDto,
   UpdateSessionDto,
 } from 'src/types';
 import { isRoleHigherOrEqualThan } from 'src/types/organization-role.type';
+import { generateRandomSecret } from 'src/utils/secret';
+import {
+  membershipOrgIds,
+  WithOrganizationRole,
+  withOrganizationRole,
+} from 'src/utils/organization-membership';
 
-type SessionWithRole = Session & {
-  organization: {
-    id: number;
-    name: string;
-    role?: OrganizationRoleOptions;
-  };
-};
+export type SessionWithRole = WithOrganizationRole<Session>;
 
 @Injectable()
 export class SessionsService {
   constructor(
     @InjectRepository(Session)
-    protected readonly sessionsRepository: Repository<Session>,
-    protected readonly organizationsBaseService: OrganizationsBaseService,
+    private readonly sessionsRepository: Repository<Session>,
+    private readonly organizationsService: OrganizationsService,
+    private readonly usersService: UsersService,
   ) {}
 
   async findOne(orgId: number, id: number): Promise<Session | null> {
@@ -105,12 +97,18 @@ export class SessionsService {
     }
   }
 
-  async findOneBySecret(orgId: number, id: number, secret: string) {
-    await this.organizationsBaseService.assertFeatureEnabled(
-      orgId,
-      'sessions',
-      { notFound: true },
-    );
+  async findOneBySecret(
+    orgId: number,
+    id: number,
+    secret: string | undefined,
+  ): Promise<Session | null> {
+    await this.organizationsService.assertFeatureEnabled(orgId, 'sessions', {
+      notFound: true,
+    });
+
+    if (!secret) {
+      return null;
+    }
 
     return this.sessionsRepository.findOne({
       select: {
@@ -135,11 +133,14 @@ export class SessionsService {
   async create(
     orgId: number,
     createSessionDto: CreateSessionDto,
-  ): Promise<Session> {
-    await this.organizationsBaseService.assertFeatureEnabled(orgId, 'sessions');
+  ): Promise<Session | null> {
+    await this.organizationsService.assertFeatureEnabled(orgId, 'sessions');
 
     const result = await this.sessionsRepository.insert({
       name: createSessionDto.name,
+      language: createSessionDto.language ?? null,
+      theme: createSessionDto.theme ?? null,
+      secret: generateRandomSecret(16),
       orgId,
     });
     const sessionId = result.raw[0].id;
@@ -152,7 +153,7 @@ export class SessionsService {
     id: number,
     updateSessionDto: UpdateSessionDto,
   ): Promise<Session> {
-    await this.organizationsBaseService.assertFeatureEnabled(orgId, 'sessions');
+    await this.organizationsService.assertFeatureEnabled(orgId, 'sessions');
 
     const session = await this.sessionsRepository.findOneBy({ id, orgId });
     if (!session) {
@@ -162,15 +163,20 @@ export class SessionsService {
     if (!session.default) {
       session.name = updateSessionDto.name;
     }
-    session.language = updateSessionDto.language;
-    session.theme = updateSessionDto.theme;
+    // An omitted field keeps its stored value.
+    if (updateSessionDto.language !== undefined) {
+      session.language = updateSessionDto.language;
+    }
+    if (updateSessionDto.theme !== undefined) {
+      session.theme = updateSessionDto.theme;
+    }
 
     const result = await this.sessionsRepository.save(session);
     return result as Session;
   }
 
   async delete(orgId: number, id: number): Promise<void> {
-    await this.organizationsBaseService.assertFeatureEnabled(orgId, 'sessions');
+    await this.organizationsService.assertFeatureEnabled(orgId, 'sessions');
 
     const theme = await this.sessionsRepository.findOneBy({ id, orgId });
     if (!theme) {
@@ -183,34 +189,10 @@ export class SessionsService {
 
     await this.sessionsRepository.delete(id);
   }
-}
 
-@Injectable({ scope: Scope.REQUEST })
-export class SessionsServiceWithRequest extends SessionsService {
-  constructor(
-    @InjectRepository(Session)
-    protected readonly sessionsRepository: Repository<Session>,
-    organizationsBaseService: OrganizationsBaseService,
-    @Inject(OrganizationsService)
-    protected readonly organizationsService: OrganizationsService,
-    @Inject(UsersService) protected readonly usersService: UsersService,
-    @Inject(REQUEST) private readonly request: ExpRequest,
-  ) {
-    super(sessionsRepository, organizationsBaseService);
-  }
-
-  private async getUserOrgs(): Promise<Partial<OrganizationUser>[]> {
-    if (this.request.user === undefined) {
-      throw new UnauthorizedException();
-    }
-
-    const user = this.request.user['internal'];
-    return await this.usersService.findUserOrganizations(user.id);
-  }
-
-  async findOneInAnyOrg(id: number): Promise<SessionWithRole> {
-    const userOrgs = await this.getUserOrgs();
-    const userOrgIds = userOrgs.map((org) => org.organization.id);
+  async findOneInAnyOrg(id: number, user: User): Promise<SessionWithRole> {
+    const userOrgs = await this.usersService.findUserOrganizations(user.id);
+    const userOrgIds = membershipOrgIds(userOrgs);
 
     const session = await this.sessionsRepository.findOne({
       select: {
@@ -245,29 +227,12 @@ export class SessionsServiceWithRequest extends SessionsService {
 
     await this.assertFeatureEnabledForOrg(session.orgId);
 
-    const orgUser = userOrgs.find(
-      (org) => org.organization.id === session.orgId,
-    );
-    return {
-      ...session,
-      organization: orgUser
-        ? {
-            ...orgUser.organization,
-            role: orgUser.role as OrganizationRoleOptions,
-          }
-        : {
-            ...session.organization,
-            role: undefined,
-          },
-    } as SessionWithRole;
+    return withOrganizationRole(session, userOrgs);
   }
 
   private async assertFeatureEnabledForOrg(orgId: number): Promise<void> {
     const featureEnabled =
-      await this.organizationsBaseService.isFeatureEnabledInOrg(
-        orgId,
-        'sessions',
-      );
+      await this.organizationsService.isFeatureEnabledInOrg(orgId, 'sessions');
     if (!featureEnabled) {
       throw new ForbiddenException(
         'Sessions are disabled for this organization',
@@ -275,8 +240,11 @@ export class SessionsServiceWithRequest extends SessionsService {
     }
   }
 
-  async search(searchDto: SearchSessionDto): Promise<Session[]> {
-    const userOrgs = await this.getUserOrgs();
+  async search(
+    searchDto: SearchSessionDto,
+    user: User,
+  ): Promise<SessionWithRole[]> {
+    const userOrgs = await this.usersService.findUserOrganizations(user.id);
     // Only include orgs where the user is a member or above. Guests must not see
     // sessions in the cross-org listing — this mirrors the role checks on the
     // per-org session endpoints (see SessionsController).
@@ -348,30 +316,11 @@ export class SessionsServiceWithRequest extends SessionsService {
       take: pageSize,
     });
 
-    const userOrgsMap: { [key: number]: Partial<OrganizationUser> } = {};
-    for (const org of userOrgs) {
-      userOrgsMap[org.organization.id] = org;
-    }
-
-    return sessions.map((session) => {
-      const orgUser = userOrgsMap[session.orgId];
-      return {
-        ...session,
-        organization: orgUser
-          ? {
-              ...orgUser.organization,
-              role: orgUser.role as OrganizationRoleOptions,
-            }
-          : {
-              ...session.organization,
-              role: undefined,
-            },
-      } as SessionWithRole;
-    });
+    return sessions.map((session) => withOrganizationRole(session, userOrgs));
   }
 
-  async findAllForUserOrgs(): Promise<SessionWithRole[]> {
-    const userOrgs = await this.getUserOrgs();
+  async findAllForUserOrgs(user: User): Promise<SessionWithRole[]> {
+    const userOrgs = await this.usersService.findUserOrganizations(user.id);
     // Only include orgs where the user is a member or above. Guests must not see
     // sessions in the cross-org listing — this mirrors the role checks on the
     // per-org session endpoints (see SessionsController).
@@ -409,25 +358,6 @@ export class SessionsServiceWithRequest extends SessionsService {
       },
     });
 
-    const userOrgsMap: { [key: number]: Partial<OrganizationUser> } = {};
-    for (const org of userOrgs) {
-      userOrgsMap[org.organization.id] = org;
-    }
-
-    return sessions.map((session) => {
-      const orgUser = userOrgsMap[session.orgId];
-      return {
-        ...session,
-        organization: orgUser
-          ? {
-              ...orgUser.organization,
-              role: orgUser.role as OrganizationRoleOptions,
-            }
-          : {
-              ...session.organization,
-              role: undefined,
-            },
-      } as SessionWithRole;
-    });
+    return sessions.map((session) => withOrganizationRole(session, userOrgs));
   }
 }

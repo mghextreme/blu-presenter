@@ -4,13 +4,14 @@ import {
   HttpException,
   Injectable,
   NotFoundException,
-  Scope,
 } from '@nestjs/common';
 import { getSpotifyTrackId } from 'src/utils/spotify';
 import {
   PlaylistAccountProfile,
   PlaylistIntegrationService,
+  PlaylistUserContext,
 } from 'src/playlist-integration/playlist-integration.service';
+import { fetchWithTimeout } from 'src/utils/fetch-with-timeout';
 
 const SPOTIFY_ACCOUNTS_BASE = 'https://accounts.spotify.com';
 const SPOTIFY_API_BASE = 'https://api.spotify.com/v1';
@@ -19,7 +20,7 @@ const SPOTIFY_API_BASE = 'https://api.spotify.com/v1';
 const TRACKS_PER_REQUEST = 100;
 
 /** Creates and syncs schedule playlists on the user's Spotify account. */
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class SpotifyService extends PlaylistIntegrationService {
   protected readonly provider = 'spotify';
   protected readonly source = 'spotify-auto';
@@ -45,7 +46,7 @@ export class SpotifyService extends PlaylistIntegrationService {
   protected async fetchAccountProfile(
     accessToken: string,
   ): Promise<PlaylistAccountProfile> {
-    const response = await fetch(`${SPOTIFY_API_BASE}/me`, {
+    const response = await fetchWithTimeout(`${SPOTIFY_API_BASE}/me`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
 
@@ -61,13 +62,14 @@ export class SpotifyService extends PlaylistIntegrationService {
   }
 
   protected async createPlaylist(
+    context: PlaylistUserContext,
     name: string,
     isPublic: boolean,
   ): Promise<string> {
     const playlist = await this.apiRequest<{
       id: string;
       external_urls: { spotify: string };
-    }>('/me/playlists', {
+    }>(context, '/me/playlists', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -88,6 +90,7 @@ export class SpotifyService extends PlaylistIntegrationService {
    * and saved copies are preserved).
    */
   protected async writePlaylistItems(
+    context: PlaylistUserContext,
     playlistUrl: string,
     trackIds: string[],
   ): Promise<string[]> {
@@ -96,7 +99,7 @@ export class SpotifyService extends PlaylistIntegrationService {
     const trackUris = trackIds.map((id) => `spotify:track:${id}`);
 
     // The first request replaces the playlist contents, the rest append.
-    await this.apiRequest(path, {
+    await this.apiRequest(context, path, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uris: trackUris.slice(0, TRACKS_PER_REQUEST) }),
@@ -107,7 +110,7 @@ export class SpotifyService extends PlaylistIntegrationService {
       i < trackUris.length;
       i += TRACKS_PER_REQUEST
     ) {
-      await this.apiRequest(path, {
+      await this.apiRequest(context, path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

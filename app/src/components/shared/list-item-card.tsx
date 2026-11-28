@@ -1,6 +1,13 @@
-import { ReactNode } from "react";
-import { Card, CardDescription, CardHeader, CardHeaderActions, CardHeaderText, CardTitle } from "@/components/ui/card";
-import { OrgBadge } from "@/components/shared/org-badge";
+import { ReactNode } from 'react';
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardHeaderActions,
+  CardHeaderText,
+  CardTitle,
+} from '@/components/ui/card';
+import { OrgBadge } from '@/components/shared/org-badge';
 
 interface ListItemCardProps {
   title: string;

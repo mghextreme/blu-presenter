@@ -1,10 +1,13 @@
-import { IsEmail, IsNotEmpty } from 'class-validator';
-import { OrganizationRoleOptions } from './organization-role.type';
+import { IsEmail, IsIn } from 'class-validator';
+import {
+  ORGANIZATION_ROLES,
+  OrganizationRoleOptions,
+} from './organization-role.type';
 
 export class InviteMemberDto {
   @IsEmail()
   email: string;
 
-  @IsNotEmpty()
+  @IsIn(ORGANIZATION_ROLES)
   role: OrganizationRoleOptions;
 }

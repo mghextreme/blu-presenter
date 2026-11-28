@@ -148,6 +148,7 @@
     "copyToOrganization": "Error copying theme",
     "noPermission": "You don't have permission to access this theme",
     "save": "Error saving theme",
-    "search": "Error searching themes"
+    "search": "Error searching themes",
+    "notFound": "Theme not found"
   }
 }

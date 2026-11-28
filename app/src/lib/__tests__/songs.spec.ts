@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from 'vite-plus/test';
 import {
   parseSongText,
   capitalizeText,
@@ -14,7 +14,7 @@ import {
   getAppleMusicEmbedUrl,
   getTidalTrackId,
   getReferenceType,
-} from '../songs'
+} from '../songs';
 
 describe('capitalizeText', () => {
   it('lowercases an all-uppercase single line and capitalizes the first letter', () => {
@@ -33,7 +33,7 @@ describe('capitalizeText', () => {
     expect(capitalizeText('PRAISE HIM! GLORY TO GOD')).toBe('Praise him! Glory to god');
   });
 
-  it('does not trim trailing whitespace (trimming is the caller\'s responsibility)', () => {
+  it("does not trim trailing whitespace (trimming is the caller's responsibility)", () => {
     expect(capitalizeText('HELLO   ')).toBe('Hello   ');
   });
 
@@ -149,21 +149,39 @@ A vida aos corações`;
     expect(result.blocks[0].lines).toHaveLength(10);
     expect(result.blocks[0].lines[0]).toEqual({ type: 'chords', content: 'F#            A#m' });
     expect(result.blocks[0].lines[1]).toEqual({ type: 'lyrics', content: 'Nada nos separará' });
-    expect(result.blocks[0].lines[2]).toEqual({ type: 'chords', content: ' F#                      A#m' });
-    expect(result.blocks[0].lines[3]).toEqual({ type: 'lyrics', content: 'Dos laços do Teu grande amor' });
+    expect(result.blocks[0].lines[2]).toEqual({
+      type: 'chords',
+      content: ' F#                      A#m',
+    });
+    expect(result.blocks[0].lines[3]).toEqual({
+      type: 'lyrics',
+      content: 'Dos laços do Teu grande amor',
+    });
     expect(result.blocks[0].lines[4]).toEqual({ type: 'chords', content: ' F#' });
-    expect(result.blocks[0].lines[5]).toEqual({ type: 'lyrics', content: 'De longe ouvimos o amor que chama' });
+    expect(result.blocks[0].lines[5]).toEqual({
+      type: 'lyrics',
+      content: 'De longe ouvimos o amor que chama',
+    });
     expect(result.blocks[0].lines[6]).toEqual({ type: 'chords', content: '   A#m' });
-    expect(result.blocks[0].lines[7]).toEqual({ type: 'lyrics', content: 'Paixão profunda, bondade e graça' });
+    expect(result.blocks[0].lines[7]).toEqual({
+      type: 'lyrics',
+      content: 'Paixão profunda, bondade e graça',
+    });
     expect(result.blocks[0].lines[8]).toEqual({ type: 'chords', content: '    G#' });
     expect(result.blocks[0].lines[9]).toEqual({ type: 'lyrics', content: 'Se derramando' });
 
     // Second block
     expect(result.blocks[1].lines).toHaveLength(8);
     expect(result.blocks[1].lines[0]).toEqual({ type: 'chords', content: 'F#' });
-    expect(result.blocks[1].lines[1]).toEqual({ type: 'lyrics', content: 'É tão profundo tão imenso, e cobre-nos' });
+    expect(result.blocks[1].lines[1]).toEqual({
+      type: 'lyrics',
+      content: 'É tão profundo tão imenso, e cobre-nos',
+    });
     expect(result.blocks[1].lines[2]).toEqual({ type: 'chords', content: ' C#' });
-    expect(result.blocks[1].lines[3]).toEqual({ type: 'lyrics', content: 'Furioso, Poderoso, Abraça-nos' });
+    expect(result.blocks[1].lines[3]).toEqual({
+      type: 'lyrics',
+      content: 'Furioso, Poderoso, Abraça-nos',
+    });
     expect(result.blocks[1].lines[4]).toEqual({ type: 'chords', content: ' F#' });
     expect(result.blocks[1].lines[5]).toEqual({ type: 'lyrics', content: 'Só Ele pode devolver' });
     expect(result.blocks[1].lines[6]).toEqual({ type: 'chords', content: '                C#' });
@@ -185,9 +203,7 @@ Eu olho para a cruz
     expect(result.title).toBe('Quebrantado');
     expect(result.artist).toBe('Vineyard');
     expect(result.blocks).toHaveLength(1);
-    expect(result.blocks[0].lines).toEqual([
-      { type: 'lyrics', content: 'Eu olho para a cruz' },
-    ]);
+    expect(result.blocks[0].lines).toEqual([{ type: 'lyrics', content: 'Eu olho para a cruz' }]);
   });
 
   it('should parse a song with title only (no artist) followed by an empty line', () => {
@@ -237,12 +253,8 @@ Second block`;
     expect(result.title).toBe('Title');
     expect(result.artist).toBe('');
     expect(result.blocks).toHaveLength(2);
-    expect(result.blocks[0].lines).toEqual([
-      { type: 'lyrics', content: 'First block' },
-    ]);
-    expect(result.blocks[1].lines).toEqual([
-      { type: 'lyrics', content: 'Second block' },
-    ]);
+    expect(result.blocks[0].lines).toEqual([{ type: 'lyrics', content: 'First block' }]);
+    expect(result.blocks[1].lines).toEqual([{ type: 'lyrics', content: 'Second block' }]);
   });
 
   it('should return empty blocks for empty input', () => {
@@ -386,8 +398,15 @@ Na cruz mostrou`;
     const result = parseSongText(input);
 
     expect(result.blocks).toHaveLength(1);
-    expect(result.blocks[0].lines.map(l => l.type)).toEqual([
-      'chords', 'lyrics', 'chords', 'lyrics', 'chords', 'lyrics', 'chords', 'lyrics',
+    expect(result.blocks[0].lines.map((l) => l.type)).toEqual([
+      'chords',
+      'lyrics',
+      'chords',
+      'lyrics',
+      'chords',
+      'lyrics',
+      'chords',
+      'lyrics',
     ]);
   });
 
@@ -638,16 +657,22 @@ describe('swapAccidentals', () => {
 
 describe('getSpotifyTrackId', () => {
   it('extracts track ID from a standard URL', () => {
-    expect(getSpotifyTrackId('https://open.spotify.com/track/6rqhFgbbKwnb9MLmUQDhG6')).toBe('6rqhFgbbKwnb9MLmUQDhG6');
+    expect(getSpotifyTrackId('https://open.spotify.com/track/6rqhFgbbKwnb9MLmUQDhG6')).toBe(
+      '6rqhFgbbKwnb9MLmUQDhG6',
+    );
   });
 
   it('extracts track ID with query params', () => {
-    expect(getSpotifyTrackId('https://open.spotify.com/track/6rqhFgbbKwnb9MLmUQDhG6?si=abc123')).toBe('6rqhFgbbKwnb9MLmUQDhG6');
+    expect(
+      getSpotifyTrackId('https://open.spotify.com/track/6rqhFgbbKwnb9MLmUQDhG6?si=abc123'),
+    ).toBe('6rqhFgbbKwnb9MLmUQDhG6');
   });
 
   it('returns null for non-track Spotify URLs', () => {
     expect(getSpotifyTrackId('https://open.spotify.com/album/4aawyAB9vmqN3uQ7FjRGTy')).toBeNull();
-    expect(getSpotifyTrackId('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M')).toBeNull();
+    expect(
+      getSpotifyTrackId('https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M'),
+    ).toBeNull();
   });
 
   it('returns null for non-Spotify URLs', () => {
@@ -700,7 +725,9 @@ describe('getDeezerTrackId', () => {
   });
 
   it('extracts track ID with query params', () => {
-    expect(getDeezerTrackId('https://www.deezer.com/track/3135556?utm_source=test')).toBe('3135556');
+    expect(getDeezerTrackId('https://www.deezer.com/track/3135556?utm_source=test')).toBe(
+      '3135556',
+    );
   });
 
   it('returns null for non-track Deezer URLs', () => {
@@ -784,7 +811,9 @@ describe('getAppleMusicEmbedUrl', () => {
   it('transforms an album URL with track param to embed URL', () => {
     const url = 'https://music.apple.com/us/album/some-album/1440837641?i=1440837643';
     const result = getAppleMusicEmbedUrl(url);
-    expect(result).toBe('https://embed.music.apple.com/us/album/some-album/1440837641?i=1440837643');
+    expect(result).toBe(
+      'https://embed.music.apple.com/us/album/some-album/1440837641?i=1440837643',
+    );
   });
 
   it('transforms a song URL to embed URL', () => {
@@ -795,7 +824,9 @@ describe('getAppleMusicEmbedUrl', () => {
 
   it('returns null for non-album/song Apple Music URLs', () => {
     expect(getAppleMusicEmbedUrl('https://music.apple.com/us/artist/some-artist/123')).toBeNull();
-    expect(getAppleMusicEmbedUrl('https://music.apple.com/us/playlist/some-playlist/pl.123')).toBeNull();
+    expect(
+      getAppleMusicEmbedUrl('https://music.apple.com/us/playlist/some-playlist/pl.123'),
+    ).toBeNull();
   });
 
   it('returns null for non-Apple Music URLs', () => {
@@ -836,7 +867,9 @@ describe('getTidalTrackId', () => {
 
 describe('getReferenceType', () => {
   it('identifies Spotify URLs', () => {
-    expect(getReferenceType('https://open.spotify.com/track/6rqhFgbbKwnb9MLmUQDhG6')).toBe('spotify');
+    expect(getReferenceType('https://open.spotify.com/track/6rqhFgbbKwnb9MLmUQDhG6')).toBe(
+      'spotify',
+    );
   });
 
   it('identifies YouTube URLs', () => {
@@ -856,8 +889,12 @@ describe('getReferenceType', () => {
   });
 
   it('identifies Apple Music URLs', () => {
-    expect(getReferenceType('https://music.apple.com/us/album/some-album/1440837641?i=1440837643')).toBe('apple-music');
-    expect(getReferenceType('https://music.apple.com/us/song/some-song/1440837643')).toBe('apple-music');
+    expect(
+      getReferenceType('https://music.apple.com/us/album/some-album/1440837641?i=1440837643'),
+    ).toBe('apple-music');
+    expect(getReferenceType('https://music.apple.com/us/song/some-song/1440837643')).toBe(
+      'apple-music',
+    );
   });
 
   it('identifies Tidal URLs', () => {

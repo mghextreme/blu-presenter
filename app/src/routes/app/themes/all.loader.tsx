@@ -1,7 +1,7 @@
-import { ThemesService } from "@/services";
-import { PAGE_SIZE } from "@/lib/pagination";
-import { resolveFilter } from "@/hooks/use-organization-filter";
-import { useAuth } from "@/hooks/useAuth";
+import { ThemesService } from '@/services';
+import { PAGE_SIZE } from '@/lib/pagination';
+import { resolveFilter } from '@/hooks/use-organization-filter';
+import { useAuth } from '@/hooks/useAuth';
 
 export async function loader({ themesService }: { themesService: ThemesService }) {
   const { organizations } = resolveFilter(useAuth.getState().organizations);

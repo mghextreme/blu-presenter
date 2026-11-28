@@ -1,12 +1,11 @@
-import { RefObject } from "react";
-import { SavedSelection } from "@/lib/song-editor-utils";
+import { RefObject } from 'react';
+import { SavedSelection } from '@/lib/song-editor-utils';
 
 /**
  * Cursor and selection management for the contentEditable song editor.
  * Returns pure functions (no hooks) that operate on the editor ref.
  */
 export function useCursorManagement(editorRef: RefObject<HTMLDivElement | null>) {
-
   const saveCursor = (): { globalIdx: number; offset: number } | null => {
     const editor = editorRef.current;
     const sel = window.getSelection();
@@ -38,7 +37,10 @@ export function useCursorManagement(editorRef: RefObject<HTMLDivElement | null>)
     if (!editor || !sel || sel.rangeCount === 0) return null;
     const all = editor.querySelectorAll<HTMLElement>('.editor-line');
 
-    const nodeToIdx = (node: Node | null, offset: number): { idx: number; offset: number } | null => {
+    const nodeToIdx = (
+      node: Node | null,
+      offset: number,
+    ): { idx: number; offset: number } | null => {
       let n: Node | null = node;
       while (n && n !== editor) {
         if (n instanceof HTMLElement && n.classList.contains('editor-line')) break;
@@ -52,9 +54,14 @@ export function useCursorManagement(editorRef: RefObject<HTMLDivElement | null>)
     };
 
     const anchor = nodeToIdx(sel.anchorNode, sel.anchorOffset);
-    const focus  = nodeToIdx(sel.focusNode,  sel.focusOffset);
+    const focus = nodeToIdx(sel.focusNode, sel.focusOffset);
     if (!anchor || !focus) return null;
-    return { anchorIdx: anchor.idx, anchorOffset: anchor.offset, focusIdx: focus.idx, focusOffset: focus.offset };
+    return {
+      anchorIdx: anchor.idx,
+      anchorOffset: anchor.offset,
+      focusIdx: focus.idx,
+      focusOffset: focus.offset,
+    };
   };
 
   const restoreSelection = (saved: SavedSelection) => {
@@ -76,7 +83,7 @@ export function useCursorManagement(editorRef: RefObject<HTMLDivElement | null>)
     };
 
     const anchor = idxToPoint(saved.anchorIdx, saved.anchorOffset);
-    const focus  = idxToPoint(saved.focusIdx,  saved.focusOffset);
+    const focus = idxToPoint(saved.focusIdx, saved.focusOffset);
     if (!anchor || !focus) return;
 
     const r = document.createRange();

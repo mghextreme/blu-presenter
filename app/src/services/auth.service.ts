@@ -1,11 +1,24 @@
-import { IAuthInvitationData, IAuthResponse, IChangePasswordData, IExchangeCodeData, IForgotPasswordData, IOAuthRedirect, IOtpSignInRequestData, IOtpSignInVerifyData, IResetPasswordData, ISetPasswordData, ISignInData, ISignUpData, IUserIdentitiesResponse } from "@/types/auth";
-import { ApiService } from "./api.service";
-import { useAuth } from "@/hooks/useAuth";
-import { QueryClient } from "@tanstack/react-query";
-import { OrganizationsService } from "./organizations.service";
+import {
+  IAuthInvitationData,
+  IAuthResponse,
+  IChangePasswordData,
+  IExchangeCodeData,
+  IForgotPasswordData,
+  IOAuthRedirect,
+  IOtpSignInRequestData,
+  IOtpSignInVerifyData,
+  IResetPasswordData,
+  ISetPasswordData,
+  ISignInData,
+  ISignUpData,
+  IUserIdentitiesResponse,
+} from '@/types/auth';
+import { ApiService } from './api.service';
+import { useAuth } from '@/hooks/useAuth';
+import { QueryClient, queryOptions } from '@tanstack/react-query';
+import { OrganizationsService } from './organizations.service';
 
 export class AuthService extends ApiService {
-
   constructor(
     queryClient: QueryClient,
     config: { url: string },
@@ -15,11 +28,14 @@ export class AuthService extends ApiService {
   }
 
   public async signIn(value: ISignInData): Promise<void> {
-    const {
-      user, session, inviteOrgId
-    } = await this.postRequest('/auth/signIn', JSON.stringify(value), {
-      'content-type': 'application/json',
-    }, false) as IAuthResponse;
+    const { user, session, inviteOrgId } = (await this.postRequest(
+      '/auth/signIn',
+      JSON.stringify(value),
+      {
+        'content-type': 'application/json',
+      },
+      false,
+    )) as IAuthResponse;
 
     useAuth.setState({
       isLoggedIn: true,
@@ -31,7 +47,10 @@ export class AuthService extends ApiService {
     await this.getAndSetOrganizations(inviteOrgId);
   }
 
-  public async signInWithProvider(provider: string, invite?: IAuthInvitationData): Promise<IOAuthRedirect> {
+  public async signInWithProvider(
+    provider: string,
+    invite?: IAuthInvitationData,
+  ): Promise<IOAuthRedirect> {
     let body: string | undefined = undefined;
 
     if (invite && invite.id && invite.secret) {
@@ -40,17 +59,25 @@ export class AuthService extends ApiService {
       });
     }
 
-    return await this.postRequest(`/auth/sso/${provider}`, body, {
-      'content-type': 'application/json',
-    }, false) as IOAuthRedirect;
+    return (await this.postRequest(
+      `/auth/sso/${provider}`,
+      body,
+      {
+        'content-type': 'application/json',
+      },
+      false,
+    )) as IOAuthRedirect;
   }
 
   public async signUp(value: ISignUpData): Promise<void> {
-    const {
-      user, session, inviteOrgId
-    } = await this.postRequest('/auth/signUp', JSON.stringify(value), {
-      'content-type': 'application/json',
-    }, false) as IAuthResponse;
+    const { user, session, inviteOrgId } = (await this.postRequest(
+      '/auth/signUp',
+      JSON.stringify(value),
+      {
+        'content-type': 'application/json',
+      },
+      false,
+    )) as IAuthResponse;
 
     useAuth.setState({
       isLoggedIn: true,
@@ -68,50 +95,77 @@ export class AuthService extends ApiService {
     });
   }
 
+  public identitiesQuery() {
+    return queryOptions({
+      queryKey: ['user', 'identities'],
+      queryFn: async () => (await this.getRequest('/auth/identities')) as IUserIdentitiesResponse,
+    });
+  }
+
   public async getIdentities(): Promise<IUserIdentitiesResponse> {
-    return await this.getRequest('/auth/identities') as IUserIdentitiesResponse;
+    return await this.queryClient.query(this.identitiesQuery());
   }
 
   public async linkIdentity(provider: string): Promise<IOAuthRedirect> {
-    return await this.postRequest(`/auth/identities/${provider}`, undefined, {
+    return (await this.postRequest(`/auth/identities/${provider}`, undefined, {
       'content-type': 'application/json',
-    }) as IOAuthRedirect;
+    })) as IOAuthRedirect;
   }
 
   public async unlinkIdentity(identityId: string): Promise<void> {
     await this.deleteRequest(`/auth/identities/${identityId}`);
+    void this.queryClient.invalidateQueries({ queryKey: ['user', 'identities'] });
   }
 
   public async setPassword(value: ISetPasswordData): Promise<void> {
     await this.postRequest('/auth/setPassword', JSON.stringify(value), {
       'content-type': 'application/json',
     });
+    void this.queryClient.invalidateQueries({ queryKey: ['user', 'identities'] });
   }
 
   public async forgotPassword(value: IForgotPasswordData): Promise<void> {
-    await this.postRequest('/auth/password/forgot', JSON.stringify(value), {
-      'content-type': 'application/json',
-    }, false);
+    await this.postRequest(
+      '/auth/password/forgot',
+      JSON.stringify(value),
+      {
+        'content-type': 'application/json',
+      },
+      false,
+    );
   }
 
   public async resetPassword(value: IResetPasswordData): Promise<void> {
-    await this.postRequest('/auth/password/reset', JSON.stringify(value), {
-      'content-type': 'application/json',
-    }, false);
+    await this.postRequest(
+      '/auth/password/reset',
+      JSON.stringify(value),
+      {
+        'content-type': 'application/json',
+      },
+      false,
+    );
   }
 
   public async requestSignInOtp(value: IOtpSignInRequestData): Promise<void> {
-    await this.postRequest('/auth/signIn/otp/request', JSON.stringify(value), {
-      'content-type': 'application/json',
-    }, false);
+    await this.postRequest(
+      '/auth/signIn/otp/request',
+      JSON.stringify(value),
+      {
+        'content-type': 'application/json',
+      },
+      false,
+    );
   }
 
   public async verifySignInOtp(value: IOtpSignInVerifyData): Promise<void> {
-    const {
-      user, session, inviteOrgId,
-    } = await this.postRequest('/auth/signIn/otp/verify', JSON.stringify(value), {
-      'content-type': 'application/json',
-    }, false) as IAuthResponse;
+    const { user, session, inviteOrgId } = (await this.postRequest(
+      '/auth/signIn/otp/verify',
+      JSON.stringify(value),
+      {
+        'content-type': 'application/json',
+      },
+      false,
+    )) as IAuthResponse;
 
     useAuth.setState({
       isLoggedIn: true,
@@ -124,16 +178,21 @@ export class AuthService extends ApiService {
   }
 
   public async exchangeCodeForSession(data: IExchangeCodeData): Promise<void> {
-    const { user, session, inviteOrgId } = await this.postRequest('/auth/validate', JSON.stringify(data), {
-      'content-type': 'application/json',
-    }, false) as IAuthResponse;
+    const { user, session, inviteOrgId } = (await this.postRequest(
+      '/auth/validate',
+      JSON.stringify(data),
+      {
+        'content-type': 'application/json',
+      },
+      false,
+    )) as IAuthResponse;
 
     useAuth.setState({
       isLoggedIn: true,
       user,
       session,
     });
-    
+
     this.queryClient.clear();
     await this.getAndSetOrganizations(inviteOrgId);
   }
@@ -161,5 +220,4 @@ export class AuthService extends ApiService {
       useAuth.getState().setOrganizationById(inviteOrgId);
     }, 100);
   }
-
 }

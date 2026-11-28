@@ -1,25 +1,22 @@
-import { ThemeToggler } from "@/components/shared/theme-toggler";
-import { ControllerModeToggler } from "@/components/app/controller-mode-toggler";
-import { Button } from "@/components/ui/button";
-import { useController } from "@/hooks/useController";
-import { v4 } from "uuid";
-import { IWindow } from "@/types";
-import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
-import { LanguageToggler } from "@/components/shared/language-toggler";
-import { useTranslation } from "react-i18next";
-import { Clock } from "./clock";
-import { BluPresenterLogo } from "@/components/shared/logo";
-import { BroadcastBadge } from "./broadcast-badge";
-import { ShortcutsDialogButton } from "./shortcuts-dialog";
-import { WindowControls } from "./window-controls";
+import { ThemeToggler } from '@/components/shared/theme-toggler';
+import { ControllerModeToggler } from '@/components/app/controller-mode-toggler';
+import { Button } from '@/components/ui/button';
+import { useController } from '@/hooks/useController';
+import { v4 } from 'uuid';
+import { IWindow } from '@/types';
+import PlayIcon from '@heroicons/react/24/solid/PlayIcon';
+import { LanguageToggler } from '@/components/shared/language-toggler';
+import { useTranslation } from 'react-i18next';
+import { Clock } from './clock';
+import { BluPresenterLogo } from '@/components/shared/logo';
+import { BroadcastBadge } from './broadcast-badge';
+import { ShortcutsDialogButton } from './shortcuts-dialog';
+import { WindowControls } from './window-controls';
 
 export function ControllerNavbar() {
+  const { t } = useTranslation('controller');
 
-  const { t } = useTranslation("controller");
-
-  const {
-    addWindow,
-  } = useController();
+  const { addWindow } = useController((s) => ({ addWindow: s.addWindow }));
 
   return (
     <header className="flex flex-0 w-full drop-shadow-1 bg-background">
@@ -36,7 +33,7 @@ export function ControllerNavbar() {
           <ThemeToggler />
           <ControllerModeToggler />
           <BroadcastBadge />
-          <Button onClick={() => addWindow({id: v4()} as IWindow)}>
+          <Button onClick={() => addWindow({ id: v4() } as IWindow)}>
             {t('controls.windows.open')}
             <PlayIcon className="ms-2 size-4" />
           </Button>
@@ -44,5 +41,5 @@ export function ControllerNavbar() {
         </div>
       </div>
     </header>
-  )
+  );
 }

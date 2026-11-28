@@ -1,54 +1,56 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client"
+'use client';
 
-import { useState, HTMLAttributes } from "react";
-import { Link, Navigate } from "react-router-dom";
-import { Turnstile } from '@marsidev/react-turnstile'
+import { useState, HTMLAttributes } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { Link, Navigate } from 'react-router';
+import { Turnstile } from '@marsidev/react-turnstile';
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/useAuth";
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/hooks/useAuth';
 
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { useTranslation } from "react-i18next";
-import { useInvitation } from "@/hooks/invitation.provider";
-import { useServices } from "@/hooks/useServices";
-import { toast } from "sonner";
-import { ApiError } from "@/types";
-import { SocialLogin } from "./social-login";
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { useTranslation } from 'react-i18next';
+import { useInvitation } from '@/hooks/useInvitation';
+import { useServices } from '@/hooks/useServices';
+import { toast } from 'sonner';
+import { describeAuthError } from '@/lib/auth-errors';
+import { SocialLogin } from './social-login';
+import { useSocialSignIn } from './use-social-sign-in';
 
-import { captcha } from "@/lib/config";
+import { captcha } from '@/lib/config';
 
 interface SignUpFormProps extends HTMLAttributes<HTMLDivElement> {}
 
 export function SignUpForm({ className, ...props }: Readonly<SignUpFormProps>) {
+  const { t } = useTranslation('auth');
 
-  const { t } = useTranslation("auth");
-
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { isLoggedIn } = useAuth();
   const { authService } = useServices();
   const { email: invitedEmail, id, secret } = useInvitation();
 
-  const formSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(8),
-    confirmPassword: z.string().min(8),
-  }).superRefine(({ confirmPassword, password }, ctx) => {
-    if (confirmPassword !== password) {
-      ctx.addIssue({
-        code: "custom",
-        message: t('input.messages.passwordsDontMatch'),
-        path: ['confirmPassword']
-      });
-    }
-  });
+  const formSchema = z
+    .object({
+      email: z.email(),
+      password: z.string().min(8),
+      confirmPassword: z.string().min(8),
+    })
+    .superRefine(({ confirmPassword, password }, ctx) => {
+      if (confirmPassword !== password) {
+        ctx.addIssue({
+          code: 'custom',
+          message: t('input.messages.passwordsDontMatch'),
+          path: ['confirmPassword'],
+        });
+      }
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -61,51 +63,51 @@ export function SignUpForm({ className, ...props }: Readonly<SignUpFormProps>) {
 
   const [captchaToken, setCaptchaToken] = useState<string>('');
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      if (captcha.enabled && !captchaToken) {
-        toast.error(t('errors.captcha verification process failed'));
-        return;
-      }
-
-      setIsLoading(true);
-
+  const signUp = useMutation({
+    mutationFn: (values: z.infer<typeof formSchema>) => {
       let inviteValues = {};
       if (id && secret) {
         inviteValues = {
           invite: {
             id,
             secret,
-          }
+          },
         };
       }
 
-      await authService.signUp({
+      return authService.signUp({
         ...values,
         ...inviteValues,
         captchaToken,
       });
-    } catch (e: unknown) {
-      const error = e as ApiError;
-      if (error) {
-        const errorContent = await error.raw?.json();
-        if (errorContent) {
-          toast.error(t('signUp.error'), {
-            description: t('errors.' + errorContent?.message || 'default'),
-          });
-        }
-      }
-    } finally {
-      setIsLoading(false);
+    },
+    onError: async (e: unknown) => {
+      toast.error(t('signUp.error'), {
+        description: await describeAuthError(e, t),
+      });
+    },
+  });
+
+  const socialSignIn = useSocialSignIn();
+
+  // A successful social sign-in stays busy: the page is about to redirect to the provider.
+  const isLoading = signUp.isPending || socialSignIn.isPending || socialSignIn.isSuccess;
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (captcha.enabled && !captchaToken) {
+      toast.error(t('errors.captcha verification process failed'));
+      return;
     }
-  }
+
+    signUp.mutate(values);
+  };
 
   if (isLoggedIn) {
     return <Navigate to="/app" />;
   }
 
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div className={cn('grid gap-6', className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-col-1 space-y-2">
           <FormField
@@ -114,14 +116,25 @@ export function SignUpForm({ className, ...props }: Readonly<SignUpFormProps>) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input type="email" placeholder={t('input.email')} autoComplete="email" autoCorrect="off" autoCapitalize="none" disabled={isLoading || !!invitedEmail} {...field} />
+                  <Input
+                    type="email"
+                    placeholder={t('input.email')}
+                    autoComplete="email"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    disabled={isLoading || !!invitedEmail}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
                 {invitedEmail && (
-                  <Button variant="link" className="text-xs px-2 text-muted-foreground" asChild><Link to="/signup">{t('invitation.notYourEmail')}</Link></Button>
+                  <Button variant="link" className="text-xs px-2 text-muted-foreground" asChild>
+                    <Link to="/signup">{t('invitation.notYourEmail')}</Link>
+                  </Button>
                 )}
               </FormItem>
-            )}></FormField>
+            )}
+          ></FormField>
 
           <FormField
             control={form.control}
@@ -129,11 +142,17 @@ export function SignUpForm({ className, ...props }: Readonly<SignUpFormProps>) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input type="password" placeholder={t('input.password')} disabled={isLoading} {...field} />
+                  <Input
+                    type="password"
+                    placeholder={t('input.password')}
+                    disabled={isLoading}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            )}></FormField>
+            )}
+          ></FormField>
 
           <FormField
             control={form.control}
@@ -141,25 +160,29 @@ export function SignUpForm({ className, ...props }: Readonly<SignUpFormProps>) {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <Input type="password" placeholder={t('input.confirmPassword')} disabled={isLoading} {...field} />
+                  <Input
+                    type="password"
+                    placeholder={t('input.confirmPassword')}
+                    disabled={isLoading}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
-            )}></FormField>
+            )}
+          ></FormField>
 
           {captcha.enabled && (
             <Turnstile
               siteKey={captcha.siteKey}
               onSuccess={(token) => {
-                setCaptchaToken(token)
+                setCaptchaToken(token);
               }}
             />
           )}
 
           <Button type="submit" disabled={isLoading}>
-            {isLoading && (
-              <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
-            )}
+            {isLoading && <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>}
             {t('button.signUpWithEmail')}
           </Button>
         </form>
@@ -169,13 +192,10 @@ export function SignUpForm({ className, ...props }: Readonly<SignUpFormProps>) {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 text-muted-foreground">
-            {t('socials.continueWith')}
-          </span>
+          <span className="bg-card px-2 text-muted-foreground">{t('socials.continueWith')}</span>
         </div>
       </div>
-      <SocialLogin isLoading={isLoading} setIsLoading={setIsLoading} />
+      <SocialLogin disabled={isLoading} onSignIn={socialSignIn.mutate} />
     </div>
-    
-  )
+  );
 }

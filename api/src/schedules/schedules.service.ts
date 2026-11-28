@@ -1,62 +1,53 @@
 import {
   BadRequestException,
   ForbiddenException,
-  Inject,
   Injectable,
   NotFoundException,
-  Scope,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, IsNull, Or, Repository } from 'typeorm';
+import { FindOptionsWhere, In, IsNull, Or, Repository } from 'typeorm';
 import {
   CreateScheduleDto,
   IScheduleItem,
   isFeatureEnabled,
+  OrganizationMembership,
   OrganizationRoleOptions,
   SearchScheduleDto,
   UpdateScheduleDto,
 } from 'src/types';
-import { OrganizationUser, Schedule, Song } from 'src/entities';
-import { REQUEST } from '@nestjs/core';
-import { Request as ExpRequest } from 'express';
+import { Schedule, Song, User } from 'src/entities';
 import { generateRandomSecret } from 'src/utils/secret';
 import {
   mergeScheduleReferences,
   presentScheduleReferences,
 } from 'src/utils/schedule-references';
 import { UsersService } from 'src/users/users.service';
-import { OrganizationsBaseService } from 'src/organizations/organizations.service';
-import { ScheduleWithRoleViewModel } from 'src/models/schedule-with-role.view-model';
+import { OrganizationsService } from 'src/organizations/organizations.service';
+import {
+  membershipOrgIds,
+  WithOrganizationRole,
+  withOrganizationRole,
+} from 'src/utils/organization-membership';
 
-type ScheduleWithRole = Schedule & {
-  organization?: {
-    id: number;
-    name: string;
-    role?: OrganizationRoleOptions;
-  };
-};
+export type ScheduleWithRole = WithOrganizationRole<Schedule>;
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class SchedulesService {
   constructor(
     @InjectRepository(Schedule)
     private readonly schedulesRepository: Repository<Schedule>,
     @InjectRepository(Song)
     private readonly songsRepository: Repository<Song>,
-    @Inject(UsersService)
     private readonly usersService: UsersService,
-    @Inject(OrganizationsBaseService)
-    private readonly organizationsBaseService: OrganizationsBaseService,
-    @Inject(REQUEST) private readonly request: ExpRequest,
+    private readonly organizationsService: OrganizationsService,
   ) {}
 
   async search(
     searchDto: SearchScheduleDto,
-  ): Promise<ScheduleWithRoleViewModel[]> {
-    const user = this.request.user['internal'];
+    user: User,
+  ): Promise<ScheduleWithRole[]> {
     const userOrgs = await this.usersService.findUserOrganizations(user.id);
-    const userOrgIds = userOrgs.map((org) => org.organization.id);
+    const userOrgIds = membershipOrgIds(userOrgs);
 
     // Any membership role (including guests) may list schedules, mirroring the
     // role policy of the previous per-org list endpoint.
@@ -158,29 +149,17 @@ export class SchedulesService {
       .take(pageSize)
       .getMany();
 
-    const userOrgsMap: { [key: number]: Partial<OrganizationUser> } = {};
-    for (const org of userOrgs) {
-      userOrgsMap[org.organization.id] = org;
-    }
-
-    return schedules.map((schedule) => {
-      const orgUser = userOrgsMap[schedule.orgId];
-      return {
-        ...schedule,
-        organization: orgUser
-          ? {
-              ...orgUser.organization,
-              role: orgUser.role as OrganizationRoleOptions,
-            }
-          : {
-              ...schedule.organization,
-              role: undefined,
-            },
-      } as ScheduleWithRoleViewModel;
-    });
+    return schedules.map((schedule) =>
+      withOrganizationRole(schedule, userOrgs),
+    );
   }
 
-  async findOne(orgId: number, id: number): Promise<Schedule | null> {
+  /** `userId` decides which auto references are marked as created by the caller. */
+  async findOne(
+    orgId: number,
+    id: number,
+    userId: number,
+  ): Promise<Schedule | null> {
     const schedule = await this.schedulesRepository.findOne({
       select: {
         id: true,
@@ -208,31 +187,30 @@ export class SchedulesService {
     }
 
     schedule.items = await this.resolveSongReferences(schedule.items);
-    this.annotateReferences(schedule);
+    this.annotateReferences(schedule, userId);
     return schedule;
   }
 
   async findOneInAnyOrgOrBySecret(
     id: number,
-    secret?: string,
+    secret: string | undefined,
+    user: User | undefined,
   ): Promise<ScheduleWithRole | null> {
-    let whereClause: any = { id };
+    let whereClause: FindOptionsWhere<Schedule> | FindOptionsWhere<Schedule>[];
 
-    let userOrgs: any[] = [];
-    let userOrgIds: number[] = [];
+    let userOrgs: OrganizationMembership[] = [];
 
-    if (!!this.request.user) {
-      const user = this.request.user['internal'];
+    if (user) {
       userOrgs = await this.usersService.findUserOrganizations(user.id);
-      userOrgIds = userOrgs.map((org) => org.organization.id);
-
-      whereClause.orgId = Or(In(userOrgIds), IsNull());
-
-      if (secret) {
-        whereClause = [whereClause, { id, secret }];
-      }
+      const inUserOrgsOrPublic: FindOptionsWhere<Schedule> = {
+        id,
+        orgId: Or(In(membershipOrgIds(userOrgs)), IsNull()),
+      };
+      whereClause = secret
+        ? [inUserOrgsOrPublic, { id, secret }]
+        : inUserOrgsOrPublic;
     } else {
-      whereClause.secret = secret ?? IsNull();
+      whereClause = { id, secret: secret ?? IsNull() };
     }
 
     const schedule = await this.schedulesRepository.findOne({
@@ -261,12 +239,12 @@ export class SchedulesService {
 
     if (schedule.orgId != null) {
       const featureEnabled =
-        await this.organizationsBaseService.isFeatureEnabledInOrg(
+        await this.organizationsService.isFeatureEnabledInOrg(
           schedule.orgId,
           'schedules',
         );
       if (!featureEnabled) {
-        if (this.request.user) {
+        if (user) {
           throw new ForbiddenException(
             'Schedules are disabled for this organization',
           );
@@ -278,24 +256,9 @@ export class SchedulesService {
     if (schedule.items?.length) {
       schedule.items = await this.resolveSongReferences(schedule.items);
     }
-    this.annotateReferences(schedule);
+    this.annotateReferences(schedule, user?.id);
 
-    const orgUser = userOrgs.find(
-      (org) => org.organization.id === schedule.orgId,
-    );
-
-    return {
-      ...schedule,
-      organization: orgUser
-        ? {
-            ...orgUser.organization,
-            role: orgUser.role as OrganizationRoleOptions,
-          }
-        : {
-            ...schedule.organization,
-            role: undefined,
-          },
-    } as ScheduleWithRole;
+    return withOrganizationRole(schedule, userOrgs);
   }
 
   /**
@@ -303,8 +266,10 @@ export class SchedulesService {
    * marked with whether the requesting user created them (so the UI knows
    * who may re-sync) and lose their internal owner id.
    */
-  private annotateReferences(schedule: Schedule): void {
-    const userId: number | undefined = this.request.user?.['internal']?.id;
+  private annotateReferences(
+    schedule: Schedule,
+    userId: number | undefined,
+  ): void {
     schedule.references = presentScheduleReferences(
       schedule.references,
       userId,
@@ -374,22 +339,14 @@ export class SchedulesService {
   async create(
     orgId: number,
     createScheduleDto: CreateScheduleDto,
-  ): Promise<Schedule> {
-    if (this.request.user === undefined) {
-      throw new UnauthorizedException();
-    }
-
-    await this.organizationsBaseService.assertFeatureEnabled(
-      orgId,
-      'schedules',
-    );
-
-    const user = this.request.user['internal'];
+    user: User,
+  ): Promise<Schedule | null> {
+    await this.organizationsService.assertFeatureEnabled(orgId, 'schedules');
 
     const result = await this.schedulesRepository.insert({
       title: createScheduleDto.title,
       date: createScheduleDto.date || null,
-      items: createScheduleDto.items,
+      items: createScheduleDto.items as Schedule['items'],
       // A new schedule has no stored references: auto references can't be
       // created through this endpoint.
       references: mergeScheduleReferences(
@@ -402,29 +359,21 @@ export class SchedulesService {
     });
 
     const scheduleId = result.raw[0].id;
-    return this.findOne(orgId, scheduleId);
+    return this.findOne(orgId, scheduleId, user.id);
   }
 
   async update(
     orgId: number,
     id: number,
     updateScheduleDto: UpdateScheduleDto,
+    user: User,
   ): Promise<Schedule> {
-    if (this.request.user === undefined) {
-      throw new UnauthorizedException();
-    }
-
-    await this.organizationsBaseService.assertFeatureEnabled(
-      orgId,
-      'schedules',
-    );
+    await this.organizationsService.assertFeatureEnabled(orgId, 'schedules');
 
     const schedule = await this.schedulesRepository.findOneBy({ id, orgId });
     if (!schedule) {
       throw new NotFoundException();
     }
-
-    const user = this.request.user['internal'];
 
     if (updateScheduleDto.title !== undefined) {
       schedule.title = updateScheduleDto.title;
@@ -447,28 +396,23 @@ export class SchedulesService {
 
     schedule.updatedBy = user.id;
 
-    const result = (await this.schedulesRepository.save(schedule)) as Schedule;
-    this.annotateReferences(result);
+    const result = await this.schedulesRepository.save(schedule);
+    this.annotateReferences(result, user.id);
     return result;
   }
 
-  async delete(orgId: number, id: number): Promise<void> {
-    if (this.request.user === undefined) {
-      throw new UnauthorizedException();
-    }
-
-    await this.organizationsBaseService.assertFeatureEnabled(
-      orgId,
-      'schedules',
-    );
+  async delete(
+    orgId: number,
+    id: number,
+    user: User,
+    role: OrganizationRoleOptions,
+  ): Promise<void> {
+    await this.organizationsService.assertFeatureEnabled(orgId, 'schedules');
 
     const schedule = await this.schedulesRepository.findOneBy({ id, orgId });
     if (!schedule) {
       throw new NotFoundException();
     }
-
-    const user = this.request.user['internal'];
-    const role = this.request.user['role'];
 
     // Admins and owners can always delete, members can only delete their own
     const isAdminOrOwner = role === 'owner' || role === 'admin';

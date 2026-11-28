@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+*.tsbuildinfo
 *.local
 
 # Editor directories and files
@@ -38,6 +39,6 @@ coverage
 supabase/snippets
 
 # AI
-skills-lock.json
 .agents/*
-.claude/*
+# Symlink to .agents (a plain `.claude/*` pattern does not match a symlink)
+.claude

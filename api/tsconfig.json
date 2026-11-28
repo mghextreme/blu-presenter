@@ -9,7 +9,10 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
+    "paths": { "src/*": ["./src/*"] },
+    "types": ["node", "jest"],
+    "strict": false,
+    "strictNullChecks": true,
     "incremental": true,
     "skipLibCheck": true
   }

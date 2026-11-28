@@ -1,29 +1,38 @@
-import { useCallback, useMemo, useState } from "react";
-import { ISchedule, IScheduleSong } from "@/types";
-import { Button } from "@/components/ui/button";
-import { Link, useLoaderData, useParams } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { useAuth } from "@/hooks/useAuth";
-import ShareIcon from "@heroicons/react/24/solid/ShareIcon";
-import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
-import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
-import PrinterIcon from "@heroicons/react/24/solid/PrinterIcon";
-import { RehearsalNav } from "@/components/app/schedules/rehearsal-nav";
-import { SongViewer } from "@/components/app/songs/song-viewer";
-import { ReferencePlayer } from "@/components/app/songs/reference-player";
-import { OrganizationBar } from "@/components/app/organization-bar";
-import { PageContent, pageContentColumn } from "@/components/shared/page-content";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { useCallback, useMemo, useState } from 'react';
+import { IScheduleSong } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Link, useParams } from 'react-router';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/hooks/useAuth';
+import { useServices } from '@/hooks/useServices';
+import ShareIcon from '@heroicons/react/24/solid/ShareIcon';
+import EyeIcon from '@heroicons/react/24/solid/EyeIcon';
+import PencilIcon from '@heroicons/react/24/solid/PencilIcon';
+import PrinterIcon from '@heroicons/react/24/solid/PrinterIcon';
+import { RehearsalNav } from '@/components/app/schedules/rehearsal-nav';
+import { SongViewer } from '@/components/app/songs/song-viewer';
+import { ReferencePlayer } from '@/components/app/songs/reference-player';
+import { OrganizationBar } from '@/components/app/organization-bar';
+import { PageContent, pageContentColumn } from '@/components/shared/page-content';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import {
+  absoluteUrl,
+  sharedRehearsalPath,
+  sharedSchedulePath,
+  sharedSongPrintPath,
+} from '@/lib/share-links';
 
 export function RehearsalSchedule() {
-  const { t } = useTranslation("schedules");
+  const { t } = useTranslation('schedules');
   const { isLoggedIn } = useAuth();
   const params = useParams();
-  const data = useLoaderData() as ISchedule | null;
+  const { schedulesService } = useServices();
+  const { data } = useSuspenseQuery(schedulesService.byIdQuery(Number(params.id), params.secret));
 
   if (!data) {
-    throw new Error("Can't find schedule");
+    throw new Error(t('error.notFound'));
   }
 
   const songIndices = useMemo(() => {
@@ -57,13 +66,12 @@ export function RehearsalSchedule() {
     setCurrentIndex(index);
   }, []);
 
-  const currentItem = currentIndex >= 0 ? data.items[currentIndex] as IScheduleSong : null;
+  const currentItem = currentIndex >= 0 ? (data.items[currentIndex] as IScheduleSong) : null;
 
   const isShared = !!params.secret;
 
   const copyShareableUrlToClipboard = async () => {
-    const currentUrl = new URL(window.location.href);
-    const shareUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/schedules/${data.id}/${data.secret ?? ''}/rehearsal`;
+    const shareUrl = absoluteUrl(sharedRehearsalPath(data));
     const clipboard = navigator.clipboard;
     if (!!clipboard) {
       await navigator.clipboard.writeText(shareUrl);
@@ -77,7 +85,7 @@ export function RehearsalSchedule() {
 
   const getViewLink = () => {
     if (isShared) {
-      return `/shared/schedules/${data.id}/${params.secret}`;
+      return sharedSchedulePath({ id: data.id, secret: params.secret });
     }
     return `/app/schedules/${data.id}/view`;
   };
@@ -85,7 +93,7 @@ export function RehearsalSchedule() {
   const getPrintLink = () => {
     if (!currentItem) return '#';
     if (isShared) {
-      return `/shared/print/${currentItem.id}/${currentItem.secret ?? ''}`;
+      return sharedSongPrintPath(currentItem);
     }
     return `/app/songs/${currentItem.id}/print`;
   };
@@ -93,9 +101,9 @@ export function RehearsalSchedule() {
   if (songIndices.length === 0) {
     return (
       <>
-        <title>{t("rehearsal.title") + " - " + data.title + " - BluPresenter"}</title>
+        <title>{t('rehearsal.title') + ' - ' + data.title + ' - BluPresenter'}</title>
         <OrganizationBar organizations={[data.organization ?? null]} subtitle={data.title}>
-          <Button type="button" size="sm" title={t("actions.view")} asChild>
+          <Button type="button" size="sm" title={t('actions.view')} asChild>
             <Link to={getViewLink()}>
               <EyeIcon className="size-3" />
             </Link>
@@ -117,9 +125,9 @@ export function RehearsalSchedule() {
 
   return (
     <>
-      <title>{t("rehearsal.title") + " - " + data.title + " - BluPresenter"}</title>
+      <title>{t('rehearsal.title') + ' - ' + data.title + ' - BluPresenter'}</title>
       <OrganizationBar organizations={[data.organization ?? null]} subtitle={data.title}>
-        <Button type="button" size="sm" title={t("rehearsal.print")} asChild>
+        <Button type="button" size="sm" title={t('rehearsal.print')} asChild>
           <Link to={getPrintLink()}>
             <PrinterIcon className="size-3" />
           </Link>
@@ -127,18 +135,18 @@ export function RehearsalSchedule() {
         <Button
           type="button"
           size="sm"
-          title={t("actions.share")}
+          title={t('actions.share')}
           onClick={copyShareableUrlToClipboard}
         >
           <ShareIcon className="size-3" />
         </Button>
-        <Button type="button" size="sm" title={t("actions.view")} asChild>
+        <Button type="button" size="sm" title={t('actions.view')} asChild>
           <Link to={getViewLink()}>
             <EyeIcon className="size-3" />
           </Link>
         </Button>
         {isLoggedIn && (
-          <Button type="button" size="sm" title={t("actions.edit")} asChild>
+          <Button type="button" size="sm" title={t('actions.edit')} asChild>
             <Link to={`/app/schedules/${data.id}/edit`}>
               <PencilIcon className="size-3" />
             </Link>
@@ -156,12 +164,10 @@ export function RehearsalSchedule() {
         hasNext={hasNext}
       />
 
-      {currentItem && (
-        <SongViewer song={currentItem} />
-      )}
+      {currentItem && <SongViewer song={currentItem} />}
 
       {!!data.references?.length && (
-        <div className={cn(pageContentColumn, "mt-2")}>
+        <div className={cn(pageContentColumn, 'mt-2')}>
           <ReferencePlayer references={data.references} />
         </div>
       )}
@@ -177,7 +183,7 @@ export function RehearsalSchedule() {
       />
 
       {isLoggedIn && (
-        <div className={cn(pageContentColumn, "pb-8 flex flex-row align-start space-x-2")}>
+        <div className={cn(pageContentColumn, 'pb-8 flex flex-row align-start space-x-2')}>
           <Button className="flex-0" type="button" variant="secondary" asChild>
             <Link to={`/app/schedules/${data.id}/view`}>{t('button.back')}</Link>
           </Button>

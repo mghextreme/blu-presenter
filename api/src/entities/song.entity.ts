@@ -22,11 +22,11 @@ export class Song {
   })
   orgId: number | null;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
   title: string;
 
-  @Column()
-  artist: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  artist: string | null;
 
   @Column({
     nullable: true,

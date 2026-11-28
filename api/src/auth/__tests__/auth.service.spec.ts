@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { REQUEST } from '@nestjs/core';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { createHash } from 'node:crypto';
 import { AuthService } from '../auth.service';
@@ -11,6 +10,11 @@ import { OrganizationsService } from '../../organizations/organizations.service'
 describe('AuthService — password reset & OTP login', () => {
   let service: AuthService;
   let supabaseAuth: any;
+  let usersService: { findByAuthId: jest.Mock };
+  let organizationsService: {
+    getInvitation: jest.Mock;
+    acceptInvitation: jest.Mock;
+  };
   const SUPABASE_URL = 'http://supabase.local';
   const SUPABASE_KEY = 'anon-key';
 
@@ -44,8 +48,8 @@ describe('AuthService — password reset & OTP login', () => {
       }),
     };
 
-    const usersService = { findByAuthId: jest.fn() };
-    const organizationsService = {
+    usersService = { findByAuthId: jest.fn() };
+    organizationsService = {
       getInvitation: jest.fn(),
       acceptInvitation: jest.fn(),
     };
@@ -57,17 +61,10 @@ describe('AuthService — password reset & OTP login', () => {
         { provide: ConfigService, useValue: configService },
         { provide: UsersService, useValue: usersService },
         { provide: OrganizationsService, useValue: organizationsService },
-        {
-          provide: REQUEST,
-          useValue: {
-            headers: { authorization: 'Bearer recovery-jwt' },
-            user: { internal: { id: 1, email: 'u@example.com' } },
-          },
-        },
       ],
     }).compile();
 
-    service = await module.resolve(AuthService);
+    service = module.get(AuthService);
   });
 
   describe('forgotPassword', () => {
@@ -228,6 +225,64 @@ describe('AuthService — password reset & OTP login', () => {
     });
   });
 
+  describe('signIn with an invitation', () => {
+    const invitedUser = { id: 7, email: 'u@example.com' };
+
+    beforeEach(() => {
+      supabaseAuth.signInWithPassword.mockResolvedValue({
+        data: { user: { id: 'auth-7' }, session: { access_token: 'a' } },
+        error: null,
+      });
+      usersService.findByAuthId.mockResolvedValue(invitedUser);
+    });
+
+    it('accepts the invitation as the signed-in user and returns its organization', async () => {
+      organizationsService.getInvitation.mockResolvedValue({ id: 3, orgId: 9 });
+
+      const result = await service.signIn({
+        email: 'u@example.com',
+        password: 'pw',
+        invite: { id: 3, secret: 's' },
+      });
+
+      expect(usersService.findByAuthId).toHaveBeenCalledWith('auth-7');
+      expect(organizationsService.acceptInvitation).toHaveBeenCalledWith(
+        3,
+        invitedUser,
+      );
+      expect(result.inviteOrgId).toBe(9);
+    });
+
+    it('still signs in when the invitation cannot be accepted', async () => {
+      organizationsService.getInvitation.mockResolvedValue({ id: 3, orgId: 9 });
+      organizationsService.acceptInvitation.mockRejectedValue(
+        new ForbiddenException(),
+      );
+
+      const result = await service.signIn({
+        email: 'u@example.com',
+        password: 'pw',
+        invite: { id: 3, secret: 's' },
+      });
+
+      expect(result.session).toEqual({ access_token: 'a' });
+      expect(result.inviteOrgId).toBeUndefined();
+    });
+
+    it('ignores an unknown invitation', async () => {
+      organizationsService.getInvitation.mockResolvedValue(null);
+
+      const result = await service.signIn({
+        email: 'u@example.com',
+        password: 'pw',
+        invite: { id: 3, secret: 'wrong' },
+      });
+
+      expect(organizationsService.acceptInvitation).not.toHaveBeenCalled();
+      expect(result.inviteOrgId).toBeUndefined();
+    });
+  });
+
   describe('linkIdentity', () => {
     afterEach(() => jest.restoreAllMocks());
 
@@ -238,7 +293,10 @@ describe('AuthService — password reset & OTP login', () => {
           new Response(JSON.stringify({ url: 'https://accounts.example/x' })),
         );
 
-      const { url, codeVerifier } = await service.linkIdentity('google');
+      const { url, codeVerifier } = await service.linkIdentity(
+        'google',
+        'user-jwt',
+      );
 
       expect(url).toBe('https://accounts.example/x');
       // /auth/validate sends this verbatim as the PKCE code_verifier, so it
@@ -256,9 +314,48 @@ describe('AuthService — password reset & OTP login', () => {
     });
 
     it('rejects unsupported providers', async () => {
-      await expect(service.linkIdentity('github')).rejects.toThrow(
+      await expect(service.linkIdentity('github', 'user-jwt')).rejects.toThrow(
         BadRequestException,
       );
     });
+  });
+
+  describe('tokenRefresh', () => {
+    it.each([
+      [400, BadRequestException],
+      [401, ForbiddenException],
+      [403, ForbiddenException],
+    ])(
+      'maps an invalid refresh token (Supabase %i) to a sign-out status',
+      async (status, expected) => {
+        supabaseAuth.refreshSession.mockResolvedValue({
+          data: {},
+          error: { status, message: 'Invalid Refresh Token' },
+        });
+
+        await expect(
+          service.tokenRefresh({ refreshToken: 'r' }),
+        ).rejects.toThrow(expected);
+      },
+    );
+
+    it.each([
+      [429, 429],
+      [500, 503],
+      [502, 503],
+      [undefined, 503],
+    ])(
+      'keeps a transient Supabase failure (%p) distinguishable (%i)',
+      async (status, expected) => {
+        supabaseAuth.refreshSession.mockResolvedValue({
+          data: {},
+          error: { status, message: 'boom' },
+        });
+
+        await expect(
+          service.tokenRefresh({ refreshToken: 'r' }),
+        ).rejects.toMatchObject({ status: expected });
+      },
+    );
   });
 });

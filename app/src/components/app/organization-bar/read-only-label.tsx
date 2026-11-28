@@ -1,5 +1,5 @@
-import { useTranslation } from "react-i18next";
-import type { OptionalOrganization } from "./index";
+import { useTranslation } from 'react-i18next';
+import type { OptionalOrganization } from './index';
 
 interface OrganizationBarLabelProps {
   organizations: OptionalOrganization[];
@@ -10,7 +10,7 @@ export function OrganizationBarLabel({
   organizations,
   subtitle,
 }: Readonly<OrganizationBarLabelProps>) {
-  const { t } = useTranslation("organizations");
+  const { t } = useTranslation('organizations');
 
   const orgNames = organizations.map((org) => {
     if (!org) return t('publicArchive');
@@ -20,10 +20,12 @@ export function OrganizationBarLabel({
 
   return (
     <span className="text-sm">
-      {orgNames.length > 0 && <>
-        {t(organizations.length > 1 ? 'plural' : 'singular')}: <b>{orgNames.join(', ')}</b>
-        {subtitle && ' | '}
-      </>}
+      {orgNames.length > 0 && (
+        <>
+          {t(organizations.length > 1 ? 'plural' : 'singular')}: <b>{orgNames.join(', ')}</b>
+          {subtitle && ' | '}
+        </>
+      )}
       {subtitle}
     </span>
   );

@@ -1,17 +1,17 @@
-import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
-import { IOrganization } from '@/types'
-import { STORAGE_KEYS } from '@/lib/storage-keys'
-import type { OptionalOrganization } from '@/components/app/organization-bar'
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { IOrganization } from '@/types';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
+import type { OptionalOrganization } from '@/components/app/organization-bar';
 
 export type OrganizationFilter = {
   organizations?: number[];
   searchPublicArchive?: boolean;
-}
+};
 
 interface OrganizationFilterState extends OrganizationFilter {
-  setFilter: (filter: OrganizationFilter) => void
-  reset: () => void
+  setFilter: (filter: OrganizationFilter) => void;
+  reset: () => void;
 }
 
 // Shared, persisted organization filter for the content list pages
@@ -22,10 +22,11 @@ export const useOrganizationFilter = create<OrganizationFilterState>()(
     (set) => ({
       organizations: undefined,
       searchPublicArchive: undefined,
-      setFilter: (filter) => set({
-        organizations: filter.organizations?.length ? filter.organizations : undefined,
-        searchPublicArchive: filter.searchPublicArchive,
-      }),
+      setFilter: (filter) =>
+        set({
+          organizations: filter.organizations?.length ? filter.organizations : undefined,
+          searchPublicArchive: filter.searchPublicArchive,
+        }),
       reset: () => set({ organizations: undefined, searchPublicArchive: undefined }),
     }),
     {
@@ -35,15 +36,16 @@ export const useOrganizationFilter = create<OrganizationFilterState>()(
         searchPublicArchive: state.searchPublicArchive,
       }),
       storage: createJSONStorage(() => localStorage),
-    }
-  )
-)
+    },
+  ),
+);
 
 /** Returns the stored filter with organization ids the user no longer belongs to removed (resetting the filter when that happens). */
 export function resolveFilter(userOrganizations: IOrganization[]): OrganizationFilter {
   const { organizations, searchPublicArchive } = useOrganizationFilter.getState();
-  const resolved = (organizations ?? [])
-    .filter((id) => userOrganizations.some((org) => org.id === id));
+  const resolved = (organizations ?? []).filter((id) =>
+    userOrganizations.some((org) => org.id === id),
+  );
 
   if (resolved.length !== (organizations?.length ?? 0)) {
     useOrganizationFilter.getState().reset();
@@ -63,9 +65,7 @@ export function filterToSelection(userOrganizations: IOrganization[]): OptionalO
 }
 
 export function selectionToFilter(orgs: OptionalOrganization[]): OrganizationFilter {
-  const orgIds = orgs
-    .filter((org) => org !== null)
-    .map((org) => org!.id);
+  const orgIds = orgs.filter((org) => org !== null).map((org) => org!.id);
   return {
     organizations: orgIds.length > 0 ? orgIds : undefined,
     searchPublicArchive: orgs.includes(null),

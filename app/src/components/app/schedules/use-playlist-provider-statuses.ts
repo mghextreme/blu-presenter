@@ -1,14 +1,14 @@
-import { useQueries } from "@tanstack/react-query";
+import { useQueries } from '@tanstack/react-query';
 
-import { useServices } from "@/hooks/useServices";
+import { useServices } from '@/hooks/useServices';
 import {
   SCHEDULE_PLAYLIST_PROVIDERS,
   SchedulePlaylistProvider,
   SchedulePlaylistProviderStatus,
-} from "./playlist-providers";
+} from './playlist-providers';
 
 export type SchedulePlaylistProviderStatuses = Partial<
-  Record<SchedulePlaylistProvider["source"], SchedulePlaylistProviderStatus>
+  Record<SchedulePlaylistProvider['source'], SchedulePlaylistProviderStatus>
 >;
 
 /**
@@ -23,8 +23,9 @@ export function usePlaylistProviderStatuses(enabled: boolean): SchedulePlaylistP
       enabled,
       retry: false,
     })),
-    combine: (results) => Object.fromEntries(
-      SCHEDULE_PLAYLIST_PROVIDERS.map((provider, ix) => [provider.source, results[ix].data]),
-    ) as SchedulePlaylistProviderStatuses,
+    combine: (results) =>
+      Object.fromEntries(
+        SCHEDULE_PLAYLIST_PROVIDERS.map((provider, ix) => [provider.source, results[ix].data]),
+      ) as SchedulePlaylistProviderStatuses,
   });
 }

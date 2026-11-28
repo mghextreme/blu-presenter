@@ -1,11 +1,11 @@
-import { useEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import { toast } from "sonner";
+import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useSearchParams } from 'react-router';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
+import { toast } from 'sonner';
 
-import { useServices } from "@/hooks/useServices";
-import { PlaylistIntegrationService } from "@/services";
+import { useServices } from '@/hooks/useServices';
+import { PlaylistIntegrationService } from '@/services';
 
 interface PlaylistConnectCallbackProps {
   service: PlaylistIntegrationService;
@@ -28,7 +28,7 @@ function PlaylistConnectCallback({
   i18nPrefix,
   afterConnect,
 }: Readonly<PlaylistConnectCallbackProps>) {
-  const { t } = useTranslation("profile");
+  const { t } = useTranslation('profile');
   const navigate = useNavigate();
   const startedRef = useRef(false);
 
@@ -41,7 +41,11 @@ function PlaylistConnectCallback({
     if (startedRef.current) return;
     startedRef.current = true;
 
-    const finish = (message?: { type: 'success' | 'error'; title: string; description?: string }) => {
+    const finish = (message?: {
+      type: 'success' | 'error';
+      title: string;
+      description?: string;
+    }) => {
       setTimeout(async () => {
         if (message) {
           if (message.type === 'success') {
@@ -76,21 +80,19 @@ function PlaylistConnectCallback({
         return;
       }
 
-      if (afterConnect && await afterConnect()) {
+      if (afterConnect && (await afterConnect())) {
         return;
       }
 
       finish({ type: 'success', title: t(`${i18nPrefix}.connected`) });
     };
 
-    run();
+    void run();
   }, [t, navigate, service, i18nPrefix, afterConnect, code, state, error]);
 
   return (
     <div className="flex flex-col space-y-6 text-center items-center">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        {t(`${i18nPrefix}.connecting`)}
-      </h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{t(`${i18nPrefix}.connecting`)}</h1>
       <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
     </div>
   );
@@ -122,7 +124,11 @@ export function SpotifyConnectCallback() {
   };
 
   return (
-    <PlaylistConnectCallback service={spotifyService} i18nPrefix="spotify" afterConnect={linkSignIn} />
+    <PlaylistConnectCallback
+      service={spotifyService}
+      i18nPrefix="spotify"
+      afterConnect={linkSignIn}
+    />
   );
 }
 

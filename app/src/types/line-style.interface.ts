@@ -1,8 +1,8 @@
 export interface LineStyle {
-  enabled: boolean
-  color?: string
-  bold: boolean
-  italic: boolean
+  enabled: boolean;
+  color?: string;
+  bold: boolean;
+  italic: boolean;
 }
 
 export function lineStyleToCSS(style: LineStyle): React.CSSProperties {

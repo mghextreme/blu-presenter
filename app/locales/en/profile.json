@@ -78,5 +78,8 @@
       "title": "Disconnect YouTube?",
       "description": "You will no longer be able to create or re-sync YouTube playlists. Playlists already created remain on your YouTube channel. You can reconnect at any time."
     }
+  },
+  "error": {
+    "notFound": "User profile not found"
   }
 }

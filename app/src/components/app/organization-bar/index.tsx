@@ -1,11 +1,11 @@
-import { ReactNode } from "react";
-import { IOrganization } from "@/types";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
-import { pageContentColumn } from "@/components/shared/page-content";
-import { OrganizationBarSelector } from "./single-select";
-import { OrganizationBarFilter } from "./multi-select";
-import { OrganizationBarLabel } from "./read-only-label";
+import { ReactNode } from 'react';
+import { IOrganization } from '@/types';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+import { pageContentColumn } from '@/components/shared/page-content';
+import { OrganizationBarSelector } from './single-select';
+import { OrganizationBarFilter } from './multi-select';
+import { OrganizationBarLabel } from './read-only-label';
 
 export type OptionalOrganization = IOrganization | null;
 
@@ -44,7 +44,7 @@ export function OrganizationBar({
 
   return (
     <div className="sticky top-0 z-40 py-3 bg-slate-200 dark:bg-slate-900 shadow-2">
-      <div className={cn(pageContentColumn, "flex items-center flex-wrap gap-x-2")}>
+      <div className={cn(pageContentColumn, 'flex items-center flex-wrap gap-x-2')}>
         {editable ? (
           <OrganizationBarSelector
             organizations={organizations}
@@ -59,15 +59,10 @@ export function OrganizationBar({
             onOrganizationsChange={handleChange}
           />
         ) : (
-          <OrganizationBarLabel
-            organizations={organizations}
-            subtitle={subtitle}
-          />
+          <OrganizationBarLabel organizations={organizations} subtitle={subtitle} />
         )}
         {children && (
-          <div className="buttons flex-1 flex flex-wrap justify-end gap-x-2">
-            {children}
-          </div>
+          <div className="buttons flex-1 flex flex-wrap justify-end gap-x-2">{children}</div>
         )}
       </div>
     </div>

@@ -1,13 +1,12 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useTranslation } from 'react-i18next';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
-import { useServices } from "@/hooks/useServices";
-import { describeApiError } from "@/types";
-import { GoogleIcon } from "@/components/logos/google";
-import { YouTubeIcon } from "@/components/logos/youtube";
-import { Button } from "@/components/ui/button";
+import { useServices } from '@/hooks/useServices';
+import { describeApiError } from '@/types';
+import { GoogleIcon } from '@/components/logos/google';
+import { YouTubeIcon } from '@/components/logos/youtube';
+import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,29 +17,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import { IUserIdentitiesResponse } from "@/types/auth";
+} from '@/components/ui/alert-dialog';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
+import { IUserIdentitiesResponse } from '@/types/auth';
 
 interface GoogleConnectionProps {
   identities: IUserIdentitiesResponse;
-  onIdentitiesChanged: (identities: IUserIdentitiesResponse) => void;
-  onBusyChange?: (busy: boolean) => void;
 }
 
-export function GoogleConnection({
-  identities,
-  onIdentitiesChanged,
-  onBusyChange,
-}: Readonly<GoogleConnectionProps>) {
-  const { t } = useTranslation("profile");
-  const queryClient = useQueryClient();
+export function GoogleConnection({ identities }: Readonly<GoogleConnectionProps>) {
+  const { t } = useTranslation('profile');
   const { authService, youtubeService } = useServices();
 
-  const [pending, setPending] = useState<'google' | 'youtube' | null>(null);
-  const isLoading = pending !== null;
-
-  const googleIdentity = identities.identities.find(i => i.provider === 'google');
+  const googleIdentity = identities.identities.find((i) => i.provider === 'google');
 
   const { data: youtubeStatus } = useQuery({ ...youtubeService.getStatusQuery(), retry: false });
 
@@ -51,79 +40,66 @@ export function GoogleConnection({
     ? youtubeStatus.accountName || youtubeStatus.accountId
     : null;
 
-  const start = (action: 'google' | 'youtube') => {
-    onBusyChange?.(true);
-    setPending(action);
-  };
-  const stop = () => {
-    setPending(null);
-    onBusyChange?.(false);
-  };
-
-  const onConnect = async () => {
-    try {
-      start('google');
-      const redirectData = await authService.linkIdentity('google');
+  const connectGoogle = useMutation({
+    mutationFn: () => authService.linkIdentity('google'),
+    onSuccess: (redirectData) => {
       localStorage.setItem('link-identity-code-verifier', redirectData.codeVerifier);
 
       setTimeout(() => {
         window.open(redirectData.url, '_self');
       }, 500);
-    } catch (e: any) {
+    },
+    onError: async (e) => {
       toast.error(t('connectedAccounts.connectFailed'), {
         description: await describeApiError(e),
       });
-      stop();
-    }
-  };
+    },
+  });
 
-  const onDisconnect = async () => {
-    if (!googleIdentity) return;
-
-    try {
-      start('google');
-      await authService.unlinkIdentity(googleIdentity.identityId);
+  const disconnectGoogle = useMutation({
+    mutationFn: (identityId: string) => authService.unlinkIdentity(identityId),
+    onSuccess: () => {
       toast.success(t('connectedAccounts.disconnected'));
-      const updated = await authService.getIdentities();
-      onIdentitiesChanged(updated);
-    } catch (e: any) {
+    },
+    onError: async (e) => {
       toast.error(t('connectedAccounts.disconnectFailed'), {
         description: await describeApiError(e),
       });
-    } finally {
-      stop();
-    }
-  };
+    },
+  });
 
-  const onConnectYoutube = async () => {
-    try {
-      start('youtube');
-      const { url } = await youtubeService.getConnectUrl();
+  const connectYoutube = useMutation({
+    mutationFn: () => youtubeService.getConnectUrl(),
+    onSuccess: ({ url }) => {
       setTimeout(() => {
         window.open(url, '_self');
       }, 500);
-    } catch (e: any) {
+    },
+    onError: async (e) => {
       toast.error(t('youtube.connectFailed'), {
         description: await describeApiError(e),
       });
-      stop();
-    }
-  };
+    },
+  });
 
-  const onDisconnectYoutube = async () => {
-    try {
-      start('youtube');
-      await youtubeService.disconnect();
+  const disconnectYoutube = useMutation({
+    mutationFn: () => youtubeService.disconnect(),
+    onSuccess: () => {
       toast.success(t('youtube.disconnected'));
-      await queryClient.invalidateQueries({ queryKey: ['youtube'] });
-    } catch (e: any) {
+    },
+    onError: async (e) => {
       toast.error(t('youtube.disconnectFailed'), {
         description: await describeApiError(e),
       });
-    } finally {
-      stop();
-    }
-  };
+    },
+  });
+
+  // A successful connect stays busy: the page is about to redirect to the provider.
+  const isGoogleBusy =
+    connectGoogle.isPending || connectGoogle.isSuccess || disconnectGoogle.isPending;
+  const isYoutubeBusy =
+    connectYoutube.isPending || connectYoutube.isSuccess || disconnectYoutube.isPending;
+  const isLoading = isGoogleBusy || isYoutubeBusy;
 
   return (
     <div className="rounded-lg border divide-y">
@@ -146,24 +122,34 @@ export function GoogleConnection({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>{t('connectedAccounts.confirmDisconnect.title')}</AlertDialogTitle>
+                <AlertDialogTitle>
+                  {t('connectedAccounts.confirmDisconnect.title')}
+                </AlertDialogTitle>
                 <AlertDialogDescription>
                   {t('connectedAccounts.confirmDisconnect.description')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>{t('connectedAccounts.confirmDisconnect.cancel')}</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" onClick={onDisconnect}>
+                <AlertDialogCancel>
+                  {t('connectedAccounts.confirmDisconnect.cancel')}
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={() => disconnectGoogle.mutate(googleIdentity.identityId)}
+                >
                   {t('connectedAccounts.confirmDisconnect.confirm')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         ) : (
-          <Button variant="outline" size="sm" disabled={isLoading} onClick={onConnect}>
-            {pending === 'google' && (
-              <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
-            )}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isLoading}
+            onClick={() => connectGoogle.mutate()}
+          >
+            {isGoogleBusy && <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>}
             {t('connectedAccounts.connect')}
           </Button>
         )}
@@ -175,9 +161,7 @@ export function GoogleConnection({
             <YouTubeIcon className="size-5" />
             <div>
               <p className="font-medium">YouTube</p>
-              {youtubeAccount && (
-                <p className="text-sm text-muted-foreground">{youtubeAccount}</p>
-              )}
+              {youtubeAccount && <p className="text-sm text-muted-foreground">{youtubeAccount}</p>}
             </div>
           </div>
           {youtubeStatus?.connected ? (
@@ -195,16 +179,26 @@ export function GoogleConnection({
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>{t('connectedAccounts.confirmDisconnect.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive" onClick={onDisconnectYoutube}>
+                  <AlertDialogCancel>
+                    {t('connectedAccounts.confirmDisconnect.cancel')}
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    variant="destructive"
+                    onClick={() => disconnectYoutube.mutate()}
+                  >
                     {t('connectedAccounts.confirmDisconnect.confirm')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           ) : (
-            <Button variant="outline" size="sm" disabled={isLoading} onClick={onConnectYoutube}>
-              {pending === 'youtube' && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isLoading}
+              onClick={() => connectYoutube.mutate()}
+            >
+              {isYoutubeBusy && (
                 <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
               )}
               {t('connectedAccounts.connect')}

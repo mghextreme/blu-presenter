@@ -1,14 +1,12 @@
-import {
-  Outlet,
-} from "react-router-dom";
+import { Outlet } from 'react-router';
 
-import { ProtectedRoute } from "@/components/protected-route";
-import { AppSidebar } from "@/components/app/sidebar";
-import { AppNavbar } from "@/components/app/navbar";
-import { OfflineSyncManager } from "@/components/shared/offline-sync-manager";
-import { Toaster } from "@/components/ui/sonner";
-import { useServices } from "@/hooks/useServices";
-import { useEffect } from "react";
+import { ProtectedRoute } from '@/components/protected-route';
+import { AppSidebar } from '@/components/app/sidebar';
+import { AppNavbar } from '@/components/app/navbar';
+import { OfflineSyncManager } from '@/components/shared/offline-sync-manager';
+import { Toaster } from '@/components/ui/sonner';
+import { useServices } from '@/hooks/useServices';
+import { useEffect } from 'react';
 
 export function AppLayout() {
   const { authService } = useServices();
@@ -16,8 +14,10 @@ export function AppLayout() {
   useEffect(() => {
     // Failure (e.g. offline) is fine: organizations come from the persisted
     // auth store and are re-synced whenever the app is online.
-    authService.refreshOrganizations().catch(() => { /* keep cached orgs */ });
-  }, []);
+    authService.refreshOrganizations().catch(() => {
+      /* keep cached orgs */
+    });
+  }, [authService]);
 
   return (
     <ProtectedRoute>

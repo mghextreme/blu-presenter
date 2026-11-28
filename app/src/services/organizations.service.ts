@@ -1,73 +1,97 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IOrganization } from "@/types/organization.interface";
-import { ApiService } from "./api.service";
-import { IOrganizationInvitation, IOrganizationUser, OrganizationFeature, OrganizationRoleOptions, UserOrganization } from "@/types";
-import { queryOptions } from "@tanstack/react-query";
+import { IOrganization } from '@/types/organization.interface';
+import { ApiService } from './api.service';
+import { secretQuery } from './secret-query';
+import {
+  IOrganizationInvitation,
+  IOrganizationUser,
+  OrganizationFeature,
+  OrganizationRoleOptions,
+  UserOrganization,
+} from '@/types';
+import { queryOptions } from '@tanstack/react-query';
+
+/** The organization an `['organizations', …]` query belongs to, if any. */
+function organizationIdOfQuery(queryKey: readonly unknown[]): unknown {
+  // ['organizations', 'self', orgId] and ['organizations', orgId, 'members', id]
+  return queryKey[1] === 'self' ? queryKey[2] : queryKey[1];
+}
 
 export class OrganizationsService extends ApiService {
-
-  public clearCache(): void {
-    this.queryClient.removeQueries({ queryKey: ['organizations'] });
-    this.queryClient.removeQueries({ queryKey: ['user', 'organizations'] });
+  public invalidateCache(): Promise<unknown> {
+    return Promise.all([
+      this.queryClient.invalidateQueries({ queryKey: ['organizations'] }),
+      this.queryClient.invalidateQueries({ queryKey: ['user', 'organizations'] }),
+    ]);
   }
 
-  public async getCurrent(orgId: number): Promise<IOrganization | null> {
-    return await this.getOrFetch({
+  public currentQuery(orgId: number) {
+    return queryOptions({
       queryKey: ['organizations', 'self', orgId],
       queryFn: async () => {
         const response = await this.getRequest('/organizations/self', {
-          'Organization': orgId.toString(),
+          Organization: orgId.toString(),
         });
         return this.parseOrganization(response);
       },
     });
   }
 
-  public async add(value: IOrganization): Promise<IOrganization | null> {
-    const result = await this.postRequest('/organizations', JSON.stringify(value), {
-      'content-type': 'application/json',
-    }) as IOrganization;
+  public async getCurrent(orgId: number): Promise<IOrganization | null> {
+    return await this.queryClient.query(this.currentQuery(orgId));
+  }
 
-    this.clearCache();
+  public async add(value: IOrganization): Promise<IOrganization | null> {
+    const result = (await this.postRequest('/organizations', JSON.stringify(value), {
+      'content-type': 'application/json',
+    })) as IOrganization;
+
+    void this.invalidateCache();
 
     return result;
   }
 
   public async update(value: IOrganization, orgId: number): Promise<IOrganization | null> {
-    const result = await this.putRequest('/organizations/self', JSON.stringify(value), {
+    const result = (await this.putRequest('/organizations/self', JSON.stringify(value), {
       'content-type': 'application/json',
-      'Organization': orgId.toString(),
-    }) as IOrganization;
+      Organization: orgId.toString(),
+    })) as IOrganization;
 
-    this.clearCache();
+    void this.invalidateCache();
 
     return result;
   }
 
   public async transferOwnership(toUserId: number, orgId: number): Promise<void> {
-    await this.postRequest('/organizations/transferOwnership', JSON.stringify({
-      userId: toUserId,
-    }), {
-      'content-type': 'application/json',
-      'Organization': orgId.toString(),
-    }) as IOrganization;
+    (await this.postRequest(
+      '/organizations/transferOwnership',
+      JSON.stringify({
+        userId: toUserId,
+      }),
+      {
+        'content-type': 'application/json',
+        Organization: orgId.toString(),
+      },
+    )) as IOrganization;
+
+    void this.invalidateCache();
   }
 
   public async delete(orgId: number): Promise<void> {
     await this.deleteRequest(`/organizations`, {
       'content-type': 'application/json',
-      'Organization': orgId.toString(),
+      Organization: orgId.toString(),
     });
 
-    this.clearCache();
+    void this.invalidateCache();
   }
 
-  public async getMember(id: number, orgId: number): Promise<IOrganizationUser> {
-    return await this.getOrFetch({
+  public memberQuery(id: number, orgId: number) {
+    return queryOptions({
       queryKey: ['organizations', orgId, 'members', id],
       queryFn: async () => {
         const response = await this.getRequest(`/organizations/members/${id}`, {
-          'Organization': orgId.toString(),
+          Organization: orgId.toString(),
         });
         return {
           id: response.user.id,
@@ -79,42 +103,63 @@ export class OrganizationsService extends ApiService {
     });
   }
 
-  public async inviteMember(email: string, role: OrganizationRoleOptions, orgId: number): Promise<IOrganizationInvitation> {
-    const result = await this.postRequest('/organizations/members', JSON.stringify({
-      email,
-      role,
-    }), {
-      'content-type': 'application/json',
-      'Organization': orgId.toString(),
-    }) as IOrganizationInvitation;
+  public async getMember(id: number, orgId: number): Promise<IOrganizationUser> {
+    return await this.queryClient.query(this.memberQuery(id, orgId));
+  }
 
-    this.clearCache();
+  public async inviteMember(
+    email: string,
+    role: OrganizationRoleOptions,
+    orgId: number,
+  ): Promise<IOrganizationInvitation> {
+    const result = (await this.postRequest(
+      '/organizations/members',
+      JSON.stringify({
+        email,
+        role,
+      }),
+      {
+        'content-type': 'application/json',
+        Organization: orgId.toString(),
+      },
+    )) as IOrganizationInvitation;
+
+    void this.invalidateCache();
 
     return result;
   }
 
   public async editMember(id: number, role: OrganizationRoleOptions, orgId: number) {
-    await this.putRequest(`/organizations/members/${id}`, JSON.stringify({
-      role,
-    }), {
-      'content-type': 'application/json',
-      'Organization': orgId.toString(),
-    });
+    await this.putRequest(
+      `/organizations/members/${id}`,
+      JSON.stringify({
+        role,
+      }),
+      {
+        'content-type': 'application/json',
+        Organization: orgId.toString(),
+      },
+    );
 
-    this.clearCache();
+    void this.invalidateCache();
   }
 
   public async getInvite(id: number, secret: string): Promise<IOrganizationInvitation> {
-    return await this.getRequest(`/organizations/invitations/${id}?secret=${secret}`) as IOrganizationInvitation;
+    return (await this.getRequest(
+      `/organizations/invitations/${id}${secretQuery(secret)}`,
+    )) as IOrganizationInvitation;
+  }
+
+  public invitationsQuery() {
+    return queryOptions({
+      queryKey: ['organizations', 'invitations', 'self'],
+      queryFn: async () =>
+        (await this.getRequest('/organizations/invitations')) as IOrganizationInvitation[],
+    });
   }
 
   public async getInvitations(): Promise<IOrganizationInvitation[]> {
-    return await this.getOrFetch({
-      queryKey: ['organizations', 'invitations', 'self'],
-      queryFn: async () => {
-        return await this.getRequest('/organizations/invitations');
-      },
-    });
+    return await this.queryClient.query(this.invitationsQuery());
   }
 
   public async acceptInvitation(id: number): Promise<void> {
@@ -122,7 +167,7 @@ export class OrganizationsService extends ApiService {
       'content-type': 'application/json',
     });
 
-    this.clearCache();
+    void this.invalidateCache();
   }
 
   public async rejectInvitation(id: number): Promise<void> {
@@ -130,38 +175,49 @@ export class OrganizationsService extends ApiService {
       'content-type': 'application/json',
     });
 
-    this.clearCache();
+    void this.invalidateCache();
   }
 
   public async cancelInvitation(id: number, orgId: number): Promise<void> {
     await this.deleteRequest(`/organizations/invitations/${id}`, {
       'content-type': 'application/json',
-      'Organization': orgId.toString(),
+      Organization: orgId.toString(),
     });
 
-    this.clearCache();
+    void this.invalidateCache();
   }
 
   public async leave(orgId: number) {
     await this.postRequest(`/organizations/leave`, undefined, {
       'content-type': 'application/json',
-      'Organization': orgId.toString(),
+      Organization: orgId.toString(),
     });
 
-    this.clearCache();
+    // The left organization's queries would now fail: drop them instead of
+    // refetching them with the rest.
+    const isLeftOrganization = (query: { queryKey: readonly unknown[] }) =>
+      organizationIdOfQuery(query.queryKey) === orgId;
+    this.queryClient.removeQueries({ queryKey: ['organizations'], predicate: isLeftOrganization });
+    void Promise.all([
+      this.queryClient.invalidateQueries({
+        queryKey: ['organizations'],
+        predicate: (query) => !isLeftOrganization(query),
+      }),
+      this.queryClient.invalidateQueries({ queryKey: ['user', 'organizations'] }),
+    ]);
   }
 
   public async removeMember(id: number, orgId: number): Promise<void> {
     await this.deleteRequest(`/organizations/members/${id}`, {
       'content-type': 'application/json',
-      'Organization': orgId.toString(),
+      Organization: orgId.toString(),
     });
 
-    this.clearCache();
+    void this.invalidateCache();
   }
 
   public async getFromUser(): Promise<UserOrganization[]> {
-    return await this.getOrFetch(this.getFromUserQuery());
+    return await this.queryClient.query(this.getFromUserQuery());
   }
 
   public getFromUserQuery() {
@@ -169,12 +225,14 @@ export class OrganizationsService extends ApiService {
       queryKey: ['user', 'organizations'],
       queryFn: async () => {
         const orgUsers = await this.getRequest(`/users/organizations`);
-        const mappedOrgs = orgUsers.map((x: {
-          id: number,
-          role: OrganizationRoleOptions,
-          name?: string,
-          disabledFeatures?: OrganizationFeature[],
-        }) => new UserOrganization(x.id, x.role, x.name, x.disabledFeatures));
+        const mappedOrgs = orgUsers.map(
+          (x: {
+            id: number;
+            role: OrganizationRoleOptions;
+            name?: string;
+            disabledFeatures?: OrganizationFeature[];
+          }) => new UserOrganization(x.id, x.role, x.name, x.disabledFeatures),
+        );
 
         return mappedOrgs;
       },
@@ -191,14 +249,14 @@ export class OrganizationsService extends ApiService {
         id: response.owner.id,
         name: response.owner?.name,
       },
-      users: response.users?.map((user: any) => ({
-        id: user.user.id,
-        name: user.user?.name,
-        email: user.user?.email,
-        role: user.role,
-      })) || [],
+      users:
+        response.users?.map((user: any) => ({
+          id: user.user.id,
+          name: user.user?.name,
+          email: user.user?.email,
+          role: user.role,
+        })) || [],
       invitations: response?.invitations,
     } as IOrganization;
   }
-
 }

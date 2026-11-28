@@ -1,27 +1,37 @@
-import { Link, useLoaderData } from "react-router-dom";
-import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
-import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import { Badge } from "@/components/ui/badge";
-import { ISession, filterOrganizationsByFeature, isRoleHigherOrEqualThan } from "@/types";
-import { useServices } from "@/hooks/useServices";
-import { useAuth } from "@/hooks/useAuth";
-import { useFilteredList } from "@/hooks/use-filtered-list";
-import { filterToSelection } from "@/hooks/use-organization-filter";
-import { OrganizationBar } from "@/components/app/organization-bar";
-import { PageContent } from "@/components/shared/page-content";
-import { ListItemCard } from "@/components/shared/list-item-card";
-import { QuerySearchForm } from "@/components/shared/query-search-form";
-import { LoadMoreButton } from "@/components/shared/load-more";
-import { FiltersActiveNotice } from "@/components/shared/filters-active-notice";
-import { EmptyList } from "@/components/shared/empty-list";
-import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+import { Link, useLoaderData } from 'react-router';
+import { useMutation } from '@tanstack/react-query';
+import PencilIcon from '@heroicons/react/24/solid/PencilIcon';
+import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
+import { Badge } from '@/components/ui/badge';
+import { ISession, filterOrganizationsByFeature, isRoleHigherOrEqualThan } from '@/types';
+import { useServices } from '@/hooks/useServices';
+import { useAuth } from '@/hooks/useAuth';
+import { useFilteredList } from '@/hooks/use-filtered-list';
+import { filterToSelection } from '@/hooks/use-organization-filter';
+import { OrganizationBar } from '@/components/app/organization-bar';
+import { PageContent } from '@/components/shared/page-content';
+import { ListItemCard } from '@/components/shared/list-item-card';
+import { QuerySearchForm } from '@/components/shared/query-search-form';
+import { LoadMoreButton } from '@/components/shared/load-more';
+import { FiltersActiveNotice } from '@/components/shared/filters-active-notice';
+import { EmptyList } from '@/components/shared/empty-list';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 export function Sessions() {
-
-  const { t } = useTranslation("sessions");
+  const { t } = useTranslation('sessions');
   const { organizations } = useAuth();
 
   const data = useLoaderData() as ISession[];
@@ -30,6 +40,7 @@ export function Sessions() {
   const availableOrganizations = filterOrganizationsByFeature(organizations, 'sessions');
 
   const list = useFilteredList<ISession>({
+    queryKey: ['sessions'],
     defaultValue: data,
     initialOrganizations: filterToSelection(availableOrganizations),
     search: (payload) => sessionsService.search(payload),
@@ -40,31 +51,29 @@ export function Sessions() {
     },
   });
 
-  const filtersActive = list.selectedOrganizations.length > 0
-    && list.selectedOrganizations.length < availableOrganizations.length;
+  const filtersActive =
+    list.selectedOrganizations.length > 0 &&
+    list.selectedOrganizations.length < availableOrganizations.length;
 
   const getSessionName = (session: ISession) => {
     if (session.default) {
       return t('session.defaultName');
     }
     return session.name;
-  }
+  };
 
-  const onDeleteSession = async (session: ISession) => {
+  const deleteSession = useMutation({
+    mutationFn: ({ sessionId, organizationId }: { sessionId: number; organizationId: number }) =>
+      sessionsService.delete(sessionId, organizationId),
+    onError: () => toast.error(t('error.deleteSession')),
+  });
+
+  const onDeleteSession = (session: ISession) => {
     if (!session.organization?.id) {
       return;
     }
-
-    try {
-      await sessionsService.delete(session.id, session.organization.id);
-      sessionsService.clearCache();
-      list.refresh();
-    } catch (e: any) {
-      toast.error(
-        t('error.deleteSession'),
-      );
-    }
-  }
+    deleteSession.mutate({ sessionId: session.id, organizationId: session.organization.id });
+  };
 
   const getCardActions = (session: ISession) => {
     const canManage = isRoleHigherOrEqualThan(session.organization?.role, 'admin');
@@ -76,7 +85,8 @@ export function Sessions() {
           size="sm"
           title={t('actions.edit')}
           asChild={canManage}
-          disabled={!canManage}>
+          disabled={!canManage}
+        >
           {canManage ? (
             <Link to={`/app/sessions/${session.id}/edit`}>
               <PencilIcon className="size-3" />
@@ -87,18 +97,28 @@ export function Sessions() {
         </Button>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button size="sm" className="flex-0" variant="destructive" disabled={!canManage || session.default} title={t('actions.delete')}>
+            <Button
+              size="sm"
+              className="flex-0"
+              variant="destructive"
+              disabled={!canManage || session.default}
+              title={t('actions.delete')}
+            >
               <TrashIcon className="size-3" />
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{t('message.deleteSession.title')}</AlertDialogTitle>
-              <AlertDialogDescription>{t('message.deleteSession.description', {name: getSessionName(session)})}</AlertDialogDescription>
+              <AlertDialogDescription>
+                {t('message.deleteSession.description', { name: getSessionName(session) })}
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>{t('button.cancel')}</AlertDialogCancel>
-              <AlertDialogAction variant="destructive" onClick={() => onDeleteSession(session)}>{t('button.confirm')}</AlertDialogAction>
+              <AlertDialogAction variant="destructive" onClick={() => onDeleteSession(session)}>
+                {t('button.confirm')}
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -115,7 +135,9 @@ export function Sessions() {
         multiselect
         onOrganizationsChange={list.setOrganizations}
       >
-        <Button asChild><Link to="/app/sessions/add">{t('actions.create')}</Link></Button>
+        <Button asChild>
+          <Link to="/app/sessions/add">{t('actions.create')}</Link>
+        </Button>
       </OrganizationBar>
       <PageContent className="flex flex-col gap-4">
         <QuerySearchForm
@@ -131,9 +153,13 @@ export function Sessions() {
               <ListItemCard
                 title={getSessionName(session)}
                 organization={session.organization}
-                additionalBadges={session.default && (
-                  <Badge variant="secondary" className="me-3 my-auto">{t('session.defaultName')}</Badge>
-                )}
+                additionalBadges={
+                  session.default && (
+                    <Badge variant="secondary" className="me-3 my-auto">
+                      {t('session.defaultName')}
+                    </Badge>
+                  )
+                }
                 actions={getCardActions(session)}
               />
             </li>
@@ -144,9 +170,7 @@ export function Sessions() {
             </li>
           )}
         </ul>
-        {!list.isLoading && list.results.length === 0 && (
-          <EmptyList className="mt-2" />
-        )}
+        {!list.isLoading && list.results.length === 0 && <EmptyList className="mt-2" />}
       </PageContent>
     </>
   );

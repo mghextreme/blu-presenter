@@ -1,12 +1,12 @@
-import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
-import { ITheme, LyricsTheme } from '@/types'
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { ITheme, LyricsTheme } from '@/types';
 
 interface PreviewConfigState {
-  previewTheme: ITheme
-  previewRatio: string
-  setPreviewTheme: (theme: ITheme) => void
-  setPreviewRatio: (ratio: string) => void
+  previewTheme: ITheme;
+  previewRatio: string;
+  setPreviewTheme: (theme: ITheme) => void;
+  setPreviewRatio: (ratio: string) => void;
 }
 
 export const usePreviewConfig = create<PreviewConfigState>()(
@@ -24,6 +24,6 @@ export const usePreviewConfig = create<PreviewConfigState>()(
         previewRatio: state.previewRatio,
       }),
       storage: createJSONStorage(() => localStorage),
-    }
-  )
+    },
+  ),
 );

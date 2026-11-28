@@ -19,7 +19,7 @@ The application seeding will add one user:
 
 ## App
 
-Built around [react-router-dom](https://reactrouter.com/).
+Built around [React Router](https://reactrouter.com/).
 
 ```sh
 cd app
@@ -66,7 +66,7 @@ pnpm install
 ### Develop
 
 ```sh
-pnpm start:dev
+pnpm dev
 ```
 
 ### Test

@@ -1,17 +1,17 @@
-import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
-import { Session, User } from '@supabase/supabase-js'
-import { IOrganization } from '@/types'
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import type { Session, User } from '@supabase/supabase-js';
+import { IOrganization } from '@/types';
 
 interface AuthState {
-  isLoggedIn: boolean
-  user: User | null
-  orgId?: number
-  session: Session | null
-  organization: IOrganization | null
-  organizations: IOrganization[]
-  setOrganizationById: (orgId?: number) => void
-  signOut: () => void
+  isLoggedIn: boolean;
+  user: User | null;
+  orgId?: number;
+  session: Session | null;
+  organization: IOrganization | null;
+  organizations: IOrganization[];
+  setOrganizationById: (orgId?: number) => void;
+  signOut: () => void;
 }
 
 export const useAuth = create<AuthState>()(
@@ -34,12 +34,12 @@ export const useAuth = create<AuthState>()(
             data = {
               organization: currentOrgInMap,
               orgId: currentOrg,
-            }
+            };
           } else if (allOrgs.length > 0) {
             data = {
               organization: allOrgs[0],
               orgId: allOrgs[0].id,
-            }
+            };
           }
 
           if (data) {
@@ -63,11 +63,11 @@ export const useAuth = create<AuthState>()(
           organization: null,
           organizations: [],
           session: null,
-        })
-      }
+        });
+      },
     }),
     {
-      name: "auth",
+      name: 'auth',
       partialize: (state: AuthState) => ({
         isLoggedIn: state.isLoggedIn,
         user: state.user,
@@ -77,6 +77,6 @@ export const useAuth = create<AuthState>()(
         organizations: state.organizations,
       }),
       storage: createJSONStorage(() => localStorage),
-    }
-  )
+    },
+  ),
 );

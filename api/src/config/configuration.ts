@@ -1,12 +1,18 @@
 export default () => ({
-  port: parseInt(process.env.API_PORT, 10) || 3000,
+  port: parseInt(process.env.API_PORT ?? '', 10) || 3000,
   database: {
-    type: process.env.DATABASE_TYPE,
     host: process.env.DATABASE_HOST,
-    port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
+    port: Number.parseInt(process.env.DATABASE_PORT ?? '', 10) || 5432,
     username: process.env.DATABASE_USERNAME,
     password: process.env.DATABASE_PASSWORD,
     name: process.env.DATABASE_NAME,
+    ssl: process.env.DATABASE_SSL === 'true',
+    // PEM of a private CA (e.g. Supabase's); implies DATABASE_SSL. Escaped
+    // newlines are accepted for platforms without multi-line variables.
+    sslCa: process.env.DATABASE_SSL_CA?.replaceAll(String.raw`\n`, '\n'),
+    // Unset: the driver default (10 connections).
+    poolSize:
+      Number.parseInt(process.env.DATABASE_POOL_SIZE ?? '', 10) || undefined,
   },
   auth: {
     jwtSecret: process.env.SUPABASE_JWT_SECRET,

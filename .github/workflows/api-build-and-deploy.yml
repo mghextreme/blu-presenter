@@ -7,10 +7,12 @@ on:
     paths:
       - 'api/**'
       # Root files that define the api image contents: the workspace
-      # lockfile, the workspace manifest, and the Docker build context.
+      # lockfile, the workspace manifests, and the Docker build context.
+      - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - '.dockerignore'
+      - '.nvmrc'
 
 jobs:
 
@@ -35,7 +37,7 @@ jobs:
 
     - name: Build the Docker image
       run: |
-        docker build -f ./api/Dockerfile . -t ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY }}:latest
+        docker build -f ./api/Dockerfile . --build-arg NODE_VERSION="$(cat .nvmrc)" -t ${{ vars.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY }}:latest
 
     - name: Push Docker image to ECR
       run: |

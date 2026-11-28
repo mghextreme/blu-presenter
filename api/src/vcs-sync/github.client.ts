@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { VcsClient, VcsHead, VcsTreeEntry } from './vcs-client.interface';
+import { fetchWithTimeout } from 'src/utils/fetch-with-timeout';
 
 const API_BASE = 'https://api.github.com';
 const API_VERSION = '2022-11-28';
@@ -105,7 +106,7 @@ export class GitHubClient implements VcsClient {
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       let response: Response;
       try {
-        response = await fetch(`${API_BASE}${path}`, {
+        response = await fetchWithTimeout(`${API_BASE}${path}`, {
           headers: this.headers(),
         });
       } catch (error) {

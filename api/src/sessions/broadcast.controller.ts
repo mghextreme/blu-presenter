@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Headers,
-  Param,
-  ParseIntPipe,
-  Put,
-} from '@nestjs/common';
+import { Body, Controller, Param, ParseIntPipe, Put } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeader, ApiTags } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import {
@@ -14,6 +7,7 @@ import {
   SetSelectionBroadcastDto,
 } from 'src/types';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
+import { OrgId } from 'src/auth/request-context.decorator';
 import { BroadcastService } from './broadcast.service';
 
 /**
@@ -40,7 +34,7 @@ export class BroadcastController {
   @Put('schedule')
   @OrganizationRole('owner', 'admin', 'member')
   async setSchedule(
-    @Headers('Organization') orgId: number,
+    @OrgId() orgId: number,
     @Param('sessionId', ParseIntPipe) sessionId: number,
     @Body() setScheduleDto: SetScheduleBroadcastDto,
   ): Promise<void> {
@@ -54,7 +48,7 @@ export class BroadcastController {
   @Put('schedule-item')
   @OrganizationRole('owner', 'admin', 'member')
   async setScheduleItem(
-    @Headers('Organization') orgId: number,
+    @OrgId() orgId: number,
     @Param('sessionId', ParseIntPipe) sessionId: number,
     @Body() setScheduleItemDto: SetScheduleItemBroadcastDto,
   ): Promise<void> {
@@ -68,7 +62,7 @@ export class BroadcastController {
   @Put('selection')
   @OrganizationRole('owner', 'admin', 'member')
   async setSelection(
-    @Headers('Organization') orgId: number,
+    @OrgId() orgId: number,
     @Param('sessionId', ParseIntPipe) sessionId: number,
     @Body() setSelectionDto: SetSelectionBroadcastDto,
   ): Promise<void> {

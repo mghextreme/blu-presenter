@@ -1,12 +1,12 @@
-import { useLiveQuery } from "dexie-react-hooks";
-import { useMemo } from "react";
+import { useLiveQuery } from 'dexie-react-hooks';
+import { useMemo } from 'react';
 
-import { offlineDb } from "@/lib/offline/db";
+import { offlineDb } from '@/lib/offline/db';
 
 /** Ids of songs currently downloaded for offline use. */
 export function useDownloadedSongIds(): Set<number> {
   const ids = useLiveQuery(
-    () => offlineDb.songs.toArray().then(rows => rows.map(row => row.id)),
+    () => offlineDb.songs.toArray().then((rows) => rows.map((row) => row.id)),
     [],
     [] as number[],
   );
@@ -16,7 +16,7 @@ export function useDownloadedSongIds(): Set<number> {
 /** Ids of schedules currently downloaded for offline use. */
 export function useDownloadedScheduleIds(): Set<number> {
   const ids = useLiveQuery(
-    () => offlineDb.schedules.toArray().then(rows => rows.map(row => row.id)),
+    () => offlineDb.schedules.toArray().then((rows) => rows.map((row) => row.id)),
     [],
     [] as number[],
   );
@@ -39,7 +39,7 @@ export function useOfflineSummary(): OfflineSummary | undefined {
       offlineDb.themes.toArray(),
     ]);
     const lastSyncedAt = [...songs, ...schedules, ...themes]
-      .map(row => row.syncedAt)
+      .map((row) => row.syncedAt)
       .sort()
       .at(-1);
     return {

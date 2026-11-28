@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from 'react';
 
 const argsEqual = <A extends unknown[]>(a: A | null, b: A): boolean =>
   a !== null && a.length === b.length && a.every((arg, i) => Object.is(arg, b[i]));

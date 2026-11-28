@@ -1,32 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import {
-  Organization,
-  OrganizationUser,
-  OrganizationInvitation,
-  User,
-} from '../entities';
+import { ConfigModule } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { OrganizationsService } from 'src/organizations/organizations.service';
-import { OrganizationsModule } from 'src/organizations/organizations.module';
-import { SupabaseModule } from 'src/supabase/supabase.module';
-import { ConfigModule } from '@nestjs/config';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
-  imports: [
-    ConfigModule,
-    SupabaseModule,
-    OrganizationsModule,
-    TypeOrmModule.forFeature([
-      Organization,
-      OrganizationUser,
-      OrganizationInvitation,
-      User,
-    ]),
-  ],
+  imports: [ConfigModule, UsersModule],
   controllers: [AuthController],
-  providers: [AuthService, OrganizationsService],
-  exports: [AuthService, OrganizationsService],
+  providers: [AuthService],
 })
 export class AuthModule {}

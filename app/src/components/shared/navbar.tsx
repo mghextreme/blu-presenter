@@ -1,13 +1,13 @@
-import { ThemeToggler } from "@/components/shared/theme-toggler";
-import { LanguageToggler } from "@/components/shared/language-toggler";
-import { useAuth } from "@/hooks/useAuth";
-import { BluPresenterLogo } from "@/components/shared/logo";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { ThemeToggler } from '@/components/shared/theme-toggler';
+import { LanguageToggler } from '@/components/shared/language-toggler';
+import { useAuth } from '@/hooks/useAuth';
+import { BluPresenterLogo } from '@/components/shared/logo';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 
 export function SharedNavbar() {
-  const { t } = useTranslation("home");
+  const { t } = useTranslation('home');
 
   const { isLoggedIn } = useAuth();
 
@@ -35,5 +35,5 @@ export function SharedNavbar() {
         )}
       </div>
     </nav>
-  )
+  );
 }

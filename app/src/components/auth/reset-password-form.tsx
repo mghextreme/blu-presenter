@@ -1,22 +1,23 @@
-"use client"
+'use client';
 
-import { HTMLAttributes, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { HTMLAttributes, useEffect, useMemo } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { Link, useNavigate } from 'react-router';
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslation } from "react-i18next";
-import { useServices } from "@/hooks/useServices";
-import { toast } from "sonner";
-import { ApiError } from "@/types";
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
+import { useServices } from '@/hooks/useServices';
+import { toast } from 'sonner';
+import { describeAuthError } from '@/lib/auth-errors';
 
 interface ResetPasswordFormProps extends HTMLAttributes<HTMLDivElement> {}
 
@@ -30,29 +31,24 @@ function extractRecoveryAccessToken(hash: string): string | null {
   if (!hash || hash.length < 2) {
     return null;
   }
-  const params = new URLSearchParams(hash.replace(/^#/, ""));
-  if (params.get("type") !== "recovery") {
+  const params = new URLSearchParams(hash.replace(/^#/, ''));
+  if (params.get('type') !== 'recovery') {
     return null;
   }
-  return params.get("access_token");
+  return params.get('access_token');
 }
 
 export function ResetPasswordForm({ className, ...props }: Readonly<ResetPasswordFormProps>) {
-  const { t } = useTranslation("auth");
+  const { t } = useTranslation('auth');
   const { authService } = useServices();
   const navigate = useNavigate();
 
-  const accessToken = useMemo(
-    () => extractRecoveryAccessToken(window.location.hash),
-    [],
-  );
-
-  const [isLoading, setIsLoading] = useState(false);
+  const accessToken = useMemo(() => extractRecoveryAccessToken(window.location.hash), []);
 
   useEffect(() => {
     // Strip tokens from the URL so they don't linger in history/referrers.
     if (accessToken) {
-      window.history.replaceState(null, "", window.location.pathname);
+      window.history.replaceState(null, '', window.location.pathname);
     }
   }, [accessToken]);
 
@@ -64,59 +60,56 @@ export function ResetPasswordForm({ className, ...props }: Readonly<ResetPasswor
     .superRefine(({ confirmPassword, password }, ctx) => {
       if (confirmPassword !== password) {
         ctx.addIssue({
-          code: "custom",
-          message: t("input.messages.passwordsDontMatch"),
-          path: ["confirmPassword"],
+          code: 'custom',
+          message: t('input.messages.passwordsDontMatch'),
+          path: ['confirmPassword'],
         });
       }
     });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { password: "", confirmPassword: "" },
+    defaultValues: { password: '', confirmPassword: '' },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const resetPassword = useMutation({
+    mutationFn: ({ recoveryToken, password }: { recoveryToken: string; password: string }) =>
+      authService.resetPassword({
+        accessToken: recoveryToken,
+        newPassword: password,
+      }),
+    onSuccess: () => {
+      toast.success(t('resetPassword.success'));
+      void navigate('/login');
+    },
+    onError: async (e: unknown) => {
+      toast.error(t('resetPassword.error'), {
+        description: await describeAuthError(e, t),
+      });
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (!accessToken) {
       return;
     }
 
-    try {
-      setIsLoading(true);
-
-      await authService.resetPassword({
-        accessToken,
-        newPassword: values.password,
-      });
-
-      toast.success(t("resetPassword.success"));
-      navigate("/login");
-    } catch (e: unknown) {
-      const error = e as ApiError;
-      const errorContent = await error?.raw?.json().catch(() => null);
-      toast.error(t("resetPassword.error"), {
-        description: t("errors." + (errorContent?.message ?? "default")),
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    resetPassword.mutate({ recoveryToken: accessToken, password: values.password });
   };
 
   if (!accessToken) {
     return (
-      <div className={cn("grid gap-4 text-center", className)} {...props}>
-        <p className="text-sm text-muted-foreground">
-          {t("resetPassword.missingToken")}
-        </p>
+      <div className={cn('grid gap-4 text-center', className)} {...props}>
+        <p className="text-sm text-muted-foreground">{t('resetPassword.missingToken')}</p>
         <Button variant="link" asChild>
-          <Link to="/forgot-password">{t("forgotPassword.title")}</Link>
+          <Link to="/forgot-password">{t('forgotPassword.title')}</Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className={cn("grid gap-6", className)} {...props}>
+    <div className={cn('grid gap-6', className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-col-1 space-y-2">
           <FormField
@@ -128,8 +121,8 @@ export function ResetPasswordForm({ className, ...props }: Readonly<ResetPasswor
                   <Input
                     type="password"
                     autoComplete="new-password"
-                    placeholder={t("input.password")}
-                    disabled={isLoading}
+                    placeholder={t('input.password')}
+                    disabled={resetPassword.isPending}
                     {...field}
                   />
                 </FormControl>
@@ -147,8 +140,8 @@ export function ResetPasswordForm({ className, ...props }: Readonly<ResetPasswor
                   <Input
                     type="password"
                     autoComplete="new-password"
-                    placeholder={t("input.confirmPassword")}
-                    disabled={isLoading}
+                    placeholder={t('input.confirmPassword')}
+                    disabled={resetPassword.isPending}
                     {...field}
                   />
                 </FormControl>
@@ -157,9 +150,9 @@ export function ResetPasswordForm({ className, ...props }: Readonly<ResetPasswor
             )}
           />
 
-          <Button type="submit" disabled={isLoading}>
-            {isLoading && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
-            {t("resetPassword.submit")}
+          <Button type="submit" disabled={resetPassword.isPending}>
+            {resetPassword.isPending && <ArrowPathIcon className="size-4 me-2 animate-spin" />}
+            {t('resetPassword.submit')}
           </Button>
         </form>
       </Form>

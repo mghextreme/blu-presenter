@@ -5,18 +5,11 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthUser } from '@supabase/supabase-js';
-import { createPublicKey } from 'node:crypto';
-
-interface JWKS {
-  keys: Record<string, any>[];
-}
+import { JwksKeyStore } from './jwks-key-store';
 
 @Injectable()
 export class SupabaseStrategy extends PassportStrategy(Strategy) {
   private readonly logger = new Logger(SupabaseStrategy.name);
-  private jwksCache: { keys: Map<string, string>; timestamp: number } | null =
-    null;
-  private readonly CACHE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
 
   constructor(private readonly configService: ConfigService) {
     const supabaseUrl = configService.get<string>('supabase.url');
@@ -27,6 +20,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy) {
     }
 
     const jwksUrl = `${supabaseUrl}/auth/v1/.well-known/jwks.json`;
+    const keyStore = new JwksKeyStore(jwksUrl);
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -57,7 +51,7 @@ export class SupabaseStrategy extends PassportStrategy(Strategy) {
           }
 
           // For asymmetric algorithms (ES256, RS256), fetch public key from JWKS
-          const publicKey = await this.getPublicKey(jwksUrl, header.kid);
+          const publicKey = await keyStore.getPublicKey(header.kid);
           if (!publicKey) {
             return done(
               new Error(`No public key found for kid: ${header.kid}`),
@@ -77,73 +71,6 @@ export class SupabaseStrategy extends PassportStrategy(Strategy) {
     this.logger.log(
       `JWT verification configured with JWKS endpoint: ${jwksUrl}`,
     );
-  }
-
-  /**
-   * Fetches and caches public keys from the JWKS endpoint
-   */
-  private async getPublicKey(
-    jwksUrl: string,
-    kid: string,
-  ): Promise<string | null> {
-    const now = Date.now();
-
-    // Check cache
-    if (
-      this.jwksCache &&
-      now - this.jwksCache.timestamp < this.CACHE_DURATION
-    ) {
-      const cached = this.jwksCache.keys.get(kid);
-      if (cached) {
-        this.logger.debug(`Using cached public key for kid: ${kid}`);
-        return cached;
-      }
-    }
-
-    // Fetch JWKS
-    this.logger.debug(`Fetching JWKS from ${jwksUrl}`);
-    try {
-      const response = await fetch(jwksUrl);
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch JWKS: ${response.status} ${response.statusText}`,
-        );
-      }
-
-      const jwks: JWKS = await response.json();
-
-      // Convert all keys to PEM and cache them
-      const keysMap = new Map<string, string>();
-      for (const jwk of jwks.keys) {
-        try {
-          // Cast to any to work around TypeScript's strict JWK typing
-          const publicKey = createPublicKey({ key: jwk as any, format: 'jwk' });
-          const pem = publicKey.export({
-            type: 'spki',
-            format: 'pem',
-          }) as string;
-          keysMap.set(jwk.kid, pem);
-        } catch (error) {
-          this.logger.warn(
-            `Failed to convert JWK to PEM for kid ${jwk.kid}: ${error.message}`,
-          );
-        }
-      }
-
-      this.jwksCache = { keys: keysMap, timestamp: now };
-
-      return keysMap.get(kid) || null;
-    } catch (error) {
-      this.logger.error(`Error fetching JWKS: ${error.message}`);
-
-      // If cache exists but is stale, use it anyway (better than failing completely)
-      if (this.jwksCache) {
-        this.logger.warn('Using stale JWKS cache due to fetch error');
-        return this.jwksCache.keys.get(kid) || null;
-      }
-
-      return null;
-    }
   }
 
   async validate(user: AuthUser) {

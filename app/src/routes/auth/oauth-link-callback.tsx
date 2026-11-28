@@ -1,12 +1,12 @@
-import { useEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import { toast } from "sonner";
+import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useSearchParams } from 'react-router';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
+import { toast } from 'sonner';
 
-import { useServices } from "@/hooks/useServices";
-import { describeApiError } from "@/types";
-import { IExchangeCodeData } from "@/types/auth";
+import { useServices } from '@/hooks/useServices';
+import { describeApiError } from '@/types';
+import { IExchangeCodeData } from '@/types/auth';
 
 const CODE_VERIFIER_KEY = 'link-identity-code-verifier';
 
@@ -16,7 +16,7 @@ const CODE_VERIFIER_KEY = 'link-identity-code-verifier';
  * includes the new identity, then returns to the profile page.
  */
 export function OAuthLinkCallback() {
-  const { t } = useTranslation("profile");
+  const { t } = useTranslation('profile');
   const navigate = useNavigate();
   const { authService } = useServices();
   // The code can only be exchanged once: guard against effects running twice
@@ -35,7 +35,11 @@ export function OAuthLinkCallback() {
     if (startedRef.current) return;
     startedRef.current = true;
 
-    const finish = (message: { type: 'success' | 'error'; title: string; description?: string }) => {
+    const finish = (message: {
+      type: 'success' | 'error';
+      title: string;
+      description?: string;
+    }) => {
       localStorage.removeItem(CODE_VERIFIER_KEY);
       // Timeout prevents users from briefly seeing the React Router error layout
       setTimeout(async () => {
@@ -74,14 +78,12 @@ export function OAuthLinkCallback() {
       finish({ type: 'success', title: t('connectedAccounts.linked') });
     };
 
-    run();
+    void run();
   }, [t, navigate, authService, code, error, errorDescription]);
 
   return (
     <div className="flex flex-col space-y-6 text-center items-center">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        {t('connectedAccounts.linking')}
-      </h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{t('connectedAccounts.linking')}</h1>
       <ArrowPathIcon className="size-4 me-2 animate-spin"></ArrowPathIcon>
     </div>
   );

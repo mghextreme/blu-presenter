@@ -1,6 +1,14 @@
-export type OrganizationRoleOptions = 'owner' | 'admin' | 'member' | 'guest';
+/** Highest first. */
+export const ORGANIZATION_ROLES = [
+  'owner',
+  'admin',
+  'member',
+  'guest',
+] as const;
 
-const roles = ['owner', 'admin', 'member', 'guest'];
+export type OrganizationRoleOptions = (typeof ORGANIZATION_ROLES)[number];
+
+const roles: readonly OrganizationRoleOptions[] = ORGANIZATION_ROLES;
 
 export const isRoleHigherThan = (
   role: OrganizationRoleOptions | undefined,

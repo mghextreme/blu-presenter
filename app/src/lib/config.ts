@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface IMetaEnv {
-  env: any
+  env: any;
 }
 
-const metaEnv = (import.meta as unknown as IMetaEnv).env
+const metaEnv = (import.meta as unknown as IMetaEnv).env;
 
 const protocol = metaEnv.VITE_API_PROTOCOL || 'http';
 const host = metaEnv.VITE_API_HOST;
@@ -14,9 +14,9 @@ export const api = {
   host,
   port,
   url,
-}
+};
 
 export const captcha = {
   siteKey: metaEnv.VITE_TURNSTILE_SITE_KEY || '',
   enabled: metaEnv.VITE_DISABLE_CAPTCHA !== 'true',
-}
+};

@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useRegisterSW } from "virtual:pwa-register/react";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 
-import { Button } from "@/components/ui/button";
-import { usePwaInstall } from "@/hooks/use-pwa-install";
+import { Button } from '@/components/ui/button';
+import { usePwaInstall } from '@/hooks/use-pwa-install';
 
-const DISMISS_KEY = "pwa-update-dismissed";
+const DISMISS_KEY = 'pwa-update-dismissed';
 
 /**
  * Registers the service worker and, ONLY inside the installed app (standalone
@@ -23,13 +23,15 @@ const DISMISS_KEY = "pwa-update-dismissed";
  * render duplicated.
  */
 export function PwaManager() {
-  const { t } = useTranslation("pwa");
+  const { t } = useTranslation('pwa');
   const { isStandalone } = usePwaInstall();
-  const [dismissed, setDismissed] = useState(
-    () => sessionStorage.getItem(DISMISS_KEY) === "1",
-  );
+  const [dismissed, setDismissed] = useState(() => sessionStorage.getItem(DISMISS_KEY) === '1');
 
-  const { needRefresh, updateServiceWorker } = useRegisterSW();
+  // needRefresh is a [value, setter] tuple, not a boolean.
+  const {
+    needRefresh: [needRefresh],
+    updateServiceWorker,
+  } = useRegisterSW();
 
   if (!needRefresh || !isStandalone || dismissed) return null;
 
@@ -44,7 +46,7 @@ export function PwaManager() {
   };
 
   const dismiss = () => {
-    sessionStorage.setItem(DISMISS_KEY, "1");
+    sessionStorage.setItem(DISMISS_KEY, '1');
     setDismissed(true);
   };
 

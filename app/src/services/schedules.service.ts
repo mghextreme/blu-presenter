@@ -1,91 +1,99 @@
-import { ApiService } from "./api.service";
-import { ISchedule, ISchedulePlaylistSyncResult, SchedulePlaylistProviderId } from "@/types"
-import { getOfflineScheduleById, searchOfflineSchedules } from "@/lib/offline/reads";
+import { queryOptions } from '@tanstack/react-query';
+import { ApiService } from './api.service';
+import { secretQuery } from './secret-query';
+import { ISchedule, ISchedulePlaylistSyncResult, SchedulePlaylistProviderId } from '@/types';
+import { getOfflineScheduleById, searchOfflineSchedules } from '@/lib/offline/reads';
+
+export interface ScheduleSearchPayload {
+  query?: string;
+  organizations?: number[];
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+  itemsPerPage?: number;
+}
+
+const scheduleKeys = {
+  all: ['schedules'] as const,
+  detail: (scheduleId: number, secret?: string) =>
+    ['schedules', 'id', scheduleId, secret || null] as const,
+  search: (payload: ScheduleSearchPayload) => ['schedules', 'search', payload] as const,
+};
 
 export class SchedulesService extends ApiService {
-
-  public clearCache(): void {
-    this.queryClient.removeQueries({ queryKey: ['schedules'] });
+  public invalidateCache(): Promise<void> {
+    return this.queryClient.invalidateQueries({ queryKey: scheduleKeys.all });
   }
 
-  public async search(payload: {
-    query?: string;
-    organizations?: number[];
-    dateFrom?: string;
-    dateTo?: string;
-    page?: number;
-    itemsPerPage?: number;
-  }): Promise<ISchedule[]> {
-    if (this.isOffline()) {
-      return await searchOfflineSchedules(payload);
-    }
-
-    try {
-      return await this.postRequest('/schedules/search', JSON.stringify(payload), {
-        'content-type': 'application/json',
-      }) as ISchedule[];
-    } catch (e) {
-      if (this.isNetworkError(e)) {
-        return await searchOfflineSchedules(payload);
-      }
-      throw e;
-    }
+  public searchQuery(payload: ScheduleSearchPayload) {
+    return queryOptions({
+      queryKey: scheduleKeys.search(payload),
+      queryFn: () =>
+        this.withOfflineFallback(
+          async () =>
+            (await this.postRequest('/schedules/search', JSON.stringify(payload), {
+              'content-type': 'application/json',
+            })) as ISchedule[],
+          () => searchOfflineSchedules(payload),
+        ),
+    });
   }
 
-  public async getById(scheduleId: number, secret?: string, force = false): Promise<ISchedule | null> {
-    const hasSecret = secret && secret.length > 0;
-    const secretParam = hasSecret ? `?secret=${secret}` : '';
-    const queryKey = ['schedules', 'id', scheduleId, hasSecret ? secret : null];
-
-    if (this.isOffline()) {
-      return await getOfflineScheduleById(scheduleId);
-    }
-
-    if (force) {
-      this.queryClient.removeQueries({ queryKey });
-    }
-
-    try {
-      return await this.getOrFetch({
-        queryKey,
-        queryFn: async () => await this.getRequest(`/schedules/${scheduleId}${secretParam}`) as ISchedule,
-      });
-    } catch (e) {
-      if (this.isNetworkError(e)) {
-        return await getOfflineScheduleById(scheduleId);
-      }
-      throw e;
-    }
+  public async search(payload: ScheduleSearchPayload): Promise<ISchedule[]> {
+    return await this.queryClient.query(this.searchQuery(payload));
   }
 
-  /** Fetches a schedule from the API, bypassing and then updating the cache. */
+  public byIdQuery(scheduleId: number, secret?: string) {
+    return queryOptions({
+      queryKey: scheduleKeys.detail(scheduleId, secret),
+      queryFn: () =>
+        this.withOfflineFallback(
+          async () =>
+            (await this.getRequest(
+              `/schedules/${scheduleId}${secretQuery(secret)}`,
+            )) as ISchedule | null,
+          () => getOfflineScheduleById(scheduleId),
+        ),
+    });
+  }
+
+  public async getById(scheduleId: number, secret?: string): Promise<ISchedule | null> {
+    return await this.queryClient.query(this.byIdQuery(scheduleId, secret));
+  }
+
+  /** Requests the schedule from the API even when a fresh copy is cached. */
   public async fetchById(scheduleId: number, secret?: string): Promise<ISchedule | null> {
-    return this.getById(scheduleId, secret, true);
+    return await this.fetchFresh(this.byIdQuery(scheduleId, secret));
   }
 
   public async add(value: Partial<ISchedule>, orgId: number): Promise<ISchedule | null> {
-    const response = await this.postRequest('/schedules', JSON.stringify(value), {
+    const response = (await this.postRequest('/schedules', JSON.stringify(value), {
       'content-type': 'application/json',
-      'Organization': orgId.toString(),
-    }) as ISchedule;
-    this.clearCache();
+      Organization: orgId.toString(),
+    })) as ISchedule;
+    void this.invalidateCache();
     return response;
   }
 
-  public async update(id: number, value: Partial<ISchedule>, orgId: number): Promise<ISchedule | null> {
-    const response = await this.putRequest(`/schedules/${id}`, JSON.stringify(value), {
+  public async update(
+    id: number,
+    value: Partial<ISchedule>,
+    orgId: number,
+  ): Promise<ISchedule | null> {
+    const response = (await this.putRequest(`/schedules/${id}`, JSON.stringify(value), {
       'content-type': 'application/json',
-      'Organization': orgId.toString(),
-    }) as ISchedule;
-    this.clearCache();
+      Organization: orgId.toString(),
+    })) as ISchedule;
+    void this.invalidateCache();
     return response;
   }
 
   public async delete(scheduleId: number, orgId: number): Promise<void> {
     await this.deleteRequest(`/schedules/${scheduleId}`, {
-      'Organization': orgId.toString(),
+      Organization: orgId.toString(),
     });
-    this.clearCache();
+    this.queryClient.removeQueries({ queryKey: ['schedules', 'id', scheduleId] });
+    void this.invalidateCache();
   }
 
   /** Creates (or re-syncs) the schedule's auto-generated playlist on a
@@ -96,13 +104,22 @@ export class SchedulesService extends ApiService {
     provider: SchedulePlaylistProviderId,
     options: { name?: string; isPublic?: boolean } = {},
   ): Promise<ISchedulePlaylistSyncResult> {
-    return await this.postRequest(`/schedules/${scheduleId}/${provider}-playlist`, JSON.stringify({
-      name: options.name,
-      public: options.isPublic,
-    }), {
-      'content-type': 'application/json',
-      'Organization': orgId.toString(),
-    });
+    try {
+      return await this.postRequest(
+        `/schedules/${scheduleId}/${provider}-playlist`,
+        JSON.stringify({
+          name: options.name,
+          public: options.isPublic,
+        }),
+        {
+          'content-type': 'application/json',
+          Organization: orgId.toString(),
+        },
+      );
+    } finally {
+      // A failed creation may still have attached the (pending) playlist.
+      void this.invalidateCache();
+    }
   }
 
   /** Detaches the schedule's auto-generated playlist (it stays on the service). */
@@ -112,9 +129,8 @@ export class SchedulesService extends ApiService {
     provider: SchedulePlaylistProviderId,
   ): Promise<void> {
     await this.deleteRequest(`/schedules/${scheduleId}/${provider}-playlist`, {
-      'Organization': orgId.toString(),
+      Organization: orgId.toString(),
     });
-    this.clearCache();
+    void this.invalidateCache();
   }
-
 }

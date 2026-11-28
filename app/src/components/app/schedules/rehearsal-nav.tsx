@@ -1,9 +1,15 @@
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { IScheduleItem, IScheduleSong } from "@/types";
-import ChevronLeftIcon from "@heroicons/react/24/solid/ChevronLeftIcon";
-import ChevronRightIcon from "@heroicons/react/24/solid/ChevronRightIcon";
-import { useTranslation } from "react-i18next";
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { IScheduleItem, IScheduleSong } from '@/types';
+import ChevronLeftIcon from '@heroicons/react/24/solid/ChevronLeftIcon';
+import ChevronRightIcon from '@heroicons/react/24/solid/ChevronRightIcon';
+import { useTranslation } from 'react-i18next';
 
 interface RehearsalNavProps {
   items: IScheduleItem[];
@@ -24,7 +30,7 @@ export function RehearsalNav({
   hasPrevious,
   hasNext,
 }: Readonly<RehearsalNavProps>) {
-  const { t } = useTranslation("schedules");
+  const { t } = useTranslation('schedules');
 
   return (
     <div className="flex items-center gap-x-2 px-2 sm:px-8 py-3 max-w-3xl">
@@ -38,10 +44,7 @@ export function RehearsalNav({
       >
         <ChevronLeftIcon className="size-4" />
       </Button>
-      <Select
-        value={String(currentIndex)}
-        onValueChange={(value) => onSelect(Number(value))}
-      >
+      <Select value={String(currentIndex)} onValueChange={(value) => onSelect(Number(value))}>
         <SelectTrigger className="flex-1">
           <SelectValue placeholder={t('rehearsal.selectSong')} />
         </SelectTrigger>
@@ -54,11 +57,7 @@ export function RehearsalNav({
               : `${index + 1}. ${item.title || t('view.untitled')}`;
 
             return (
-              <SelectItem
-                key={`nav-item-${index}`}
-                value={String(index)}
-                disabled={!isSong}
-              >
+              <SelectItem key={`nav-item-${index}`} value={String(index)} disabled={!isSong}>
                 {label}
               </SelectItem>
             );

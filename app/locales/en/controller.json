@@ -59,6 +59,7 @@
       },
       "today": "Today",
       "load": "Load schedule",
+      "loadError": "Could not load the schedule",
       "noResults": "No schedules found",
       "confirmReplace": {
         "title": "Replace current schedule?",
@@ -119,6 +120,7 @@
     "screenSelector": {
       "title": "Select screen",
       "windowed": "Windowed",
+      "showFullScreenOptions": "Show full-screen options",
       "fullScreen": "Full Screen",
       "display": "Display"
     },

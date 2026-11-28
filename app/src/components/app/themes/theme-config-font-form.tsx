@@ -1,101 +1,108 @@
-import { useTranslation } from "react-i18next";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { UseFormReturn } from "react-hook-form";
-import { z } from "zod";
-import { ThemeSchema } from "@/types/schemas/theme.schema";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Toggle } from "@/components/ui/toggle";
-import { UppercaseIcon } from "@/components/icons/uppercase";
-import ItalicIcon from "@heroicons/react/24/solid/ItalicIcon";
-import { TextShadowIcon } from "@/components/icons/text-shadow";
-import { useEffect, useState } from "react";
-import { ColorForm } from "./color-form";
+import { useTranslation } from 'react-i18next';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { UseFormReturn, useWatch } from 'react-hook-form';
+import { z } from 'zod';
+import { ThemeSchema } from '@/types/schemas/theme.schema';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Toggle } from '@/components/ui/toggle';
+import { UppercaseIcon } from '@/components/icons/uppercase';
+import ItalicIcon from '@heroicons/react/24/solid/ItalicIcon';
+import { TextShadowIcon } from '@/components/icons/text-shadow';
+import { ColorForm } from './color-form';
 
 const fontOptions = [
   {
-    value: "font-epunda-slab",
-    label: "Epunda Slab",
+    value: 'font-epunda-slab',
+    label: 'Epunda Slab',
     isMonospace: false,
     minWeight: 300,
     maxWeight: 900,
   },
   {
-    value: "font-inter",
-    label: "Inter",
+    value: 'font-inter',
+    label: 'Inter',
     isMonospace: false,
     minWeight: 100,
     maxWeight: 900,
   },
   {
-    value: "font-montserrat",
-    label: "Montserrat",
+    value: 'font-montserrat',
+    label: 'Montserrat',
     isMonospace: false,
     minWeight: 100,
     maxWeight: 900,
   },
   {
-    value: "font-open-sans",
-    label: "Open Sans",
+    value: 'font-open-sans',
+    label: 'Open Sans',
     isMonospace: false,
     minWeight: 300,
     maxWeight: 800,
   },
   {
-    value: "font-outfit",
-    label: "Outfit",
+    value: 'font-outfit',
+    label: 'Outfit',
     isMonospace: false,
     minWeight: 100,
     maxWeight: 900,
   },
   {
-    value: "font-playfair-display",
-    label: "Playfair Display",
+    value: 'font-playfair-display',
+    label: 'Playfair Display',
     isMonospace: false,
     minWeight: 400,
     maxWeight: 900,
   },
   {
-    value: "font-raleway",
-    label: "Raleway",
+    value: 'font-raleway',
+    label: 'Raleway',
     isMonospace: false,
     minWeight: 100,
     maxWeight: 900,
   },
   {
-    value: "font-roboto",
-    label: "Roboto",
+    value: 'font-roboto',
+    label: 'Roboto',
     isMonospace: false,
     minWeight: 100,
     maxWeight: 900,
   },
   {
-    value: "font-roboto-condensed",
-    label: "Roboto Condensed",
+    value: 'font-roboto-condensed',
+    label: 'Roboto Condensed',
     isMonospace: false,
     minWeight: 100,
     maxWeight: 900,
   },
   {
-    value: "font-roboto-mono",
-    label: "Roboto Mono",
+    value: 'font-roboto-mono',
+    label: 'Roboto Mono',
     isMonospace: true,
     minWeight: 100,
     maxWeight: 700,
   },
   {
-    value: "font-source-code-pro",
-    label: "Source Code Pro",
+    value: 'font-source-code-pro',
+    label: 'Source Code Pro',
     isMonospace: true,
     minWeight: 200,
     maxWeight: 900,
   },
-]
+];
+
+const monospaceFontOptions = fontOptions.filter((font) => font.isMonospace);
 
 interface ThemeConfigFontFormProps {
-  form: UseFormReturn<z.infer<typeof ThemeSchema>>
-  name: 'title' | 'artist' | 'lyrics' | 'chords' | 'clock' | 'comments'
-  showTransform?: boolean
+  form: UseFormReturn<z.infer<typeof ThemeSchema>>;
+  name: 'title' | 'artist' | 'lyrics' | 'chords' | 'clock' | 'comments';
+  showTransform?: boolean;
 }
 
 export function ThemeConfigFontForm({
@@ -103,24 +110,11 @@ export function ThemeConfigFontForm({
   name,
   showTransform = true,
 }: Readonly<ThemeConfigFontFormProps>) {
+  const { t } = useTranslation('themes');
 
-  const { t } = useTranslation("themes");
-
-  const [fontsToShow, setFontsToShow] = useState<typeof fontOptions>(fontOptions);
-  const [defaultFont, setDefaultFont] = useState<string>("font-open-sans");
-
-  useEffect(() => {
-    const monospaceOnly = form.getValues('extends') === 'teleprompter';
-
-    if (!monospaceOnly) {
-      setDefaultFont("font-open-sans");
-      setFontsToShow(fontOptions);
-      return;
-    }
-
-    setFontsToShow(fontOptions.filter((font) => font.isMonospace));
-    setDefaultFont("font-source-code-pro");
-  }, [form.watch('extends')]);
+  const monospaceOnly = useWatch({ control: form.control, name: 'extends' }) === 'teleprompter';
+  const fontsToShow = monospaceOnly ? monospaceFontOptions : fontOptions;
+  const defaultFont = monospaceOnly ? 'font-source-code-pro' : 'font-open-sans';
 
   const toggleShadow = (field, value: boolean) => {
     field.onChange(value);
@@ -129,7 +123,7 @@ export function ThemeConfigFontForm({
 
     const curColor = form.getValues(`config.${name}.shadow.color`);
     if (!curColor) {
-      form.setValue(`config.${name}.shadow.color`, "#000000");
+      form.setValue(`config.${name}.shadow.color`, '#000000');
     }
 
     const curOffset = form.getValues(`config.${name}.shadow.offset`);
@@ -144,14 +138,14 @@ export function ThemeConfigFontForm({
 
     const curStrokeColor = form.getValues(`config.${name}.shadow.strokeColor`);
     if (!curStrokeColor) {
-      form.setValue(`config.${name}.shadow.strokeColor`, "#000000");
+      form.setValue(`config.${name}.shadow.strokeColor`, '#000000');
     }
 
     const curStrokeSize = form.getValues(`config.${name}.shadow.strokeSize`);
     if (curStrokeSize === undefined || curStrokeSize === null) {
       form.setValue(`config.${name}.shadow.strokeSize`, 0);
     }
-  }
+  };
 
   return (
     <>
@@ -178,7 +172,8 @@ export function ThemeConfigFontForm({
               </Select>
               <FormMessage />
             </FormItem>
-          )}></FormField>
+          )}
+        ></FormField>
 
         <FormField
           control={form.control}
@@ -194,14 +189,25 @@ export function ThemeConfigFontForm({
                 </FormControl>
                 <SelectContent>
                   {Array.from({ length: 9 }, (_, i) => (i + 1) * 100).map((weight) => {
-                    const selectedFontFamily = form.getValues(`config.${name}.fontFamily`) ?? defaultFont;
-                    const selectedFont = fontsToShow.find((font) => font.value === selectedFontFamily);
-                    if (!selectedFont || weight < selectedFont.minWeight || weight > selectedFont.maxWeight) {
+                    const selectedFontFamily =
+                      form.getValues(`config.${name}.fontFamily`) ?? defaultFont;
+                    const selectedFont = fontsToShow.find(
+                      (font) => font.value === selectedFontFamily,
+                    );
+                    if (
+                      !selectedFont ||
+                      weight < selectedFont.minWeight ||
+                      weight > selectedFont.maxWeight
+                    ) {
                       return null;
                     }
 
                     return (
-                      <SelectItem key={weight} value={weight.toString()} style={{ fontWeight: weight }}>
+                      <SelectItem
+                        key={weight}
+                        value={weight.toString()}
+                        style={{ fontWeight: weight }}
+                      >
                         {t(`fontWeight.${weight}`)}
                       </SelectItem>
                     );
@@ -210,7 +216,8 @@ export function ThemeConfigFontForm({
               </Select>
               <FormMessage />
             </FormItem>
-          )}></FormField>
+          )}
+        ></FormField>
 
         <FormField
           control={form.control}
@@ -218,10 +225,11 @@ export function ThemeConfigFontForm({
           render={({ field }) => (
             <FormItem className="w-20">
               <FormLabel>{t('input.font.size')}</FormLabel>
-                <Input type="number" step="5" {...field} />
+              <Input type="number" step="5" {...field} />
               <FormMessage />
             </FormItem>
-          )}></FormField>
+          )}
+        ></FormField>
 
         <FormField
           control={form.control}
@@ -229,25 +237,37 @@ export function ThemeConfigFontForm({
           render={({ field }) => (
             <FormItem className="min-w-8 flex-0">
               <FormLabel>&nbsp;</FormLabel>
-              <Toggle pressed={field.value as boolean} onPressedChange={field.onChange} title={t('input.font.italic')}>
+              <Toggle
+                pressed={field.value as boolean}
+                onPressedChange={field.onChange}
+                title={t('input.font.italic')}
+              >
                 <ItalicIcon className="size-4" />
               </Toggle>
               <FormMessage />
             </FormItem>
-          )}></FormField>
+          )}
+        ></FormField>
 
-        {showTransform && <FormField
-          control={form.control}
-          name={`config.${name}.transform`}
-          render={({ field }) => (
-            <FormItem className="min-w-8 flex-0">
-              <FormLabel>&nbsp;</FormLabel>
-              <Toggle pressed={field.value === "uppercase"} onPressedChange={(value) => field.onChange(value === true ? 'uppercase' : 'none')} title={t('input.font.uppercase')}>
-                <UppercaseIcon className="size-5" />
-              </Toggle>
-              <FormMessage />
-            </FormItem>
-          )}></FormField>}
+        {showTransform && (
+          <FormField
+            control={form.control}
+            name={`config.${name}.transform`}
+            render={({ field }) => (
+              <FormItem className="min-w-8 flex-0">
+                <FormLabel>&nbsp;</FormLabel>
+                <Toggle
+                  pressed={field.value === 'uppercase'}
+                  onPressedChange={(value) => field.onChange(value === true ? 'uppercase' : 'none')}
+                  title={t('input.font.uppercase')}
+                >
+                  <UppercaseIcon className="size-5" />
+                </Toggle>
+                <FormMessage />
+              </FormItem>
+            )}
+          ></FormField>
+        )}
 
         <FormField
           control={form.control}
@@ -255,12 +275,17 @@ export function ThemeConfigFontForm({
           render={({ field }) => (
             <FormItem className="min-w-8 flex-0">
               <FormLabel>&nbsp;</FormLabel>
-              <Toggle pressed={field.value as boolean} onPressedChange={(value: boolean) => toggleShadow(field, value)} title={t('input.font.shadow')}>
+              <Toggle
+                pressed={field.value as boolean}
+                onPressedChange={(value: boolean) => toggleShadow(field, value)}
+                title={t('input.font.shadow')}
+              >
                 <TextShadowIcon className="size-4" />
               </Toggle>
               <FormMessage />
             </FormItem>
-          )}></FormField>
+          )}
+        ></FormField>
       </div>
       {form.watch(`config.${name}.shadow.enabled`) && (
         <>
@@ -271,29 +296,31 @@ export function ThemeConfigFontForm({
               label={t('input.config.shadowColor')}
             />
 
-          <FormField
-            control={form.control}
-            name={`config.${name}.shadow.offset`}
-            render={({ field }) => (
-              <FormItem className="w-24">
-                <FormLabel>{t('input.config.shadowOffset')}</FormLabel>
+            <FormField
+              control={form.control}
+              name={`config.${name}.shadow.offset`}
+              render={({ field }) => (
+                <FormItem className="w-24">
+                  <FormLabel>{t('input.config.shadowOffset')}</FormLabel>
                   <Input type="number" step="2" {...field} />
-                <FormMessage />
-              </FormItem>
-            )}></FormField>
+                  <FormMessage />
+                </FormItem>
+              )}
+            ></FormField>
 
-          <FormField
-            control={form.control}
-            name={`config.${name}.shadow.blur`}
-            render={({ field }) => (
-              <FormItem className="w-24">
-                <FormLabel>{t('input.config.shadowBlur')}</FormLabel>
+            <FormField
+              control={form.control}
+              name={`config.${name}.shadow.blur`}
+              render={({ field }) => (
+                <FormItem className="w-24">
+                  <FormLabel>{t('input.config.shadowBlur')}</FormLabel>
                   <Input type="number" step="5" {...field} />
-                <FormMessage />
-              </FormItem>
-            )}></FormField>
+                  <FormMessage />
+                </FormItem>
+              )}
+            ></FormField>
           </div>
-          
+
           <div className="flex justify-between gap-2">
             <ColorForm<z.infer<typeof ThemeSchema>>
               form={form}
@@ -308,20 +335,14 @@ export function ThemeConfigFontForm({
               render={({ field }) => (
                 <FormItem className="w-24">
                   <FormLabel>{t('input.config.strokeSize')}</FormLabel>
-                    <Input
-                      type="number"
-                      step="1"
-                      min="0"
-                      {...field}
-                      value={field.value ?? 0}
-                    />
+                  <Input type="number" step="1" min="0" {...field} value={field.value ?? 0} />
                   <FormMessage />
                 </FormItem>
-              )}></FormField>
+              )}
+            ></FormField>
           </div>
         </>
       )}
     </>
   );
-
-};
+}

@@ -2,10 +2,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities; */
-@import "tailwindcss";
+@import 'tailwindcss';
 @config "../tailwind.config.js";
-
-
 
 @layer base {
   :root {
@@ -73,7 +71,7 @@
   font-style: normal;
   font-weight: 300 900;
   font-display: swap;
-  src: url('./fonts/EpundaSlab.ttf') format('truetype');
+  src: url('./fonts/EpundaSlab.woff2') format('woff2');
 }
 
 @font-face {
@@ -81,7 +79,7 @@
   font-style: italic;
   font-weight: 300 900;
   font-display: swap;
-  src: url('./fonts/EpundaSlab-Italic.ttf') format('truetype');
+  src: url('./fonts/EpundaSlab-Italic.woff2') format('woff2');
 }
 
 @font-face {
@@ -89,7 +87,7 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('./fonts/Inter.ttf') format('truetype');
+  src: url('./fonts/Inter.woff2') format('woff2');
 }
 
 @font-face {
@@ -97,7 +95,7 @@
   font-style: italic;
   font-weight: 100 900;
   font-display: swap;
-  src: url('./fonts/Inter-Italic.ttf') format('truetype');
+  src: url('./fonts/Inter-Italic.woff2') format('woff2');
 }
 
 @font-face {
@@ -105,7 +103,7 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('./fonts/Montserrat.ttf') format('truetype');
+  src: url('./fonts/Montserrat.woff2') format('woff2');
 }
 
 @font-face {
@@ -113,7 +111,7 @@
   font-style: italic;
   font-weight: 100 900;
   font-display: swap;
-  src: url('./fonts/Montserrat-Italic.ttf') format('truetype');
+  src: url('./fonts/Montserrat-Italic.woff2') format('woff2');
 }
 
 @font-face {
@@ -121,7 +119,7 @@
   font-style: normal;
   font-weight: 300 800;
   font-display: swap;
-  src: url('./fonts/OpenSans.ttf') format('truetype');
+  src: url('./fonts/OpenSans.woff2') format('woff2');
 }
 
 @font-face {
@@ -129,7 +127,7 @@
   font-style: italic;
   font-weight: 300 800;
   font-display: swap;
-  src: url('./fonts/OpenSans-Italic.ttf') format('truetype');
+  src: url('./fonts/OpenSans-Italic.woff2') format('woff2');
 }
 
 @font-face {
@@ -137,7 +135,7 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('./fonts/Outfit.ttf') format('truetype');
+  src: url('./fonts/Outfit.woff2') format('woff2');
 }
 
 @font-face {
@@ -145,7 +143,7 @@
   font-style: normal;
   font-weight: 400 900;
   font-display: swap;
-  src: url('./fonts/PlayfairDisplay.ttf') format('truetype');
+  src: url('./fonts/PlayfairDisplay.woff2') format('woff2');
 }
 
 @font-face {
@@ -153,7 +151,7 @@
   font-style: italic;
   font-weight: 400 900;
   font-display: swap;
-  src: url('./fonts/PlayfairDisplay-Italic.ttf') format('truetype');
+  src: url('./fonts/PlayfairDisplay-Italic.woff2') format('woff2');
 }
 
 @font-face {
@@ -161,7 +159,7 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('./fonts/Raleway.ttf') format('truetype');
+  src: url('./fonts/Raleway.woff2') format('woff2');
 }
 
 @font-face {
@@ -169,7 +167,7 @@
   font-style: italic;
   font-weight: 100 900;
   font-display: swap;
-  src: url('./fonts/Raleway-Italic.ttf') format('truetype');
+  src: url('./fonts/Raleway-Italic.woff2') format('woff2');
 }
 
 @font-face {
@@ -177,7 +175,7 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('./fonts/Roboto.ttf') format('truetype');
+  src: url('./fonts/Roboto.woff2') format('woff2');
 }
 
 @font-face {
@@ -185,7 +183,7 @@
   font-style: italic;
   font-weight: 100 900;
   font-display: swap;
-  src: url('./fonts/Roboto-Italic.ttf') format('truetype');
+  src: url('./fonts/Roboto-Italic.woff2') format('woff2');
 }
 
 @font-face {
@@ -193,7 +191,7 @@
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url('./fonts/RobotoCondensed.ttf') format('truetype');
+  src: url('./fonts/RobotoCondensed.woff2') format('woff2');
 }
 
 @font-face {
@@ -201,7 +199,7 @@
   font-style: italic;
   font-weight: 100 900;
   font-display: swap;
-  src: url('./fonts/RobotoCondensed-Italic.ttf') format('truetype');
+  src: url('./fonts/RobotoCondensed-Italic.woff2') format('woff2');
 }
 
 @font-face {
@@ -209,7 +207,7 @@
   font-style: normal;
   font-weight: 100 700;
   font-display: swap;
-  src: url('./fonts/RobotoMono.ttf') format('truetype');
+  src: url('./fonts/RobotoMono.woff2') format('woff2');
 }
 
 @font-face {
@@ -217,7 +215,7 @@
   font-style: italic;
   font-weight: 100 700;
   font-display: swap;
-  src: url('./fonts/RobotoMono-Italic.ttf') format('truetype');
+  src: url('./fonts/RobotoMono-Italic.woff2') format('woff2');
 }
 
 @font-face {
@@ -225,7 +223,7 @@
   font-style: normal;
   font-weight: 200 900;
   font-display: swap;
-  src: url('./fonts/SourceCodePro.ttf') format('truetype');
+  src: url('./fonts/SourceCodePro.woff2') format('woff2');
 }
 
 @font-face {
@@ -233,5 +231,5 @@
   font-style: italic;
   font-weight: 200 900;
   font-display: swap;
-  src: url('./fonts/SourceCodePro-Italic.ttf') format('truetype');
+  src: url('./fonts/SourceCodePro-Italic.woff2') format('woff2');
 }

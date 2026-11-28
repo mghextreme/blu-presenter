@@ -6,7 +6,9 @@ import {
   IsOptional,
   IsString,
   Length,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { SongPartDto } from './song-part.dto';
 import { SupportedLanguages } from './supported-languages';
 import { SongReferenceDto } from './song-reference.dto';
@@ -26,10 +28,13 @@ export class CreateSongDto {
 
   @IsArray()
   @IsObject({ each: true })
+  @ValidateNested({ each: true })
+  @Type(() => SongPartDto)
   blocks: SongPartDto[];
 
   @IsOptional()
   @IsArray()
-  @IsObject({ each: true })
+  @ValidateNested({ each: true })
+  @Type(() => SongReferenceDto)
   references?: SongReferenceDto[];
 }

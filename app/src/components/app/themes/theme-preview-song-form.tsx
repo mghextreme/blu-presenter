@@ -1,21 +1,22 @@
-import { useEffect, useMemo, useRef } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslation } from "react-i18next";
-import { z } from "zod";
+import { useEffect, useMemo, useRef } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
+import { BaseTheme, IControllerSelection, ISong, ISongPart, ISongPartLine } from '@/types';
+import { SongSchema } from '@/types/schemas/song.schema';
+import { useController } from '@/hooks/useController';
+import { useServices } from '@/hooks/useServices';
 import {
-  BaseTheme,
-  IControllerSelection,
-  ISong,
-  ISongPart,
-  ISongPartLine,
-} from "@/types";
-import { SongSchema } from "@/types/schemas/song.schema";
-import { useController } from "@/hooks/useController";
-import { useServices } from "@/hooks/useServices";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { SongEditor } from "@/components/app/songs/song-editor";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { SongEditor } from '@/components/app/songs/song-editor';
 
 interface ThemePreviewSongFormProps {
   baseTheme: BaseTheme;
@@ -45,21 +46,28 @@ function buildDefaultBlocks(lyrics: string, chords: string): ISongPart[] {
 }
 
 export function ThemePreviewSongForm({ baseTheme }: Readonly<ThemePreviewSongFormProps>) {
-  const { t } = useTranslation("themes");
+  const { t } = useTranslation('themes');
 
-  const { setScheduleItem, setMode, selection } = useController();
+  const { setScheduleItem, setMode, selection } = useController((s) => ({
+    setScheduleItem: s.setScheduleItem,
+    setMode: s.setMode,
+    selection: s.selection,
+  }));
   const { songsService } = useServices();
 
-  const defaults = useMemo(() => ({
-    id: 0,
-    title: t("input.preview.placeholders.title"),
-    artist: t("input.preview.placeholders.artist"),
-    blocks: buildDefaultBlocks(
-      t("input.preview.placeholders.lyrics"),
-      t("input.preview.placeholders.chords"),
-    ),
-    references: [],
-  }), [t]);
+  const defaults = useMemo(
+    () => ({
+      id: 0,
+      title: t('input.preview.placeholders.title'),
+      artist: t('input.preview.placeholders.artist'),
+      blocks: buildDefaultBlocks(
+        t('input.preview.placeholders.lyrics'),
+        t('input.preview.placeholders.chords'),
+      ),
+      references: [],
+    }),
+    [t],
+  );
 
   const form = useForm<z.infer<typeof SongSchema>>({
     resolver: zodResolver(SongSchema),

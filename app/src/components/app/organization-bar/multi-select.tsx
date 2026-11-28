@@ -1,6 +1,6 @@
-import { useTranslation } from "react-i18next";
-import { MultiSelect } from "@/components/ui/multi-select";
-import type { OptionalOrganization } from "./index";
+import { useTranslation } from 'react-i18next';
+import { MultiSelect } from '@/components/ui/multi-select';
+import type { OptionalOrganization } from './index';
 
 const PUBLIC_ARCHIVE_VALUE = 'public-archive';
 
@@ -15,17 +15,17 @@ export function OrganizationBarFilter({
   selected,
   onOrganizationsChange,
 }: Readonly<OrganizationBarFilterProps>) {
-  const { t } = useTranslation("organizations");
+  const { t } = useTranslation('organizations');
 
-  const options = organizations.map((org) => (
+  const options = organizations.map((org) =>
     org
       ? { value: org.id.toString(), label: org.name || t('defaultName') }
-      : { value: PUBLIC_ARCHIVE_VALUE, label: t('publicArchive') }
-  ));
+      : { value: PUBLIC_ARCHIVE_VALUE, label: t('publicArchive') },
+  );
 
-  const selectedValues = (selected ?? []).map((org) => (
-    org ? org.id.toString() : PUBLIC_ARCHIVE_VALUE
-  ));
+  const selectedValues = (selected ?? []).map((org) =>
+    org ? org.id.toString() : PUBLIC_ARCHIVE_VALUE,
+  );
 
   const handleChange = (values: string[]) => {
     const orgs = values
@@ -55,10 +55,14 @@ export function OrganizationBarFilter({
           return <span className="truncate">{placeholder}</span>;
         }
 
-        const publicArchiveOnly = selectedOptions.length === 1
-          && selectedOptions[0].value === PUBLIC_ARCHIVE_VALUE;
+        const publicArchiveOnly =
+          selectedOptions.length === 1 && selectedOptions[0].value === PUBLIC_ARCHIVE_VALUE;
         if (publicArchiveOnly) {
-          return <span className="truncate">{t('all')} + {t('publicArchive')}</span>;
+          return (
+            <span className="truncate">
+              {t('all')} + {t('publicArchive')}
+            </span>
+          );
         }
 
         const labels = selectedOptions.map((option) => option.label).join(', ');

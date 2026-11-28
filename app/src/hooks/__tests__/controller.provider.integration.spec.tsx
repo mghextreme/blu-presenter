@@ -1,76 +1,58 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { useContext } from 'react'
-import { ControllerProvider, ControllerProviderContext } from '../controller.provider'
-import {
-  mockScheduleItems,
-} from '@/test/mockData/scheduleItems'
-import { ITheme, IWindow } from '@/types'
-import { STORAGE_KEYS } from '@/lib/storage-keys'
+import { describe, it, expect, beforeEach, vi } from 'vite-plus/test';
+import { render, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { ControllerProvider } from '../controller.provider';
+import { useController } from '../useController';
+import { mockScheduleItems } from '@/test/mockData/scheduleItems';
+import { ITheme, IWindow } from '@/types';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 // Mock react-hotkeys-hook
 vi.mock('react-hotkeys-hook', () => ({
   useHotkeys: vi.fn(),
-}))
+}));
 
 // Mock WindowProvider
 vi.mock('../window.provider', () => ({
   WindowProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}))
+}));
 
 // Mock SelectorScreen
 vi.mock('@/components/controller/selector-screen', () => ({
   SelectorScreen: () => <div>SelectorScreen</div>,
-}))
+}));
 
 // Test component that uses the controller context
 const TestConsumer = ({
   onRender,
 }: Readonly<{
-  onRender?: (context: any) => void
+  onRender?: (context: any) => void;
 }>) => {
-  const context = useContext(ControllerProviderContext)
+  const context = useController((s) => s);
 
   if (onRender) {
-    onRender(context)
+    onRender(context);
   }
 
   return (
     <div>
       <div data-testid="mode">{context.mode}</div>
       <div data-testid="schedule-length">{context.schedule.length}</div>
-      <div data-testid="schedule-item-title">
-        {context.scheduleItem?.title || 'none'}
-      </div>
+      <div data-testid="schedule-item-title">{context.scheduleItem?.title || 'none'}</div>
       <div data-testid="windows-count">{context.windows.length}</div>
       <div data-testid="window-theme">{context.windows[0]?.theme?.name || 'none'}</div>
-      <button onClick={() => context.addToSchedule(mockScheduleItems[0])}>
-        Add Item
-      </button>
-      <button onClick={() => context.replaceSchedule(mockScheduleItems)}>
-        Replace Schedule
-      </button>
-      <button onClick={() => context.setScheduleItem(0)}>
-        Set First Item
-      </button>
+      <button onClick={() => context.addToSchedule(mockScheduleItems[0])}>Add Item</button>
+      <button onClick={() => context.replaceSchedule(mockScheduleItems)}>Replace Schedule</button>
+      <button onClick={() => context.setScheduleItem(0)}>Set First Item</button>
       <button onClick={() => context.next()}>Next</button>
       <button onClick={() => context.previous()}>Previous</button>
       <button onClick={() => context.setBlank()}>Set Blank</button>
       <button onClick={() => context.setLogo()}>Set Logo</button>
-      <button onClick={() => context.clearOverrideSlide()}>
-        Clear Override
-      </button>
-      <button
-        onClick={() =>
-          context.addWindow({ id: 'test-window', name: 'Test' } as IWindow)
-        }
-      >
+      <button onClick={() => context.clearOverrideSlide()}>Clear Override</button>
+      <button onClick={() => context.addWindow({ id: 'test-window', name: 'Test' } as IWindow)}>
         Add Window
       </button>
-      <button onClick={() => context.closeWindow('test-window')}>
-        Close Window
-      </button>
+      <button onClick={() => context.closeWindow('test-window')}>Close Window</button>
       <button
         onClick={() =>
           context.setWindowTheme('test-window', {
@@ -83,316 +65,312 @@ const TestConsumer = ({
         Set Window Theme
       </button>
       <button onClick={() => context.setMode('slide')}>Set Slide Mode</button>
-      <button onClick={() => context.removeFromSchedule(0)}>
-        Remove First
-      </button>
-      <button onClick={() => context.removeAllFromSchedule()}>
-        Clear Schedule
-      </button>
+      <button onClick={() => context.removeFromSchedule(0)}>Remove First</button>
+      <button onClick={() => context.removeAllFromSchedule()}>Clear Schedule</button>
     </div>
-  )
-}
+  );
+};
 
 describe('ControllerProvider Integration Tests', () => {
   beforeEach(() => {
-    sessionStorage.clear()
-    localStorage.clear()
-    vi.clearAllMocks()
-  })
+    sessionStorage.clear();
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
 
   describe('Schedule Management', () => {
     it('should add items to schedule', async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup();
       const { getByText, getByTestId } = render(
         <ControllerProvider storeState={false}>
           <TestConsumer />
-        </ControllerProvider>
-      )
+        </ControllerProvider>,
+      );
 
-      expect(getByTestId('schedule-length')).toHaveTextContent('0')
+      expect(getByTestId('schedule-length')).toHaveTextContent('0');
 
-      const addButton = getByText('Add Item')
-      await user.click(addButton)
+      const addButton = getByText('Add Item');
+      await user.click(addButton);
 
       await waitFor(() => {
-        expect(getByTestId('schedule-length')).toHaveTextContent('1')
-      })
-    })
+        expect(getByTestId('schedule-length')).toHaveTextContent('1');
+      });
+    });
 
     it('should replace schedule', async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup();
       const { getByText, getByTestId } = render(
         <ControllerProvider storeState={false}>
           <TestConsumer />
-        </ControllerProvider>
-      )
+        </ControllerProvider>,
+      );
 
-      const replaceButton = getByText('Replace Schedule')
-      await user.click(replaceButton)
+      const replaceButton = getByText('Replace Schedule');
+      await user.click(replaceButton);
 
       await waitFor(() => {
         expect(getByTestId('schedule-length')).toHaveTextContent(
-          mockScheduleItems.length.toString()
-        )
-      })
-    })
+          mockScheduleItems.length.toString(),
+        );
+      });
+    });
 
     it('should remove item from schedule', async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup();
       const { getByText, getByTestId } = render(
         <ControllerProvider storeState={false}>
           <TestConsumer />
-        </ControllerProvider>
-      )
+        </ControllerProvider>,
+      );
 
       // First add items
-      await user.click(getByText('Replace Schedule'))
+      await user.click(getByText('Replace Schedule'));
 
       await waitFor(() => {
-        expect(getByTestId('schedule-length')).toHaveTextContent('3')
-      })
+        expect(getByTestId('schedule-length')).toHaveTextContent('3');
+      });
 
       // Then remove first item
-      await user.click(getByText('Remove First'))
+      await user.click(getByText('Remove First'));
 
       await waitFor(() => {
-        expect(getByTestId('schedule-length')).toHaveTextContent('2')
-      })
-    })
+        expect(getByTestId('schedule-length')).toHaveTextContent('2');
+      });
+    });
 
     it('should clear all items from schedule', async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup();
       const { getByText, getByTestId } = render(
         <ControllerProvider storeState={false}>
           <TestConsumer />
-        </ControllerProvider>
-      )
+        </ControllerProvider>,
+      );
 
       // First add items
-      await user.click(getByText('Replace Schedule'))
+      await user.click(getByText('Replace Schedule'));
 
       await waitFor(() => {
-        expect(getByTestId('schedule-length')).toHaveTextContent('3')
-      })
+        expect(getByTestId('schedule-length')).toHaveTextContent('3');
+      });
 
       // Then clear all
-      await user.click(getByText('Clear Schedule'))
+      await user.click(getByText('Clear Schedule'));
 
       await waitFor(() => {
-        expect(getByTestId('schedule-length')).toHaveTextContent('0')
-      })
-    })
-  })
+        expect(getByTestId('schedule-length')).toHaveTextContent('0');
+      });
+    });
+  });
 
   describe('Schedule Item Selection', () => {
     it('should set schedule item', async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup();
       const { getByText, getByTestId } = render(
         <ControllerProvider storeState={false}>
           <TestConsumer />
-        </ControllerProvider>
-      )
+        </ControllerProvider>,
+      );
 
       // First add items
-      await user.click(getByText('Replace Schedule'))
+      await user.click(getByText('Replace Schedule'));
 
       await waitFor(() => {
-        expect(getByTestId('schedule-length')).toHaveTextContent('3')
-      })
+        expect(getByTestId('schedule-length')).toHaveTextContent('3');
+      });
 
       // Then select first item
-      await user.click(getByText('Set First Item'))
+      await user.click(getByText('Set First Item'));
 
       await waitFor(() => {
         expect(getByTestId('schedule-item-title')).toHaveTextContent(
-          mockScheduleItems[0].title || ''
-        )
-      })
-    })
-  })
+          mockScheduleItems[0].title || '',
+        );
+      });
+    });
+  });
 
   describe('Mode Management', () => {
     it('should switch modes', async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup();
       const { getByText, getByTestId } = render(
         <ControllerProvider storeState={false}>
           <TestConsumer />
-        </ControllerProvider>
-      )
+        </ControllerProvider>,
+      );
 
-      expect(getByTestId('mode')).toHaveTextContent('part')
+      expect(getByTestId('mode')).toHaveTextContent('part');
 
-      await user.click(getByText('Set Slide Mode'))
+      await user.click(getByText('Set Slide Mode'));
 
       await waitFor(() => {
-        expect(getByTestId('mode')).toHaveTextContent('slide')
-      })
-    })
-  })
+        expect(getByTestId('mode')).toHaveTextContent('slide');
+      });
+    });
+  });
 
   describe('Override Slides', () => {
     it('should set blank slide', async () => {
-      const user = userEvent.setup()
-      let capturedContext: any = null
+      const user = userEvent.setup();
+      let capturedContext: any = null;
 
       const { getByText } = render(
         <ControllerProvider storeState={false}>
           <TestConsumer
             onRender={(context) => {
-              capturedContext = context
+              capturedContext = context;
             }}
           />
-        </ControllerProvider>
-      )
+        </ControllerProvider>,
+      );
 
-      await user.click(getByText('Set Blank'))
+      await user.click(getByText('Set Blank'));
 
       await waitFor(() => {
-        expect(capturedContext?.overrideSlide).toBeDefined()
-        expect(capturedContext?.overrideSlide?.id).toBe('blank')
-      })
-    })
+        expect(capturedContext?.overrideSlide).toBeDefined();
+        expect(capturedContext?.overrideSlide?.id).toBe('blank');
+      });
+    });
 
     it('should set logo slide', async () => {
-      const user = userEvent.setup()
-      let capturedContext: any = null
+      const user = userEvent.setup();
+      let capturedContext: any = null;
 
       const { getByText } = render(
         <ControllerProvider storeState={false}>
           <TestConsumer
             onRender={(context) => {
-              capturedContext = context
+              capturedContext = context;
             }}
           />
-        </ControllerProvider>
-      )
+        </ControllerProvider>,
+      );
 
-      await user.click(getByText('Set Logo'))
+      await user.click(getByText('Set Logo'));
 
       await waitFor(() => {
-        expect(capturedContext?.overrideSlide).toBeDefined()
-        expect(capturedContext?.overrideSlide?.id).toBe('logo')
-      })
-    })
+        expect(capturedContext?.overrideSlide).toBeDefined();
+        expect(capturedContext?.overrideSlide?.id).toBe('logo');
+      });
+    });
 
     it('should clear override slide', async () => {
-      const user = userEvent.setup()
-      let capturedContext: any = null
+      const user = userEvent.setup();
+      let capturedContext: any = null;
 
       const { getByText } = render(
         <ControllerProvider storeState={false}>
           <TestConsumer
             onRender={(context) => {
-              capturedContext = context
+              capturedContext = context;
             }}
           />
-        </ControllerProvider>
-      )
+        </ControllerProvider>,
+      );
 
       // First set blank
-      await user.click(getByText('Set Blank'))
+      await user.click(getByText('Set Blank'));
 
       await waitFor(() => {
-        expect(capturedContext?.overrideSlide).toBeDefined()
-      })
+        expect(capturedContext?.overrideSlide).toBeDefined();
+      });
 
       // Then clear
-      await user.click(getByText('Clear Override'))
+      await user.click(getByText('Clear Override'));
 
       await waitFor(() => {
-        expect(capturedContext?.overrideSlide).toBeUndefined()
-      })
-    })
-  })
+        expect(capturedContext?.overrideSlide).toBeUndefined();
+      });
+    });
+  });
 
   describe('Window Management', () => {
     it('should add and remove windows', async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup();
       const { getByText, getByTestId } = render(
         <ControllerProvider storeState={false}>
           <TestConsumer />
-        </ControllerProvider>
-      )
+        </ControllerProvider>,
+      );
 
-      expect(getByTestId('windows-count')).toHaveTextContent('0')
+      expect(getByTestId('windows-count')).toHaveTextContent('0');
 
-      await user.click(getByText('Add Window'))
-
-      await waitFor(() => {
-        expect(getByTestId('windows-count')).toHaveTextContent('1')
-      })
-
-      await user.click(getByText('Close Window'))
+      await user.click(getByText('Add Window'));
 
       await waitFor(() => {
-        expect(getByTestId('windows-count')).toHaveTextContent('0')
-      })
-    })
+        expect(getByTestId('windows-count')).toHaveTextContent('1');
+      });
+
+      await user.click(getByText('Close Window'));
+
+      await waitFor(() => {
+        expect(getByTestId('windows-count')).toHaveTextContent('0');
+      });
+    });
 
     it('should update a window theme', async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup();
       const { getByText, getByTestId } = render(
         <ControllerProvider storeState={false}>
           <TestConsumer />
-        </ControllerProvider>
-      )
+        </ControllerProvider>,
+      );
 
-      expect(getByTestId('window-theme')).toHaveTextContent('none')
+      expect(getByTestId('window-theme')).toHaveTextContent('none');
 
-      await user.click(getByText('Add Window'))
-
-      await waitFor(() => {
-        expect(getByTestId('windows-count')).toHaveTextContent('1')
-      })
-
-      await user.click(getByText('Set Window Theme'))
+      await user.click(getByText('Add Window'));
 
       await waitFor(() => {
-        expect(getByTestId('window-theme')).toHaveTextContent('Test Theme')
-      })
-    })
-  })
+        expect(getByTestId('windows-count')).toHaveTextContent('1');
+      });
+
+      await user.click(getByText('Set Window Theme'));
+
+      await waitFor(() => {
+        expect(getByTestId('window-theme')).toHaveTextContent('Test Theme');
+      });
+    });
+  });
 
   describe('State Persistence', () => {
     it('should not persist schedule to any storage when storeState is false', async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup();
       const { getByText } = render(
         <ControllerProvider storeState={false}>
           <TestConsumer />
-        </ControllerProvider>
-      )
+        </ControllerProvider>,
+      );
 
-      await user.click(getByText('Replace Schedule'))
+      await user.click(getByText('Replace Schedule'));
 
       await waitFor(() => {
-        const sessionSaved = sessionStorage.getItem(STORAGE_KEYS.controllerSchedule)
-        expect(sessionSaved).toBeNull()
-        const localSaved = localStorage.getItem(STORAGE_KEYS.controllerSchedule)
-        expect(localSaved).toBeNull()
-      })
-    })
+        const sessionSaved = sessionStorage.getItem(STORAGE_KEYS.controllerSchedule);
+        expect(sessionSaved).toBeNull();
+        const localSaved = localStorage.getItem(STORAGE_KEYS.controllerSchedule);
+        expect(localSaved).toBeNull();
+      });
+    });
 
     it('should persist schedule to both sessionStorage and localStorage when storeState is true', async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup();
       const { getByText } = render(
         <ControllerProvider storeState={true}>
           <TestConsumer />
-        </ControllerProvider>
-      )
+        </ControllerProvider>,
+      );
 
-      await user.click(getByText('Replace Schedule'))
+      await user.click(getByText('Replace Schedule'));
 
       await waitFor(() => {
-        const sessionSaved = sessionStorage.getItem(STORAGE_KEYS.controllerSchedule)
-        expect(sessionSaved).toBeTruthy()
-        const sessionParsed = JSON.parse(sessionSaved!)
-        expect(sessionParsed).toHaveLength(mockScheduleItems.length)
+        const sessionSaved = sessionStorage.getItem(STORAGE_KEYS.controllerSchedule);
+        expect(sessionSaved).toBeTruthy();
+        const sessionParsed = JSON.parse(sessionSaved!);
+        expect(sessionParsed).toHaveLength(mockScheduleItems.length);
 
-        const localSaved = localStorage.getItem(STORAGE_KEYS.controllerSchedule)
-        expect(localSaved).toBeTruthy()
-        const localParsed = JSON.parse(localSaved!)
-        expect(localParsed).toHaveLength(mockScheduleItems.length)
-      })
-    })
-  })
-})
+        const localSaved = localStorage.getItem(STORAGE_KEYS.controllerSchedule);
+        expect(localSaved).toBeTruthy();
+        const localParsed = JSON.parse(localSaved!);
+        expect(localParsed).toHaveLength(mockScheduleItems.length);
+      });
+    });
+  });
+});

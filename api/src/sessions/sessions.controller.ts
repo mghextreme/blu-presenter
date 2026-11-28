@@ -3,21 +3,22 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
+  NotFoundException,
   Param,
   Post,
   Put,
   Query,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
-import { Session } from 'src/entities';
+import { Session, User } from 'src/entities';
 import {
   CreateSessionDto,
   SearchSessionDto,
   UpdateSessionDto,
 } from 'src/types';
-import { SessionsServiceWithRequest } from './sessions.service';
+import { SessionsService, SessionWithRole } from './sessions.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
+import { CurrentUser, OrgId } from 'src/auth/request-context.decorator';
 import { Public } from 'src/supabase/public.decorator';
 
 @Controller('sessions')
@@ -29,36 +30,42 @@ import { Public } from 'src/supabase/public.decorator';
   required: false,
 })
 export class SessionsController {
-  constructor(private readonly sessionsService: SessionsServiceWithRequest) {}
+  constructor(private readonly sessionsService: SessionsService) {}
 
   @Post('search')
-  async search(@Body() searchSessionDto: SearchSessionDto): Promise<Session[]> {
-    return await this.sessionsService.search(searchSessionDto);
+  async search(
+    @CurrentUser() user: User,
+    @Body() searchSessionDto: SearchSessionDto,
+  ): Promise<SessionWithRole[]> {
+    return await this.sessionsService.search(searchSessionDto, user);
   }
 
   @Get('user/all')
-  async findAllForUser(): Promise<Session[]> {
-    return await this.sessionsService.findAllForUserOrgs();
+  async findAllForUser(@CurrentUser() user: User): Promise<SessionWithRole[]> {
+    return await this.sessionsService.findAllForUserOrgs(user);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<Session | null> {
-    return await this.sessionsService.findOneInAnyOrg(id);
+  async findOne(
+    @CurrentUser() user: User,
+    @Param('id') id: number,
+  ): Promise<SessionWithRole> {
+    return await this.sessionsService.findOneInAnyOrg(id, user);
   }
 
   @Post()
   @OrganizationRole('owner', 'admin', 'member')
   async create(
-    @Headers('Organization') orgId: number,
+    @OrgId() orgId: number,
     @Body() createSessionDto: CreateSessionDto,
-  ): Promise<Session> {
+  ): Promise<Session | null> {
     return await this.sessionsService.create(orgId, createSessionDto);
   }
 
   @Put(':id')
   @OrganizationRole('owner', 'admin', 'member')
   async update(
-    @Headers('Organization') orgId: number,
+    @OrgId() orgId: number,
     @Param('id') id: number,
     @Body() updateSessionDto: UpdateSessionDto,
   ): Promise<Session> {
@@ -67,10 +74,7 @@ export class SessionsController {
 
   @Delete(':id')
   @OrganizationRole('owner', 'admin')
-  async delete(
-    @Headers('Organization') orgId: number,
-    @Param('id') id: number,
-  ): Promise<void> {
+  async delete(@OrgId() orgId: number, @Param('id') id: number): Promise<void> {
     return await this.sessionsService.delete(orgId, id);
   }
 
@@ -79,8 +83,16 @@ export class SessionsController {
   async findAllForSession(
     @Param('orgId') orgId: number,
     @Param('sessionId') sessionId: number,
-    @Query('secret') secret: string,
+    @Query('secret') secret: string | undefined,
   ): Promise<Session> {
-    return await this.sessionsService.findOneBySecret(orgId, sessionId, secret);
+    const session = await this.sessionsService.findOneBySecret(
+      orgId,
+      sessionId,
+      secret,
+    );
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+    return session;
   }
 }

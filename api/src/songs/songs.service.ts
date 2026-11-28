@@ -1,10 +1,8 @@
 import {
   BadRequestException,
   ForbiddenException,
-  Inject,
   Injectable,
   NotFoundException,
-  Scope,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
@@ -20,15 +18,17 @@ import {
 import {
   SearchSongDto,
   CreateSongDto,
-  OrganizationRoleOptions,
+  OrganizationMembership,
   UpdateSongDto,
 } from 'src/types';
-import { OrganizationUser, Song } from 'src/entities';
+import { Song, User } from 'src/entities';
 import { OrganizationsService } from 'src/organizations/organizations.service';
 import { UsersService } from 'src/users/users.service';
-import { REQUEST } from '@nestjs/core';
-import { Request as ExpRequest } from 'express';
 import { SongWithRoleViewModel } from 'src/models/song-with-role.view-model';
+import {
+  membershipOrgIds,
+  withOrganizationRole,
+} from 'src/utils/organization-membership';
 import { generateRandomSecret } from 'src/utils/secret';
 import {
   SongExportData,
@@ -36,14 +36,12 @@ import {
   SongTextFormatService,
 } from './text-format/song-text-format.service';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class SongsService {
   constructor(
     @InjectRepository(Song) private readonly songsRepository: Repository<Song>,
-    @Inject(OrganizationsService)
     private readonly organizationsService: OrganizationsService,
-    @Inject(UsersService) private readonly usersService: UsersService,
-    @Inject(REQUEST) private readonly request: ExpRequest,
+    private readonly usersService: UsersService,
     private readonly songTextFormat: SongTextFormatService,
   ) {}
 
@@ -71,25 +69,24 @@ export class SongsService {
 
   async findOneInAnyOrgOrBySecret(
     id: number,
-    secret?: string,
+    secret: string | undefined,
+    user: User | undefined,
   ): Promise<SongWithRoleViewModel | null> {
-    let whereClause: FindOptionsWhere<Song> | FindOptionsWhere<Song>[] = { id };
+    let whereClause: FindOptionsWhere<Song> | FindOptionsWhere<Song>[];
 
-    let userOrgs: Partial<OrganizationUser>[] = [];
-    let userOrgIds: number[] = [];
+    let userOrgs: OrganizationMembership[] = [];
 
-    if (!!this.request.user) {
-      const user = this.request.user['internal'];
+    if (user) {
       userOrgs = await this.usersService.findUserOrganizations(user.id);
-      userOrgIds = userOrgs.map((org) => org.organization.id);
-
-      whereClause.orgId = Or(In(userOrgIds), IsNull());
-
-      if (secret) {
-        whereClause = [whereClause, { id, secret }];
-      }
+      const inUserOrgsOrPublic: FindOptionsWhere<Song> = {
+        id,
+        orgId: Or(In(membershipOrgIds(userOrgs)), IsNull()),
+      };
+      whereClause = secret
+        ? [inUserOrgsOrPublic, { id, secret }]
+        : inUserOrgsOrPublic;
     } else {
-      whereClause.secret = secret ?? IsNull();
+      whereClause = { id, secret: secret ?? IsNull() };
     }
 
     const song = await this.songsRepository.findOne({
@@ -117,48 +114,15 @@ export class SongsService {
       return null;
     }
 
-    const orgUser = userOrgs.find((org) => org.organization.id == song.orgId);
-    return {
-      ...song,
-      references: song.references,
-      organization: orgUser
-        ? {
-            ...orgUser.organization,
-            role: orgUser.role as OrganizationRoleOptions,
-          }
-        : {
-            ...song.organization,
-            role: undefined,
-          },
-    } as SongWithRoleViewModel;
-  }
-
-  async findAll(orgId: number): Promise<Song[]> {
-    return this.songsRepository.find({
-      select: {
-        id: true,
-        title: true,
-        artist: true,
-        language: true,
-        blocks: true,
-        secret: true,
-      },
-      where: {
-        orgId,
-      },
-      order: {
-        title: 'asc',
-        artist: 'asc',
-      },
-    });
+    return withOrganizationRole(song, userOrgs) as SongWithRoleViewModel;
   }
 
   async advancedSearch(
     searchDto: SearchSongDto,
+    user: User,
   ): Promise<SongWithRoleViewModel[]> {
-    const user = this.request.user['internal'];
     const userOrgs = await this.usersService.findUserOrganizations(user.id);
-    const userOrgIds = userOrgs.map((org) => org.organization.id);
+    const userOrgIds = membershipOrgIds(userOrgs);
 
     let orgIdCondition: { orgId: FindOperator<number> };
     if (searchDto.organizations && searchDto.organizations.length > 0) {
@@ -192,7 +156,7 @@ export class SongsService {
 
     const queryLang = !!searchDto.queryLanguage
       ? searchDto.queryLanguage
-      : (searchDto.languages?.length ?? 0) === 1
+      : searchDto.languages?.length === 1
         ? searchDto.languages[0]
         : 'en';
     if (searchDto.query) {
@@ -253,29 +217,15 @@ export class SongsService {
       .take(pageSize)
       .getMany();
 
-    const userOrgsMap: { [key: number]: Partial<OrganizationUser> } = {};
-    for (const org of userOrgs) {
-      userOrgsMap[org.organization.id] = org;
-    }
-
-    return songs.map((song) => {
-      const orgUser = userOrgsMap[song.orgId];
-      return {
-        ...song,
-        organization: orgUser
-          ? {
-              ...orgUser.organization,
-              role: orgUser.role as OrganizationRoleOptions,
-            }
-          : {
-              ...song.organization,
-              role: undefined,
-            },
-      } as SongWithRoleViewModel;
-    });
+    return songs.map(
+      (song) => withOrganizationRole(song, userOrgs) as SongWithRoleViewModel,
+    );
   }
 
-  async create(orgId: number, createSongDto: CreateSongDto): Promise<Song> {
+  async create(
+    orgId: number,
+    createSongDto: CreateSongDto,
+  ): Promise<Song | null> {
     const result = await this.songsRepository.insert({
       title: createSongDto.title,
       artist: createSongDto.artist,
@@ -290,7 +240,7 @@ export class SongsService {
     return this.findOne(orgId, songId);
   }
 
-  async importText(orgId: number, text: string): Promise<Song> {
+  async importText(orgId: number, text: string): Promise<Song | null> {
     let data: SongExportData;
     try {
       data = this.songTextFormat.decode(text);
@@ -303,7 +253,7 @@ export class SongsService {
 
     return await this.create(orgId, {
       title: data.title,
-      artist: data.artist,
+      artist: data.artist ?? undefined,
       language: data.language ?? undefined,
       blocks: data.blocks,
       references: data.references,
@@ -321,8 +271,13 @@ export class SongsService {
     }
 
     song.title = updateSongDto.title;
-    song.artist = updateSongDto.artist;
-    song.language = updateSongDto.language;
+    // An omitted artist or language keeps its stored value.
+    if (updateSongDto.artist !== undefined) {
+      song.artist = updateSongDto.artist;
+    }
+    if (updateSongDto.language !== undefined) {
+      song.language = updateSongDto.language;
+    }
     song.blocks = updateSongDto.blocks;
     song.references = updateSongDto.references ?? [];
 
@@ -340,16 +295,16 @@ export class SongsService {
   }
 
   async copyToOrganization(
+    orgId: number,
     songId: number,
     organizationId: number,
+    userId: number,
   ): Promise<void> {
-    const orgId = this.request.user['organization'];
     const song = await this.findOne(orgId, songId);
     if (!song) {
       throw new NotFoundException('Song not found');
     }
 
-    const userId = this.request.user['internal']?.id;
     const userRole = await this.organizationsService.userRole(
       organizationId,
       userId,
@@ -361,10 +316,10 @@ export class SongsService {
       );
     }
 
-    this.create(organizationId, {
+    await this.create(organizationId, {
       title: song.title,
-      artist: song.artist,
-      language: song.language,
+      artist: song.artist ?? undefined,
+      language: song.language ?? undefined,
       blocks: song.blocks,
       references: song.references,
     });

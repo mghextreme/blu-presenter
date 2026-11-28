@@ -1,31 +1,59 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useLoaderData, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { TFunction } from "i18next";
-import { cn } from "@/lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { BaseTheme, ILanguage, ISession, filterOrganizationsByFeature, isRoleHigherOrEqualThan, ITheme, supportedLanguagesMap, SupportedUILanguage } from "@/types";
-import { SessionSchema } from "@/types/schemas/session.schema";
-import { useAuth } from "@/hooks/useAuth";
-import { useServices } from "@/hooks/useServices";
-import { ControllerProvider } from "@/hooks/controller.provider";
-import { OrganizationBar, OptionalOrganization } from "@/components/app/organization-bar";
-import { PageContent } from "@/components/shared/page-content";
-import { NoOrganizationNotice } from "@/components/shared/no-organization-notice";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import ArrowPathIcon from "@heroicons/react/24/solid/ArrowPathIcon";
-import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
-import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
-import QRCode from "react-qr-code";
-import { toast } from "sonner";
+import { useMemo, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router';
+import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
+import { useForm, useWatch } from 'react-hook-form';
+import { TFunction } from 'i18next';
+import { cn } from '@/lib/utils';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  BaseTheme,
+  ILanguage,
+  ISession,
+  filterOrganizationsByFeature,
+  isRoleHigherOrEqualThan,
+  ITheme,
+  supportedLanguagesMap,
+  SupportedUILanguage,
+} from '@/types';
+import { SessionSchema } from '@/types/schemas/session.schema';
+import { useAuth } from '@/hooks/useAuth';
+import { useServices } from '@/hooks/useServices';
+import { ControllerProvider } from '@/hooks/controller.provider';
+import { OrganizationBar, OptionalOrganization } from '@/components/app/organization-bar';
+import { PageContent } from '@/components/shared/page-content';
+import { NoOrganizationNotice } from '@/components/shared/no-organization-notice';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
+import ChevronDownIcon from '@heroicons/react/24/solid/ChevronDownIcon';
+import CheckIcon from '@heroicons/react/24/solid/CheckIcon';
+import QRCode from 'react-qr-code';
+import { toast } from 'sonner';
+import { absoluteUrl, sharedSessionPath } from '@/lib/share-links';
 
-function LanguageAndIcon({ t, language }: Readonly<{ t: TFunction, language?: ILanguage["value"] | null }>) {
+function LanguageAndIcon({
+  t,
+  language,
+}: Readonly<{ t: TFunction; language?: ILanguage['value'] | null }>) {
   if (!language) return t('language.user');
 
   const lang = supportedLanguagesMap.find((lang) => lang.value === language);
@@ -41,33 +69,47 @@ function LanguageAndIcon({ t, language }: Readonly<{ t: TFunction, language?: IL
 }
 
 type EditSessionProps = {
-  edit?: boolean
+  edit?: boolean;
+};
+
+const newSession: ISession = {
+  id: 0,
+  name: '',
+  language: undefined,
+  theme: undefined,
+  default: false,
+};
+
+export function EditSession({ edit = true }: Readonly<EditSessionProps>) {
+  return edit ? <EditExistingSession /> : <SessionForm edit={false} data={newSession} />;
 }
 
-export function EditSession({
-  edit = true,
-}: Readonly<EditSessionProps>) {
+function EditExistingSession() {
+  const { t } = useTranslation('sessions');
+  const params = useParams();
+  const { sessionsService } = useServices();
+  const { data } = useSuspenseQuery(sessionsService.byIdQuery(Number(params.id)));
 
-  const { t } = useTranslation("sessions");
+  if (!data) {
+    throw new Error(t('error.notFound'));
+  }
+
+  return <SessionForm edit={true} data={data} />;
+}
+
+type SessionFormProps = {
+  edit: boolean;
+  data: ISession;
+};
+
+function SessionForm({ edit, data }: Readonly<SessionFormProps>) {
+  const { t } = useTranslation('sessions');
   const navigate = useNavigate();
   const { organization, organizations } = useAuth();
   const { sessionsService, themesService } = useServices();
 
-  const loadedData = useLoaderData() as ISession;
-  const data = edit ? loadedData : {
-    id: 0,
-    name: '',
-    language: undefined,
-    theme: undefined,
-    default: false,
-  };
-
-  if (!data) {
-    throw new Error("Can't find session");
-  }
-
   const organizationsToAddTo = filterOrganizationsByFeature(organizations, 'sessions').filter(
-    (org) => isRoleHigherOrEqualThan(org.role, 'admin')
+    (org) => isRoleHigherOrEqualThan(org.role, 'admin'),
   );
 
   const [selectedOrganizations, setSelectedOrganizations] = useState<OptionalOrganization[]>(() => {
@@ -75,8 +117,8 @@ export function EditSession({
       return [data.organization ?? null];
     }
 
-    const initial = organizationsToAddTo.find((org) => org.id === organization?.id)
-      ?? organizationsToAddTo[0];
+    const initial =
+      organizationsToAddTo.find((org) => org.id === organization?.id) ?? organizationsToAddTo[0];
     return initial ? [initial] : [];
   });
 
@@ -93,109 +135,91 @@ export function EditSession({
 
   const organizationId = edit ? data.organization?.id : selectedOrganizations[0]?.id;
 
-  const [isLoading, setLoading] = useState<boolean>(false);
+  const saveSession = useMutation({
+    mutationFn: ({ values, organizationId }: { values: ISession; organizationId: number }) =>
+      edit
+        ? sessionsService.update(values.id, values, organizationId)
+        : sessionsService.add(values, organizationId),
+    onSuccess: () => navigate(`/app/sessions`),
+    onError: (err) => {
+      console.error(err);
+      toast.error(t('error.save'));
+    },
+  });
 
-  const onSubmit = async (values: z.infer<typeof SessionSchema>) => {
+  const onSubmit = (values: z.infer<typeof SessionSchema>) => {
     if (!organizationId) return;
 
-    setLoading(true);
-
-    const fixedValues = {
-      ...values,
-      theme: values.theme ? values.theme.toString() : undefined,
-    };
-
-    let action;
-    if (edit) {
-      action = sessionsService.update(values.id, fixedValues, organizationId);
-    } else {
-      action = sessionsService.add(fixedValues, organizationId);
-    }
-    action
-      .then(() => {
-        navigate(`/app/sessions`);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error(t('error.save'));
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }
+    saveSession.mutate({
+      values: {
+        ...values,
+        theme: values.theme ? values.theme.toString() : undefined,
+      },
+      organizationId,
+    });
+  };
 
   const [openLanguageSelector, setOpenLanguageSelector] = useState(false);
   const [openThemeSelector, setOpenThemeSelector] = useState(false);
-  const languageSelectorListId = "session-language-selector-list";
-  const themeSelectorListId = "session-theme-selector-list";
-  
-  const defaultThemeOptions = useMemo<{label: string; value: BaseTheme | number}[]>(() => [
-    {
-      value: "lyrics",
-      label: t('theme.lyrics'),
-    },
-    {
-      value: "subtitles",
-      label: t('theme.subtitles'),
-    },
-    {
-      value: "teleprompter",
-      label: t('theme.teleprompter'),
-    },
-  ], [t]);
+  const languageSelectorListId = 'session-language-selector-list';
+  const themeSelectorListId = 'session-theme-selector-list';
 
-  const nameFromTheme = (item?: {label: string; value: BaseTheme | number} | BaseTheme | number | null) => {
+  const defaultThemeOptions = useMemo<{ label: string; value: BaseTheme | number }[]>(
+    () => [
+      {
+        value: 'lyrics',
+        label: t('theme.lyrics'),
+      },
+      {
+        value: 'subtitles',
+        label: t('theme.subtitles'),
+      },
+      {
+        value: 'teleprompter',
+        label: t('theme.teleprompter'),
+      },
+    ],
+    [t],
+  );
+
+  const { data: customThemes } = useQuery({
+    ...themesService.searchQuery({
+      organizations: organizationId ? [organizationId] : undefined,
+      itemsPerPage: 100,
+    }),
+    enabled: !!organizationId,
+  });
+  const consolidatedOptions = useMemo<{ label: string; value: BaseTheme | number }[]>(
+    () => [
+      ...(customThemes ?? []).map((theme: ITheme) => ({
+        value: theme.id,
+        label: theme.name,
+      })),
+      ...defaultThemeOptions,
+    ],
+    [customThemes, defaultThemeOptions],
+  );
+
+  const nameFromTheme = (
+    item?: { label: string; value: BaseTheme | number } | BaseTheme | number | null,
+  ) => {
     if (!item) return t('theme.letUserPick');
 
     if (typeof item === 'number' || typeof item === 'string') {
-      const customTheme = consolidatedOptions.find((theme) => theme.value.toString() == item.toString());
+      const customTheme = consolidatedOptions.find(
+        (theme) => theme.value.toString() == item.toString(),
+      );
       if (customTheme) {
         return customTheme.label;
       }
     }
 
-    return (item as {label: string})?.label;
-  }
+    return (item as { label: string })?.label;
+  };
 
-  const [consolidatedOptions, setConsolidatedOptions] = useState<{label: string; value: BaseTheme | number}[]>(defaultThemeOptions);
-  useEffect(() => {
-    if (!organizationId) {
-      return;
-    }
-
-    themesService.search({ organizations: [organizationId], itemsPerPage: 100 })
-      .then((customThemes: ITheme[]) => {
-        setConsolidatedOptions([
-          ...customThemes.map((theme: ITheme) => ({
-            value: theme.id,
-            label: theme.name,
-          })),
-          ...defaultThemeOptions,
-        ]);
-      });
-  }, [organizationId, themesService, defaultThemeOptions]);
-
-  const watchedTheme = form.watch('theme');
-  const [selectedThemeName, setSelectedThemeName] = useState<string>(() => nameFromTheme(selectedTheme));
-  useEffect(() => {
-    const theme = form.getValues('theme');
-    setSelectedThemeName(nameFromTheme(theme));
-  }, [selectedTheme, consolidatedOptions, watchedTheme]);
-  
-  const [sessionQrCodeUrl, setSessionQrCodeUrl] = useState<string | undefined>(undefined);
-  useEffect(() => {
-    if (!edit) {
-      setSessionQrCodeUrl(undefined);
-      return;
-    }
-
-    const theme = form.getValues("theme");
-
-    const currentUrl = new URL(window.location.href);
-    const themeParam = theme ? `/${theme}` : '';
-    const completeUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/session/${data?.organization?.id}/${data.id}/${data.secret ?? ''}${themeParam}`
-    setSessionQrCodeUrl(completeUrl);
-  }, [edit, data, form, watchedTheme]);
+  const watchedTheme = useWatch({ control: form.control, name: 'theme' });
+  const selectedThemeName = nameFromTheme(watchedTheme);
+  const sessionQrCodeUrl = edit ? absoluteUrl(sharedSessionPath(data, watchedTheme)) : undefined;
 
   const copyShareableUrlToClipboard = async () => {
     if (!sessionQrCodeUrl) return;
@@ -209,7 +233,7 @@ export function EditSession({
     } else {
       window.open(sessionQrCodeUrl, '_blank');
     }
-  }
+  };
 
   if (edit && !isRoleHigherOrEqualThan(data.organization?.role, 'admin')) {
     throw new Error(t('error.noPermission'));
@@ -231,7 +255,11 @@ export function EditSession({
 
   return (
     <>
-      <title>{(edit ? t('title.edit', { name: data.default ? t('session.defaultName') : data.name }) : t('title.add')) + ' - BluPresenter'}</title>
+      <title>
+        {(edit
+          ? t('title.edit', { name: data.default ? t('session.defaultName') : data.name })
+          : t('title.add')) + ' - BluPresenter'}
+      </title>
       <OrganizationBar
         organizations={edit ? [data.organization ?? null] : organizationsToAddTo}
         selected={selectedOrganizations}
@@ -272,10 +300,7 @@ export function EditSession({
                             role="combobox"
                             aria-expanded={openLanguageSelector}
                             aria-controls={languageSelectorListId}
-                            className={cn(
-                              "justify-start",
-                              !field.value && "text-muted-foreground"
-                            )}
+                            className={cn('justify-start', !field.value && 'text-muted-foreground')}
                           >
                             <LanguageAndIcon t={t} language={field.value} />
                             <ChevronDownIcon className="opacity-50 ms-auto me-0" />
@@ -284,10 +309,7 @@ export function EditSession({
                       </PopoverTrigger>
                       <PopoverContent className="p-0">
                         <Command>
-                          <CommandInput
-                            placeholder={t('language.search')}
-                            className="h-9"
-                          />
+                          <CommandInput placeholder={t('language.search')} className="h-9" />
                           <CommandList id={languageSelectorListId}>
                             <CommandEmpty>{t('language.notFound')}</CommandEmpty>
                             <CommandGroup>
@@ -295,17 +317,15 @@ export function EditSession({
                                 value={t('language.user')}
                                 key={'none'}
                                 onSelect={() => {
-                                  form.setValue("language", null);
+                                  form.setValue('language', null);
                                   setOpenLanguageSelector(false);
                                 }}
                               >
                                 {t('language.user')}
                                 <CheckIcon
                                   className={cn(
-                                    "ml-auto",
-                                    !field.value
-                                      ? "opacity-100"
-                                      : "opacity-0"
+                                    'ml-auto',
+                                    !field.value ? 'opacity-100' : 'opacity-0',
                                   )}
                                 />
                               </CommandItem>
@@ -314,17 +334,15 @@ export function EditSession({
                                   value={`${language} ${t('language.' + language)}`}
                                   key={language}
                                   onSelect={() => {
-                                    form.setValue("language", language)
+                                    form.setValue('language', language);
                                     setOpenLanguageSelector(false);
                                   }}
                                 >
                                   <LanguageAndIcon t={t} language={language} />
                                   <CheckIcon
                                     className={cn(
-                                      "ml-auto",
-                                      language === field.value
-                                        ? "opacity-100"
-                                        : "opacity-0"
+                                      'ml-auto',
+                                      language === field.value ? 'opacity-100' : 'opacity-0',
                                     )}
                                   />
                                 </CommandItem>
@@ -340,86 +358,76 @@ export function EditSession({
               />
 
               <FormField
-                  control={form.control}
-                  name="theme"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('input.theme')}</FormLabel>
-                      <Popover open={openThemeSelector} onOpenChange={setOpenThemeSelector}>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={openThemeSelector}
-                              aria-controls={themeSelectorListId}
-                              className={cn(
-                                "justify-start",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {selectedThemeName}
-                              <ChevronDownIcon className="opacity-50 ms-auto me-0" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="p-0">
-                          <Command>
-                            <CommandInput
-                              placeholder={t('theme.search')}
-                              className="h-9"
-                            />
-                            <CommandList id={themeSelectorListId}>
-                              <CommandEmpty>{t('theme.notFound')}</CommandEmpty>
-                              <CommandGroup>
+                control={form.control}
+                name="theme"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('input.theme')}</FormLabel>
+                    <Popover open={openThemeSelector} onOpenChange={setOpenThemeSelector}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openThemeSelector}
+                            aria-controls={themeSelectorListId}
+                            className={cn('justify-start', !field.value && 'text-muted-foreground')}
+                          >
+                            {selectedThemeName}
+                            <ChevronDownIcon className="opacity-50 ms-auto me-0" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-0">
+                        <Command>
+                          <CommandInput placeholder={t('theme.search')} className="h-9" />
+                          <CommandList id={themeSelectorListId}>
+                            <CommandEmpty>{t('theme.notFound')}</CommandEmpty>
+                            <CommandGroup>
+                              <CommandItem
+                                value={t('theme.letUserPick')}
+                                key={'none'}
+                                onSelect={() => {
+                                  form.setValue('theme', null);
+                                  setOpenThemeSelector(false);
+                                }}
+                              >
+                                <span className="opacity-50">{t('theme.letUserPick')}</span>
+                                <CheckIcon
+                                  className={cn(
+                                    'ml-auto',
+                                    !field.value ? 'opacity-100' : 'opacity-0',
+                                  )}
+                                />
+                              </CommandItem>
+                              {consolidatedOptions?.map((option) => (
                                 <CommandItem
-                                    value={t('theme.letUserPick')}
-                                    key={'none'}
-                                    onSelect={() => {
-                                      form.setValue("theme", null);
-                                      setOpenThemeSelector(false);
-                                    }}
-                                  >
-                                    <span className="opacity-50">{t('theme.letUserPick')}</span>
-                                    <CheckIcon
-                                      className={cn(
-                                        "ml-auto",
-                                        !field.value
-                                          ? "opacity-100"
-                                          : "opacity-0"
-                                      )}
-                                    />
-                                  </CommandItem>
-                                {consolidatedOptions?.map((option) => (
-                                  <CommandItem
-                                    value={nameFromTheme(option)}
-                                    key={option.value}
-                                    onSelect={() => {
-                                      form.setValue("theme", option.value);
-                                      setOpenThemeSelector(false);
-                                    }}
-                                  >
-                                    {nameFromTheme(option)}
-                                    <CheckIcon
-                                      className={cn(
-                                        "ml-auto",
-                                        option.value === field.value
-                                          ? "opacity-100"
-                                          : "opacity-0"
-                                      )}
-                                    />
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              
+                                  value={nameFromTheme(option)}
+                                  key={option.value}
+                                  onSelect={() => {
+                                    form.setValue('theme', option.value);
+                                    setOpenThemeSelector(false);
+                                  }}
+                                >
+                                  {nameFromTheme(option)}
+                                  <CheckIcon
+                                    className={cn(
+                                      'ml-auto',
+                                      option.value === field.value ? 'opacity-100' : 'opacity-0',
+                                    )}
+                                  />
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               {edit && sessionQrCodeUrl && (
                 <div className="flex items-stretch gap-3 mt-2">
                   <div className="max-h-[8em] aspect-square bg-white p-2 rounded-md">
@@ -428,19 +436,27 @@ export function EditSession({
                   <div className="flex-1 flex flex-col gap-2">
                     <FormLabel className="mt-3">{t('input.publicUrl')}</FormLabel>
                     <Input value={sessionQrCodeUrl} disabled />
-                    <Button onClick={copyShareableUrlToClipboard} type="button" className="w-auto me-auto">{t('button.copyUrl')}</Button>
+                    <Button
+                      onClick={copyShareableUrlToClipboard}
+                      type="button"
+                      className="w-auto me-auto"
+                    >
+                      {t('button.copyUrl')}
+                    </Button>
                   </div>
                 </div>
               )}
 
               <div className="flex flex-row align-start space-x-2">
-                <Button className="flex-0" type="submit" disabled={isLoading}>
-                  {isLoading && (
+                <Button className="flex-0" type="submit" disabled={saveSession.isPending}>
+                  {saveSession.isPending && (
                     <ArrowPathIcon className="size-4 ms-2 animate-spin"></ArrowPathIcon>
                   )}
                   {t('button.' + (edit ? 'update' : 'add'))}
                 </Button>
-                <Button className="flex-0" type="button" variant="secondary" asChild><Link to={'/app/sessions'}>{t('button.cancel')}</Link></Button>
+                <Button className="flex-0" type="button" variant="secondary" asChild>
+                  <Link to={'/app/sessions'}>{t('button.cancel')}</Link>
+                </Button>
               </div>
             </form>
           </Form>

@@ -1,11 +1,10 @@
-import { ThemeToggler } from "@/components/shared/theme-toggler";
-import { LanguageToggler } from "@/components/shared/language-toggler";
-import { ProfileButton } from "./profile-button";
-import { useAuth } from "@/hooks/useAuth";
-import { BluPresenterLogo } from "../shared/logo";
+import { ThemeToggler } from '@/components/shared/theme-toggler';
+import { LanguageToggler } from '@/components/shared/language-toggler';
+import { ProfileButton } from './profile-button';
+import { useAuth } from '@/hooks/useAuth';
+import { BluPresenterLogo } from '../shared/logo';
 
 export function AppNavbar({ children }: Readonly<{ children?: React.ReactNode }>) {
-
   const { isLoggedIn } = useAuth();
 
   return (
@@ -17,14 +16,14 @@ export function AppNavbar({ children }: Readonly<{ children?: React.ReactNode }>
         <div className="flex flex-row flex-wrap justify-center items-center gap-2">
           <LanguageToggler></LanguageToggler>
           <ThemeToggler></ThemeToggler>
-          {isLoggedIn && <>
-            <ProfileButton></ProfileButton>
-          </>}
+          {isLoggedIn && (
+            <>
+              <ProfileButton></ProfileButton>
+            </>
+          )}
         </div>
-        {children && <div className="flex items-center gap-2">
-          {children}
-        </div>}
+        {children && <div className="flex items-center gap-2">{children}</div>}
       </div>
     </header>
-  )
+  );
 }

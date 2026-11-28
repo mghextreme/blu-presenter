@@ -1,6 +1,14 @@
-import { SchedulesService } from "@/services";
-import { Params } from "react-router-dom";
+import { SchedulesService } from '@/services';
+import { Params } from 'react-router';
 
-export async function loader({ params, schedulesService, secret }: { params: Params, schedulesService: SchedulesService, secret?: string }) {
+export async function loader({
+  params,
+  schedulesService,
+  secret,
+}: {
+  params: Params;
+  schedulesService: SchedulesService;
+  secret?: string;
+}) {
   return await schedulesService.getById(Number(params.id), secret);
 }

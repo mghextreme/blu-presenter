@@ -6,13 +6,15 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
 import { createHmac } from 'node:crypto';
 import { SpotifyService } from '../spotify.service';
 import { Schedule, Song, User } from '../../entities';
 import { IPlaylistConnection } from '../../types/playlist-connection.interface';
 import { computeTracksHash } from '../../utils/schedule-references';
-import { OrganizationsBaseService } from '../../organizations/organizations.service';
+import { OrganizationsService } from '../../organizations/organizations.service';
+
+/** The signed-in user every call acts for. */
+const USER = { id: 42, nickname: 'Matias' } as User;
 
 describe('SpotifyService', () => {
   let service: SpotifyService;
@@ -79,15 +81,6 @@ describe('SpotifyService', () => {
               })[key],
           },
         },
-        {
-          provide: REQUEST,
-          useValue: {
-            user: {
-              internal: { id: 42, nickname: 'Matias' },
-              organization: 1,
-            },
-          },
-        },
         { provide: getRepositoryToken(User), useValue: usersRepositoryMock },
         {
           provide: getRepositoryToken(Schedule),
@@ -101,7 +94,7 @@ describe('SpotifyService', () => {
           useValue: { createQueryBuilder: songsQueryBuilder },
         },
         {
-          provide: OrganizationsBaseService,
+          provide: OrganizationsService,
           useValue: {
             assertFeatureEnabled: jest.fn().mockResolvedValue(undefined),
           },
@@ -151,7 +144,7 @@ describe('SpotifyService', () => {
       });
 
     const module = await buildModule();
-    service = await module.resolve<SpotifyService>(SpotifyService);
+    service = module.get<SpotifyService>(SpotifyService);
   });
 
   afterEach(() => {
@@ -160,7 +153,7 @@ describe('SpotifyService', () => {
 
   describe('getStatus', () => {
     it('reports connected when a refresh token exists', async () => {
-      expect(await service.getStatus()).toEqual({
+      expect(await service.getStatus(USER)).toEqual({
         configured: true,
         playlistsEnabled: true,
         connected: true,
@@ -174,13 +167,13 @@ describe('SpotifyService', () => {
       storedConnection = null;
       spotifyEnabled = false;
 
-      expect((await service.getStatus()).connected).toBe(false);
+      expect((await service.getStatus(USER)).connected).toBe(false);
     });
 
     it('reports enabled but not connected for a flag-only row', async () => {
       storedConnection = null;
 
-      expect(await service.getStatus()).toMatchObject({
+      expect(await service.getStatus(USER)).toMatchObject({
         playlistsEnabled: true,
         connected: false,
       });
@@ -189,7 +182,7 @@ describe('SpotifyService', () => {
     it('reports playlists disabled for users without the enabled flag', async () => {
       spotifyEnabled = false;
 
-      expect(await service.getStatus()).toMatchObject({
+      expect(await service.getStatus(USER)).toMatchObject({
         configured: true,
         playlistsEnabled: false,
       });
@@ -200,9 +193,9 @@ describe('SpotifyService', () => {
         'spotify.clientId': undefined,
         'spotify.clientSecret': undefined,
       });
-      const unconfigured = await module.resolve<SpotifyService>(SpotifyService);
+      const unconfigured = module.get<SpotifyService>(SpotifyService);
 
-      expect(await unconfigured.getStatus()).toMatchObject({
+      expect(await unconfigured.getStatus(USER)).toMatchObject({
         configured: false,
         playlistsEnabled: false,
       });
@@ -211,7 +204,7 @@ describe('SpotifyService', () => {
 
   describe('getConnectUrl', () => {
     it('builds an authorize URL with scopes and signed state', async () => {
-      const { url } = await service.getConnectUrl();
+      const { url } = await service.getConnectUrl(USER);
       const parsed = new URL(url);
 
       expect(parsed.toString()).toMatch(
@@ -236,7 +229,7 @@ describe('SpotifyService', () => {
 
     it('builds an authorize URL even when not connected (connecting!)', async () => {
       storedConnection = null;
-      await expect(service.getConnectUrl()).resolves.toHaveProperty('url');
+      await expect(service.getConnectUrl(USER)).resolves.toHaveProperty('url');
     });
 
     it('throws a clean error when Spotify is not configured', async () => {
@@ -244,9 +237,9 @@ describe('SpotifyService', () => {
         'spotify.clientId': undefined,
         'spotify.clientSecret': undefined,
       });
-      const unconfigured = await module.resolve<SpotifyService>(SpotifyService);
+      const unconfigured = module.get<SpotifyService>(SpotifyService);
 
-      await expect(unconfigured.getConnectUrl()).rejects.toThrow(
+      await expect(unconfigured.getConnectUrl(USER)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -254,15 +247,17 @@ describe('SpotifyService', () => {
     it('refuses users without the enabled flag', async () => {
       spotifyEnabled = false;
 
-      await expect(service.getConnectUrl()).rejects.toThrow(ForbiddenException);
+      await expect(service.getConnectUrl(USER)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('throws a clean error when the state secret is missing', async () => {
       const module = await buildModule({ 'spotify.stateSecret': undefined });
-      const unconfigured = await module.resolve<SpotifyService>(SpotifyService);
+      const unconfigured = module.get<SpotifyService>(SpotifyService);
 
       // Missing state secret must surface as a 400, not a crypto TypeError.
-      await expect(unconfigured.getConnectUrl()).rejects.toThrow(
+      await expect(unconfigured.getConnectUrl(USER)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -285,7 +280,7 @@ describe('SpotifyService', () => {
           jsonResponse({ id: 'sp-user-9', display_name: 'Matias Spotify' }),
         );
 
-      const status = await service.completeConnect('auth-code', state);
+      const status = await service.completeConnect(USER, 'auth-code', state);
 
       expect(status.connected).toBe(true);
       expect(status.accountId).toBe('sp-user-9');
@@ -305,23 +300,23 @@ describe('SpotifyService', () => {
 
     it('rejects a tampered state', async () => {
       await expect(
-        service.completeConnect('code', 'tampered.state'),
+        service.completeConnect(USER, 'code', 'tampered.state'),
       ).rejects.toThrow(BadRequestException);
       expect(fetchCalls()).toHaveLength(0);
     });
 
     it('rejects a state issued for a different user', async () => {
       const state = makeState(999, Date.now() + 60_000);
-      await expect(service.completeConnect('code', state)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.completeConnect(USER, 'code', state),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('rejects an expired state', async () => {
       const state = makeState(42, Date.now() - 1000);
-      await expect(service.completeConnect('code', state)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.completeConnect(USER, 'code', state),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('rejects a token response without a refresh token', async () => {
@@ -330,9 +325,9 @@ describe('SpotifyService', () => {
         jsonResponse({ access_token: 'new-access', expires_in: 3600 }),
       );
 
-      await expect(service.completeConnect('code', state)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.completeConnect(USER, 'code', state),
+      ).rejects.toThrow(BadRequestException);
       expect(usersUpdate).not.toHaveBeenCalledWith(42, expect.anything());
     });
 
@@ -340,16 +335,16 @@ describe('SpotifyService', () => {
       spotifyEnabled = false;
       const state = makeState(42, Date.now() + 60_000);
 
-      await expect(service.completeConnect('code', state)).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.completeConnect(USER, 'code', state),
+      ).rejects.toThrow(ForbiddenException);
       expect(fetchCalls()).toHaveLength(0);
     });
   });
 
   describe('disconnect', () => {
     it('clears the connection but keeps the enabled flag', async () => {
-      const status = await service.disconnect();
+      const status = await service.disconnect(USER);
 
       expect(status).toMatchObject({
         connected: false,
@@ -363,7 +358,7 @@ describe('SpotifyService', () => {
     it('clears the column for users without the enabled flag', async () => {
       spotifyEnabled = false;
 
-      await service.disconnect();
+      await service.disconnect(USER);
 
       expect(usersUpdate).toHaveBeenCalledWith(42, { spotify: null });
     });
@@ -400,9 +395,9 @@ describe('SpotifyService', () => {
     it('refuses users without the enabled flag', async () => {
       spotifyEnabled = false;
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow(ForbiddenException);
       expect(fetchCalls()).toHaveLength(0);
       expect(scheduleUpdate).not.toHaveBeenCalled();
     });
@@ -437,7 +432,7 @@ describe('SpotifyService', () => {
           jsonResponse({ snapshot_id: 'snap' }),
         );
 
-      const result = await service.syncSchedulePlaylist(1, 1, {});
+      const result = await service.syncSchedulePlaylist(USER, 1, 1, {});
 
       expect(result.action).toBe('created');
       expect(result.url).toBe('https://open.spotify.com/playlist/pl1');
@@ -502,7 +497,7 @@ describe('SpotifyService', () => {
         jsonResponse({ snapshot_id: 'snap2' }),
       );
 
-      const result = await service.syncSchedulePlaylist(1, 1, {
+      const result = await service.syncSchedulePlaylist(USER, 1, 1, {
         name: 'Ignored name',
       });
 
@@ -534,9 +529,9 @@ describe('SpotifyService', () => {
         mockSchedule({ references: [existing as any] }),
       );
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('rejects a schedule without any Spotify references', async () => {
@@ -545,17 +540,17 @@ describe('SpotifyService', () => {
         { id: 11, title: 'Song B', references: [] },
       ]);
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('throws when the schedule does not exist', async () => {
       scheduleFindOneBy.mockResolvedValue(null);
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('chunks more than 100 tracks across requests', async () => {
@@ -588,7 +583,7 @@ describe('SpotifyService', () => {
           jsonResponse({ snapshot_id: 's2' }),
         );
 
-      const result = await service.syncSchedulePlaylist(1, 1, {});
+      const result = await service.syncSchedulePlaylist(USER, 1, 1, {});
       expect(result.added).toBe(150);
 
       const calls = fetchCalls();
@@ -619,9 +614,9 @@ describe('SpotifyService', () => {
         async () => new Response('Not Found', { status: 404 }),
       );
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('surfaces the Spotify error message on 403 rejections', async () => {
@@ -654,7 +649,9 @@ describe('SpotifyService', () => {
         ),
       );
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow(
         'Spotify rejected the request: You cannot perform this action',
       );
     });
@@ -696,7 +693,10 @@ describe('SpotifyService', () => {
         )
         .mockImplementationOnce(async () => jsonResponse({ snapshot_id: 's' }));
 
-      await service.syncSchedulePlaylist(1, 1, { name: 'N', public: true });
+      await service.syncSchedulePlaylist(USER, 1, 1, {
+        name: 'N',
+        public: true,
+      });
 
       const createBody = JSON.parse(fetchCalls()[0][1]!.body as string);
       expect(createBody.public).toBe(true);
@@ -716,9 +716,9 @@ describe('SpotifyService', () => {
           jsonResponse({ error: { message: 'Rate limited' } }, 429),
         );
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow(BadRequestException);
 
       // Persisted before the track write, without a tracks hash (pending),
       // so a retry re-syncs this playlist instead of creating another one.
@@ -745,9 +745,9 @@ describe('SpotifyService', () => {
         ]),
       );
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-        'Invalid Spotify playlist URL',
-      );
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow('Invalid Spotify playlist URL');
       expect(fetchCalls()).toHaveLength(0);
     });
 
@@ -763,7 +763,7 @@ describe('SpotifyService', () => {
         )
         .mockImplementationOnce(async () => jsonResponse({ snapshot_id: 's' }));
 
-      const result = await service.syncSchedulePlaylist(1, 1, {});
+      const result = await service.syncSchedulePlaylist(USER, 1, 1, {});
       expect(result.action).toBe('created');
       const calls = scheduleUpdate.mock.calls;
       const lastCall = calls[calls.length - 1];
@@ -841,7 +841,7 @@ describe('SpotifyService', () => {
           jsonResponse({ snapshot_id: 's1' }),
         );
 
-      await service.syncSchedulePlaylist(1, 1, {});
+      await service.syncSchedulePlaylist(USER, 1, 1, {});
 
       // The refresh request must authenticate with the client credentials
       // (Authorization Code flow) — Spotify rejects secret-less refreshes
@@ -900,9 +900,9 @@ describe('SpotifyService', () => {
         async () => new Response('{"error":"invalid_grant"}', { status: 400 }),
       );
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-        'Spotify authorization is no longer valid',
-      );
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow('Spotify authorization is no longer valid');
       expect(usersUpdate).toHaveBeenCalledWith(42, {
         spotify: { enabled: true },
       });
@@ -948,7 +948,7 @@ describe('SpotifyService', () => {
           jsonResponse({ snapshot_id: 's1' }),
         );
 
-      const result = await service.syncSchedulePlaylist(1, 1, {});
+      const result = await service.syncSchedulePlaylist(USER, 1, 1, {});
       expect(result.action).toBe('synced');
 
       const calls = fetchCalls();

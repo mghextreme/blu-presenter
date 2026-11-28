@@ -1,48 +1,71 @@
-import { useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { format, parse } from "date-fns";
-import { useServices } from "@/hooks/useServices";
-import { useController } from "@/hooks/useController";
-import { useFilteredList } from "@/hooks/use-filtered-list";
-import { ISchedule } from "@/types";
-import { getLocaleConfig } from "@/components/ui/date-picker";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { QuerySearchForm } from "@/components/shared/query-search-form";
-import { LoadMoreButton } from "@/components/shared/load-more";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { Card, CardContent, CardDescription, CardHeader, CardHeaderActions, CardHeaderText, CardTitle } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import ChevronUpDownIcon from "@heroicons/react/24/solid/ChevronUpDownIcon";
-import InboxArrowDownIcon from "@heroicons/react/24/solid/InboxArrowDownIcon";
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { format, parse } from 'date-fns';
+import { useServices } from '@/hooks/useServices';
+import { useController } from '@/hooks/useController';
+import { useFilteredList } from '@/hooks/use-filtered-list';
+import { describeApiError, ISchedule } from '@/types';
+import { toast } from 'sonner';
+import { getLocaleConfig } from '@/components/ui/date-picker';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { QuerySearchForm } from '@/components/shared/query-search-form';
+import { LoadMoreButton } from '@/components/shared/load-more';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardHeaderActions,
+  CardHeaderText,
+  CardTitle,
+} from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import ChevronUpDownIcon from '@heroicons/react/24/solid/ChevronUpDownIcon';
+import InboxArrowDownIcon from '@heroicons/react/24/solid/InboxArrowDownIcon';
 
 function getTodayString(): string {
   const now = new Date();
   const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
 export function PlanSchedules() {
-  const { t, i18n } = useTranslation("controller");
+  const { t, i18n } = useTranslation('controller');
   const { schedulesService, songsService } = useServices();
-  const { schedule, replaceSchedule } = useController();
+  const { schedule, replaceSchedule } = useController((s) => ({
+    schedule: s.schedule,
+    replaceSchedule: s.replaceSchedule,
+  }));
 
   const list = useFilteredList<ISchedule>({
+    queryKey: ['schedules'],
     auto: true,
     search: (payload) => schedulesService.search(payload),
   });
 
-  const lang = i18n.language?.substring(0, 2) ?? "en";
+  const lang = i18n.language?.substring(0, 2) ?? 'en';
   const { dateFns, formatStr } = getLocaleConfig(lang);
   const todayString = getTodayString();
 
   const formatDate = (dateStr: string | null | undefined): string => {
-    if (!dateStr) return "";
+    if (!dateStr) return '';
     try {
-      const parsed = parse(dateStr, "yyyy-MM-dd", new Date());
+      const parsed = parse(dateStr, 'yyyy-MM-dd', new Date());
       return format(parsed, formatStr, { locale: dateFns });
     } catch {
       return dateStr;
@@ -63,7 +86,13 @@ export function PlanSchedules() {
   }, [list.results, todayString]);
 
   const handleLoad = async (scheduleId: number) => {
-    const fullSchedule = await schedulesService.fetchById(scheduleId);
+    let fullSchedule: ISchedule | null;
+    try {
+      fullSchedule = await schedulesService.fetchById(scheduleId);
+    } catch (e) {
+      toast.error(t('plan.schedules.loadError'), { description: await describeApiError(e) });
+      return;
+    }
     if (fullSchedule?.items) {
       replaceSchedule(songsService.resolveScheduleItems(fullSchedule.items));
     }
@@ -76,14 +105,14 @@ export function PlanSchedules() {
       <QuerySearchForm
         onSearch={list.setQuery}
         isLoading={list.isLoading}
-        placeholder={t("plan.schedules.search")}
+        placeholder={t('plan.schedules.search')}
         debounceMs={300}
       />
       <DateRangePicker
         value={list.dateRange}
         onChange={list.setDateRange}
-        placeholder={t("plan.schedules.dateRange.placeholder")}
-        clearLabel={t("plan.schedules.dateRange.clear")}
+        placeholder={t('plan.schedules.dateRange.placeholder')}
+        clearLabel={t('plan.schedules.dateRange.clear')}
       />
       <div className="flex-1 overflow-y-auto">
         {list.isLoading && list.results.length === 0 && (
@@ -91,7 +120,7 @@ export function PlanSchedules() {
         )}
         {!list.isLoading && list.results.length === 0 && (
           <div className="text-sm text-muted-foreground text-center py-4">
-            {t("plan.schedules.noResults")}
+            {t('plan.schedules.noResults')}
           </div>
         )}
         {list.results.length > 0 && (
@@ -99,7 +128,7 @@ export function PlanSchedules() {
             {todaySchedules.length > 0 && (
               <>
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  {t("plan.schedules.today")}
+                  {t('plan.schedules.today')}
                 </span>
                 {todaySchedules.map((s) => (
                   <ScheduleListItem
@@ -112,9 +141,7 @@ export function PlanSchedules() {
                     highlight
                   />
                 ))}
-                {otherSchedules.length > 0 && (
-                  <hr className="border-t border-[1px]" />
-                )}
+                {otherSchedules.length > 0 && <hr className="border-t border-[1px]" />}
               </>
             )}
             {otherSchedules.map((s) => (
@@ -127,9 +154,7 @@ export function PlanSchedules() {
                 t={t}
               />
             ))}
-            {list.hasMore && (
-              <LoadMoreButton onClick={list.loadMore} isLoading={list.isLoading} />
-            )}
+            {list.hasMore && <LoadMoreButton onClick={list.loadMore} isLoading={list.isLoading} />}
           </div>
         )}
       </div>
@@ -142,7 +167,7 @@ type ScheduleListItemProps = {
   formatDate: (date: string | null | undefined) => string;
   onLoad: (scheduleId: number) => void;
   hasControllerItems: boolean;
-  t: ReturnType<typeof useTranslation>["t"];
+  t: ReturnType<typeof useTranslation>['t'];
   highlight?: boolean;
 };
 
@@ -160,7 +185,7 @@ function ScheduleListItem({
   const loadButton = (
     <Button
       size="sm"
-      title={t("plan.schedules.load")}
+      title={t('plan.schedules.load')}
       onClick={!hasControllerItems ? () => onLoad(schedule.id) : undefined}
     >
       <InboxArrowDownIcon className="size-3" />
@@ -168,13 +193,13 @@ function ScheduleListItem({
   );
 
   return (
-    <Card variant={highlight ? "default" : "default"}>
+    <Card variant={highlight ? 'default' : 'default'}>
       <Collapsible open={isExpanded} onOpenChange={setExpanded} className="w-full">
-        <CardHeader className={highlight ? "bg-selected" : undefined}>
+        <CardHeader className={highlight ? 'bg-selected' : undefined}>
           <CardHeaderText>
             <CardTitle>{schedule.title}</CardTitle>
             <CardDescription className="flex items-center gap-2">
-              {schedule.date ? formatDate(schedule.date) : ""}
+              {schedule.date ? formatDate(schedule.date) : ''}
               {itemCount > 0 && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                   {itemCount}
@@ -185,31 +210,27 @@ function ScheduleListItem({
           <CardHeaderActions>
             {itemCount > 0 && (
               <CollapsibleTrigger asChild>
-                <Button size="sm" title={t("schedule.items.expand")}>
+                <Button size="sm" title={t('schedule.items.expand')}>
                   <ChevronUpDownIcon className="size-4" />
                 </Button>
               </CollapsibleTrigger>
             )}
             {hasControllerItems ? (
               <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  {loadButton}
-                </AlertDialogTrigger>
+                <AlertDialogTrigger asChild>{loadButton}</AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      {t("plan.schedules.confirmReplace.title")}
-                    </AlertDialogTitle>
+                    <AlertDialogTitle>{t('plan.schedules.confirmReplace.title')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      {t("plan.schedules.confirmReplace.description")}
+                      {t('plan.schedules.confirmReplace.description')}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>
-                      {t("plan.schedules.confirmReplace.cancel")}
+                      {t('plan.schedules.confirmReplace.cancel')}
                     </AlertDialogCancel>
                     <AlertDialogAction onClick={() => onLoad(schedule.id)}>
-                      {t("plan.schedules.confirmReplace.confirm")}
+                      {t('plan.schedules.confirmReplace.confirm')}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -226,7 +247,9 @@ function ScheduleListItem({
                 {schedule.items.map((item, ix) => (
                   <li key={ix} className="text-sm text-muted-foreground truncate">
                     <span className="text-xs text-muted-foreground/60 me-2">{ix + 1}.</span>
-                    {item.type === 'song' ? `${item.title} | ${(item as any).artist}` : item.title || "—"}
+                    {item.type === 'song'
+                      ? `${item.title} | ${(item as any).artist}`
+                      : item.title || '—'}
                   </li>
                 ))}
               </ul>

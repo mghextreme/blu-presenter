@@ -1,10 +1,7 @@
 import {
   ForbiddenException,
-  Inject,
   Injectable,
   NotFoundException,
-  Scope,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, In, Repository } from 'typeorm';
@@ -15,25 +12,24 @@ import {
   UpdateThemeDto,
 } from 'src/types';
 import { isRoleHigherOrEqualThan } from 'src/types/organization-role.type';
-import { OrganizationRoleOptions } from 'src/types';
-import { OrganizationUser, Theme } from 'src/entities';
+import { Theme, User } from 'src/entities';
 import { UsersService } from 'src/users/users.service';
-import { REQUEST } from '@nestjs/core';
-import { Request as ExpRequest } from 'express';
 import { OrganizationsService } from 'src/organizations/organizations.service';
 import { SessionsService } from 'src/sessions/sessions.service';
 import { ThemeWithRoleViewModel } from 'src/models/theme-with-role.view-model';
+import {
+  membershipOrgIds,
+  withOrganizationRole,
+} from 'src/utils/organization-membership';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class ThemesService {
   constructor(
     @InjectRepository(Theme)
     private readonly themesRepository: Repository<Theme>,
-    @Inject(OrganizationsService)
     private readonly organizationsService: OrganizationsService,
-    @Inject(UsersService) private readonly usersService: UsersService,
-    @Inject(SessionsService) private readonly sessionsService: SessionsService,
-    @Inject(REQUEST) private readonly request: ExpRequest,
+    private readonly usersService: UsersService,
+    private readonly sessionsService: SessionsService,
   ) {}
 
   async findOne(orgId: number, id: number): Promise<Theme | null> {
@@ -58,14 +54,12 @@ export class ThemesService {
     });
   }
 
-  async findOneInAnyOrg(id: number): Promise<ThemeWithRoleViewModel> {
-    if (this.request.user === undefined) {
-      throw new UnauthorizedException();
-    }
-
-    const user = this.request.user['internal'];
+  async findOneInAnyOrg(
+    id: number,
+    user: User,
+  ): Promise<ThemeWithRoleViewModel> {
     const userOrgs = await this.usersService.findUserOrganizations(user.id);
-    const userOrgIds = userOrgs.map((org) => org.organization.id);
+    const userOrgIds = membershipOrgIds(userOrgs);
 
     const theme = await this.themesRepository.findOne({
       select: {
@@ -94,19 +88,7 @@ export class ThemesService {
 
     await this.assertFeatureEnabledForOrg(theme.orgId);
 
-    const orgUser = userOrgs.find((org) => org.organization.id === theme.orgId);
-    return {
-      ...theme,
-      organization: orgUser
-        ? {
-            ...orgUser.organization,
-            role: orgUser.role as OrganizationRoleOptions,
-          }
-        : {
-            ...theme.organization,
-            role: undefined,
-          },
-    } as ThemeWithRoleViewModel;
+    return withOrganizationRole(theme, userOrgs) as ThemeWithRoleViewModel;
   }
 
   private async assertFeatureEnabledForOrg(orgId: number): Promise<void> {
@@ -117,8 +99,10 @@ export class ThemesService {
     }
   }
 
-  async search(searchDto: SearchThemeDto): Promise<ThemeWithRoleViewModel[]> {
-    const user = this.request.user['internal'];
+  async search(
+    searchDto: SearchThemeDto,
+    user: User,
+  ): Promise<ThemeWithRoleViewModel[]> {
     const userOrgs = await this.usersService.findUserOrganizations(user.id);
     // Only include orgs where the user is a member or above, mirroring the role
     // policy of the previous per-org list endpoint (guests may not list themes).
@@ -188,43 +172,19 @@ export class ThemesService {
       take: pageSize,
     });
 
-    const userOrgsMap: { [key: number]: Partial<OrganizationUser> } = {};
-    for (const org of userOrgs) {
-      userOrgsMap[org.organization.id] = org;
-    }
-
-    return themes.map((theme) => {
-      const orgUser = userOrgsMap[theme.orgId];
-      return {
-        ...theme,
-        organization: orgUser
-          ? {
-              ...orgUser.organization,
-              role: orgUser.role as OrganizationRoleOptions,
-            }
-          : {
-              ...theme.organization,
-              role: undefined,
-            },
-      } as ThemeWithRoleViewModel;
-    });
+    return themes.map(
+      (theme) =>
+        withOrganizationRole(theme, userOrgs) as ThemeWithRoleViewModel,
+    );
   }
 
-  async findAllForUserOrgs(): Promise<Theme[] | null> {
-    let userOrgs: Partial<OrganizationUser>[] = [];
-    let userOrgIds: number[] = [];
-
-    if (this.request.user === undefined) {
-      throw new UnauthorizedException();
-    }
-
-    const user = this.request.user['internal'];
-    userOrgs = await this.usersService.findUserOrganizations(user.id);
-    userOrgIds = userOrgs
-      .filter((org) =>
-        isFeatureEnabled(org.organization?.disabledFeatures, 'themes'),
-      )
-      .map((org) => org.organization.id);
+  async findAllForUserOrgs(user: User): Promise<Theme[]> {
+    const userOrgs = await this.usersService.findUserOrganizations(user.id);
+    const userOrgIds = membershipOrgIds(
+      userOrgs.filter((org) =>
+        isFeatureEnabled(org.organization.disabledFeatures, 'themes'),
+      ),
+    );
 
     return await this.themesRepository.find({
       select: {
@@ -362,7 +322,10 @@ export class ThemesService {
     return theme;
   }
 
-  async create(orgId: number, createThemeDto: CreateThemeDto): Promise<Theme> {
+  async create(
+    orgId: number,
+    createThemeDto: CreateThemeDto,
+  ): Promise<Theme | null> {
     await this.organizationsService.assertFeatureEnabled(orgId, 'themes');
 
     const result = await this.themesRepository.insert({
@@ -408,11 +371,11 @@ export class ThemesService {
   }
 
   async copyToOrganization(
+    orgId: number,
     themeId: number,
     organizationId: number,
+    userId: number,
   ): Promise<void> {
-    const orgId = this.request.user['organization'];
-
     await this.organizationsService.assertFeatureEnabled(orgId, 'themes', {
       notFound: true,
     });
@@ -422,7 +385,6 @@ export class ThemesService {
       throw new NotFoundException('Theme not found');
     }
 
-    const userId = this.request.user['internal']?.id;
     const userRole = await this.organizationsService.userRole(
       organizationId,
       userId,
@@ -434,7 +396,7 @@ export class ThemesService {
       );
     }
 
-    this.create(organizationId, {
+    await this.create(organizationId, {
       name: theme.name,
       extends: theme.extends,
       config: theme.config,

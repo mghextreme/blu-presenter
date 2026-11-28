@@ -60,7 +60,8 @@
     "deleteSession": "Error deleting session",
     "noPermission": "You don't have permission to access this session",
     "save": "Error saving session",
-    "search": "Error searching sessions"
+    "search": "Error searching sessions",
+    "notFound": "Session not found"
   },
   "language": {
     "search": "Search languages...",

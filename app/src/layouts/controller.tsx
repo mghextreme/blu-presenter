@@ -1,12 +1,10 @@
-import {
-  Outlet,
-} from "react-router-dom";
+import { Outlet } from 'react-router';
 
-import { ProtectedRoute } from "@/components/protected-route";
-import { ControllerNavbar } from "@/components/controller/navbar";
-import { ControllerProvider } from "@/hooks/controller.provider";
-import { BroadcastProvider } from "@/hooks/broadcast.provider";
-import { Toaster } from "@/components/ui/sonner";
+import { ProtectedRoute } from '@/components/protected-route';
+import { ControllerNavbar } from '@/components/controller/navbar';
+import { ControllerProvider } from '@/hooks/controller.provider';
+import { BroadcastProvider } from '@/hooks/broadcast.provider';
+import { Toaster } from '@/components/ui/sonner';
 
 export function ControllerLayout() {
   return (

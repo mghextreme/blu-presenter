@@ -8,22 +8,22 @@ import { ISongReference } from './song-reference.interface';
  */
 export interface ISchedulePlaylistReference extends ISongReference {
   /** Which app feature generated this reference. */
-  source: 'spotify-auto' | 'youtube-auto'
-  syncedAt?: string
-  tracksHash?: string
+  source: 'spotify-auto' | 'youtube-auto';
+  syncedAt?: string;
+  tracksHash?: string;
   /** Only sent to signed-in members. */
-  syncedByName?: string
+  syncedByName?: string;
   /** Computed by the API for the requesting user. */
-  syncedByMe?: boolean
+  syncedByMe?: boolean;
 }
 
 /** Streaming services the API can generate schedule playlists on. */
-export type SchedulePlaylistProviderId = 'spotify' | 'youtube'
+export type SchedulePlaylistProviderId = 'spotify' | 'youtube';
 
 /** Result of creating or re-syncing a schedule's generated playlist. */
 export interface ISchedulePlaylistSyncResult {
-  action: 'created' | 'synced'
-  url: string
-  added: number
-  skipped: { songId: number; title: string }[]
+  action: 'created' | 'synced';
+  url: string;
+  added: number;
+  skipped: { songId: number; title: string }[];
 }

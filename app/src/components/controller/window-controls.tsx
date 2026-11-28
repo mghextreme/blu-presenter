@@ -1,27 +1,26 @@
-import { useTranslation } from "react-i18next";
-import { cn } from "@/lib/utils";
-import { useController } from "@/hooks/useController";
-import { Button } from "@/components/ui/button";
+import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import { useController } from '@/hooks/useController';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ITheme } from "@/types";
-import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
-import XMarkIcon from "@heroicons/react/24/solid/XMarkIcon";
+} from '@/components/ui/dropdown-menu';
+import { ITheme } from '@/types';
+import ChevronDownIcon from '@heroicons/react/24/solid/ChevronDownIcon';
+import XMarkIcon from '@heroicons/react/24/solid/XMarkIcon';
 
 export function WindowControls() {
+  const { t } = useTranslation('controller');
 
-  const { t } = useTranslation("controller");
-
-  const {
-    windows,
-    closeWindow,
-    closeAllWindows,
-  } = useController();
+  const { windows, closeWindow, closeAllWindows } = useController((s) => ({
+    windows: s.windows,
+    closeWindow: s.closeWindow,
+    closeAllWindows: s.closeAllWindows,
+  }));
 
   if (windows.length === 0) return null;
 
@@ -53,8 +52,8 @@ export function WindowControls() {
             <div
               key={w.id}
               className={cn(
-                "flex items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground",
-                ix > 0 && "mt-0.5"
+                'flex items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground',
+                ix > 0 && 'mt-0.5',
               )}
             >
               <span className="truncate">

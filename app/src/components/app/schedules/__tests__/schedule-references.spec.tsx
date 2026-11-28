@@ -1,72 +1,76 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { act, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi, beforeEach } from 'vite-plus/test';
+import { act, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
-import { render } from "@/test/test-utils";
-import { ScheduleReferences } from "../schedule-references";
+import { render } from '@/test/test-utils';
+import { ScheduleReferences } from '../schedule-references';
 
 const useServicesMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@/hooks/useServices", () => ({
+vi.mock('@/hooks/useServices', () => ({
   useServices: useServicesMock,
 }));
 
-vi.mock("react-i18next", () => ({
+vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
-    i18n: { language: "en" },
+    i18n: { language: 'en' },
   }),
 }));
 
-vi.mock("sonner", () => ({
+vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
 const schedule = {
   id: 5,
-  title: "Sunday",
-  date: "2026-11-15",
-  organization: { id: 3, name: "Org", role: "member" },
+  title: 'Sunday',
+  date: '2026-11-15',
+  organization: { id: 3, name: 'Org', role: 'member' },
   references: [],
   items: [
     {
-      type: "song",
+      type: 'song',
       id: 10,
-      title: "Song A",
+      title: 'Song A',
       references: [
-        { url: "https://open.spotify.com/track/abc" },
-        { url: "https://www.youtube.com/watch?v=v1" },
+        { url: 'https://open.spotify.com/track/abc' },
+        { url: 'https://www.youtube.com/watch?v=v1' },
       ],
     },
   ],
 };
 
-describe("ScheduleReferences", () => {
+describe('ScheduleReferences', () => {
   const syncPlaylist = vi.fn();
   const getStatus = vi.fn();
   const getYoutubeStatus = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    syncPlaylist.mockResolvedValue({ action: "created", url: "u", added: 1, skipped: [] });
+    syncPlaylist.mockResolvedValue({ action: 'created', url: 'u', added: 1, skipped: [] });
     getStatus.mockResolvedValue({ configured: true, playlistsEnabled: true, connected: true });
-    getYoutubeStatus.mockResolvedValue({ configured: true, playlistsEnabled: false, connected: false });
+    getYoutubeStatus.mockResolvedValue({
+      configured: true,
+      playlistsEnabled: false,
+      connected: false,
+    });
     useServicesMock.mockReturnValue({
       spotifyService: {
         getStatusQuery: () => ({
-          queryKey: ["spotify", "status"],
+          queryKey: ['spotify', 'status'],
           queryFn: getStatus,
         }),
       },
       youtubeService: {
         getStatusQuery: () => ({
-          queryKey: ["youtube", "status"],
+          queryKey: ['youtube', 'status'],
           queryFn: getYoutubeStatus,
         }),
       },
       schedulesService: {
         syncPlaylist,
-        clearCache: vi.fn(),
+        invalidateCache: vi.fn(),
         fetchById: vi.fn().mockResolvedValue(null),
       },
     });
@@ -75,84 +79,88 @@ describe("ScheduleReferences", () => {
   const openCreateDialog = async () => {
     const user = userEvent.setup();
     render(<ScheduleReferences schedule={schedule as never} onSynced={vi.fn()} />);
-    const createButton = await screen.findByRole("button", { name: "spotify.create" });
+    const createButton = await screen.findByRole('button', { name: 'spotify.create' });
     await waitFor(() => expect(createButton).toBeEnabled());
     await user.click(createButton);
     return user;
   };
 
-  it("hides the playlist actions when playlists are not enabled for the user", async () => {
+  it('hides the playlist actions when playlists are not enabled for the user', async () => {
     getStatus.mockResolvedValue({ configured: true, playlistsEnabled: false, connected: false });
     const withReference = {
       ...schedule,
-      references: [{ url: "https://example.com/rehearsal", name: "Rehearsal notes" }],
+      references: [{ url: 'https://example.com/rehearsal', name: 'Rehearsal notes' }],
     };
     render(<ScheduleReferences schedule={withReference as never} onSynced={vi.fn()} />);
 
     await waitFor(() => expect(getStatus).toHaveBeenCalled());
     // Let the resolved status render before asserting on what's missing.
     await act(async () => {});
-    expect(screen.getByText("Rehearsal notes")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "spotify.create" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "spotify.connect" })).not.toBeInTheDocument();
+    expect(screen.getByText('Rehearsal notes')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'spotify.create' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'spotify.connect' })).not.toBeInTheDocument();
   });
 
-  it("creates a private playlist by default", async () => {
+  it('creates a private playlist by default', async () => {
     const user = await openCreateDialog();
 
-    expect(screen.getByRole("switch")).not.toBeChecked();
-    expect(screen.getByText("spotify.privateDescription")).toBeInTheDocument();
+    expect(screen.getByRole('switch')).not.toBeChecked();
+    expect(screen.getByText('spotify.privateDescription')).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "spotify.createConfirm" }));
+    await user.click(screen.getByRole('button', { name: 'spotify.createConfirm' }));
 
     await waitFor(() => {
-      expect(syncPlaylist).toHaveBeenCalledWith(5, 3, "spotify", {
-        name: "Sunday — 2026-11-15",
+      expect(syncPlaylist).toHaveBeenCalledWith(5, 3, 'spotify', {
+        name: 'Sunday — 2026-11-15',
         isPublic: false,
       });
     });
   });
 
-  it("asks whether the playlist is public in the create dialog", async () => {
+  it('asks whether the playlist is public in the create dialog', async () => {
     const user = await openCreateDialog();
 
-    await user.click(screen.getByRole("switch"));
-    expect(screen.getByText("spotify.publicDescription")).toBeInTheDocument();
+    await user.click(screen.getByRole('switch'));
+    expect(screen.getByText('spotify.publicDescription')).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "spotify.createConfirm" }));
+    await user.click(screen.getByRole('button', { name: 'spotify.createConfirm' }));
 
     await waitFor(() => {
-      expect(syncPlaylist).toHaveBeenCalledWith(5, 3, "spotify", {
-        name: "Sunday — 2026-11-15",
+      expect(syncPlaylist).toHaveBeenCalledWith(5, 3, 'spotify', {
+        name: 'Sunday — 2026-11-15',
         isPublic: true,
       });
     });
   });
 
-  it("creates a YouTube playlist when YouTube playlists are enabled", async () => {
-    getYoutubeStatus.mockResolvedValue({ configured: true, playlistsEnabled: true, connected: true });
+  it('creates a YouTube playlist when YouTube playlists are enabled', async () => {
+    getYoutubeStatus.mockResolvedValue({
+      configured: true,
+      playlistsEnabled: true,
+      connected: true,
+    });
     const user = userEvent.setup();
     render(<ScheduleReferences schedule={schedule as never} onSynced={vi.fn()} />);
 
-    const createButton = await screen.findByRole("button", { name: "youtube.create" });
+    const createButton = await screen.findByRole('button', { name: 'youtube.create' });
     await waitFor(() => expect(createButton).toBeEnabled());
     await user.click(createButton);
-    expect(screen.getByText("youtube.privateDescription")).toBeInTheDocument();
+    expect(screen.getByText('youtube.privateDescription')).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "youtube.createConfirm" }));
+    await user.click(screen.getByRole('button', { name: 'youtube.createConfirm' }));
 
     await waitFor(() => {
-      expect(syncPlaylist).toHaveBeenCalledWith(5, 3, "youtube", {
-        name: "Sunday — 2026-11-15",
+      expect(syncPlaylist).toHaveBeenCalledWith(5, 3, 'youtube', {
+        name: 'Sunday — 2026-11-15',
         isPublic: false,
       });
     });
   });
 
-  it("hides YouTube when its playlists are not enabled", async () => {
+  it('hides YouTube when its playlists are not enabled', async () => {
     render(<ScheduleReferences schedule={schedule as never} onSynced={vi.fn()} />);
 
-    await screen.findByRole("button", { name: "spotify.create" });
-    expect(screen.queryByRole("button", { name: "youtube.create" })).not.toBeInTheDocument();
+    await screen.findByRole('button', { name: 'spotify.create' });
+    expect(screen.queryByRole('button', { name: 'youtube.create' })).not.toBeInTheDocument();
   });
 });

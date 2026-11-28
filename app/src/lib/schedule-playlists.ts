@@ -1,5 +1,5 @@
-import { IScheduleItem, ISongReference } from "@/types";
-import { ISchedulePlaylistReference } from "@/types/schedule-playlist-reference.interface";
+import { IScheduleItem, ISongReference } from '@/types';
+import { ISchedulePlaylistReference } from '@/types/schedule-playlist-reference.interface';
 
 /**
  * Schedule playlist sync helpers (Spotify, YouTube). Mirrors the API

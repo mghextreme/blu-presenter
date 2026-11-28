@@ -1,12 +1,20 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { UseFormReturn } from "react-hook-form";
-import { useTranslation } from "react-i18next";
-import { z } from "zod";
-import { cn } from "@/lib/utils";
-import { transposeLine, deriveAcronym, isBlockEqual, stripInvisibleChars } from "@/lib/songs";
-import { SongPartLineType } from "@/types";
-import { SongSchema } from "@/types/schemas/song.schema";
-import { SongEditorSeparator } from "@/components/app/songs/song-editor-separator";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { UseFormReturn } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
+import { z } from 'zod';
+import { cn } from '@/lib/utils';
+import { transposeLine, deriveAcronym, isBlockEqual, stripInvisibleChars } from '@/lib/songs';
+import { SongPartLineType } from '@/types';
+import { SongSchema } from '@/types/schemas/song.schema';
+import { SongEditorSeparator } from '@/components/app/songs/song-editor-separator';
 import {
   IEditorPart,
   SepPos,
@@ -22,11 +30,11 @@ import {
   splitAtDoubleEmpty,
   parseEditorDOM as parseEditorDOMUtil,
   renderEditorDOM as renderEditorDOMUtil,
-} from "@/lib/song-editor-utils";
-import { useCursorManagement, restoreCursorOnElement } from "@/hooks/useCursorManagement";
-import MusicalNoteIcon from "@heroicons/react/24/solid/MusicalNoteIcon";
-import ChatBubbleLeftIcon from "@heroicons/react/24/solid/ChatBubbleLeftIcon";
-import Bars3BottomLeftIcon from "@heroicons/react/24/solid/Bars3BottomLeftIcon";
+} from '@/lib/song-editor-utils';
+import { useCursorManagement, restoreCursorOnElement } from '@/hooks/useCursorManagement';
+import MusicalNoteIcon from '@heroicons/react/24/solid/MusicalNoteIcon';
+import ChatBubbleLeftIcon from '@heroicons/react/24/solid/ChatBubbleLeftIcon';
+import Bars3BottomLeftIcon from '@heroicons/react/24/solid/Bars3BottomLeftIcon';
 
 interface SongEditorProps {
   form: UseFormReturn<z.infer<typeof SongSchema>>;
@@ -39,16 +47,22 @@ export interface SongEditorHandle {
 
 function lineTypeIcon(type: SongPartLineType) {
   switch (type) {
-    case 'chords': return <MusicalNoteIcon className="size-3" />;
-    case 'comments': return <ChatBubbleLeftIcon className="size-3" />;
-    default: return <Bars3BottomLeftIcon className="size-3" />;
+    case 'chords':
+      return <MusicalNoteIcon className="size-3" />;
+    case 'comments':
+      return <ChatBubbleLeftIcon className="size-3" />;
+    default:
+      return <Bars3BottomLeftIcon className="size-3" />;
   }
 }
 
 // ─── Component ──────────────────────────────────────────────────
 
-export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function SongEditor({ form, onCursorFocus }, ref) {
-  const { t } = useTranslation("songs");
+export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function SongEditor(
+  { form, onCursorFocus },
+  ref,
+) {
+  const { t } = useTranslation('songs');
   const blocks = form.getValues('blocks') ?? [];
   const [parts, setParts] = useState<IEditorPart[]>(() => blocksToEditorParts(blocks));
   const partsRef = useRef(parts);
@@ -60,18 +74,27 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
 
   // ─── Cursor helpers ───────────────────────────────────────────
 
-  const { saveCursor, restoreCursor, saveSelection, restoreSelection } = useCursorManagement(editorRef);
+  const { saveCursor, restoreCursor, saveSelection, restoreSelection } =
+    useCursorManagement(editorRef);
 
   // ─── Form sync (debounced) ────────────────────────────────────
 
-  const syncToForm = useCallback((updated: IEditorPart[]) => {
-    if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-    syncTimeoutRef.current = setTimeout(() => {
-      form.setValue('blocks', editorPartsToBlocks(updated));
-    }, 300);
-  }, [form]);
+  const syncToForm = useCallback(
+    (updated: IEditorPart[]) => {
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = setTimeout(() => {
+        form.setValue('blocks', editorPartsToBlocks(updated));
+      }, 300);
+    },
+    [form],
+  );
 
-  useEffect(() => () => { if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current); }, []);
+  useEffect(
+    () => () => {
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    },
+    [],
+  );
 
   // ─── Track focused block and line ──────────────────────────────
 
@@ -100,15 +123,26 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
     const partDivs = editor.querySelectorAll('.editor-part');
     let blockIndex = -1;
     for (let i = 0; i < partDivs.length; i++) {
-      if (partDivs[i] === partNode) { blockIndex = i; break; }
+      if (partDivs[i] === partNode) {
+        blockIndex = i;
+        break;
+      }
     }
     if (blockIndex < 0) return;
 
     let lineIndex = 0;
-    if (lineNode && lineNode !== editor && lineNode instanceof HTMLElement && lineNode.classList.contains('editor-line')) {
+    if (
+      lineNode &&
+      lineNode !== editor &&
+      lineNode instanceof HTMLElement &&
+      lineNode.classList.contains('editor-line')
+    ) {
       const lineEls = partNode.querySelectorAll('.editor-line');
       for (let i = 0; i < lineEls.length; i++) {
-        if (lineEls[i] === lineNode) { lineIndex = i; break; }
+        if (lineEls[i] === lineNode) {
+          lineIndex = i;
+          break;
+        }
       }
     }
 
@@ -127,24 +161,31 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
 
   // ─── Render DOM from state ────────────────────────────────────
 
-  const renderEditorDOM = useCallback((data: IEditorPart[]) => {
-    const editor = editorRef.current;
-    if (!editor) return;
-    isRendering.current = true;
-    const cursor = saveCursor();
-    renderEditorDOMUtil(editor, data, cursor, restoreCursorOnElement);
-    isRendering.current = false;
-  }, [saveCursor]);
+  const renderEditorDOM = useCallback(
+    (data: IEditorPart[]) => {
+      const editor = editorRef.current;
+      if (!editor) return;
+      isRendering.current = true;
+      const cursor = saveCursor();
+      renderEditorDOMUtil(editor, data, cursor, restoreCursorOnElement);
+      isRendering.current = false;
+    },
+    [saveCursor],
+  );
 
   // ─── External handle ──────────────────────────────────────────
 
-  useImperativeHandle(ref, () => ({
-    loadBlocks: (blocks) => {
-      const newParts = blocksToEditorParts(blocks);
-      setParts(newParts);
-      renderEditorDOM(newParts);
-    },
-  }), [renderEditorDOM]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      loadBlocks: (blocks) => {
+        const newParts = blocksToEditorParts(blocks);
+        setParts(newParts);
+        renderEditorDOM(newParts);
+      },
+    }),
+    [renderEditorDOM],
+  );
 
   // ─── Parse DOM back to state ──────────────────────────────────
 
@@ -254,7 +295,10 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
             const walker = document.createTreeWalker(child, NodeFilter.SHOW_TEXT);
             let tn: Node | null;
             while ((tn = walker.nextNode())) {
-              if (tn === container) { acc += offset; break; }
+              if (tn === container) {
+                acc += offset;
+                break;
+              }
               acc += (tn as Text).length;
             }
           }
@@ -342,8 +386,9 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
 
       // Remove leading siblings of endLineEl within endPart, then endLineEl itself.
       while (endLineEl.previousElementSibling) endLineEl.previousElementSibling.remove();
-      const tailLines = Array.from(endPart.querySelectorAll<HTMLElement>('.editor-line'))
-        .filter((el) => el !== endLineEl);
+      const tailLines = Array.from(endPart.querySelectorAll<HTMLElement>('.editor-line')).filter(
+        (el) => el !== endLineEl,
+      );
       endLineEl.remove();
 
       // Move any lines that were after endLineEl into startPart, then drop endPart and the separator.
@@ -390,7 +435,14 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
   // ─── Keydown: backspace merge at part boundary ────────────────
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowUp' && e.key !== 'ArrowDown' && e.key !== 'Enter') return;
+    if (
+      e.key !== 'Backspace' &&
+      e.key !== 'Delete' &&
+      e.key !== 'ArrowUp' &&
+      e.key !== 'ArrowDown' &&
+      e.key !== 'Enter'
+    )
+      return;
     const editor = editorRef.current;
     const sel = window.getSelection();
     if (!editor || !sel || sel.rangeCount === 0) return;
@@ -402,7 +454,12 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
       if (lineNode instanceof HTMLElement && lineNode.classList.contains('editor-line')) break;
       lineNode = lineNode.parentNode;
     }
-    if (!lineNode || !(lineNode instanceof HTMLElement) || !lineNode.classList.contains('editor-line')) return;
+    if (
+      !lineNode ||
+      !(lineNode instanceof HTMLElement) ||
+      !lineNode.classList.contains('editor-line')
+    )
+      return;
 
     const partDiv = lineNode.closest('.editor-part');
     if (!partDiv) return;
@@ -430,7 +487,8 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
         e.preventDefault();
         const newRange = document.createRange();
         const last = lineNode.lastChild;
-        if (last && last.nodeType === Node.TEXT_NODE) newRange.setStart(last, (last as Text).length);
+        if (last && last.nodeType === Node.TEXT_NODE)
+          newRange.setStart(last, (last as Text).length);
         else newRange.setStart(lineNode, lineNode.childNodes.length);
         newRange.collapse(true);
         sel.removeAllRanges();
@@ -443,11 +501,12 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
     // split both lines at the same column so chords stay aligned.
     if (e.key === 'Enter' && !e.shiftKey) {
       const prevSibling = lineNode.previousElementSibling;
-      const isLyricsLine = !lineNode.classList.contains('text-primary')
-        && !lineNode.classList.contains('italic');
-      const prevIsChords = prevSibling instanceof HTMLElement
-        && prevSibling.classList.contains('editor-line')
-        && prevSibling.classList.contains('text-primary');
+      const isLyricsLine =
+        !lineNode.classList.contains('text-primary') && !lineNode.classList.contains('italic');
+      const prevIsChords =
+        prevSibling instanceof HTMLElement &&
+        prevSibling.classList.contains('editor-line') &&
+        prevSibling.classList.contains('text-primary');
       if (!isLyricsLine || !prevIsChords) return;
 
       // Compute caret offset within the lyric line's text.
@@ -459,7 +518,10 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
         }
       } else if (lineNode.contains(range.startContainer)) {
         for (const child of Array.from(lineNode.childNodes)) {
-          if (child === range.startContainer) { offset += range.startOffset; break; }
+          if (child === range.startContainer) {
+            offset += range.startOffset;
+            break;
+          }
           offset += child.textContent?.length ?? 0;
         }
       } else {
@@ -522,9 +584,9 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
     }
 
     if (e.key === 'Backspace') {
-      const isAtStart = range.startOffset === 0 && (
-        range.startContainer === lineNode || range.startContainer === lineNode.firstChild
-      );
+      const isAtStart =
+        range.startOffset === 0 &&
+        (range.startContainer === lineNode || range.startContainer === lineNode.firstChild);
       if (!isAtStart) return;
       if (lineNode !== partDiv.querySelector('.editor-line')) return;
 
@@ -550,16 +612,21 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
       const target = prevPart.querySelectorAll('.editor-line')[prevLineCount];
       let idx = 0;
       for (let i = 0; i < allLines.length; i++) {
-        if (allLines[i] === target) { idx = i; break; }
+        if (allLines[i] === target) {
+          idx = i;
+          break;
+        }
       }
       restoreCursor(idx, 0);
     }
 
     if (e.key === 'Delete') {
       const textNode = lineNode.firstChild;
-      const textLen = textNode && textNode.nodeType === Node.TEXT_NODE ? (textNode as Text).length : 0;
-      const isAtEnd = (range.startContainer === lineNode && range.startOffset === lineNode.childNodes.length)
-        || (range.startContainer === textNode && range.startOffset === textLen);
+      const textLen =
+        textNode && textNode.nodeType === Node.TEXT_NODE ? (textNode as Text).length : 0;
+      const isAtEnd =
+        (range.startContainer === lineNode && range.startOffset === lineNode.childNodes.length) ||
+        (range.startContainer === textNode && range.startOffset === textLen);
       if (!isAtEnd) return;
 
       const partLines = partDiv.querySelectorAll('.editor-line');
@@ -587,7 +654,10 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
       const target = partDiv.querySelectorAll('.editor-line')[curLineCount - 1];
       let idx = 0;
       for (let i = 0; i < allLines.length; i++) {
-        if (allLines[i] === target) { idx = i; break; }
+        if (allLines[i] === target) {
+          idx = i;
+          break;
+        }
       }
       restoreCursor(idx, textLen);
     }
@@ -608,7 +678,7 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
       const seps: SepPos[] = [];
       for (const sepEl of Array.from(editor.querySelectorAll<HTMLElement>(`[${SEP_ATTR}]`))) {
         const keyStr = sepEl.getAttribute(SEP_ATTR)!;
-        const pi = currentParts.findIndex(p => String(p.key) === keyStr);
+        const pi = currentParts.findIndex((p) => String(p.key) === keyStr);
         if (pi < 0) continue;
         const rect = sepEl.getBoundingClientRect();
         seps.push({ key: Number(keyStr), partIndex: pi, top: rect.top - editorRect.top });
@@ -622,7 +692,8 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
         for (let li = 0; li < lineEls.length && li < currentParts[pi].lines.length; li++) {
           const rect = lineEls[li].getBoundingClientRect();
           gLines.push({
-            partIndex: pi, lineIndex: li,
+            partIndex: pi,
+            lineIndex: li,
             line: currentParts[pi].lines[li],
             top: rect.top - editorRect.top,
             height: rect.height,
@@ -643,7 +714,10 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
     const ro = new ResizeObserver(update);
     ro.observe(editor);
     update();
-    return () => { mo.disconnect(); ro.disconnect(); };
+    return () => {
+      mo.disconnect();
+      ro.disconnect();
+    };
   }, [forceOverlayUpdate]);
 
   // ─── Line type toggle ─────────────────────────────────────────
@@ -651,8 +725,13 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
   const toggleLineType = (partIndex: number, lineIndex: number) => {
     const newParts = partsRef.current.map((p, pi) =>
       pi === partIndex
-        ? { ...p, lines: p.lines.map((l, li) => li === lineIndex ? { ...l, type: cycleLineType(l.type), manuallySet: true } : l) }
-        : p
+        ? {
+            ...p,
+            lines: p.lines.map((l, li) =>
+              li === lineIndex ? { ...l, type: cycleLineType(l.type), manuallySet: true } : l,
+            ),
+          }
+        : p,
     );
     partsRef.current = newParts;
     setParts(newParts);
@@ -661,7 +740,9 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
     if (editor) {
       const partDiv = editor.querySelectorAll('.editor-part')[partIndex];
       if (partDiv) {
-        const lineEl = partDiv.querySelectorAll('.editor-line')[lineIndex] as HTMLElement | undefined;
+        const lineEl = partDiv.querySelectorAll('.editor-line')[lineIndex] as
+          | HTMLElement
+          | undefined;
         if (lineEl) lineEl.className = lineClassName(newParts[partIndex].lines[lineIndex].type);
       }
     }
@@ -674,16 +755,16 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
     const newAcronym = name ? deriveAcronym(name) : undefined;
     const changedPart = partsRef.current[partIndex];
     const changedLines = changedPart.lines
-      .filter(l => l.content.trim() !== '')
-      .map(l => ({ type: l.type, content: l.content }));
+      .filter((l) => l.content.trim() !== '')
+      .map((l) => ({ type: l.type, content: l.content }));
 
     const newParts = partsRef.current.map((p, i) => {
       if (i === partIndex) {
         return { ...p, name: name || undefined, acronym: newAcronym };
       }
       const pLines = p.lines
-        .filter(l => l.content.trim() !== '')
-        .map(l => ({ type: l.type, content: l.content }));
+        .filter((l) => l.content.trim() !== '')
+        .map((l) => ({ type: l.type, content: l.content }));
       if (isBlockEqual({ lines: changedLines }, { lines: pLines })) {
         return { ...p, name: name || undefined, acronym: newAcronym };
       }
@@ -704,13 +785,21 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
 
   const handleDuplicatePart = (partIndex: number) => {
     const part = partsRef.current[partIndex];
-    const dup: IEditorPart = { key: nextPartKey(), name: part.name, acronym: part.acronym, lines: part.lines.map(l => ({ ...l })) };
+    const dup: IEditorPart = {
+      key: nextPartKey(),
+      name: part.name,
+      acronym: part.acronym,
+      lines: part.lines.map((l) => ({ ...l })),
+    };
     const newParts = [...partsRef.current];
     newParts.splice(partIndex + 1, 0, dup);
     partsRef.current = newParts;
     setParts(newParts);
     syncToForm(newParts);
-    requestAnimationFrame(() => { renderEditorDOM(newParts); forceOverlayUpdate(); });
+    requestAnimationFrame(() => {
+      renderEditorDOM(newParts);
+      forceOverlayUpdate();
+    });
   };
 
   const handleRemovePart = (partIndex: number) => {
@@ -719,7 +808,10 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
     partsRef.current = newParts;
     setParts(newParts);
     syncToForm(newParts);
-    requestAnimationFrame(() => { renderEditorDOM(newParts); forceOverlayUpdate(); });
+    requestAnimationFrame(() => {
+      renderEditorDOM(newParts);
+      forceOverlayUpdate();
+    });
   };
 
   // ─── Transpose / swap-accidentals ────────────────────────────
@@ -742,7 +834,8 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
     if (!editor) return new Set();
 
     const sel = window.getSelection();
-    const hasSelection = sel && !sel.isCollapsed && sel.rangeCount > 0 && editor.contains(sel.anchorNode);
+    const hasSelection =
+      sel && !sel.isCollapsed && sel.rangeCount > 0 && editor.contains(sel.anchorNode);
 
     const allLineEls = Array.from(editor.querySelectorAll<HTMLElement>('.editor-line'));
     const indices = new Set<number>();
@@ -781,7 +874,10 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
           let i = 0;
           const set = new Set<number>();
           for (const part of partsRef.current)
-            for (const line of part.lines) { if (line.type === 'chords') set.add(i); i++; }
+            for (const line of part.lines) {
+              if (line.type === 'chords') set.add(i);
+              i++;
+            }
           return set;
         })()
       : getTargetChordLineIndices();
@@ -884,11 +980,11 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
                 type="button"
                 title={t(`input.lineType.${gl.line.type}`)}
                 className={cn(
-                  "absolute left-0 flex items-center justify-center w-8 cursor-pointer transition-colors",
-                  "hover:bg-accent text-muted-foreground hover:text-accent-foreground",
-                  gl.line.manuallySet && "text-foreground",
-                  gl.line.type === 'chords' && "text-primary",
-                  gl.line.type === 'comments' && "text-green-600 dark:text-green-600",
+                  'absolute left-0 flex items-center justify-center w-8 cursor-pointer transition-colors',
+                  'hover:bg-accent text-muted-foreground hover:text-accent-foreground',
+                  gl.line.manuallySet && 'text-foreground',
+                  gl.line.type === 'chords' && 'text-primary',
+                  gl.line.type === 'comments' && 'text-green-600 dark:text-green-600',
                 )}
                 style={{ top: gl.top, height: gl.height }}
                 onClick={() => toggleLineType(gl.partIndex, gl.lineIndex)}
@@ -925,12 +1021,12 @@ export const SongEditor = forwardRef<SongEditorHandle, SongEditorProps>(function
               suppressContentEditableWarning
               spellCheck={false}
               className={cn(
-                "font-source-code-pro text-sm leading-6 outline-none whitespace-pre overflow-x-auto",
-                "px-3 py-2",
-                "border border-l-0 border-input rounded-r-md shadow-xs dark:bg-input/30",
-                "focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]",
-                "[&_.editor-line]:min-h-[1.5rem] [&_.editor-line]:whitespace-pre",
-                "[&_.editor-separator]:cursor-default",
+                'font-source-code-pro text-sm leading-6 outline-none whitespace-pre overflow-x-auto',
+                'px-3 py-2',
+                'border border-l-0 border-input rounded-r-md shadow-xs dark:bg-input/30',
+                'focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]',
+                '[&_.editor-line]:min-h-[1.5rem] [&_.editor-line]:whitespace-pre',
+                '[&_.editor-separator]:cursor-default',
               )}
               onInput={handleInput}
               onKeyDown={handleKeyDown}

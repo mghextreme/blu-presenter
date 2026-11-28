@@ -1,19 +1,19 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { useTranslation } from "react-i18next";
-import CommandLineIcon from "@heroicons/react/24/solid/CommandLineIcon";
+} from '@/components/ui/dialog';
+import { useTranslation } from 'react-i18next';
+import CommandLineIcon from '@heroicons/react/24/solid/CommandLineIcon';
 
 type Shortcut = {
-  keys: string[]
-  altKeys?: string[]
-  label: string
-}
+  keys: string[];
+  altKeys?: string[];
+  label: string;
+};
 
 function Kbd({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -24,14 +24,17 @@ function Kbd({ children }: Readonly<{ children: React.ReactNode }>) {
 }
 
 export function ShortcutsDialogButton() {
-
-  const { t } = useTranslation("controller");
+  const { t } = useTranslation('controller');
 
   // Keep in sync with the hotkeys registered in controller.provider.tsx
   const shortcuts: Shortcut[] = [
     { keys: ['←'], altKeys: ['Page Up'], label: t('shortcuts.previous') },
     { keys: ['→'], altKeys: ['Page Down'], label: t('shortcuts.next') },
-    { keys: ['Ctrl', '←'], altKeys: ['Ctrl', 'Page Up'], label: t('shortcuts.previousScheduleItem') },
+    {
+      keys: ['Ctrl', '←'],
+      altKeys: ['Ctrl', 'Page Up'],
+      label: t('shortcuts.previousScheduleItem'),
+    },
     { keys: ['Ctrl', '→'], altKeys: ['Ctrl', 'Page Down'], label: t('shortcuts.nextScheduleItem') },
     { keys: ['Ctrl', 'B'], label: t('shortcuts.blank') },
   ];
@@ -54,13 +57,17 @@ export function ShortcutsDialogButton() {
                 <td className="py-2 pe-4 align-middle">{shortcut.label}</td>
                 <td className="py-2 pe-4 align-middle" colSpan={shortcut.altKeys ? 1 : 2}>
                   <span className="flex items-center justify-center gap-1 whitespace-nowrap">
-                    {shortcut.keys.map((key) => <Kbd key={key}>{key}</Kbd>)}
+                    {shortcut.keys.map((key) => (
+                      <Kbd key={key}>{key}</Kbd>
+                    ))}
                   </span>
                 </td>
                 {shortcut.altKeys && (
                   <td className="py-2 align-middle ">
                     <span className="flex items-center justify-center gap-1 whitespace-nowrap">
-                      {shortcut.altKeys.map((key) => <Kbd key={key}>{key}</Kbd>)}
+                      {shortcut.altKeys.map((key) => (
+                        <Kbd key={key}>{key}</Kbd>
+                      ))}
                     </span>
                   </td>
                 )}

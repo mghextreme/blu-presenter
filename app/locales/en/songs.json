@@ -38,7 +38,9 @@
       "swap": "Swap accidentals (♯ ↔ ♭)"
     },
     "partName": "Part name",
-    "partAcronym": "Acronym (short label)"
+    "partAcronym": "Acronym (short label)",
+    "expand": "Expand part",
+    "organization": "Organization"
   },
   "searchInput": {
     "query": "Search query",
@@ -143,7 +145,8 @@
     "export": "Error exporting song",
     "noPermission": "You don't have permission to access this song",
     "save": "Error saving song",
-    "search": "Search failed"
+    "search": "Search failed",
+    "notFound": "Song not found"
   },
   "warning": {
     "uppercase": {
@@ -160,7 +163,8 @@
     "spanish": "Spanish",
     "french": "French",
     "german": "German",
-    "italian": "Italian"
+    "italian": "Italian",
+    "notFound": "No language found."
   },
   "organizations": {
     "defaultName": "Personal space",

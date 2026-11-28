@@ -1,54 +1,59 @@
-import { useState } from "react";
-import { Card, CardDescription, CardHeader, CardHeaderActions, CardHeaderText, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ISchedule, IScheduleItem, IScheduleSong, IScheduleText } from "@/types";
-import EyeIcon from "@heroicons/react/24/solid/EyeIcon";
-import MusicalNoteIcon from "@heroicons/react/24/solid/MusicalNoteIcon";
-import PencilIcon from "@heroicons/react/24/solid/PencilIcon";
-import ShareIcon from "@heroicons/react/24/solid/ShareIcon";
-import PlayIcon from "@heroicons/react/24/solid/PlayIcon";
-import { parse, format } from "date-fns";
-import { Link, useLoaderData, useParams } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import { getLocaleConfig } from "@/components/ui/date-picker";
-import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
-import { OrganizationBar } from "@/components/app/organization-bar";
-import { PageContent } from "@/components/shared/page-content";
-import { ScheduleReferences } from "@/components/app/schedules/schedule-references";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardHeaderActions,
+  CardHeaderText,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { IScheduleItem, IScheduleSong, IScheduleText } from '@/types';
+import EyeIcon from '@heroicons/react/24/solid/EyeIcon';
+import MusicalNoteIcon from '@heroicons/react/24/solid/MusicalNoteIcon';
+import PencilIcon from '@heroicons/react/24/solid/PencilIcon';
+import ShareIcon from '@heroicons/react/24/solid/ShareIcon';
+import PlayIcon from '@heroicons/react/24/solid/PlayIcon';
+import { parseISO, format } from 'date-fns';
+import { Link, useParams } from 'react-router';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { getLocaleConfig } from '@/components/ui/date-picker';
+import { useAuth } from '@/hooks/useAuth';
+import { useServices } from '@/hooks/useServices';
+import { toast } from 'sonner';
+import { OrganizationBar } from '@/components/app/organization-bar';
+import { PageContent } from '@/components/shared/page-content';
+import { ScheduleReferences } from '@/components/app/schedules/schedule-references';
+import {
+  absoluteUrl,
+  sharedRehearsalPath,
+  sharedSchedulePath,
+  sharedSongPath,
+} from '@/lib/share-links';
 
 export function ViewSchedule() {
-  const { t, i18n } = useTranslation("schedules");
+  const { t, i18n } = useTranslation('schedules');
   const { isLoggedIn } = useAuth();
   const params = useParams();
-  const loadedData = useLoaderData() as ISchedule | null;
-
-  // Local mirror of the loaded schedule so the Spotify playlist action can
-  // refresh the references after creating/re-syncing. Reset when navigating
-  // to a different schedule within the same component instance.
-  const [data, setData] = useState<ISchedule | null>(loadedData);
-  const [dataId, setDataId] = useState<number | undefined>(loadedData?.id);
-  if (loadedData && loadedData.id !== dataId) {
-    setDataId(loadedData.id);
-    setData(loadedData);
-  }
+  const { schedulesService } = useServices();
+  const { data } = useSuspenseQuery(schedulesService.byIdQuery(Number(params.id), params.secret));
 
   if (!data) {
-    throw new Error("Can't find schedule");
+    throw new Error(t('error.notFound'));
   }
 
-  const lang = i18n.language?.substring(0, 2) ?? "en";
+  const lang = i18n.language?.substring(0, 2) ?? 'en';
   const { dateFns, formatStr } = getLocaleConfig(lang);
 
-  let formattedDate = "";
+  let formattedDate = '';
   if (data.date) {
-    const parsed = parse(data.date, "yyyy-MM-dd", new Date());
+    const parsed = parseISO(data.date);
     formattedDate = format(parsed, formatStr, { locale: dateFns });
   }
 
   const getSongLink = (item: IScheduleItem): string | null => {
-    if (item.type !== "song") {
+    if (item.type !== 'song') {
       return null;
     }
 
@@ -57,26 +62,20 @@ export function ViewSchedule() {
       return `/app/songs/${songItem.id}/view`;
     }
 
-    let songUrl = `/shared/view/${songItem.id}/`;
-    if (songItem.secret) {
-      songUrl += songItem.secret;
-    }
-
-    return songUrl;
+    return sharedSongPath(songItem);
   };
 
   const getRehearsalLink = (): string => {
     if (params.secret) {
-      return `/shared/schedules/${data.id}/${params.secret}/rehearsal`;
+      return sharedRehearsalPath({ id: data.id, secret: params.secret });
     }
     return `/app/schedules/${data.id}/rehearsal`;
   };
 
-  const hasSongs = data.items?.some(item => item.type === 'song');
+  const hasSongs = data.items?.some((item) => item.type === 'song');
 
   const copyShareableUrlToClipboard = async () => {
-    const currentUrl = new URL(window.location.href);
-    const shareUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/schedules/${data.id}/${data.secret ?? ''}`;
+    const shareUrl = absoluteUrl(sharedSchedulePath(data));
     const clipboard = navigator.clipboard;
     if (!!clipboard) {
       await navigator.clipboard.writeText(shareUrl);
@@ -90,24 +89,25 @@ export function ViewSchedule() {
 
   return (
     <>
-      <title>{t("title.view", { name: data.title }) + " - BluPresenter"}</title>
+      <title>{t('title.view', { name: data.title }) + ' - BluPresenter'}</title>
       <OrganizationBar organizations={[data.organization ?? null]}>
         <Button
           type="button"
           size="sm"
-          title={t("actions.share")}
-          onClick={copyShareableUrlToClipboard}>
+          title={t('actions.share')}
+          onClick={copyShareableUrlToClipboard}
+        >
           <ShareIcon className="size-3" />
         </Button>
         {hasSongs && (
-          <Button type="button" size="sm" title={t("actions.rehearsal")} asChild>
+          <Button type="button" size="sm" title={t('actions.rehearsal')} asChild>
             <Link to={getRehearsalLink()}>
               <PlayIcon className="size-3" />
             </Link>
           </Button>
         )}
         {isLoggedIn && (
-          <Button type="button" size="sm" title={t("actions.edit")} asChild>
+          <Button type="button" size="sm" title={t('actions.edit')} asChild>
             <Link to={`/app/schedules/${data.id}/edit`}>
               <PencilIcon className="size-3" />
             </Link>
@@ -120,31 +120,42 @@ export function ViewSchedule() {
 
         <div className="space-y-3">
           {data.items?.map((item, index) => {
-            const songItem = item.type === "song" ? (item as IScheduleSong) : null;
+            const songItem = item.type === 'song' ? (item as IScheduleSong) : null;
             const textItem = item as IScheduleText;
             const songLink = getSongLink(item);
-            const hasChords = songItem?.blocks?.some(block => block.lines?.some(line => line.type === 'chords'));
+            const hasChords = songItem?.blocks?.some((block) =>
+              block.lines?.some((line) => line.type === 'chords'),
+            );
 
             return (
-              <Card key={`schedule-item-${index}`} variant={item.type === "comment" ? "secondary" : "default"}>
+              <Card
+                key={`schedule-item-${index}`}
+                variant={item.type === 'comment' ? 'secondary' : 'default'}
+              >
                 <CardHeader>
                   <CardHeaderText>
-                    <CardTitle>{item.title || t("view.untitled")}</CardTitle>
+                    <CardTitle>{item.title || t('view.untitled')}</CardTitle>
                     {songItem && !!songItem.artist && (
                       <CardDescription>{songItem.artist}</CardDescription>
                     )}
-                    {item.type === "text" && !!textItem.subtitle && (
+                    {item.type === 'text' && !!textItem.subtitle && (
                       <CardDescription>{textItem.subtitle}</CardDescription>
                     )}
                   </CardHeaderText>
                   <CardHeaderActions>
                     {songItem && (
-                      <Badge className="me-3 p-1 my-auto" variant={hasChords ? "color-4" : "outline"} title={hasChords ? t("view.chords.available") : t("view.chords.notAvailable")}>
+                      <Badge
+                        className="me-3 p-1 my-auto"
+                        variant={hasChords ? 'color-4' : 'outline'}
+                        title={
+                          hasChords ? t('view.chords.available') : t('view.chords.notAvailable')
+                        }
+                      >
                         <MusicalNoteIcon className="size-2" />
                       </Badge>
                     )}
                     {songLink && (
-                      <Button type="button" size="sm" title={t("actions.view")} asChild>
+                      <Button type="button" size="sm" title={t('actions.view')} asChild>
                         <Link to={songLink}>
                           <EyeIcon className="size-3" />
                         </Link>
@@ -158,12 +169,12 @@ export function ViewSchedule() {
         </div>
 
         {/* References, incl. the generated playlist actions (add / re-sync) */}
-        <ScheduleReferences schedule={data} onSynced={setData} />
+        <ScheduleReferences schedule={data} />
 
         {isLoggedIn && (
           <div className="flex flex-row align-start space-x-2 mt-4">
             <Button className="flex-0" type="button" variant="secondary" asChild>
-              <Link to="/app/schedules">{t("button.back")}</Link>
+              <Link to="/app/schedules">{t('button.back')}</Link>
             </Button>
           </div>
         )}

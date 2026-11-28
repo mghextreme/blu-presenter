@@ -1,12 +1,11 @@
-import { useContext } from "react";
-import { BroadcastProviderContext } from "./broadcast.provider";
+import { useContext } from 'react';
+import { BroadcastProviderContext } from './broadcast.context';
 
 export const useBroadcast = () => {
-  const context = useContext(BroadcastProviderContext)
+  const context = useContext(BroadcastProviderContext);
 
   if (context === undefined)
-    throw new Error("useBroadcast must be used within a BroadcastProvider")
+    throw new Error('useBroadcast must be used within a BroadcastProvider');
 
-  return context
-}
-
+  return context;
+};

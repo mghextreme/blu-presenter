@@ -19,8 +19,8 @@ export class Organization {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  name: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  name: string | null;
 
   @OneToMany(() => OrganizationUser, (orgUser) => orgUser.organization, {
     createForeignKeyConstraints: true,
@@ -58,9 +58,9 @@ export class Organization {
     nullable: true,
     default: null,
     type: 'varchar',
-    length: 32,
+    length: 64,
   })
-  secret: string;
+  secret: string | null;
 
   @Column({
     type: 'json',

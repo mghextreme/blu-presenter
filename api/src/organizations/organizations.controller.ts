@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Inject,
   Param,
   Post,
   Put,
@@ -15,43 +14,43 @@ import {
   Organization,
   OrganizationInvitation,
   OrganizationUser,
+  User,
 } from 'src/entities';
 import {
   CreateOrganizationDto,
   EditMemberDto,
   InviteMemberDto,
+  OrganizationRoleOptions,
   OrganizationViewModel,
   TransferOrganizationDto,
   UpdateOrganizationDto,
 } from 'src/types';
 import { OrganizationsService } from './organizations.service';
 import { OrganizationRole } from '../auth/organization-role.decorator';
-import { REQUEST } from '@nestjs/core';
-import { Request as ExpRequest } from 'express';
+import { CurrentUser, OrgId, OrgRole } from '../auth/request-context.decorator';
 import { Public } from 'src/supabase/public.decorator';
 
 @Controller('organizations')
 @ApiTags('organizations')
 @ApiBearerAuth('JWT-auth')
 export class OrganizationsController {
-  constructor(
-    private organizationsService: OrganizationsService,
-    @Inject(REQUEST) private readonly request: ExpRequest,
-  ) {}
+  constructor(private organizationsService: OrganizationsService) {}
 
   @Get('self')
   @OrganizationRole('owner', 'admin', 'member', 'guest')
-  async findSelf(): Promise<OrganizationViewModel> {
-    const usersOrg = this.request.user['organization'];
-    const org = await this.organizationsService.findOne(usersOrg);
-    return new OrganizationViewModel(org, this.request.user['role']);
+  async findSelf(
+    @OrgId() orgId: number,
+    @OrgRole() role: OrganizationRoleOptions,
+  ): Promise<OrganizationViewModel> {
+    const org = await this.organizationsService.findOne(orgId, role);
+    return new OrganizationViewModel(org, role);
   }
 
   @Post()
   async create(
+    @CurrentUser() user: User,
     @Body() createOrganizationDto: CreateOrganizationDto,
   ): Promise<Organization> {
-    const user = this.request.user['internal'];
     return await this.organizationsService.create(
       createOrganizationDto,
       user.id,
@@ -61,120 +60,139 @@ export class OrganizationsController {
   @Put('self')
   @OrganizationRole('owner', 'admin')
   async update(
+    @OrgId() orgId: number,
     @Body() updateOrganizationDto: UpdateOrganizationDto,
   ): Promise<Organization> {
-    const usersOrg = this.request.user['organization'];
-    return await this.organizationsService.update(
-      usersOrg,
-      updateOrganizationDto,
-    );
+    return await this.organizationsService.update(orgId, updateOrganizationDto);
   }
 
   @Delete()
   @OrganizationRole('owner')
-  async delete(): Promise<void> {
-    return await this.organizationsService.delete();
+  async delete(@OrgRole() role: OrganizationRoleOptions): Promise<void> {
+    return await this.organizationsService.delete(role);
   }
 
   @Get('members/:id')
   @OrganizationRole('owner', 'admin', 'member')
-  async getMember(@Param('id') id: number): Promise<OrganizationUser> {
-    const usersOrg = this.request.user['organization'];
-    return await this.organizationsService.getMember(usersOrg, id);
+  async getMember(
+    @OrgId() orgId: number,
+    @Param('id') id: number,
+  ): Promise<OrganizationUser> {
+    return await this.organizationsService.getMember(orgId, id);
   }
 
   @Post('members')
   @OrganizationRole('owner', 'admin')
   async inviteMember(
+    @OrgId() orgId: number,
+    @OrgRole() role: OrganizationRoleOptions,
+    @CurrentUser() user: User,
     @Body() inviteMemberDto: InviteMemberDto,
   ): Promise<OrganizationInvitation> {
-    const usersOrg = this.request.user['organization'];
     return await this.organizationsService.inviteMember(
-      usersOrg,
+      orgId,
       inviteMemberDto,
+      { userId: user.id, role },
     );
   }
 
   @Put('members/:id')
   @OrganizationRole('owner', 'admin')
   async editMember(
+    @OrgId() orgId: number,
+    @OrgRole() role: OrganizationRoleOptions,
+    @CurrentUser() user: User,
     @Param('id') id: number,
     @Body() editMemberDto: EditMemberDto,
   ): Promise<void> {
-    const usersOrg = this.request.user['organization'];
-    const userId = this.request.user['internal'].id;
-
-    if (userId === id) {
+    if (user.id === id) {
       throw new UnprocessableEntityException(
         'You cannot edit your own role in an organization',
       );
     }
 
-    await this.organizationsService.editMember(usersOrg, id, editMemberDto);
+    await this.organizationsService.editMember(orgId, id, editMemberDto, role);
   }
 
   @Post('transferOwnership')
   @OrganizationRole('owner')
   async transferOwnership(
+    @OrgId() orgId: number,
+    @OrgRole() role: OrganizationRoleOptions,
+    @CurrentUser() user: User,
     @Body() transferOrganizationDto: TransferOrganizationDto,
   ): Promise<void> {
     await this.organizationsService.transferOwnership(
+      orgId,
+      { userId: user.id, role },
       transferOrganizationDto.userId,
     );
   }
 
   @Post('leave')
   @OrganizationRole('admin', 'member', 'guest')
-  async leaveOrganization(): Promise<void> {
-    const usersOrg = this.request.user['organization'];
-    const user = this.request.user['internal'];
-    return await this.organizationsService.removeMember(usersOrg, user.id);
+  async leaveOrganization(
+    @OrgId() orgId: number,
+    @CurrentUser() user: User,
+  ): Promise<void> {
+    return await this.organizationsService.leave(orgId, user.id);
   }
 
   @Public()
   @Get('invitations/:id')
   async getInvitation(
     @Param('id') id: number,
-    @Query('secret') secret: string,
-  ): Promise<OrganizationInvitation> {
+    @Query('secret') secret: string | undefined,
+  ): Promise<OrganizationInvitation | null> {
     return await this.organizationsService.getInvitation(id, secret);
   }
 
   @Get('invitations')
-  async getInvitations(): Promise<OrganizationInvitation[]> {
-    const user = this.request.user['internal'];
+  async getInvitations(
+    @CurrentUser() user: User,
+  ): Promise<OrganizationInvitation[]> {
     return await this.organizationsService.getInvitationsForEmail(user.email);
   }
 
   @Post('invitations/:id/accept')
-  async acceptInvitation(@Param('id') id: number): Promise<void> {
-    await this.organizationsService.acceptInvitation(id);
+  async acceptInvitation(
+    @CurrentUser() user: User,
+    @Param('id') id: number,
+  ): Promise<void> {
+    await this.organizationsService.acceptInvitation(id, user);
   }
 
   @Post('invitations/:id/reject')
-  async rejectInvitation(@Param('id') id: number): Promise<void> {
-    return await this.organizationsService.rejectInvitation(id);
+  async rejectInvitation(
+    @CurrentUser() user: User,
+    @Param('id') id: number,
+  ): Promise<void> {
+    return await this.organizationsService.rejectInvitation(id, user);
   }
 
   @Delete('invitations/:id')
   @OrganizationRole('owner', 'admin')
-  async removeInvitation(@Param('id') id: number): Promise<void> {
-    const usersOrg = this.request.user['organization'];
-    return await this.organizationsService.removeInvitation(usersOrg, id);
+  async removeInvitation(
+    @OrgId() orgId: number,
+    @Param('id') id: number,
+  ): Promise<void> {
+    return await this.organizationsService.removeInvitation(orgId, id);
   }
 
   @Delete('members/:id')
   @OrganizationRole('owner', 'admin')
-  async removeMember(@Param('id') id: number): Promise<void> {
-    const usersOrg = this.request.user['organization'];
-    const userId = this.request.user['internal'].id;
-
-    if (userId === id) {
+  async removeMember(
+    @OrgId() orgId: number,
+    @OrgRole() role: OrganizationRoleOptions,
+    @CurrentUser() user: User,
+    @Param('id') id: number,
+  ): Promise<void> {
+    if (user.id === id) {
       throw new UnprocessableEntityException(
         'You cannot remove yourself from the organization',
       );
     }
 
-    return await this.organizationsService.removeMember(usersOrg, id);
+    return await this.organizationsService.removeMember(orgId, id, role);
   }
 }

@@ -1,22 +1,29 @@
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { useController } from "@/hooks/useController";
-import { Button } from "@/components/ui/button";
-import { Sortable, SortableContent, SortableItem, SortableItemHandle } from "@/components/ui/sortable";
-import { ScheduleItem } from "./schedule-item";
-import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
-import InboxArrowDownIcon from "@heroicons/react/24/solid/InboxArrowDownIcon"
-import ArrowsUpDownIcon from "@heroicons/react/20/solid/ArrowsUpDownIcon";
-import { IScheduleSong, ISortableScheduleItem } from "@/types";
-import { STORAGE_KEYS } from "@/lib/storage-keys";
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useController } from '@/hooks/useController';
+import { Button } from '@/components/ui/button';
+import {
+  Sortable,
+  SortableContent,
+  SortableItem,
+  SortableItemHandle,
+} from '@/components/ui/sortable';
+import { ScheduleItem } from './schedule-item';
+import TrashIcon from '@heroicons/react/24/solid/TrashIcon';
+import InboxArrowDownIcon from '@heroicons/react/24/solid/InboxArrowDownIcon';
+import ArrowsUpDownIcon from '@heroicons/react/20/solid/ArrowsUpDownIcon';
+import { IScheduleSong, ISortableScheduleItem } from '@/types';
+import { STORAGE_KEYS } from '@/lib/storage-keys';
 
 type SchedulePanelProps = {
   showRestore?: boolean;
   showOpen?: boolean;
-}
+};
 
-export function SchedulePanel({ showRestore = true, showOpen = true }: Readonly<SchedulePanelProps>) {
-
+export function SchedulePanel({
+  showRestore = true,
+  showOpen = true,
+}: Readonly<SchedulePanelProps>) {
   const { t } = useTranslation('controller');
 
   const {
@@ -26,7 +33,14 @@ export function SchedulePanel({ showRestore = true, showOpen = true }: Readonly<
     moveItemInSchedule,
     removeAllFromSchedule,
     selection,
-  } = useController();
+  } = useController((s) => ({
+    schedule: s.schedule,
+    scheduleItem: s.scheduleItem,
+    addToSchedule: s.addToSchedule,
+    moveItemInSchedule: s.moveItemInSchedule,
+    removeAllFromSchedule: s.removeAllFromSchedule,
+    selection: s.selection,
+  }));
 
   // Only show organization badges when the schedule mixes songs from more
   // than one organization (the public archive counts as its own).
@@ -71,21 +85,39 @@ export function SchedulePanel({ showRestore = true, showOpen = true }: Readonly<
   };
 
   return (
-    <div
-      id="schedule"
-      className="flex flex-col justify-start items-stretch h-full">
+    <div id="schedule" className="flex flex-col justify-start items-stretch h-full">
       <div className="p-3 pb-0 flex gap-2 flex-0 justify-between items-center">
-        {schedule.length > 1 && <Button className="flex-1" variant={sorting ? "default" : "secondary"} onClick={toggleSorting} title={t('schedule.actions.sort')} type="button">
-          <ArrowsUpDownIcon className="size-4" />
-        </Button>}
+        {schedule.length > 1 && (
+          <Button
+            className="flex-1"
+            variant={sorting ? 'default' : 'secondary'}
+            onClick={toggleSorting}
+            title={t('schedule.actions.sort')}
+            type="button"
+          >
+            <ArrowsUpDownIcon className="size-4" />
+          </Button>
+        )}
         {schedule.length === 0 && hasLastSession && (
-          <Button className="flex-1" onClick={loadLastSession} title={t('schedule.actions.restoreLastSession')}>
+          <Button
+            className="flex-1"
+            onClick={loadLastSession}
+            title={t('schedule.actions.restoreLastSession')}
+          >
             <InboxArrowDownIcon className="size-4" />
           </Button>
         )}
-        {!sorting && <Button className="flex-1" variant={"secondary"} onClick={removeAllFromSchedule} title={t('schedule.actions.clear')} type="button">
-          <TrashIcon className="size-4" />
-        </Button>}
+        {!sorting && (
+          <Button
+            className="flex-1"
+            variant={'secondary'}
+            onClick={removeAllFromSchedule}
+            title={t('schedule.actions.clear')}
+            type="button"
+          >
+            <TrashIcon className="size-4" />
+          </Button>
+        )}
       </div>
       <Sortable<ISortableScheduleItem>
         value={schedule as ISortableScheduleItem[]}
@@ -95,33 +127,37 @@ export function SchedulePanel({ showRestore = true, showOpen = true }: Readonly<
         <div className="p-3 pt-0 flex flex-col justify-stretch overflow-y-auto">
           <SortableContent asChild>
             <div id="schedule-items" className="flex-1">
-            {(schedule as ISortableScheduleItem[]).map((item, ix) => (
-              <SortableItem
-                key={item.uniqueId ?? item.id}
-                value={item.uniqueId ?? item.id}
-                asChild>
-                <div key={item.uniqueId ?? item.id}>
-                  <ScheduleItem
-                    item={item}
-                    selected={ix === selection.scheduleItem && scheduleItem?.id === item.id}
-                    index={ix}
-                    showOpen={showOpen}
-                    showOrganization={showOrganizations}
-                    buttonsOverride={sorting ? (
-                      <SortableItemHandle asChild>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          title={t('schedule.actions.reorder')}
-                        >
-                          <ArrowsUpDownIcon className="size-3" />
-                        </Button>
-                      </SortableItemHandle>
-                    ) : null} />
+              {(schedule as ISortableScheduleItem[]).map((item, ix) => (
+                <SortableItem
+                  key={item.uniqueId ?? item.id}
+                  value={item.uniqueId ?? item.id}
+                  asChild
+                >
+                  <div key={item.uniqueId ?? item.id}>
+                    <ScheduleItem
+                      item={item}
+                      selected={ix === selection.scheduleItem && scheduleItem?.id === item.id}
+                      index={ix}
+                      showOpen={showOpen}
+                      showOrganization={showOrganizations}
+                      buttonsOverride={
+                        sorting ? (
+                          <SortableItemHandle asChild>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              title={t('schedule.actions.reorder')}
+                            >
+                              <ArrowsUpDownIcon className="size-3" />
+                            </Button>
+                          </SortableItemHandle>
+                        ) : null
+                      }
+                    />
                   </div>
-              </SortableItem>
-            ))}
+                </SortableItem>
+              ))}
             </div>
           </SortableContent>
         </div>

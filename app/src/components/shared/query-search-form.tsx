@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import MagnifyingGlassIcon from "@heroicons/react/24/solid/MagnifyingGlassIcon";
-import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import MagnifyingGlassIcon from '@heroicons/react/24/solid/MagnifyingGlassIcon';
+import { useDebouncedCallback } from '@/hooks/use-debounced-callback';
 
 interface QuerySearchFormProps {
   onSearch: (query: string) => void;
@@ -16,8 +16,15 @@ interface QuerySearchFormProps {
   children?: React.ReactNode;
 }
 
-export function QuerySearchForm({ onSearch, isLoading = false, placeholder, className, debounceMs, children }: Readonly<QuerySearchFormProps>) {
-  const { t } = useTranslation("app");
+export function QuerySearchForm({
+  onSearch,
+  isLoading = false,
+  placeholder,
+  className,
+  debounceMs,
+  children,
+}: Readonly<QuerySearchFormProps>) {
+  const { t } = useTranslation('app');
 
   const [value, setValue] = useState<string>('');
 

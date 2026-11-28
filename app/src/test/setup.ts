@@ -1,16 +1,16 @@
-import '@testing-library/jest-dom/vitest'
-import { afterEach, vi } from 'vitest'
-import { cleanup } from '@testing-library/react'
+import '@testing-library/jest-dom/vitest';
+import { afterEach, vi } from 'vite-plus/test';
+import { cleanup } from '@testing-library/react';
 
 // Cleanup after each test case
 afterEach(() => {
-  cleanup()
-})
+  cleanup();
+});
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -20,51 +20,51 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
-})
+});
 
 // Mock sessionStorage
 const sessionStorageMock = (() => {
-  let store: Record<string, string> = {}
+  let store: Record<string, string> = {};
 
   return {
     getItem: (key: string) => store[key] || null,
     setItem: (key: string, value: string) => {
-      store[key] = value.toString()
+      store[key] = value.toString();
     },
     removeItem: (key: string) => {
-      delete store[key]
+      delete store[key];
     },
     clear: () => {
-      store = {}
+      store = {};
     },
-  }
-})()
+  };
+})();
 
 Object.defineProperty(window, 'sessionStorage', {
   value: sessionStorageMock,
-})
+});
 
 // Mock localStorage
 const localStorageMock = (() => {
-  let store: Record<string, string> = {}
+  let store: Record<string, string> = {};
 
   return {
     getItem: (key: string) => store[key] || null,
     setItem: (key: string, value: string) => {
-      store[key] = value.toString()
+      store[key] = value.toString();
     },
     removeItem: (key: string) => {
-      delete store[key]
+      delete store[key];
     },
     clear: () => {
-      store = {}
+      store = {};
     },
-  }
-})()
+  };
+})();
 
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
-})
+});
 
 // jsdom doesn't ship ResizeObserver; input-otp (and other observers) need it.
 class ResizeObserverMock {
@@ -75,11 +75,11 @@ class ResizeObserverMock {
 Object.defineProperty(window, 'ResizeObserver', {
   writable: true,
   value: ResizeObserverMock,
-})
+});
 Object.defineProperty(globalThis, 'ResizeObserver', {
   writable: true,
   value: ResizeObserverMock,
-})
+});
 
 // jsdom doesn't implement elementFromPoint; input-otp schedules an inspector
 // that touches it. Stub returns null so the inspector becomes a no-op.
@@ -87,12 +87,11 @@ if (typeof document !== 'undefined' && !document.elementFromPoint) {
   Object.defineProperty(document, 'elementFromPoint', {
     writable: true,
     value: () => null,
-  })
+  });
 }
 
 // jsdom doesn't implement scrollIntoView; cmdk (Command) calls it when items
 // become selected. Stub it as a no-op.
 if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
-  Element.prototype.scrollIntoView = () => {}
+  Element.prototype.scrollIntoView = () => {};
 }
-

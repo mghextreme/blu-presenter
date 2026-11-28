@@ -1,14 +1,17 @@
 import {
   ForbiddenException,
-  Inject,
   Injectable,
   NotFoundException,
   NotImplementedException,
-  Scope,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import {
+  DataSource,
+  FindOneOptions,
+  FindOptionsSelect,
+  Repository,
+} from 'typeorm';
 import {
   AuthInvitationDataDto,
   CreateOrganizationDto,
@@ -22,28 +25,42 @@ import {
   OrganizationRoleOptions,
   UpdateOrganizationDto,
 } from 'src/types';
+
+/** What invitees may see: the organization's secret must not leak. */
+const INVITATION_FIELDS: FindOptionsSelect<OrganizationInvitation> = {
+  id: true,
+  orgId: true,
+  email: true,
+  role: true,
+  secret: true,
+  organization: { id: true, name: true },
+};
+
+/** The member performing an organization management action. */
+export interface OrganizationActor {
+  userId: number;
+  role: OrganizationRoleOptions;
+}
 import {
   Organization,
   OrganizationInvitation,
   OrganizationUser,
   User,
 } from 'src/entities';
-import { REQUEST } from '@nestjs/core';
-import { Request as ExpRequest } from 'express';
 import { generateRandomSecret } from 'src/utils/secret';
 
 @Injectable()
-export class OrganizationsBaseService {
+export class OrganizationsService {
   constructor(
-    protected readonly dataSource: DataSource,
+    private readonly dataSource: DataSource,
     @InjectRepository(Organization)
-    protected readonly organizationsRepository: Repository<Organization>,
+    private readonly organizationsRepository: Repository<Organization>,
     @InjectRepository(OrganizationUser)
-    protected readonly organizationUsersRepository: Repository<OrganizationUser>,
+    private readonly organizationUsersRepository: Repository<OrganizationUser>,
     @InjectRepository(User)
-    protected readonly usersRepository: Repository<User>,
+    private readonly usersRepository: Repository<User>,
     @InjectRepository(OrganizationInvitation)
-    protected readonly organizationInvitationsRepository: Repository<OrganizationInvitation>,
+    private readonly organizationInvitationsRepository: Repository<OrganizationInvitation>,
   ) {}
 
   async userRole(
@@ -88,36 +105,21 @@ export class OrganizationsBaseService {
     }
     throw new ForbiddenException(`${label} are disabled for this organization`);
   }
-}
 
-@Injectable({ scope: Scope.REQUEST })
-export class OrganizationsService extends OrganizationsBaseService {
-  constructor(
-    protected readonly dataSource: DataSource,
-    @InjectRepository(Organization)
-    protected readonly organizationsRepository: Repository<Organization>,
-    @InjectRepository(OrganizationUser)
-    protected readonly organizationUsersRepository: Repository<OrganizationUser>,
-    @InjectRepository(User)
-    protected readonly usersRepository: Repository<User>,
-    @InjectRepository(OrganizationInvitation)
-    protected readonly organizationInvitationsRepository: Repository<OrganizationInvitation>,
-    @Inject(REQUEST) private readonly request: ExpRequest,
-  ) {
-    super(
-      dataSource,
-      organizationsRepository,
-      organizationUsersRepository,
-      usersRepository,
-      organizationInvitationsRepository,
-    );
-  }
-
-  async findOne(id: number): Promise<Organization | null> {
-    const query = {
+  /** Members, invitations and the secret are only included for owners and admins. */
+  async findOne(
+    id: number,
+    role: OrganizationRoleOptions,
+  ): Promise<Organization> {
+    const canManage = role === 'owner' || role === 'admin';
+    const query: FindOneOptions<Organization> = {
       where: { id },
       relations: {
         owner: true,
+        ...(canManage && {
+          users: { user: true },
+          invitations: { inviter: true },
+        }),
       },
       select: {
         id: true,
@@ -127,57 +129,44 @@ export class OrganizationsService extends OrganizationsBaseService {
           id: true,
           name: true,
         },
+        ...(canManage && {
+          secret: true,
+          users: {
+            role: true,
+            user: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          invitations: {
+            id: true,
+            orgId: true,
+            email: true,
+            role: true,
+            secret: true,
+            inviter: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        }),
       },
     };
 
-    switch (this.request.user['role']) {
-      case 'owner':
-      case 'admin':
-        query.relations['users'] = {
-          user: true,
-        };
-        query.relations['invitations'] = {
-          inviter: true,
-        };
-
-        query.select['secret'] = true;
-        query.select['users'] = {
-          role: true,
-          user: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        };
-        query.select['invitations'] = {
-          id: true,
-          orgId: true,
-          email: true,
-          role: true,
-          secret: true,
-          inviter: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        };
-        break;
-    }
-
-    const orgs = await this.organizationsRepository.find(query);
-    if (orgs.length === 0) {
+    const organization = await this.organizationsRepository.findOne(query);
+    if (!organization) {
       throw new NotFoundException('Organization not found');
     }
-    return orgs[0];
+    return organization;
   }
 
   async create(
     createOrgDto: CreateOrganizationDto,
     userId: number,
   ): Promise<Organization> {
-    let orgId: number;
-
-    await this.dataSource.transaction(async (manager) => {
+    const orgId = await this.dataSource.transaction(async (manager) => {
       const organizationsRepository = manager.getRepository(Organization);
 
       const result = await organizationsRepository.insert({
@@ -185,7 +174,7 @@ export class OrganizationsService extends OrganizationsBaseService {
         ownerId: userId,
         secret: generateRandomSecret(16),
       });
-      orgId = result.raw[0].id;
+      const orgId: number = result.raw[0].id;
 
       const organizationUsersRepository =
         manager.getRepository(OrganizationUser);
@@ -194,9 +183,11 @@ export class OrganizationsService extends OrganizationsBaseService {
         userId: userId,
         role: 'owner',
       });
+
+      return orgId;
     });
 
-    return this.findOne(orgId);
+    return this.findOne(orgId, 'owner');
   }
 
   async update(
@@ -204,6 +195,9 @@ export class OrganizationsService extends OrganizationsBaseService {
     updateOrgDto: UpdateOrganizationDto,
   ): Promise<Organization> {
     const organization = await this.organizationsRepository.findOneBy({ id });
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
 
     if (updateOrgDto.name !== undefined) {
       organization.name = updateOrgDto.name;
@@ -213,17 +207,23 @@ export class OrganizationsService extends OrganizationsBaseService {
       organization.disabledFeatures = updateOrgDto.disabledFeatures;
     }
 
-    const result = await this.organizationsRepository.save(organization);
-    return result as Organization;
+    return await this.organizationsRepository.save(organization);
   }
 
-  async transferOwnership(toUserId: number): Promise<void> {
-    if (this.request.user['role'] !== 'owner') {
+  async transferOwnership(
+    orgId: number,
+    owner: OrganizationActor,
+    toUserId: number,
+  ): Promise<void> {
+    if (owner.role !== 'owner') {
       throw new ForbiddenException();
     }
 
-    const organization = this.request.user['organization'];
-    const ownerUser = this.request.user['internal'];
+    if (Number(toUserId) === owner.userId) {
+      throw new UnprocessableEntityException(
+        'You already own this organization',
+      );
+    }
 
     await this.dataSource.transaction(async (manager) => {
       const organizationsRepository = manager.getRepository(Organization);
@@ -232,7 +232,7 @@ export class OrganizationsService extends OrganizationsBaseService {
 
       const promoteNewOwner = await organizationUsersRepository.update(
         {
-          orgId: organization,
+          orgId,
           userId: toUserId,
         },
         {
@@ -240,14 +240,14 @@ export class OrganizationsService extends OrganizationsBaseService {
         },
       );
 
-      if (promoteNewOwner.affected < 1) {
+      if (!promoteNewOwner.affected) {
         throw new NotFoundException('User not found in organization');
       }
 
       await organizationUsersRepository.update(
         {
-          orgId: organization,
-          userId: ownerUser.id,
+          orgId,
+          userId: owner.userId,
         },
         {
           role: 'admin',
@@ -256,7 +256,7 @@ export class OrganizationsService extends OrganizationsBaseService {
 
       await organizationsRepository.update(
         {
-          id: organization,
+          id: orgId,
         },
         {
           ownerId: toUserId,
@@ -265,8 +265,8 @@ export class OrganizationsService extends OrganizationsBaseService {
     });
   }
 
-  async delete(): Promise<void> {
-    if (this.request.user['role'] !== 'owner') {
+  async delete(actorRole: OrganizationRoleOptions): Promise<void> {
+    if (actorRole !== 'owner') {
       throw new ForbiddenException();
     }
 
@@ -282,8 +282,6 @@ export class OrganizationsService extends OrganizationsBaseService {
     throw new NotImplementedException(
       'Deleting organizations is not implemented yet. Coming soon!',
     );
-
-    // await this.organizationsRepository.delete(id);
   }
 
   async getMember(orgId: number, id: number): Promise<OrganizationUser> {
@@ -294,6 +292,12 @@ export class OrganizationsService extends OrganizationsBaseService {
       },
       relations: {
         user: true,
+      },
+      select: {
+        orgId: true,
+        userId: true,
+        role: true,
+        user: { id: true, name: true, email: true },
       },
     });
 
@@ -308,6 +312,7 @@ export class OrganizationsService extends OrganizationsBaseService {
     id: number,
     memberId: number,
     editMemberDto: EditMemberDto,
+    actorRole: OrganizationRoleOptions,
   ): Promise<void> {
     const member = await this.organizationUsersRepository.findOneBy({
       orgId: id,
@@ -324,11 +329,9 @@ export class OrganizationsService extends OrganizationsBaseService {
       );
     }
 
-    if (
-      isRoleHigherOrEqualThan(editMemberDto.role, this.request.user['role'])
-    ) {
+    if (isRoleHigherOrEqualThan(editMemberDto.role, actorRole)) {
       throw new ForbiddenException(
-        `You cannot change this members role because your role is ${this.request.user['role']}`,
+        `You cannot change this members role because your role is ${actorRole}`,
       );
     }
 
@@ -346,6 +349,7 @@ export class OrganizationsService extends OrganizationsBaseService {
   async inviteMember(
     id: number,
     inviteMemberDto: InviteMemberDto,
+    inviter: OrganizationActor,
   ): Promise<OrganizationInvitation> {
     const emailToInvite = inviteMemberDto.email.toLowerCase();
     const existingInvitation =
@@ -362,18 +366,18 @@ export class OrganizationsService extends OrganizationsBaseService {
       throw new UnprocessableEntityException('Invalid role for invitation');
     }
 
-    if (isRoleHigherThan(inviteMemberDto.role, this.request.user['role'])) {
+    if (isRoleHigherThan(inviteMemberDto.role, inviter.role)) {
       throw new ForbiddenException(
-        `You cannot invite a user with role ${inviteMemberDto.role} because your role is ${this.request.user['role']}`,
+        `You cannot invite a user with role ${inviteMemberDto.role} because your role is ${inviter.role}`,
       );
     }
 
     await this.organizationInvitationsRepository.insert({
       orgId: id,
-      inviterId: this.request.user['internal'].id,
+      inviterId: inviter.userId,
       email: inviteMemberDto.email,
       role: inviteMemberDto.role,
-      secret: this.createSecret(),
+      secret: generateRandomSecret(32),
     });
 
     return (await this.organizationInvitationsRepository.findOneBy({
@@ -382,19 +386,14 @@ export class OrganizationsService extends OrganizationsBaseService {
     })) as OrganizationInvitation;
   }
 
-  private createSecret(): string {
-    const sec1 = Math.random().toString(36);
-    const sec2 = Math.random().toString(36);
-    const secString = sec1 + sec2;
-    return Buffer.from(secString, 'utf-8')
-      .toString('base64')
-      .replaceAll('=', '');
-  }
-
   async getInvitation(
     id: number,
-    secret: string,
-  ): Promise<OrganizationInvitation> {
+    secret: string | undefined,
+  ): Promise<OrganizationInvitation | null> {
+    if (!secret) {
+      return null;
+    }
+
     return await this.organizationInvitationsRepository.findOne({
       where: {
         id,
@@ -403,12 +402,17 @@ export class OrganizationsService extends OrganizationsBaseService {
       relations: {
         organization: true,
       },
+      select: INVITATION_FIELDS,
     });
   }
 
   async getInvitationsForEmail(
-    email: string,
+    email: string | null,
   ): Promise<OrganizationInvitation[]> {
+    if (!email) {
+      return [];
+    }
+
     return await this.organizationInvitationsRepository.find({
       where: {
         email,
@@ -416,10 +420,14 @@ export class OrganizationsService extends OrganizationsBaseService {
       relations: {
         organization: true,
       },
+      select: INVITATION_FIELDS,
     });
   }
 
-  async acceptInvitation(id: number): Promise<OrganizationInvitation> {
+  async acceptInvitation(
+    id: number,
+    user: User,
+  ): Promise<OrganizationInvitation> {
     const invitation = await this.organizationInvitationsRepository.findOneBy({
       id: id,
     });
@@ -428,7 +436,6 @@ export class OrganizationsService extends OrganizationsBaseService {
       throw new NotFoundException('Invitation not found');
     }
 
-    const user = this.request.user['internal'] as User;
     if (user.email !== invitation.email) {
       throw new ForbiddenException('You cannot accept this invitation');
     }
@@ -513,7 +520,7 @@ export class OrganizationsService extends OrganizationsBaseService {
     });
   }
 
-  async rejectInvitation(id: number): Promise<void> {
+  async rejectInvitation(id: number, user: User): Promise<void> {
     const invitation = await this.organizationInvitationsRepository.findOneBy({
       id: id,
     });
@@ -522,7 +529,6 @@ export class OrganizationsService extends OrganizationsBaseService {
       throw new NotFoundException('Invitation not found');
     }
 
-    const user = this.request.user['internal'];
     if (user.email !== invitation.email) {
       throw new ForbiddenException('You cannot accept this invitation');
     }
@@ -542,7 +548,37 @@ export class OrganizationsService extends OrganizationsBaseService {
     await this.organizationInvitationsRepository.delete(invitationId);
   }
 
-  async removeMember(id: number, memberId: number): Promise<void> {
+  /**
+   * Removes the calling user from the organization. Owners must transfer
+   * ownership first so the organization is never left without one.
+   */
+  async leave(id: number, userId: number): Promise<void> {
+    const member = await this.organizationUsersRepository.findOneBy({
+      userId,
+      orgId: id,
+    });
+
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    if (member.role === 'owner') {
+      throw new UnprocessableEntityException(
+        'Transfer ownership before leaving the organization',
+      );
+    }
+
+    await this.organizationUsersRepository.delete({
+      userId,
+      orgId: id,
+    });
+  }
+
+  async removeMember(
+    id: number,
+    memberId: number,
+    actorRole: OrganizationRoleOptions,
+  ): Promise<void> {
     const member = await this.organizationUsersRepository.findOneBy({
       userId: memberId,
       orgId: id,
@@ -552,7 +588,7 @@ export class OrganizationsService extends OrganizationsBaseService {
       throw new NotFoundException('Member not found');
     }
 
-    if (isRoleHigherOrEqualThan(member.role, this.request.user['role'])) {
+    if (isRoleHigherOrEqualThan(member.role, actorRole)) {
       throw new UnprocessableEntityException(
         'You cannot remove this member from the organization',
       );
