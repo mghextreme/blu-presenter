@@ -7,7 +7,8 @@ on:
     paths:
       - 'api/**'
       # Root files that define the api image contents: the workspace
-      # lockfile, the workspace manifest, and the Docker build context.
+      # lockfile, the workspace manifests, and the Docker build context.
+      - 'package.json'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
       - '.dockerignore'

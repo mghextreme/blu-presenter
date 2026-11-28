@@ -3,6 +3,17 @@
   "private": true,
   "license": "GPL-3.0-or-later",
   "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=26",
+    "pnpm": ">=12"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --stream run dev",
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm --filter blu-presenter-api test && pnpm --filter blu-presenter-app test run",
+    "lint": "pnpm --filter blu-presenter-api exec eslint \"{src,test}/**/*.ts\" && pnpm --filter blu-presenter-app lint"
+  },
   "devDependencies": {
     "vite-plus": "catalog:"
   }

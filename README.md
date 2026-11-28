@@ -66,7 +66,7 @@ pnpm install
 ### Develop
 
 ```sh
-pnpm start:dev
+pnpm dev
 ```
 
 ### Test

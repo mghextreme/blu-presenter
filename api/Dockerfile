@@ -13,14 +13,14 @@ ARG NODE_VERSION=26
 
 FROM node:${NODE_VERSION}-slim AS builder
 
-# Corepack is no longer bundled with Node (removed in Node 25), so pnpm is
-# installed directly. Keep in sync with "packageManager" in package.json.
-RUN npm install -g pnpm@12.15.0
-
 WORKDIR /workspace
 
 # Copy workspace manifests first for better layer caching.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Corepack is no longer bundled with Node (removed in Node 25), so pnpm is
+# installed directly.
+RUN npm install -g "pnpm@$(node -p "require('./package.json').packageManager.split('@')[1]")"
 COPY api/package.json ./api/
 COPY app/package.json ./app/
 

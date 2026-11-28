@@ -3,7 +3,7 @@
 ## Commands
 
 ```bash
-pnpm start:dev                # dev server with watch
+pnpm dev                      # dev server with watch
 pnpm build                    # compile
 pnpm test                     # all tests (Jest, exits on its own)
 pnpm test <file-pattern>      # specific tests

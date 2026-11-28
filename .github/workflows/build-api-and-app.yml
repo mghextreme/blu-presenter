@@ -21,8 +21,6 @@ jobs:
 
     - name: Set up pnpm
       uses: pnpm/action-setup@v6
-      with:
-        version: 12.15.0
 
     - name: Setup Node.js
       uses: actions/setup-node@v6
@@ -47,8 +45,6 @@ jobs:
 
     - name: Set up pnpm
       uses: pnpm/action-setup@v6
-      with:
-        version: 12.15.0
 
     - name: Setup Node.js
       uses: actions/setup-node@v6
@@ -79,8 +75,6 @@ jobs:
 
     - name: Set up pnpm
       uses: pnpm/action-setup@v6
-      with:
-        version: 12.15.0
 
     - name: Setup Node.js
       uses: actions/setup-node@v6

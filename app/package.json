@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vp dev",
     "build": "tsc && vp build",
+    "typecheck": "tsc",
     "lint": "vp lint",
     "fmt": "vp fmt",
     "check": "vp check",
@@ -91,6 +92,5 @@
     "vite-plus": "catalog:",
     "vitest": "catalog:",
     "wrangler": "^4.168.0"
-  },
-  "packageManager": "pnpm@12.15.0"
+  }
 }
