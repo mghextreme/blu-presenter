@@ -3,16 +3,16 @@ export interface IScheduleItem {
   index?: number;
   title?: string;
   type?: string;
-  artist?: string;
-  language?: string;
+  artist?: string | null;
+  language?: string | null;
   blocks?: any[];
   references?: any[];
   slides?: any[];
-  secret?: string;
+  secret?: string | null;
   uniqueId?: number;
   updatedAt?: Date;
   organization?: {
     id: number;
-    name: string;
+    name: string | null;
   } | null;
 }

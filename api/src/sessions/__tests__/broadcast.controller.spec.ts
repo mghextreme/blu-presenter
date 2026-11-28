@@ -19,6 +19,16 @@ describe('BroadcastController', () => {
     }).compile();
 
     app = module.createNestApplication();
+    // Stands in for SupabaseGuard, which sets the checked organization on
+    // `@OrganizationRole` routes.
+    app.use((req: any, _res: unknown, next: () => void) => {
+      req.user = {
+        internal: { id: 1 },
+        organization: Number(req.headers.organization),
+        role: 'member',
+      };
+      next();
+    });
     // Mirror the global pipe registered in main.ts
     app.useGlobalPipes(
       new ValidationPipe({ whitelist: true, transform: true }),
@@ -43,8 +53,7 @@ describe('BroadcastController', () => {
       .send({ schedule: [{ id: 1, title: 'Amazing Grace' }] })
       .expect(200);
 
-    // The Organization header arrives as a string, mirroring SessionsController
-    expect(broadcastService.setSchedule).toHaveBeenCalledWith('3', 7, [
+    expect(broadcastService.setSchedule).toHaveBeenCalledWith(3, 7, [
       { id: 1, title: 'Amazing Grace' },
     ]);
   });
@@ -56,7 +65,7 @@ describe('BroadcastController', () => {
       .send({ scheduleItem: { id: 12 } })
       .expect(200);
 
-    expect(broadcastService.setScheduleItem).toHaveBeenCalledWith('3', 7, {
+    expect(broadcastService.setScheduleItem).toHaveBeenCalledWith(3, 7, {
       id: 12,
     });
   });
@@ -68,7 +77,7 @@ describe('BroadcastController', () => {
       .send({ selection: { scheduleItem: 0, slide: 1, part: 2 } })
       .expect(200);
 
-    expect(broadcastService.setSelection).toHaveBeenCalledWith('3', 7, {
+    expect(broadcastService.setSelection).toHaveBeenCalledWith(3, 7, {
       scheduleItem: 0,
       slide: 1,
       part: 2,

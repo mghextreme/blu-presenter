@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   NotFoundException,
   Param,
   Post,
@@ -18,7 +17,7 @@ import {
   ApiProduces,
 } from '@nestjs/swagger';
 import { Response } from 'express';
-import { Song } from 'src/entities';
+import { Song, User } from 'src/entities';
 import {
   SearchSongDto,
   CopySongToOrganizationDto,
@@ -30,6 +29,11 @@ import { SongsService } from './songs.service';
 import { SongTextFormatService } from './text-format/song-text-format.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
 import { SongWithRoleViewModel } from 'src/models/song-with-role.view-model';
+import {
+  CurrentUser,
+  OptionalUser,
+  OrgId,
+} from 'src/auth/request-context.decorator';
 import { Public } from 'src/supabase/public.decorator';
 import { slugify } from 'src/utils/slug';
 
@@ -50,21 +54,27 @@ export class SongsController {
   @Public()
   @Get(':id')
   async findOne(
+    @OptionalUser() user: User | undefined,
     @Param('id') id: number,
     @Query('secret') secret?: string,
   ): Promise<SongWithRoleViewModel | null> {
-    return await this.songsService.findOneInAnyOrgOrBySecret(id, secret);
+    return await this.songsService.findOneInAnyOrgOrBySecret(id, secret, user);
   }
 
   @Public()
   @Get(':id/export')
   @ApiProduces('text/markdown')
   async export(
+    @OptionalUser() user: User | undefined,
     @Param('id') id: number,
     @Res() res: Response,
     @Query('secret') secret?: string,
   ): Promise<void> {
-    const song = await this.songsService.findOneInAnyOrgOrBySecret(id, secret);
+    const song = await this.songsService.findOneInAnyOrgOrBySecret(
+      id,
+      secret,
+      user,
+    );
     if (!song) {
       throw new NotFoundException();
     }
@@ -80,44 +90,49 @@ export class SongsController {
 
   @Post(['search', 'advancedSearch'])
   async search(
+    @CurrentUser() user: User,
     @Body() advancedSearchDto: SearchSongDto,
   ): Promise<SongWithRoleViewModel[]> {
-    return await this.songsService.advancedSearch(advancedSearchDto);
+    return await this.songsService.advancedSearch(advancedSearchDto, user);
   }
 
   @Post()
   @OrganizationRole('owner', 'admin', 'member')
   async create(
-    @Headers('Organization') orgId: number,
+    @OrgId() orgId: number,
     @Body() createSongDto: CreateSongDto,
-  ): Promise<Song> {
+  ): Promise<Song | null> {
     return await this.songsService.create(orgId, createSongDto);
   }
 
   @Post('importText')
   @OrganizationRole('owner', 'admin', 'member')
   async importText(
-    @Headers('Organization') orgId: number,
+    @OrgId() orgId: number,
     @Body() importTextDto: ImportSongTextDto,
-  ): Promise<Song> {
+  ): Promise<Song | null> {
     return await this.songsService.importText(orgId, importTextDto.text);
   }
 
   @Post('copyToOrganization')
   @OrganizationRole('owner', 'admin', 'member', 'guest')
   async copyToOrganization(
+    @OrgId() orgId: number,
+    @CurrentUser() user: User,
     @Body() copySongDto: CopySongToOrganizationDto,
   ): Promise<void> {
     await this.songsService.copyToOrganization(
+      orgId,
       copySongDto.songId,
       copySongDto.organizationId,
+      user.id,
     );
   }
 
   @Put(':id')
   @OrganizationRole('owner', 'admin', 'member')
   async update(
-    @Headers('Organization') orgId: number,
+    @OrgId() orgId: number,
     @Param('id') id: number,
     @Body() updateSongDto: UpdateSongDto,
   ): Promise<Song> {
@@ -126,10 +141,7 @@ export class SongsController {
 
   @Delete(':id')
   @OrganizationRole('owner', 'admin')
-  async delete(
-    @Headers('Organization') orgId: number,
-    @Param('id') id: number,
-  ): Promise<void> {
+  async delete(@OrgId() orgId: number, @Param('id') id: number): Promise<void> {
     return await this.songsService.delete(orgId, id);
   }
 }

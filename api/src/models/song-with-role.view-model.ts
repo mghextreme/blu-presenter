@@ -4,7 +4,7 @@ import { OrganizationRoleOptions } from 'src/types';
 export interface SongWithRoleViewModel {
   id: number;
   title: string;
-  artist: string;
+  artist: string | null;
   language: string;
   blocks: SongPart[];
   references: SongReference[];

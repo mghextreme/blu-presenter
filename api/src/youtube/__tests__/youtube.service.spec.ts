@@ -7,18 +7,20 @@ import {
   HttpException,
   NotFoundException,
 } from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
 import { createHmac } from 'node:crypto';
 import { YoutubeService } from '../youtube.service';
 import { Schedule, Song, User } from '../../entities';
 import { IPlaylistConnection } from '../../types/playlist-connection.interface';
 import { computeTracksHash } from '../../utils/schedule-references';
-import { OrganizationsBaseService } from '../../organizations/organizations.service';
+import { OrganizationsService } from '../../organizations/organizations.service';
 
 const API = 'https://www.googleapis.com/youtube/v3';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
 const PLAYLIST_URL = 'https://www.youtube.com/playlist?list=PL1';
+
+/** The signed-in user every call acts for. */
+const USER = { id: 42, nickname: 'Matias' } as User;
 
 describe('YoutubeService', () => {
   let service: YoutubeService;
@@ -71,15 +73,6 @@ describe('YoutubeService', () => {
           },
         },
         {
-          provide: REQUEST,
-          useValue: {
-            user: {
-              internal: { id: 42, nickname: 'Matias' },
-              organization: 1,
-            },
-          },
-        },
-        {
           provide: getRepositoryToken(User),
           useValue: {
             update: usersUpdate,
@@ -99,7 +92,7 @@ describe('YoutubeService', () => {
           useValue: { createQueryBuilder: songsQueryBuilder },
         },
         {
-          provide: OrganizationsBaseService,
+          provide: OrganizationsService,
           useValue: {
             assertFeatureEnabled: jest.fn().mockResolvedValue(undefined),
           },
@@ -208,7 +201,7 @@ describe('YoutubeService', () => {
     jest.spyOn(globalThis, 'fetch').mockImplementation(fakeFetch);
 
     const module = await buildModule();
-    service = await module.resolve<YoutubeService>(YoutubeService);
+    service = module.get<YoutubeService>(YoutubeService);
   });
 
   afterEach(() => {
@@ -217,7 +210,7 @@ describe('YoutubeService', () => {
 
   describe('getStatus', () => {
     it('reports the connected channel', async () => {
-      expect(await service.getStatus()).toEqual({
+      expect(await service.getStatus(USER)).toEqual({
         configured: true,
         playlistsEnabled: true,
         connected: true,
@@ -230,7 +223,7 @@ describe('YoutubeService', () => {
     it('reports playlists enabled without a per-user flag', async () => {
       youtubeEnabled = false;
       storedConnection = null;
-      expect(await service.getStatus()).toMatchObject({
+      expect(await service.getStatus(USER)).toMatchObject({
         configured: true,
         playlistsEnabled: true,
         connected: false,
@@ -239,9 +232,9 @@ describe('YoutubeService', () => {
 
     it('reports not configured without credentials', async () => {
       const module = await buildModule({ 'youtube.clientId': undefined });
-      const unconfigured = await module.resolve<YoutubeService>(YoutubeService);
+      const unconfigured = module.get<YoutubeService>(YoutubeService);
 
-      expect(await unconfigured.getStatus()).toMatchObject({
+      expect(await unconfigured.getStatus(USER)).toMatchObject({
         configured: false,
         playlistsEnabled: false,
       });
@@ -250,7 +243,7 @@ describe('YoutubeService', () => {
 
   describe('getConnectUrl', () => {
     it('requests offline access to YouTube with a signed state', async () => {
-      const { url } = await service.getConnectUrl();
+      const { url } = await service.getConnectUrl(USER);
       const parsed = new URL(url);
 
       expect(parsed.origin + parsed.pathname).toBe(
@@ -276,14 +269,14 @@ describe('YoutubeService', () => {
     it('allows users without the enabled flag', async () => {
       youtubeEnabled = false;
       storedConnection = null;
-      await expect(service.getConnectUrl()).resolves.toHaveProperty('url');
+      await expect(service.getConnectUrl(USER)).resolves.toHaveProperty('url');
     });
 
     it('refuses when the server is not configured', async () => {
       const module = await buildModule({ 'youtube.clientSecret': undefined });
-      const unconfigured = await module.resolve<YoutubeService>(YoutubeService);
+      const unconfigured = module.get<YoutubeService>(YoutubeService);
 
-      await expect(unconfigured.getConnectUrl()).rejects.toThrow(
+      await expect(unconfigured.getConnectUrl(USER)).rejects.toThrow(
         BadRequestException,
       );
     });
@@ -307,6 +300,7 @@ describe('YoutubeService', () => {
       );
 
       const status = await service.completeConnect(
+        USER,
         'code',
         makeState(42, Date.now() + 60_000),
       );
@@ -332,7 +326,11 @@ describe('YoutubeService', () => {
       overrides.set(`GET ${API}/channels`, () => jsonResponse({ items: [] }));
 
       await expect(
-        service.completeConnect('code', makeState(42, Date.now() + 60_000)),
+        service.completeConnect(
+          USER,
+          'code',
+          makeState(42, Date.now() + 60_000),
+        ),
       ).rejects.toThrow(/no YouTube channel/);
       expect(usersUpdate).not.toHaveBeenCalled();
     });
@@ -340,6 +338,7 @@ describe('YoutubeService', () => {
     it('rejects a state issued for another provider', async () => {
       await expect(
         service.completeConnect(
+          USER,
           'code',
           makeState(42, Date.now() + 60_000, 'spotify'),
         ),
@@ -352,7 +351,7 @@ describe('YoutubeService', () => {
     it('revokes the grant and keeps the enabled flag', async () => {
       overrides.set(`POST ${REVOKE_URL}`, () => new Response(null));
 
-      const status = await service.disconnect();
+      const status = await service.disconnect(USER);
 
       expect(status).toMatchObject({
         connected: false,
@@ -371,7 +370,7 @@ describe('YoutubeService', () => {
       });
       jest.spyOn(console, 'warn').mockImplementation(() => undefined);
 
-      await service.disconnect();
+      await service.disconnect(USER);
 
       expect(usersUpdate).toHaveBeenCalledWith(42, {
         youtube: { enabled: true },
@@ -444,7 +443,7 @@ describe('YoutubeService', () => {
         });
       });
 
-      const result = await service.syncSchedulePlaylist(1, 1, {});
+      const result = await service.syncSchedulePlaylist(USER, 1, 1, {});
 
       expect(result).toEqual({
         action: 'created',
@@ -486,7 +485,7 @@ describe('YoutubeService', () => {
       scheduleFindOneBy.mockResolvedValue(mockSchedule([1]));
       mockSongs(1);
 
-      await service.syncSchedulePlaylist(1, 1, {
+      await service.syncSchedulePlaylist(USER, 1, 1, {
         name: 'x'.repeat(200),
         public: true,
       });
@@ -512,7 +511,7 @@ describe('YoutubeService', () => {
       it('does not list the items of the new playlist', async () => {
         overrides.set(`GET ${API}/playlistItems`, playlistNotFound);
 
-        const result = await service.syncSchedulePlaylist(1, 1, {});
+        const result = await service.syncSchedulePlaylist(USER, 1, 1, {});
 
         expect(result).toMatchObject({ action: 'created', added: 2 });
         expect(
@@ -533,7 +532,7 @@ describe('YoutubeService', () => {
           return playlistNotFound();
         });
 
-        const result = await service.syncSchedulePlaylist(1, 1, {});
+        const result = await service.syncSchedulePlaylist(USER, 1, 1, {});
 
         expect(result).toMatchObject({ action: 'created', added: 2 });
         expect(sleep.mock.calls).toEqual([[1000], [2000]]);
@@ -543,9 +542,9 @@ describe('YoutubeService', () => {
       it('gives up after a few retries, keeping the pending reference', async () => {
         overrides.set(`POST ${API}/playlistItems`, playlistNotFound);
 
-        await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-          NotFoundException,
-        );
+        await expect(
+          service.syncSchedulePlaylist(USER, 1, 1, {}),
+        ).rejects.toThrow(NotFoundException);
         expect(sleep).toHaveBeenCalledTimes(3);
         expect(scheduleUpdate).toHaveBeenCalledTimes(1);
       });
@@ -561,9 +560,9 @@ describe('YoutubeService', () => {
         apiError(404, 'playlistNotFound'),
       );
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow(NotFoundException);
       expect(sleep).not.toHaveBeenCalled();
     });
 
@@ -574,7 +573,7 @@ describe('YoutubeService', () => {
       mockSongs(3);
       seedPlaylist(['v1', 'v2', 'v3']);
 
-      const result = await service.syncSchedulePlaylist(1, 1, {});
+      const result = await service.syncSchedulePlaylist(USER, 1, 1, {});
 
       expect(result.action).toBe('synced');
       expect(writes()).toHaveLength(0);
@@ -587,7 +586,7 @@ describe('YoutubeService', () => {
       mockSongs(3);
       seedPlaylist(['v1', 'v2']);
 
-      await service.syncSchedulePlaylist(1, 1, {});
+      await service.syncSchedulePlaylist(USER, 1, 1, {});
 
       expect(writes()).toEqual([
         expect.objectContaining({
@@ -611,7 +610,7 @@ describe('YoutubeService', () => {
       mockSongs(3);
       seedPlaylist(['v1', 'v2', 'v3', 'v4']);
 
-      await service.syncSchedulePlaylist(1, 1, {});
+      await service.syncSchedulePlaylist(USER, 1, 1, {});
 
       const methods = writes().map((call) => call.method);
       expect(methods).toEqual(['DELETE', 'DELETE', 'DELETE', 'POST', 'POST']);
@@ -626,7 +625,7 @@ describe('YoutubeService', () => {
       mockSongs(5);
       seedPlaylist(['v1', 'v2', 'v3', 'v4', 'v5']);
 
-      await service.syncSchedulePlaylist(1, 1, {});
+      await service.syncSchedulePlaylist(USER, 1, 1, {});
 
       const listCalls = calls.filter(
         (call) => call.method === 'GET' && call.url.includes('/playlistItems'),
@@ -642,7 +641,7 @@ describe('YoutubeService', () => {
       });
       missingVideos.add('v2');
 
-      const result = await service.syncSchedulePlaylist(1, 1, {});
+      const result = await service.syncSchedulePlaylist(USER, 1, 1, {});
 
       expect(result.added).toBe(1);
       expect(result.skipped).toEqual([
@@ -665,9 +664,9 @@ describe('YoutubeService', () => {
       );
       mockSongs(1);
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow(ForbiddenException);
       expect(calls).toHaveLength(0);
     });
 
@@ -675,9 +674,9 @@ describe('YoutubeService', () => {
       scheduleFindOneBy.mockResolvedValue(mockSchedule([1]));
       mockSongs(1, { 1: { references: [] } });
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-        /No songs in this schedule have a YouTube reference/,
-      );
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow(/No songs in this schedule have a YouTube reference/);
     });
 
     it('surfaces an exceeded quota as 429', async () => {
@@ -690,7 +689,7 @@ describe('YoutubeService', () => {
       );
 
       const error = await service
-        .syncSchedulePlaylist(1, 1, {})
+        .syncSchedulePlaylist(USER, 1, 1, {})
         .catch((e) => e);
 
       expect(error).toBeInstanceOf(HttpException);
@@ -707,9 +706,9 @@ describe('YoutubeService', () => {
         apiError(404, 'playlistNotFound'),
       );
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('refreshes a rejected access token and retries once', async () => {
@@ -733,7 +732,7 @@ describe('YoutubeService', () => {
         jsonResponse({ access_token: 'fresh', expires_in: 3600 }),
       );
 
-      await service.syncSchedulePlaylist(1, 1, {});
+      await service.syncSchedulePlaylist(USER, 1, 1, {});
 
       expect(usersUpdate).toHaveBeenCalledWith(42, {
         youtube: expect.objectContaining({
@@ -758,9 +757,9 @@ describe('YoutubeService', () => {
         () => new Response('{"error":"invalid_grant"}', { status: 400 }),
       );
 
-      await expect(service.syncSchedulePlaylist(1, 1, {})).rejects.toThrow(
-        /no longer valid/,
-      );
+      await expect(
+        service.syncSchedulePlaylist(USER, 1, 1, {}),
+      ).rejects.toThrow(/no longer valid/);
       expect(usersUpdate).toHaveBeenCalledWith(42, {
         youtube: { enabled: true },
       });

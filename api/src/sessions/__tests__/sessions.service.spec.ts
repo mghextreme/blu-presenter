@@ -1,18 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { In } from 'typeorm';
-import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
-import { SessionsServiceWithRequest } from '../sessions.service';
-import { Session } from '../../entities';
+import { ForbiddenException } from '@nestjs/common';
+import { SessionsService } from '../sessions.service';
+import { Session, User } from '../../entities';
 import { UsersService } from '../../users/users.service';
-import {
-  OrganizationsBaseService,
-  OrganizationsService,
-} from '../../organizations/organizations.service';
+import { OrganizationsService } from '../../organizations/organizations.service';
 
-describe('SessionsServiceWithRequest', () => {
-  let service: SessionsServiceWithRequest;
+describe('SessionsService', () => {
+  let service: SessionsService;
 
   const mockSession = (overrides: Partial<Session> = {}): Session =>
     ({
@@ -22,12 +18,7 @@ describe('SessionsServiceWithRequest', () => {
       ...overrides,
     }) as Session;
 
-  const mockRequest = {
-    user: {
-      internal: { id: 42 },
-      organization: 1,
-    },
-  };
+  const user = { id: 42 } as User;
 
   const mockSessionsRepository = {
     find: jest.fn(),
@@ -43,20 +34,14 @@ describe('SessionsServiceWithRequest', () => {
   };
 
   const mockOrganizationsService = {
-    userRole: jest.fn(),
-  };
-
-  const mockOrganizationsBaseService = {
     isFeatureEnabledInOrg: jest.fn().mockResolvedValue(true),
     assertFeatureEnabled: jest.fn().mockResolvedValue(undefined),
   };
 
-  const buildModule = async (
-    request: any = mockRequest,
-  ): Promise<TestingModule> =>
+  const buildModule = async (): Promise<TestingModule> =>
     Test.createTestingModule({
       providers: [
-        SessionsServiceWithRequest,
+        SessionsService,
         {
           provide: getRepositoryToken(Session),
           useValue: mockSessionsRepository,
@@ -69,22 +54,12 @@ describe('SessionsServiceWithRequest', () => {
           provide: OrganizationsService,
           useValue: mockOrganizationsService,
         },
-        {
-          provide: OrganizationsBaseService,
-          useValue: mockOrganizationsBaseService,
-        },
-        {
-          provide: REQUEST,
-          useValue: request,
-        },
       ],
     }).compile();
 
   beforeEach(async () => {
     const module = await buildModule();
-    service = await module.resolve<SessionsServiceWithRequest>(
-      SessionsServiceWithRequest,
-    );
+    service = module.get<SessionsService>(SessionsService);
   });
 
   afterEach(() => {
@@ -92,18 +67,6 @@ describe('SessionsServiceWithRequest', () => {
   });
 
   describe('findAllForUserOrgs', () => {
-    it('should throw UnauthorizedException if user is not authenticated', async () => {
-      const moduleWithoutUser = await buildModule({ user: undefined });
-      const serviceWithoutUser =
-        await moduleWithoutUser.resolve<SessionsServiceWithRequest>(
-          SessionsServiceWithRequest,
-        );
-
-      await expect(serviceWithoutUser.findAllForUserOrgs()).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
     it('should include sessions for orgs where the user is owner, admin, or member', async () => {
       mockUsersService.findUserOrganizations.mockResolvedValue([
         { organization: { id: 1, name: 'Owned Org' }, role: 'owner' },
@@ -117,7 +80,7 @@ describe('SessionsServiceWithRequest', () => {
       ];
       mockSessionsRepository.find.mockResolvedValue(sessions);
 
-      const result = await service.findAllForUserOrgs();
+      const result = await service.findAllForUserOrgs(user);
 
       expect(result).toEqual([
         {
@@ -150,7 +113,7 @@ describe('SessionsServiceWithRequest', () => {
         mockSession({ id: 10, orgId: 1 }),
       ]);
 
-      await service.findAllForUserOrgs();
+      await service.findAllForUserOrgs(user);
 
       // Only the member org id should reach the SQL query — guest org id 2 must be filtered out.
       expect(mockSessionsRepository.find).toHaveBeenCalledWith(
@@ -166,7 +129,7 @@ describe('SessionsServiceWithRequest', () => {
         { organization: { id: 2, name: 'Guest Org B' }, role: 'guest' },
       ]);
 
-      const result = await service.findAllForUserOrgs();
+      const result = await service.findAllForUserOrgs(user);
 
       expect(result).toEqual([]);
       // Avoid calling TypeORM with `In([])`, which would build an invalid SQL fragment.
@@ -176,7 +139,7 @@ describe('SessionsServiceWithRequest', () => {
     it('should return an empty array when the user belongs to no organizations', async () => {
       mockUsersService.findUserOrganizations.mockResolvedValue([]);
 
-      const result = await service.findAllForUserOrgs();
+      const result = await service.findAllForUserOrgs(user);
 
       expect(result).toEqual([]);
       expect(mockSessionsRepository.find).not.toHaveBeenCalled();
@@ -192,7 +155,7 @@ describe('SessionsServiceWithRequest', () => {
       const sessions = [mockSession({ id: 10, orgId: 1 })];
       mockSessionsRepository.find.mockResolvedValue(sessions);
 
-      const result = await service.search({});
+      const result = await service.search({}, user);
 
       expect(result).toEqual([
         {
@@ -214,7 +177,7 @@ describe('SessionsServiceWithRequest', () => {
       ]);
       mockSessionsRepository.find.mockResolvedValue([]);
 
-      await service.search({ organizations: [2] });
+      await service.search({ organizations: [2] }, user);
 
       expect(mockSessionsRepository.find).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -228,9 +191,9 @@ describe('SessionsServiceWithRequest', () => {
         { organization: { id: 1, name: 'Member Org' }, role: 'member' },
       ]);
 
-      await expect(service.search({ organizations: [999] })).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.search({ organizations: [999] }, user),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw ForbiddenException when requesting an organization where the user is only a guest', async () => {
@@ -238,9 +201,9 @@ describe('SessionsServiceWithRequest', () => {
         { organization: { id: 1, name: 'Guest Org' }, role: 'guest' },
       ]);
 
-      await expect(service.search({ organizations: [1] })).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.search({ organizations: [1] }, user),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should return an empty array without querying when no org qualifies', async () => {
@@ -248,7 +211,7 @@ describe('SessionsServiceWithRequest', () => {
         { organization: { id: 1, name: 'Guest Org' }, role: 'guest' },
       ]);
 
-      const result = await service.search({});
+      const result = await service.search({}, user);
 
       expect(result).toEqual([]);
       expect(mockSessionsRepository.find).not.toHaveBeenCalled();
@@ -262,7 +225,7 @@ describe('SessionsServiceWithRequest', () => {
         mockSession({ id: 10, orgId: 1 }),
       ]);
 
-      const result = await service.search({});
+      const result = await service.search({}, user);
 
       expect(result[0].organization).toEqual({
         id: 1,
@@ -289,7 +252,7 @@ describe('SessionsServiceWithRequest', () => {
         mockSession({ id: 10, orgId: 1 }),
       ]);
 
-      await service.findAllForUserOrgs();
+      await service.findAllForUserOrgs(user);
 
       expect(mockSessionsRepository.find).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -312,7 +275,7 @@ describe('SessionsServiceWithRequest', () => {
       ]);
       mockSessionsRepository.find.mockResolvedValue([]);
 
-      await service.search({ organizations: [1, 2] });
+      await service.search({ organizations: [1, 2] }, user);
 
       expect(mockSessionsRepository.find).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -328,17 +291,15 @@ describe('SessionsServiceWithRequest', () => {
       mockSessionsRepository.findOne.mockResolvedValue(
         mockSession({ id: 10, orgId: 1 }),
       );
-      mockOrganizationsBaseService.isFeatureEnabledInOrg.mockResolvedValue(
-        false,
-      );
+      mockOrganizationsService.isFeatureEnabledInOrg.mockResolvedValue(false);
 
-      await expect(service.findOneInAnyOrg(10)).rejects.toThrow(
+      await expect(service.findOneInAnyOrg(10, user)).rejects.toThrow(
         ForbiddenException,
       );
     });
 
     it('should throw ForbiddenException from create when the sessions feature is disabled', async () => {
-      mockOrganizationsBaseService.assertFeatureEnabled.mockRejectedValue(
+      mockOrganizationsService.assertFeatureEnabled.mockRejectedValue(
         new ForbiddenException('Sessions are disabled for this organization'),
       );
 
@@ -346,7 +307,7 @@ describe('SessionsServiceWithRequest', () => {
         service.create(1, { name: 'New Session' } as any),
       ).rejects.toThrow(ForbiddenException);
       expect(
-        mockOrganizationsBaseService.assertFeatureEnabled,
+        mockOrganizationsService.assertFeatureEnabled,
       ).toHaveBeenCalledWith(1, 'sessions');
     });
   });

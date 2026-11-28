@@ -3,14 +3,13 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   Param,
   Post,
   Put,
   Query,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
-import { Theme } from 'src/entities';
+import { Theme, User } from 'src/entities';
 import {
   CreateThemeDto,
   SearchThemeDto,
@@ -20,6 +19,7 @@ import {
 import { ThemeWithRoleViewModel } from 'src/models/theme-with-role.view-model';
 import { ThemesService } from './themes.service';
 import { OrganizationRole } from 'src/auth/organization-role.decorator';
+import { CurrentUser, OrgId } from 'src/auth/request-context.decorator';
 import { Public } from 'src/supabase/public.decorator';
 
 @Controller('themes')
@@ -35,45 +35,53 @@ export class ThemesController {
 
   @Post('search')
   async search(
+    @CurrentUser() user: User,
     @Body() searchThemeDto: SearchThemeDto,
   ): Promise<ThemeWithRoleViewModel[]> {
-    return await this.themesService.search(searchThemeDto);
+    return await this.themesService.search(searchThemeDto, user);
   }
 
   @Get('user/all')
-  async findAllForUser(): Promise<Theme[]> {
-    return await this.themesService.findAllForUserOrgs();
+  async findAllForUser(@CurrentUser() user: User): Promise<Theme[]> {
+    return await this.themesService.findAllForUserOrgs(user);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<ThemeWithRoleViewModel> {
-    return await this.themesService.findOneInAnyOrg(id);
+  async findOne(
+    @CurrentUser() user: User,
+    @Param('id') id: number,
+  ): Promise<ThemeWithRoleViewModel> {
+    return await this.themesService.findOneInAnyOrg(id, user);
   }
 
   @Post()
   @OrganizationRole('owner', 'admin', 'member')
   async create(
-    @Headers('Organization') orgId: number,
+    @OrgId() orgId: number,
     @Body() createThemeDto: CreateThemeDto,
-  ): Promise<Theme> {
+  ): Promise<Theme | null> {
     return await this.themesService.create(orgId, createThemeDto);
   }
 
   @Post('copyToOrganization')
   @OrganizationRole('owner', 'admin', 'member', 'guest')
   async copyToOrganization(
+    @OrgId() orgId: number,
+    @CurrentUser() user: User,
     @Body() copyThemeDto: CopyThemeToOrganizationDto,
   ): Promise<void> {
     await this.themesService.copyToOrganization(
+      orgId,
       copyThemeDto.themeId,
       copyThemeDto.organizationId,
+      user.id,
     );
   }
 
   @Put(':id')
   @OrganizationRole('owner', 'admin', 'member')
   async update(
-    @Headers('Organization') orgId: number,
+    @OrgId() orgId: number,
     @Param('id') id: number,
     @Body() updateThemeDto: UpdateThemeDto,
   ): Promise<Theme> {
@@ -82,10 +90,7 @@ export class ThemesController {
 
   @Delete(':id')
   @OrganizationRole('owner', 'admin')
-  async delete(
-    @Headers('Organization') orgId: number,
-    @Param('id') id: number,
-  ): Promise<void> {
+  async delete(@OrgId() orgId: number, @Param('id') id: number): Promise<void> {
     return await this.themesService.delete(orgId, id);
   }
 

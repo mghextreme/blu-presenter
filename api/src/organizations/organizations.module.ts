@@ -7,10 +7,7 @@ import {
   User,
 } from '../entities';
 import { OrganizationsController } from './organizations.controller';
-import {
-  OrganizationsService,
-  OrganizationsBaseService,
-} from './organizations.service';
+import { OrganizationsService } from './organizations.service';
 
 @Global()
 @Module({
@@ -23,7 +20,7 @@ import {
     ]),
   ],
   controllers: [OrganizationsController],
-  providers: [OrganizationsService, OrganizationsBaseService],
-  exports: [OrganizationsService, OrganizationsBaseService],
+  providers: [OrganizationsService],
+  exports: [OrganizationsService],
 })
 export class OrganizationsModule {}

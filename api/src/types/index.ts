@@ -12,6 +12,7 @@ export * from './search-theme.dto';
 
 export * from './selection.interface';
 export * from './schedule-item.interface';
+export * from './schedule-item.dto';
 export * from './create-session.dto';
 export * from './update-session.dto';
 export * from './search-session.dto';
@@ -50,6 +51,7 @@ export * from './reset-password.dto';
 export * from './otp-sign-in-request.dto';
 export * from './otp-sign-in-verify.dto';
 
-export * from './authenticated-socket.interface';
+export * from './request-auth.interface';
+export * from './organization-membership.interface';
 export * from './playlist-connect-callback.dto';
 export * from './playlist-connection.interface';

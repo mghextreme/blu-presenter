@@ -138,6 +138,21 @@ describe('SongTextFormatService', () => {
       );
     });
 
+    it('encodes a song without artist with an empty artist header', () => {
+      const encoded = service.encode({
+        title: 'Untitled Hymn',
+        artist: null,
+        blocks: [],
+        references: [],
+      });
+
+      expect(encoded).toContain('# Untitled Hymn\n##\n');
+      expect(service.decode(encoded)).toMatchObject({
+        title: 'Untitled Hymn',
+        artist: '',
+      });
+    });
+
     it('emits references without name as url-only entries', () => {
       const text = service.encode({
         title: 'T',

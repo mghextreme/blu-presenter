@@ -5,11 +5,10 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
 import { SchedulesService } from '../schedules.service';
-import { Schedule, Song } from '../../entities';
+import { Schedule, Song, User } from '../../entities';
 import { UsersService } from '../../users/users.service';
-import { OrganizationsBaseService } from '../../organizations/organizations.service';
+import { OrganizationsService } from '../../organizations/organizations.service';
 
 describe('SchedulesService', () => {
   let service: SchedulesService;
@@ -27,12 +26,7 @@ describe('SchedulesService', () => {
       ...overrides,
     }) as Schedule;
 
-  const mockRequest = {
-    user: {
-      internal: { id: 42 },
-      organization: 1,
-    },
-  };
+  const user = { id: 42 } as User;
 
   const mockSchedulesRepository = {
     findOne: jest.fn(),
@@ -51,7 +45,7 @@ describe('SchedulesService', () => {
     findUserOrganizations: jest.fn(),
   };
 
-  const mockOrganizationsBaseService = {
+  const mockOrganizationsService = {
     isFeatureEnabledInOrg: jest.fn().mockResolvedValue(true),
     assertFeatureEnabled: jest.fn().mockResolvedValue(undefined),
   };
@@ -92,9 +86,7 @@ describe('SchedulesService', () => {
 
   let queryBuilder: QueryBuilderMock;
 
-  const buildModule = async (
-    request: any = mockRequest,
-  ): Promise<TestingModule> =>
+  const buildModule = async (): Promise<TestingModule> =>
     Test.createTestingModule({
       providers: [
         SchedulesService,
@@ -111,12 +103,8 @@ describe('SchedulesService', () => {
           useValue: mockUsersService,
         },
         {
-          provide: OrganizationsBaseService,
-          useValue: mockOrganizationsBaseService,
-        },
-        {
-          provide: REQUEST,
-          useValue: request,
+          provide: OrganizationsService,
+          useValue: mockOrganizationsService,
         },
       ],
     }).compile();
@@ -126,7 +114,7 @@ describe('SchedulesService', () => {
     mockSchedulesRepository.createQueryBuilder.mockReturnValue(queryBuilder);
 
     const module = await buildModule();
-    service = await module.resolve<SchedulesService>(SchedulesService);
+    service = module.get<SchedulesService>(SchedulesService);
   });
 
   afterEach(() => {
@@ -146,7 +134,7 @@ describe('SchedulesService', () => {
       const schedules = [mockSchedule({ id: 10, orgId: 1 })];
       queryBuilder.getMany.mockResolvedValue(schedules);
 
-      const result = await service.search({});
+      const result = await service.search({}, user);
 
       expect(result).toEqual([
         {
@@ -166,7 +154,7 @@ describe('SchedulesService', () => {
         { organization: { id: 2, name: 'Guest Org' }, role: 'guest' },
       ]);
 
-      await service.search({ organizations: [2] });
+      await service.search({ organizations: [2] }, user);
 
       expect(queryBuilder.where).toHaveBeenCalledWith(
         '"schedule"."orgId" IN (:...orgIds)',
@@ -179,15 +167,15 @@ describe('SchedulesService', () => {
         { organization: { id: 1, name: 'Member Org' }, role: 'member' },
       ]);
 
-      await expect(service.search({ organizations: [999] })).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.search({ organizations: [999] }, user),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should return an empty array without querying when the user belongs to no organizations', async () => {
       mockUsersService.findUserOrganizations.mockResolvedValue([]);
 
-      const result = await service.search({});
+      const result = await service.search({}, user);
 
       expect(result).toEqual([]);
       expect(mockSchedulesRepository.createQueryBuilder).not.toHaveBeenCalled();
@@ -201,7 +189,7 @@ describe('SchedulesService', () => {
         mockSchedule({ id: 10, orgId: 1 }),
       ]);
 
-      const result = await service.search({});
+      const result = await service.search({}, user);
 
       expect(result[0].organization).toEqual({
         id: 1,
@@ -215,7 +203,7 @@ describe('SchedulesService', () => {
         { organization: { id: 1, name: 'Member Org' }, role: 'member' },
       ]);
 
-      await service.search({ query: 'worship' });
+      await service.search({ query: 'worship' }, user);
 
       expect(queryBuilder.andWhere).toHaveBeenCalledWith(
         '"schedule"."title" ILIKE :query',
@@ -228,7 +216,7 @@ describe('SchedulesService', () => {
         { organization: { id: 1, name: 'Member Org' }, role: 'member' },
       ]);
 
-      await service.search({});
+      await service.search({}, user);
 
       expect(queryBuilder.andWhere).not.toHaveBeenCalled();
     });
@@ -238,7 +226,10 @@ describe('SchedulesService', () => {
         { organization: { id: 1, name: 'Member Org' }, role: 'member' },
       ]);
 
-      await service.search({ dateFrom: '2026-01-01', dateTo: '2026-01-31' });
+      await service.search(
+        { dateFrom: '2026-01-01', dateTo: '2026-01-31' },
+        user,
+      );
 
       expect(queryBuilder.andWhere).toHaveBeenCalledWith(
         '"schedule"."date" >= :dateFrom',
@@ -255,7 +246,7 @@ describe('SchedulesService', () => {
         { organization: { id: 1, name: 'Member Org' }, role: 'member' },
       ]);
 
-      await service.search({ dateFrom: '2026-01-01' });
+      await service.search({ dateFrom: '2026-01-01' }, user);
 
       expect(queryBuilder.andWhere).toHaveBeenCalledTimes(1);
       expect(queryBuilder.andWhere).toHaveBeenCalledWith(
@@ -270,7 +261,7 @@ describe('SchedulesService', () => {
       ]);
 
       await expect(
-        service.search({ dateFrom: '2026-02-01', dateTo: '2026-01-01' }),
+        service.search({ dateFrom: '2026-02-01', dateTo: '2026-01-01' }, user),
       ).rejects.toThrow(BadRequestException);
       expect(queryBuilder.where).not.toHaveBeenCalled();
     });
@@ -280,7 +271,7 @@ describe('SchedulesService', () => {
         { organization: { id: 1, name: 'Member Org' }, role: 'member' },
       ]);
 
-      await service.search({ page: 2, itemsPerPage: 10 });
+      await service.search({ page: 2, itemsPerPage: 10 }, user);
 
       expect(queryBuilder.addSelect).toHaveBeenCalledWith(
         'COALESCE("schedule"."date", CAST("schedule"."createdAt" AS DATE))',
@@ -310,7 +301,7 @@ describe('SchedulesService', () => {
         },
       ]);
 
-      await service.search({});
+      await service.search({}, user);
 
       expect(queryBuilder.where).toHaveBeenCalledWith(
         '"schedule"."orgId" IN (:...orgIds)',
@@ -331,7 +322,7 @@ describe('SchedulesService', () => {
         },
       ]);
 
-      await service.search({ organizations: [1, 2] });
+      await service.search({ organizations: [1, 2] }, user);
 
       expect(queryBuilder.where).toHaveBeenCalledWith(
         '"schedule"."orgId" IN (:...orgIds)',
@@ -343,29 +334,21 @@ describe('SchedulesService', () => {
       mockSchedulesRepository.findOne.mockResolvedValue(
         mockSchedule({ id: 10, orgId: 1 }),
       );
-      mockOrganizationsBaseService.isFeatureEnabledInOrg.mockResolvedValue(
-        false,
-      );
+      mockOrganizationsService.isFeatureEnabledInOrg.mockResolvedValue(false);
 
-      await expect(service.findOneInAnyOrgOrBySecret(10)).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.findOneInAnyOrgOrBySecret(10, undefined, user),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw NotFoundException from findOneInAnyOrgOrBySecret for anonymous callers when disabled', async () => {
-      const moduleWithoutUser = await buildModule({ user: undefined });
-      const serviceWithoutUser =
-        await moduleWithoutUser.resolve<SchedulesService>(SchedulesService);
-
       mockSchedulesRepository.findOne.mockResolvedValue(
         mockSchedule({ id: 10, orgId: 1 }),
       );
-      mockOrganizationsBaseService.isFeatureEnabledInOrg.mockResolvedValue(
-        false,
-      );
+      mockOrganizationsService.isFeatureEnabledInOrg.mockResolvedValue(false);
 
       await expect(
-        serviceWithoutUser.findOneInAnyOrgOrBySecret(10, 'secret'),
+        service.findOneInAnyOrgOrBySecret(10, 'secret', undefined),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -374,10 +357,10 @@ describe('SchedulesService', () => {
         raw: [{ id: 99 }],
       });
 
-      await service.create(1, { title: 'New Schedule' } as any);
+      await service.create(1, { title: 'New Schedule' } as any, user);
 
       expect(
-        mockOrganizationsBaseService.assertFeatureEnabled,
+        mockOrganizationsService.assertFeatureEnabled,
       ).toHaveBeenCalledWith(1, 'schedules');
     });
   });
@@ -400,15 +383,20 @@ describe('SchedulesService', () => {
         return s;
       });
 
-      const result = await service.update(1, 1, {
-        references: [
-          { url: 'https://a.example', name: 'A' },
-          {
-            url: 'https://open.spotify.com/playlist/forged',
-            source: 'spotify-auto',
-          },
-        ],
-      });
+      const result = await service.update(
+        1,
+        1,
+        {
+          references: [
+            { url: 'https://a.example', name: 'A' },
+            {
+              url: 'https://open.spotify.com/playlist/forged',
+              source: 'spotify-auto',
+            },
+          ],
+        },
+        user,
+      );
 
       expect(savedReferences).toEqual([
         { url: 'https://a.example', name: 'A' },
@@ -422,17 +410,21 @@ describe('SchedulesService', () => {
     it('does not accept auto references on create', async () => {
       mockSchedulesRepository.insert.mockResolvedValue({ raw: [{ id: 99 }] });
 
-      await service.create(1, {
-        title: 'New',
-        items: [],
-        references: [
-          {
-            url: 'https://open.spotify.com/playlist/x',
-            source: 'spotify-auto',
-          },
-          { url: 'https://a.example' },
-        ],
-      } as any);
+      await service.create(
+        1,
+        {
+          title: 'New',
+          items: [],
+          references: [
+            {
+              url: 'https://open.spotify.com/playlist/x',
+              source: 'spotify-auto',
+            },
+            { url: 'https://a.example' },
+          ],
+        } as any,
+        user,
+      );
 
       expect(mockSchedulesRepository.insert).toHaveBeenCalledWith(
         expect.objectContaining({

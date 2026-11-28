@@ -10,7 +10,7 @@ export interface SongExportReference {
 
 export interface SongExportData {
   title: string;
-  artist: string;
+  artist: string | null;
   language?: string | null;
   blocks: SongPart[];
   references: SongExportReference[];
@@ -55,7 +55,7 @@ export class SongTextFormatService {
 
     const body: string[] = [
       `# ${singleLine(song.title)}`,
-      `## ${singleLine(song.artist)}`,
+      `## ${singleLine(song.artist ?? '')}`,
     ];
     for (const part of song.blocks ?? []) {
       body.push('', `### ${this.partHeader(part)}`);

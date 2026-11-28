@@ -3,7 +3,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
 import { User } from './user.entity';
@@ -12,24 +12,24 @@ import { OrganizationRoleOptions } from 'src/types';
 
 @Entity({ name: 'organization_invitations' })
 export class OrganizationInvitation {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
   @Unique('organization_invitations_uniquekey', ['orgId', 'email'])
   orgId: number;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
   @Unique('organization_invitations_uniquekey', ['orgId', 'email'])
   email: string;
 
   @Column()
   inviterId: number;
 
-  @Column()
+  @Column({ type: 'varchar', length: 20 })
   role: OrganizationRoleOptions;
 
-  @Column()
+  @Column({ type: 'varchar', length: 511 })
   secret: string;
 
   @ManyToOne(() => Organization, (organization) => organization.invitations, {

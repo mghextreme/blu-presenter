@@ -6,7 +6,6 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
-  Inject,
   Param,
   Post,
 } from '@nestjs/common';
@@ -30,7 +29,9 @@ import {
   TokenRefreshDto,
   UserIdentitiesResponseDto,
 } from 'src/types';
+import { User } from 'src/entities';
 import { AuthService } from './auth.service';
+import { AccessToken, CurrentUser } from './request-context.decorator';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -39,10 +40,9 @@ export class AuthController {
 
   constructor(
     private authService: AuthService,
-    @Inject(ConfigService)
     configService: ConfigService,
   ) {
-    this.captchaEnabled = configService.get('captcha.enabled');
+    this.captchaEnabled = configService.get('captcha.enabled') === true;
   }
 
   @Public()
@@ -87,18 +87,15 @@ export class AuthController {
       validateDto.locale,
     );
 
-    if (validateDto.invite?.id && validateDto.invite?.secret) {
-      try {
-        const invitation =
-          await this.authService.organizationsService.associateInvite(
-            accessToken.user.id,
-            validateDto.invite,
-          );
-
-        accessToken.inviteOrgId = invitation.orgId;
-      } catch (e) {
-        console.warn(`Error associating invite: ${e}`);
-      }
+    if (
+      accessToken.user &&
+      validateDto.invite?.id &&
+      validateDto.invite?.secret
+    ) {
+      accessToken.inviteOrgId = await this.authService.associateInvite(
+        accessToken.user.id,
+        validateDto.invite,
+      );
     }
 
     return accessToken;
@@ -119,31 +116,42 @@ export class AuthController {
 
   @Post('changePassword')
   async changePassword(
+    @CurrentUser() user: User,
+    @AccessToken() accessToken: string,
     @Body() changePasswordDto: ChangePasswordDto,
   ): Promise<void> {
-    await this.authService.changePassword(changePasswordDto);
+    await this.authService.changePassword(user, accessToken, changePasswordDto);
   }
 
   @Get('identities')
-  async getIdentities(): Promise<UserIdentitiesResponseDto> {
-    return await this.authService.getIdentities();
+  async getIdentities(
+    @AccessToken() accessToken: string,
+  ): Promise<UserIdentitiesResponseDto> {
+    return await this.authService.getIdentities(accessToken);
   }
 
   @Post('identities/:provider')
   async linkIdentity(
+    @AccessToken() accessToken: string,
     @Param('provider') provider: string,
   ): Promise<OAuthRedirectDto> {
-    return await this.authService.linkIdentity(provider);
+    return await this.authService.linkIdentity(provider, accessToken);
   }
 
   @Delete('identities/:identityId')
-  async unlinkIdentity(@Param('identityId') identityId: string): Promise<void> {
-    await this.authService.unlinkIdentity(identityId);
+  async unlinkIdentity(
+    @AccessToken() accessToken: string,
+    @Param('identityId') identityId: string,
+  ): Promise<void> {
+    await this.authService.unlinkIdentity(identityId, accessToken);
   }
 
   @Post('setPassword')
-  async setPassword(@Body() setPasswordDto: SetPasswordDto): Promise<void> {
-    await this.authService.setPassword(setPasswordDto);
+  async setPassword(
+    @AccessToken() accessToken: string,
+    @Body() setPasswordDto: SetPasswordDto,
+  ): Promise<void> {
+    await this.authService.setPassword(setPasswordDto, accessToken);
   }
 
   @Public()

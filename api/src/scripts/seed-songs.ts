@@ -3,7 +3,7 @@ import { AppModule } from '../app.module';
 import { SongTextFormatService } from '../songs/text-format/song-text-format.service';
 import { Song } from 'src/entities';
 import { generateRandomSecret } from 'src/utils/secret';
-import { DataSource } from 'typeorm';
+import { DataSource, IsNull } from 'typeorm';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -99,7 +99,11 @@ async function main(): Promise<number> {
         const song = format.decode(text);
 
         const existing = await repository.findOne({
-          where: { title: song.title, artist: song.artist, orgId },
+          where: {
+            title: song.title,
+            artist: song.artist ?? IsNull(),
+            orgId: orgId ?? IsNull(),
+          },
         });
         if (existing) {
           console.log(`  skipped  ${relative} (already imported)`);

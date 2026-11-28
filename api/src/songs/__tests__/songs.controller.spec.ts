@@ -49,7 +49,11 @@ describe('SongsController export', () => {
     expect(response.text).toBe(
       '---\nschemaVersion: 1\nlanguage: en\n---\n\n# Ámazing Gráce\n## John Newton\n',
     );
-    expect(findOneInAnyOrgOrBySecret).toHaveBeenCalledWith('7', 'topsecret');
+    expect(findOneInAnyOrgOrBySecret).toHaveBeenCalledWith(
+      '7',
+      'topsecret',
+      undefined,
+    );
   });
 
   it('falls back to a song-id filename when the title has no latin characters', async () => {

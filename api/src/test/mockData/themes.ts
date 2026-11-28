@@ -6,16 +6,17 @@ export const createMockTheme = (
   orgId: number,
   name: string,
   themeType: 'lyrics' | 'subtitles' | 'teleprompter' = 'lyrics',
-): Theme => ({
-  id,
-  orgId,
-  name,
-  extends: themeType,
-  config: getMockConfig(themeType),
-  organization: null,
-  createdAt: new Date('2024-01-01'),
-  updatedAt: new Date('2024-01-01'),
-});
+): Theme =>
+  ({
+    id,
+    orgId,
+    name,
+    extends: themeType,
+    config: getMockConfig(themeType),
+    organization: null,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  }) as unknown as Theme;
 
 export const getMockConfig = (
   themeType: 'lyrics' | 'subtitles' | 'teleprompter',

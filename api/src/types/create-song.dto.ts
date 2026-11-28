@@ -28,6 +28,8 @@ export class CreateSongDto {
 
   @IsArray()
   @IsObject({ each: true })
+  @ValidateNested({ each: true })
+  @Type(() => SongPartDto)
   blocks: SongPartDto[];
 
   @IsOptional()

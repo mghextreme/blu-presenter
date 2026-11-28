@@ -1,6 +1,7 @@
 import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from './supabase/public.decorator';
+import { fetchWithTimeout } from 'src/utils/fetch-with-timeout';
 
 /**
  * Hosts allowed for server-side redirect resolution.
@@ -58,7 +59,7 @@ export class AppController {
     }
 
     try {
-      const response = await fetch(url, { redirect: 'follow' });
+      const response = await fetchWithTimeout(url, { redirect: 'follow' });
       const resolvedUrl = response.url;
 
       // Validate the final URL to prevent open-redirect abuse

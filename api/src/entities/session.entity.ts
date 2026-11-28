@@ -17,20 +17,20 @@ export class Session {
   @Column()
   orgId: number;
 
-  @Column()
-  name: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  name: string | null;
 
-  @Column()
-  language: string;
+  @Column({ type: 'char', length: 2, nullable: true })
+  language: string | null;
 
-  @Column()
-  theme: string;
+  @Column({ type: 'varchar', length: 16, nullable: true })
+  theme: string | null;
 
   @Column()
   default: boolean;
 
-  @Column({ nullable: true })
-  secret: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  secret: string | null;
 
   @Column({
     type: 'json',

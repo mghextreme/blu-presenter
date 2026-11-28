@@ -1,42 +1,28 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Inject,
-  Injectable,
-  Put,
-  Scope,
-} from '@nestjs/common';
+import { Body, Controller, Get, Put } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { User } from 'src/entities';
 import { UsersService } from './users.service';
-import { REQUEST } from '@nestjs/core';
-import { Request as ExpRequest } from 'express';
 import { UpdateProfileDto } from 'src/types';
 import { OrganizationUserViewModel } from 'src/models';
+import { AccessToken, CurrentUser } from 'src/auth/request-context.decorator';
 
 @Controller('users')
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
-@Injectable({ scope: Scope.REQUEST })
 export class UsersController {
-  constructor(
-    private usersService: UsersService,
-    @Inject(REQUEST) private readonly request: ExpRequest,
-  ) {}
+  constructor(private usersService: UsersService) {}
 
   @Get('profile')
-  async getProfile(): Promise<Partial<User>> {
-    return this.request.user['internal'];
+  getProfile(@CurrentUser() user: User): Partial<User> {
+    return user;
   }
 
   @Put('profile')
   async updateProfile(
+    @CurrentUser() user: User,
+    @AccessToken() accessToken: string,
     @Body() updateProfileDto: UpdateProfileDto,
   ): Promise<Partial<User>> {
-    const user = this.request.user['internal'];
-    const accessToken =
-      this.request.headers.authorization?.replace('Bearer ', '') ?? '';
     return await this.usersService.update(
       user.id,
       updateProfileDto,
@@ -45,16 +31,15 @@ export class UsersController {
   }
 
   @Get('organizations')
-  async getUserOrganizations(): Promise<OrganizationUserViewModel[]> {
-    const user = this.request.user['internal'];
+  async getUserOrganizations(
+    @CurrentUser() user: User,
+  ): Promise<OrganizationUserViewModel[]> {
     const orgUsers = await this.usersService.findUserOrganizations(user.id);
-    return orgUsers.map((item) => {
-      return {
-        id: item.organization.id,
-        name: item.organization.name,
-        role: item.role,
-        disabledFeatures: item.organization.disabledFeatures,
-      } as OrganizationUserViewModel;
-    });
+    return orgUsers.map((item) => ({
+      id: item.organization.id,
+      name: item.organization.name,
+      role: item.role,
+      disabledFeatures: item.organization.disabledFeatures,
+    }));
   }
 }

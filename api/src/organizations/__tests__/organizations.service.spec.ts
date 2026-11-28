@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import {
+  ForbiddenException,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
 import { DataSource } from 'typeorm';
 import { OrganizationsService } from '../organizations.service';
 import {
@@ -22,13 +22,9 @@ describe('OrganizationsService', () => {
     delete: jest.fn(),
   };
   const mockDataSource = { transaction: jest.fn() };
-  const mockRequest = {
-    user: { organization: 1, internal: { id: 10 }, role: 'owner' },
-  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    mockRequest.user.role = 'owner';
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -41,11 +37,10 @@ describe('OrganizationsService', () => {
         },
         { provide: getRepositoryToken(User), useValue: {} },
         { provide: getRepositoryToken(OrganizationInvitation), useValue: {} },
-        { provide: REQUEST, useValue: mockRequest },
       ],
     }).compile();
 
-    service = await module.resolve<OrganizationsService>(OrganizationsService);
+    service = module.get<OrganizationsService>(OrganizationsService);
   });
 
   describe('leave', () => {
@@ -89,8 +84,10 @@ describe('OrganizationsService', () => {
   });
 
   describe('transferOwnership', () => {
+    const owner = { userId: 10, role: 'owner' as const };
+
     it('rejects transferring ownership to the current owner', async () => {
-      await expect(service.transferOwnership(10)).rejects.toThrow(
+      await expect(service.transferOwnership(1, owner, 10)).rejects.toThrow(
         UnprocessableEntityException,
       );
       expect(mockDataSource.transaction).not.toHaveBeenCalled();
@@ -99,9 +96,16 @@ describe('OrganizationsService', () => {
     it('runs the transfer for another member', async () => {
       mockDataSource.transaction.mockResolvedValue(undefined);
 
-      await service.transferOwnership(20);
+      await service.transferOwnership(1, owner, 20);
 
       expect(mockDataSource.transaction).toHaveBeenCalled();
+    });
+
+    it('refuses callers who are not the owner', async () => {
+      await expect(
+        service.transferOwnership(1, { userId: 10, role: 'admin' }, 20),
+      ).rejects.toThrow(ForbiddenException);
+      expect(mockDataSource.transaction).not.toHaveBeenCalled();
     });
   });
 });

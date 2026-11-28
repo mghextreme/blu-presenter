@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { SessionsGateway } from './sessions.gateway';
-import { OrganizationsBaseService } from 'src/organizations/organizations.service';
+import { OrganizationsService } from 'src/organizations/organizations.service';
 import {
   sanitizeSchedule,
   sanitizeScheduleItem,
@@ -12,7 +12,7 @@ import {
 export class BroadcastService {
   constructor(
     private readonly sessionsService: SessionsService,
-    private readonly organizationsBaseService: OrganizationsBaseService,
+    private readonly organizationsService: OrganizationsService,
     private readonly sessionsGateway: SessionsGateway,
   ) {}
 
@@ -21,7 +21,7 @@ export class BroadcastService {
     sessionId: number,
     schedule: any[],
   ): Promise<void> {
-    await this.organizationsBaseService.assertFeatureEnabled(orgId, 'sessions');
+    await this.organizationsService.assertFeatureEnabled(orgId, 'sessions');
 
     const sanitized =
       schedule && schedule.length > 0 ? sanitizeSchedule(schedule) : [];
@@ -39,7 +39,7 @@ export class BroadcastService {
     sessionId: number,
     scheduleItem: any,
   ): Promise<void> {
-    await this.organizationsBaseService.assertFeatureEnabled(orgId, 'sessions');
+    await this.organizationsService.assertFeatureEnabled(orgId, 'sessions');
 
     const sanitized = sanitizeScheduleItem(scheduleItem);
     await this.sessionsService.setScheduleItem(orgId, sessionId, sanitized);
@@ -56,7 +56,7 @@ export class BroadcastService {
     sessionId: number,
     selection: any,
   ): Promise<void> {
-    await this.organizationsBaseService.assertFeatureEnabled(orgId, 'sessions');
+    await this.organizationsService.assertFeatureEnabled(orgId, 'sessions');
 
     const sanitized = sanitizeSelection(selection);
     await this.sessionsService.setSelection(orgId, sessionId, sanitized);

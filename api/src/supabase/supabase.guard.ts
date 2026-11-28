@@ -1,40 +1,32 @@
 import {
-  CanActivate,
+  BadRequestException,
   ExecutionContext,
   Injectable,
-  Scope,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
 import { IS_PUBLIC_KEY } from './public.decorator';
-import { UsersService, UsersBaseService } from '../users/users.service';
-import {
-  OrganizationsService,
-  OrganizationsBaseService,
-} from '../organizations/organizations.service';
+import { UsersService } from '../users/users.service';
+import { OrganizationsService } from '../organizations/organizations.service';
 import { ORGANIZATION_ROLE_KEY } from '../auth/organization-role.decorator';
-import { AuthenticatedSocket, isRoleHigherOrEqualThan } from 'src/types';
-import { SessionsService } from 'src/sessions/sessions.service';
-import { JwtVerificationService } from './jwt-verification.service';
+import { OrganizationRoleOptions, RequestAuth } from 'src/types';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class SupabaseGuard extends AuthGuard('jwt') {
   constructor(
     private readonly reflector: Reflector,
-    private readonly userService: UsersService,
-    private readonly organizationService: OrganizationsService,
+    private readonly usersService: UsersService,
+    private readonly organizationsService: OrganizationsService,
   ) {
     super();
   }
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
-    // WebSocket handlers must not go through the passport strategy: the WS
-    // "request" is the socket itself and has no HTTP headers, so the JWT
-    // extraction would always fail. Since NestJS v12 global guards run on
-    // WS message handlers too, skip them here — WS gateways authenticate
-    // through their own guards (see OptionalWebsocketGuard), mirroring
-    // RestOnlyThrottlerGuard.
+    // Since NestJS v12 global guards also run on WS message handlers, where
+    // the "request" is the socket and has no HTTP headers. Sessions are
+    // joined by secret, so WS handlers are not authenticated here.
     if (context.getType() === 'ws') {
       return true;
     }
@@ -52,127 +44,59 @@ export class SupabaseGuard extends AuthGuard('jwt') {
         if (isPublic) return true;
         throw new UnauthorizedException();
       }
-    } catch (e) {
+    } catch {
       if (isPublic) return true;
       throw new UnauthorizedException();
     }
 
-    const request = context.switchToHttp().getRequest();
-    const internalUser = await this.userService.findByAuthId(request.user.sub);
+    const request = context.switchToHttp().getRequest<Request>();
+    const auth = request.user as RequestAuth;
+    const internalUser = await this.usersService.findByAuthId(auth.sub);
     if (!internalUser) {
       if (isPublic) return true;
       throw new UnauthorizedException();
     }
-    internalUser.email = request.user.email;
-    request['user']['internal'] = internalUser;
+    if (auth.email !== undefined) {
+      internalUser.email = auth.email;
+    }
+    auth.internal = internalUser;
 
-    const allowedRoles = this.reflector.getAllAndOverride<string[]>(
-      ORGANIZATION_ROLE_KEY,
-      [contextHandler, contextClass],
-    );
+    const allowedRoles = this.reflector.getAllAndOverride<
+      OrganizationRoleOptions[]
+    >(ORGANIZATION_ROLE_KEY, [contextHandler, contextClass]);
     if (!allowedRoles || allowedRoles.length === 0) {
       return true;
     }
 
-    if (!request.headers?.organization) {
+    const orgId = parseOrganizationHeader(request.headers.organization);
+    if (orgId === undefined) {
       return false;
     }
 
-    request['user']['organization'] = request.headers?.organization;
-    const roleInOrganization = await this.organizationService.userRole(
-      request.headers?.organization,
+    const role = await this.organizationsService.userRole(
+      orgId,
       internalUser.id,
     );
-    request['user']['role'] = roleInOrganization;
-
-    return allowedRoles.includes(roleInOrganization);
-  }
-}
-
-@Injectable()
-export class WebsocketGuard implements CanActivate {
-  constructor(
-    protected readonly jwtVerificationService: JwtVerificationService,
-    protected readonly userService: UsersBaseService,
-    protected readonly organizationService: OrganizationsBaseService,
-    protected readonly sessionService: SessionsService,
-  ) {}
-
-  public async canActivate(context: ExecutionContext): Promise<boolean> {
-    const client: AuthenticatedSocket = context.switchToWs().getClient();
-    const data = context.switchToWs().getData();
-
-    // A client already tracked as joined to the session in the payload may
-    // reuse that room without re-verification. leaveSession payloads carry
-    // no orgId (it is already bound to the client); join payloads must match
-    // it. Anything else is re-verified below via the token.
-    const reusesJoinedSession =
-      !!client.userId &&
-      !!client.sessionId &&
-      !!client.orgId &&
-      data.sessionId === client.sessionId &&
-      (data.orgId === undefined || data.orgId === client.orgId);
-    if (reusesJoinedSession) {
-      return true;
-    }
-
-    const token =
-      data?.token ||
-      client?.handshake?.auth?.token ||
-      (client?.handshake?.query?.token as string);
-
-    let authPayload;
-    try {
-      authPayload = await this.jwtVerificationService.verifyToken(token);
-    } catch (e) {
+    if (!role || !allowedRoles.includes(role)) {
       return false;
     }
 
-    const internalUser = await this.userService.findByAuthId(authPayload.sub);
-    if (!internalUser) {
-      return false;
-    }
-
-    // leaveSession payloads omit orgId: fall back to the client's own org id
-    // instead of querying the database with an undefined orgId.
-    const orgId = data?.orgId ?? client?.orgId;
-    if (orgId === undefined || orgId === null) {
-      return false;
-    }
-
-    const session = await this.sessionService.findOne(orgId, data.sessionId);
-    if (!session) {
-      return false;
-    }
-
-    if (
-      !(await this.organizationService.isFeatureEnabledInOrg(
-        session.orgId,
-        'sessions',
-      ))
-    ) {
-      return false;
-    }
-
-    const roleInOrganization = await this.organizationService.userRole(
-      session.orgId,
-      internalUser.id,
-    );
-    if (!isRoleHigherOrEqualThan(roleInOrganization, 'member')) {
-      return false;
-    }
-
-    client.userId = internalUser.id;
-    client.orgId = session.orgId;
-    client.sessionId = session.id;
+    auth.organization = orgId;
+    auth.role = role;
     return true;
   }
 }
 
-@Injectable()
-export class OptionalWebsocketGuard extends WebsocketGuard {
-  public async canActivate(context: ExecutionContext): Promise<boolean> {
-    await super.canActivate(context);
-    return true;
+/** Undefined when the header is missing; rejects a malformed one. */
+function parseOrganizationHeader(
+  header: string | string[] | undefined,
+): number | undefined {
+  if (header === undefined || header === '') {
+    return undefined;
   }
+  const orgId = Number(header);
+  if (!Number.isSafeInteger(orgId) || orgId < 1) {
+    throw new BadRequestException('Invalid Organization header');
+  }
+  return orgId;
 }

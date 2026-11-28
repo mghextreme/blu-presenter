@@ -4,9 +4,10 @@ import { Song } from '../entities';
 import { SongsController } from './songs.controller';
 import { SongsService } from './songs.service';
 import { SongTextFormatService } from './text-format/song-text-format.service';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Song])],
+  imports: [TypeOrmModule.forFeature([Song]), UsersModule],
   controllers: [SongsController],
   providers: [SongsService, SongTextFormatService],
 })

@@ -5,14 +5,15 @@ import {
   HttpStatus,
   Injectable,
   NotFoundException,
-  Scope,
 } from '@nestjs/common';
 import { IPlaylistConnection } from 'src/types';
 import { getYouTubePlaylistId, getYouTubeVideoId } from 'src/utils/youtube';
 import {
   PlaylistAccountProfile,
   PlaylistIntegrationService,
+  PlaylistUserContext,
 } from 'src/playlist-integration/playlist-integration.service';
+import { fetchWithTimeout } from 'src/utils/fetch-with-timeout';
 
 const GOOGLE_AUTHORIZE_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -42,7 +43,7 @@ class YouTubeVideoNotFoundException extends NotFoundException {}
  * only rewrite what changed: the items matching the schedule's start are
  * kept, everything after the first difference is replaced.
  */
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class YoutubeService extends PlaylistIntegrationService {
   protected readonly provider = 'youtube';
   protected readonly source = 'youtube-auto';
@@ -72,7 +73,7 @@ export class YoutubeService extends PlaylistIntegrationService {
   protected async fetchAccountProfile(
     accessToken: string,
   ): Promise<PlaylistAccountProfile> {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${YOUTUBE_API_BASE}/channels?part=snippet&mine=true`,
       { headers: { Authorization: `Bearer ${accessToken}` } },
     );
@@ -95,7 +96,7 @@ export class YoutubeService extends PlaylistIntegrationService {
   }
 
   protected async revokeToken(connection: IPlaylistConnection): Promise<void> {
-    await fetch(GOOGLE_REVOKE_URL, {
+    await fetchWithTimeout(GOOGLE_REVOKE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ token: connection.refreshToken! }),
@@ -103,10 +104,12 @@ export class YoutubeService extends PlaylistIntegrationService {
   }
 
   protected async createPlaylist(
+    context: PlaylistUserContext,
     name: string,
     isPublic: boolean,
   ): Promise<string> {
     const playlist = await this.apiRequest<{ id: string }>(
+      context,
       '/playlists?part=snippet,status',
       {
         method: 'POST',
@@ -126,6 +129,7 @@ export class YoutubeService extends PlaylistIntegrationService {
   }
 
   protected async writePlaylistItems(
+    context: PlaylistUserContext,
     playlistUrl: string,
     videoIds: string[],
     isNew: boolean,
@@ -133,7 +137,9 @@ export class YoutubeService extends PlaylistIntegrationService {
     const playlistId = this.extractPlaylistId(playlistUrl);
     // A playlist created moments ago is empty, and YouTube may still answer
     // 404 (playlistNotFound) for it while it propagates: skip the listing.
-    const current = isNew ? [] : await this.listPlaylistItems(playlistId);
+    const current = isNew
+      ? []
+      : await this.listPlaylistItems(context, playlistId);
 
     let keep = 0;
     while (
@@ -146,6 +152,7 @@ export class YoutubeService extends PlaylistIntegrationService {
 
     for (const item of current.slice(keep)) {
       await this.apiRequest(
+        context,
         `/playlistItems?id=${encodeURIComponent(item.id)}`,
         { method: 'DELETE' },
       );
@@ -157,7 +164,12 @@ export class YoutubeService extends PlaylistIntegrationService {
     let mayNotExistYet = isNew;
     for (const videoId of videoIds.slice(keep)) {
       try {
-        await this.insertPlaylistItem(playlistId, videoId, mayNotExistYet);
+        await this.insertPlaylistItem(
+          context,
+          playlistId,
+          videoId,
+          mayNotExistYet,
+        );
         mayNotExistYet = false;
       } catch (e) {
         if (!(e instanceof YouTubeVideoNotFoundException)) {
@@ -176,6 +188,7 @@ export class YoutubeService extends PlaylistIntegrationService {
    * seconds to become visible to the playlistItems endpoints.
    */
   private async insertPlaylistItem(
+    context: PlaylistUserContext,
     playlistId: string,
     videoId: string,
     retryNotFound: boolean,
@@ -183,7 +196,7 @@ export class YoutubeService extends PlaylistIntegrationService {
     const delays = retryNotFound ? NEW_PLAYLIST_RETRY_DELAYS_MS : [];
     for (let attempt = 0; ; attempt++) {
       try {
-        await this.apiRequest('/playlistItems?part=snippet', {
+        await this.apiRequest(context, '/playlistItems?part=snippet', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -208,7 +221,10 @@ export class YoutubeService extends PlaylistIntegrationService {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  private async listPlaylistItems(playlistId: string): Promise<PlaylistItem[]> {
+  private async listPlaylistItems(
+    context: PlaylistUserContext,
+    playlistId: string,
+  ): Promise<PlaylistItem[]> {
     const items: PlaylistItem[] = [];
     let pageToken: string | undefined;
 
@@ -226,7 +242,7 @@ export class YoutubeService extends PlaylistIntegrationService {
       const page = await this.apiRequest<{
         nextPageToken?: string;
         items?: { id: string; contentDetails?: { videoId?: string } }[];
-      }>(`/playlistItems?${params.toString()}`);
+      }>(context, `/playlistItems?${params.toString()}`);
 
       for (const item of page.items ?? []) {
         items.push({

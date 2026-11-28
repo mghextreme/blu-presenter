@@ -1,15 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException } from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
 import { SongsService } from '../songs.service';
-import { Song } from '../../entities';
+import { Song, User } from '../../entities';
 import { SongTextFormatService } from '../text-format/song-text-format.service';
 import { OrganizationsService } from '../../organizations/organizations.service';
 import { UsersService } from '../../users/users.service';
 
 const VALID_TEXT =
   '---\nschemaVersion: 1\nlanguage: en\n---\n\n# Amazing Grace\n## John Newton\n\n### [V1] Verse 1\n* F#            A#m\n- Amazing grace, how sweet the sound\n';
+
+const USER = { id: 42 } as User;
 
 describe('SongsService.importText', () => {
   let service: SongsService;
@@ -28,11 +29,10 @@ describe('SongsService.importText', () => {
         { provide: getRepositoryToken(Song), useValue: mockSongsRepository },
         { provide: OrganizationsService, useValue: {} },
         { provide: UsersService, useValue: {} },
-        { provide: REQUEST, useValue: { user: {} } },
       ],
     }).compile();
 
-    service = await module.resolve<SongsService>(SongsService);
+    service = module.get<SongsService>(SongsService);
   });
 
   it('decodes the text and creates the song in the organization', async () => {
@@ -46,7 +46,7 @@ describe('SongsService.importText', () => {
 
     const result = await service.importText(1, VALID_TEXT);
 
-    expect(result.id).toBe(99);
+    expect(result?.id).toBe(99);
     expect(mockSongsRepository.insert).toHaveBeenCalledWith(
       expect.objectContaining({
         orgId: 1,
@@ -123,19 +123,21 @@ describe('SongsService.advancedSearch', () => {
         },
         { provide: OrganizationsService, useValue: {} },
         { provide: UsersService, useValue: mockUsersService },
-        { provide: REQUEST, useValue: { user: { internal: { id: 42 } } } },
       ],
     }).compile();
 
-    service = await module.resolve<SongsService>(SongsService);
+    service = module.get<SongsService>(SongsService);
   });
 
   it('combines prefix full-text with per-token trigram matching', async () => {
-    await service.advancedSearch({
-      query: 'Amzaing Grcae!',
-      organizations: [1],
-      queryLanguage: 'en',
-    } as any);
+    await service.advancedSearch(
+      {
+        query: 'Amzaing Grcae!',
+        organizations: [1],
+        queryLanguage: 'en',
+      } as any,
+      USER,
+    );
 
     const whereObject = queryBuilder.where.mock.calls[0][0][0];
     const findOperator = whereObject.searchVector;
@@ -165,18 +167,21 @@ describe('SongsService.advancedSearch', () => {
   });
 
   it('skips trigram conditions when no query token is long enough', async () => {
-    await service.advancedSearch({
-      query: 'a b c!',
-      organizations: [1],
-      queryLanguage: 'en',
-    } as any);
+    await service.advancedSearch(
+      {
+        query: 'a b c!',
+        organizations: [1],
+        queryLanguage: 'en',
+      } as any,
+      USER,
+    );
 
     const sql = queryBuilder.where.mock.calls[0][0][0].searchVector.getSql();
     expect(sql).not.toContain('%>');
   });
 
   it('orders by title and skips ranking when there is no query', async () => {
-    await service.advancedSearch({ organizations: [1] } as any);
+    await service.advancedSearch({ organizations: [1] } as any, USER);
 
     expect(queryBuilder.addSelect).not.toHaveBeenCalled();
     expect(queryBuilder.orderBy).toHaveBeenCalledWith('title', 'ASC');
@@ -201,14 +206,10 @@ describe('SongsService.copyToOrganization', () => {
         { provide: getRepositoryToken(Song), useValue: mockSongsRepository },
         { provide: OrganizationsService, useValue: mockOrganizationsService },
         { provide: UsersService, useValue: {} },
-        {
-          provide: REQUEST,
-          useValue: { user: { organization: 1, internal: { id: 7 } } },
-        },
       ],
     }).compile();
 
-    service = await module.resolve<SongsService>(SongsService);
+    service = module.get<SongsService>(SongsService);
   });
 
   it('waits for the copy to be created and propagates its failure', async () => {
@@ -223,7 +224,7 @@ describe('SongsService.copyToOrganization', () => {
     mockOrganizationsService.userRole.mockResolvedValue('member');
     mockSongsRepository.insert.mockRejectedValue(new Error('insert failed'));
 
-    await expect(service.copyToOrganization(5, 2)).rejects.toThrow(
+    await expect(service.copyToOrganization(1, 5, 2, 7)).rejects.toThrow(
       'insert failed',
     );
     expect(mockSongsRepository.insert).toHaveBeenCalledWith(

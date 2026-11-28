@@ -12,14 +12,14 @@ export class User {
   @Column({ unique: true })
   authId: string;
 
-  @Column()
-  nickname: string;
+  @Column({ type: 'varchar', length: 40, nullable: true })
+  nickname: string | null;
 
-  @Column()
-  name: string;
+  @Column({ type: 'varchar', length: 511, nullable: true })
+  name: string | null;
 
-  @Column()
-  email: string;
+  @Column({ type: 'varchar', length: 511, nullable: true })
+  email: string | null;
 
   @Column({ type: 'jsonb', select: false, nullable: true, default: null })
   spotify: IUserPlaylistIntegrationData | null;
@@ -31,14 +31,12 @@ export class User {
   organizations: OrganizationUser[];
 
   @OneToMany(() => Organization, (organization) => organization.owner)
-  ownedOrganizations: User;
+  ownedOrganizations: Organization[];
 
+  /** Invitations this user sent. */
   @OneToMany(
     () => OrganizationInvitation,
-    (orgInvitation) => orgInvitation.organization,
-    {
-      createForeignKeyConstraints: true,
-    },
+    (orgInvitation) => orgInvitation.inviter,
   )
   invitations: OrganizationInvitation[];
 }

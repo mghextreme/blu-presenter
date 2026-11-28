@@ -4,12 +4,11 @@ import {
   HttpException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { REQUEST } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Request as ExpRequest } from 'express';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Repository } from 'typeorm';
 import { Schedule, SchedulePlaylistReference, Song, User } from 'src/entities';
@@ -24,7 +23,8 @@ import {
   computeTracksHash,
   isAutoReference,
 } from 'src/utils/schedule-references';
-import { OrganizationsBaseService } from 'src/organizations/organizations.service';
+import { OrganizationsService } from 'src/organizations/organizations.service';
+import { fetchWithTimeout } from 'src/utils/fetch-with-timeout';
 
 /** Providers with a playlist integration. Also the name of the users column
  * holding the connection and of the config section with its credentials. */
@@ -54,6 +54,15 @@ interface ProjectionEntry {
   songId: number;
   title: string;
   itemId: string;
+}
+
+/**
+ * The user a call acts for. Their stored connection is loaded at most once
+ * per call and kept in sync with every write.
+ */
+export interface PlaylistUserContext {
+  user: User;
+  connection?: Promise<IUserPlaylistIntegrationData | null>;
 }
 
 /** Access tokens are considered stale this long before their real expiry. */
@@ -89,19 +98,19 @@ class InvalidGrantException extends BadRequestException {
  */
 @Injectable()
 export abstract class PlaylistIntegrationService {
+  private readonly logger = new Logger(this.constructor.name);
+
   constructor(
     @Inject(ConfigService)
     protected readonly configService: ConfigService,
-    @Inject(REQUEST)
-    protected readonly request: ExpRequest,
     @InjectRepository(User)
     protected readonly usersRepository: Repository<User>,
     @InjectRepository(Schedule)
     protected readonly schedulesRepository: Repository<Schedule>,
     @InjectRepository(Song)
     protected readonly songsRepository: Repository<Song>,
-    @Inject(OrganizationsBaseService)
-    protected readonly organizationsBaseService: OrganizationsBaseService,
+    @Inject(OrganizationsService)
+    protected readonly organizationsService: OrganizationsService,
   ) {}
 
   // ─── Provider definition ────────────────────────────────────────────────────
@@ -131,6 +140,7 @@ export abstract class PlaylistIntegrationService {
 
   /** Creates an empty playlist and returns its URL. */
   protected abstract createPlaylist(
+    context: PlaylistUserContext,
     name: string,
     isPublic: boolean,
   ): Promise<string>;
@@ -142,6 +152,7 @@ export abstract class PlaylistIntegrationService {
    * was created by this same sync, so it is known to be empty.
    */
   protected abstract writePlaylistItems(
+    context: PlaylistUserContext,
     playlistUrl: string,
     itemIds: string[],
     isNew: boolean,
@@ -160,17 +171,6 @@ export abstract class PlaylistIntegrationService {
   }
 
   // ─── Configuration ──────────────────────────────────────────────────────────
-
-  /**
-   * The current user's connection, loaded once per request (subclasses are
-   * request-scoped) and kept in sync with every write below.
-   */
-  private connectionCache:
-    Promise<IUserPlaylistIntegrationData | null> | undefined;
-
-  protected get user(): User | undefined {
-    return this.request.user?.['internal'] as User;
-  }
 
   protected get clientId(): string | undefined {
     return this.configService.get(`${this.provider}.clientId`);
@@ -201,13 +201,15 @@ export abstract class PlaylistIntegrationService {
     return !this.requiresOptIn || data?.enabled === true;
   }
 
-  private async assertPlaylistsEnabled(): Promise<void> {
+  private async assertPlaylistsEnabled(
+    context: PlaylistUserContext,
+  ): Promise<void> {
     if (!this.isConfigured) {
       throw new BadRequestException(
         `${this.serviceName} integration is not configured on this server`,
       );
     }
-    if (!this.isPlaylistsEnabled(await this.getConnection())) {
+    if (!this.isPlaylistsEnabled(await this.getConnection(context))) {
       throw new ForbiddenException(
         `${this.serviceName} playlists are not enabled for this account`,
       );
@@ -223,15 +225,16 @@ export abstract class PlaylistIntegrationService {
 
   // ─── Connection status ──────────────────────────────────────────────────────
 
-  private getConnection(): Promise<IUserPlaylistIntegrationData | null> {
-    this.connectionCache ??= this.loadConnection();
-    return this.connectionCache;
+  private getConnection(
+    context: PlaylistUserContext,
+  ): Promise<IUserPlaylistIntegrationData | null> {
+    context.connection ??= this.loadConnection(context.user);
+    return context.connection;
   }
 
-  private async loadConnection(): Promise<IUserPlaylistIntegrationData | null> {
-    const user = this.user;
-    if (!user) return null;
-
+  private async loadConnection(
+    user: User,
+  ): Promise<IUserPlaylistIntegrationData | null> {
     // Tokens are select:false on the entity — load them explicitly so they
     // can never leak through other code paths.
     const row = await this.usersRepository
@@ -243,8 +246,10 @@ export abstract class PlaylistIntegrationService {
     return row?.[this.provider] ?? null;
   }
 
-  private async requireConnection(): Promise<IPlaylistConnection> {
-    const connection = await this.getConnection();
+  private async requireConnection(
+    context: PlaylistUserContext,
+  ): Promise<IPlaylistConnection> {
+    const connection = await this.getConnection(context);
     if (!connection?.refreshToken) {
       throw new BadRequestException(
         `${this.serviceName} account not connected`,
@@ -253,8 +258,14 @@ export abstract class PlaylistIntegrationService {
     return connection as IPlaylistConnection;
   }
 
-  async getStatus(): Promise<PlaylistConnectionStatus> {
-    const connection = await this.getConnection();
+  async getStatus(user: User): Promise<PlaylistConnectionStatus> {
+    return this.statusOf({ user });
+  }
+
+  private async statusOf(
+    context: PlaylistUserContext,
+  ): Promise<PlaylistConnectionStatus> {
+    const connection = await this.getConnection(context);
     return {
       configured: this.isConfigured,
       playlistsEnabled: this.isPlaylistsEnabled(connection),
@@ -267,15 +278,15 @@ export abstract class PlaylistIntegrationService {
 
   // ─── OAuth connect flow ─────────────────────────────────────────────────────
 
-  async getConnectUrl(): Promise<{ url: string }> {
+  async getConnectUrl(user: User): Promise<{ url: string }> {
     // The API connection only exists to manage playlists.
-    await this.assertPlaylistsEnabled();
+    await this.assertPlaylistsEnabled({ user });
 
     const params = new URLSearchParams({
       client_id: this.clientId!,
       response_type: 'code',
       redirect_uri: this.connectRedirectUri,
-      state: this.createState(),
+      state: this.createState(user.id),
       scope: this.connectScopes.join(' '),
       ...this.extraAuthorizeParams(),
     });
@@ -284,11 +295,13 @@ export abstract class PlaylistIntegrationService {
   }
 
   async completeConnect(
+    user: User,
     code: string,
     state: string,
   ): Promise<PlaylistConnectionStatus> {
-    await this.assertPlaylistsEnabled();
-    this.verifyState(state);
+    const context: PlaylistUserContext = { user };
+    await this.assertPlaylistsEnabled(context);
+    this.verifyState(state, user.id);
 
     const tokenData = await this.exchangeCodeForTokens(code);
     if (!tokenData.refresh_token) {
@@ -311,24 +324,27 @@ export abstract class PlaylistIntegrationService {
       displayName: profile.displayName,
     };
 
-    await this.saveConnection(connection);
+    await this.saveConnection(context, connection);
 
-    return this.getStatus();
+    return this.statusOf(context);
   }
 
-  async disconnect(): Promise<PlaylistConnectionStatus> {
-    const connection = await this.getConnection();
+  async disconnect(user: User): Promise<PlaylistConnectionStatus> {
+    const context: PlaylistUserContext = { user };
+    const connection = await this.getConnection(context);
     if (connection?.refreshToken) {
       try {
         await this.revokeToken(connection as IPlaylistConnection);
       } catch (e) {
-        console.warn(`Failed to revoke the ${this.serviceName} token`, e);
+        this.logger.warn(
+          `Failed to revoke the ${this.serviceName} token: ${(e as Error).message}`,
+        );
       }
     }
 
-    await this.saveConnection(null);
+    await this.saveConnection(context, null);
 
-    return this.getStatus();
+    return this.statusOf(context);
   }
 
   /**
@@ -337,9 +353,10 @@ export abstract class PlaylistIntegrationService {
    * from the stored value rather than taken from `connection`.
    */
   private async saveConnection(
+    context: PlaylistUserContext,
     connection: IPlaylistConnection | null,
   ): Promise<void> {
-    const enabled = (await this.getConnection())?.enabled === true;
+    const enabled = (await this.getConnection(context))?.enabled === true;
     let data: IUserPlaylistIntegrationData | null = null;
     if (connection) {
       // Drop a stale flag that may ride along when spreading a loaded row.
@@ -351,20 +368,22 @@ export abstract class PlaylistIntegrationService {
       data = { ...data, enabled: true };
     }
 
-    await this.usersRepository.update(this.user!.id, {
+    await this.usersRepository.update(context.user.id, {
       [this.provider]: data,
     });
-    this.connectionCache = Promise.resolve(data);
+    context.connection = Promise.resolve(data);
   }
 
   // ─── Schedule playlist sync ─────────────────────────────────────────────────
 
   async syncSchedulePlaylist(
+    user: User,
     orgId: number,
     scheduleId: number,
     dto: CreateSchedulePlaylistDto,
   ): Promise<SchedulePlaylistSyncResult> {
-    await this.assertPlaylistsEnabled();
+    const context: PlaylistUserContext = { user };
+    await this.assertPlaylistsEnabled(context);
 
     const schedule = await this.schedulesRepository.findOneBy({
       id: scheduleId,
@@ -374,10 +393,7 @@ export abstract class PlaylistIntegrationService {
       throw new NotFoundException();
     }
 
-    await this.organizationsBaseService.assertFeatureEnabled(
-      orgId,
-      'schedules',
-    );
+    await this.organizationsService.assertFeatureEnabled(orgId, 'schedules');
 
     const projection = await this.buildProjection(schedule.items);
     // Malformed entries (non-objects) are dropped on every write.
@@ -389,7 +405,7 @@ export abstract class PlaylistIntegrationService {
         isAutoReference(reference) && reference.source === this.source,
     );
 
-    if (existingReference && existingReference.syncedBy !== this.user!.id) {
+    if (existingReference && existingReference.syncedBy !== user.id) {
       throw new ForbiddenException(
         'Only the creator of the playlist can re-sync it',
       );
@@ -411,7 +427,7 @@ export abstract class PlaylistIntegrationService {
       action = 'created';
       const name =
         dto.name ?? this.defaultPlaylistName(schedule.title, schedule.date);
-      const url = await this.createPlaylist(name, dto.public ?? false);
+      const url = await this.createPlaylist(context, name, dto.public ?? false);
 
       // Persist the reference right away (still without a tracks hash, so it
       // shows as pending): if writing the items fails below, a retry
@@ -420,11 +436,11 @@ export abstract class PlaylistIntegrationService {
         url,
         name,
         source: this.source,
-        syncedBy: this.user!.id,
+        syncedBy: user.id,
         // Persist as absent (key dropped on JSON serialization), not null —
         // the frontend schema treats null metadata as invalid input.
-        ...(this.user!.nickname != null && {
-          syncedByName: this.user!.nickname,
+        ...(user.nickname != null && {
+          syncedByName: user.nickname,
         }),
       };
       references.push(reference);
@@ -434,6 +450,7 @@ export abstract class PlaylistIntegrationService {
     const itemIds = projection.entries.map((entry) => entry.itemId);
     const failedIds = new Set(
       await this.writePlaylistItems(
+        context,
         reference.url,
         itemIds,
         action === 'created',
@@ -478,10 +495,7 @@ export abstract class PlaylistIntegrationService {
       throw new NotFoundException();
     }
 
-    await this.organizationsBaseService.assertFeatureEnabled(
-      orgId,
-      'schedules',
-    );
+    await this.organizationsService.assertFeatureEnabled(orgId, 'schedules');
 
     const references = (schedule.references ?? []).filter(
       (reference) =>
@@ -553,6 +567,7 @@ export abstract class PlaylistIntegrationService {
    * the API rejects it. Failed responses go through `toApiException`.
    */
   protected async apiRequest<T = unknown>(
+    context: PlaylistUserContext,
     path: string,
     init: RequestInit = {},
     allowRefreshRetry: boolean = true,
@@ -560,11 +575,11 @@ export abstract class PlaylistIntegrationService {
   ): Promise<T> {
     let accessToken = overrideAccessToken;
     if (!accessToken) {
-      const connection = await this.requireConnection();
-      accessToken = await this.getValidAccessToken(connection);
+      const connection = await this.requireConnection(context);
+      accessToken = await this.getValidAccessToken(context, connection);
     }
 
-    const response = await fetch(`${this.apiBase}${path}`, {
+    const response = await fetchWithTimeout(`${this.apiBase}${path}`, {
       ...init,
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -575,12 +590,19 @@ export abstract class PlaylistIntegrationService {
     if (response.status === 401 && allowRefreshRetry) {
       // The cached access token was rejected (e.g. revoked server-side).
       // Force a refresh and retry once.
-      const connection = await this.requireConnection();
+      const connection = await this.requireConnection(context);
       const refreshedAccessToken = await this.refreshAccessToken(
+        context,
         connection,
         true,
       );
-      return this.apiRequest<T>(path, init, false, refreshedAccessToken);
+      return this.apiRequest<T>(
+        context,
+        path,
+        init,
+        false,
+        refreshedAccessToken,
+      );
     }
 
     if (!response.ok) {
@@ -603,12 +625,13 @@ export abstract class PlaylistIntegrationService {
   }
 
   private async getValidAccessToken(
+    context: PlaylistUserContext,
     connection: IPlaylistConnection,
   ): Promise<string> {
     if (this.isTokenValid(connection)) {
       return connection.accessToken;
     }
-    return this.refreshAccessToken(connection, false);
+    return this.refreshAccessToken(context, connection, false);
   }
 
   /**
@@ -618,6 +641,7 @@ export abstract class PlaylistIntegrationService {
    * `force`, a still-valid cached token is bypassed.
    */
   private async refreshAccessToken(
+    context: PlaylistUserContext,
     connection: IPlaylistConnection,
     force: boolean,
   ): Promise<string> {
@@ -641,7 +665,7 @@ export abstract class PlaylistIntegrationService {
       if (e instanceof InvalidGrantException) {
         // The refresh token is dead: drop the connection so the UI asks the
         // user to reconnect instead of offering syncs that always fail.
-        await this.saveConnection(null);
+        await this.saveConnection(context, null);
       }
       throw e;
     }
@@ -658,7 +682,7 @@ export abstract class PlaylistIntegrationService {
       scope: data.scope ?? connection.scope,
     };
 
-    await this.saveConnection(updated);
+    await this.saveConnection(context, updated);
 
     return updated.accessToken;
   }
@@ -684,7 +708,7 @@ export abstract class PlaylistIntegrationService {
   ): Promise<OAuthTokenResponse> {
     let response: Response;
     try {
-      response = await fetch(this.tokenUrl, {
+      response = await fetchWithTimeout(this.tokenUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body,
@@ -708,11 +732,11 @@ export abstract class PlaylistIntegrationService {
 
   // ─── OAuth state signing (CSRF protection) ──────────────────────────────────
 
-  private createState(): string {
+  private createState(userId: number): string {
     const payload = Buffer.from(
       JSON.stringify({
         p: this.provider,
-        uid: this.user!.id,
+        uid: userId,
         exp: Date.now() + STATE_TTL_MS,
       } satisfies OAuthState),
     ).toString('base64url');
@@ -720,7 +744,7 @@ export abstract class PlaylistIntegrationService {
     return `${payload}.${this.signStatePayload(payload)}`;
   }
 
-  private verifyState(state: string): void {
+  private verifyState(state: string, userId: number): void {
     const [payload, signature] = (state ?? '').split('.');
     if (!payload || !signature) {
       throw new BadRequestException('Invalid OAuth state');
@@ -743,7 +767,7 @@ export abstract class PlaylistIntegrationService {
       throw new BadRequestException('Invalid OAuth state');
     }
 
-    if (data.p !== this.provider || data.uid !== this.user!.id) {
+    if (data.p !== this.provider || data.uid !== userId) {
       throw new BadRequestException('Invalid OAuth state');
     }
     if (!data.exp || data.exp < Date.now()) {
