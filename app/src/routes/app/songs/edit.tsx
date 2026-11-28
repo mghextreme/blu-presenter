@@ -35,12 +35,13 @@ export function EditSong({ edit = true, startingBlocks }: Readonly<EditSongProps
 }
 
 function EditExistingSong() {
+  const { t } = useTranslation('songs');
   const params = useParams();
   const { songsService } = useServices();
   const { data } = useSuspenseQuery(songsService.byIdQuery(Number(params.id)));
 
   if (!data) {
-    throw new Error("Can't find song");
+    throw new Error(t('error.notFound'));
   }
 
   return <EditSongContent edit data={data} />;

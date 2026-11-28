@@ -27,6 +27,7 @@ import { SpotifyCode } from '@/components/app/songs/spotify-code';
 import { SpotifyIcon } from '@/components/logos/spotify';
 import { renderSongPartLines, computeNumberedBlocks, findSpotifyUrl } from '@/lib/songs';
 import { lineStyleToCSS } from '@/types';
+import { absoluteUrl, sharedSongPath } from '@/lib/share-links';
 
 // ─── LineStyleEditor ──────────────────────────────────────────────────────────
 
@@ -134,7 +135,7 @@ export function PrintSong() {
   const [customizeOpen, setCustomizeOpen] = useState(false);
 
   if (!data) {
-    throw new Error("Can't find song");
+    throw new Error(t('error.notFound'));
   }
 
   const hasAccess = isRoleHigherOrEqualThan(data.organization?.role, 'guest');
@@ -161,10 +162,10 @@ export function PrintSong() {
     [numberedBlocks, compactedBlocks, compactMode],
   );
 
-  const qrCodeUrl = useMemo(() => {
-    const currentUrl = new URL(window.location.href);
-    return `${currentUrl.protocol}//${currentUrl.host}/shared/view/${data.id}/${data.secret ?? ''}`;
-  }, [data.id, data.secret]);
+  const qrCodeUrl = useMemo(
+    () => absoluteUrl(sharedSongPath({ id: data.id, secret: data.secret })),
+    [data.id, data.secret],
+  );
 
   const spotifyUrl = useMemo(() => findSpotifyUrl(data.references), [data.references]);
 
@@ -242,7 +243,7 @@ export function PrintSong() {
                 </>
               ) : (
                 <Button type="button" variant="print" size="sm" title={t('actions.view')} asChild>
-                  <Link to={`/shared/view/${data.id}/${data.secret ?? ''}`}>
+                  <Link to={sharedSongPath(data)}>
                     <EyeIcon className="size-3" />
                   </Link>
                 </Button>

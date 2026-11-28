@@ -78,7 +78,7 @@ export function InviteOrganizationMember() {
   const roleSelectorListId = 'invite-role-selector-list';
 
   if (!isRoleHigherOrEqualThan(data.role, 'admin')) {
-    throw new Error(t('error.noPermission'));
+    throw new Error(t('error.noPermissions'));
   }
 
   return (

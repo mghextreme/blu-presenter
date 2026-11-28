@@ -127,7 +127,7 @@ function OrganizationPage({ organization, edit }: Readonly<OrganizationPageProps
       void navigate(`/app/organization/${edit ? organization.id : result?.id}`, { replace: true });
     },
     onError: (e) => {
-      toast.error(t('update.failed'), {
+      toast.error(t('error.update'), {
         description: e?.message || '',
       });
     },

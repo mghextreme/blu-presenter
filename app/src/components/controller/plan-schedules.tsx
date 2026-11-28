@@ -4,7 +4,8 @@ import { format, parse } from 'date-fns';
 import { useServices } from '@/hooks/useServices';
 import { useController } from '@/hooks/useController';
 import { useFilteredList } from '@/hooks/use-filtered-list';
-import { ISchedule } from '@/types';
+import { describeApiError, ISchedule } from '@/types';
+import { toast } from 'sonner';
 import { getLocaleConfig } from '@/components/ui/date-picker';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -85,7 +86,13 @@ export function PlanSchedules() {
   }, [list.results, todayString]);
 
   const handleLoad = async (scheduleId: number) => {
-    const fullSchedule = await schedulesService.fetchById(scheduleId);
+    let fullSchedule: ISchedule | null;
+    try {
+      fullSchedule = await schedulesService.fetchById(scheduleId);
+    } catch (e) {
+      toast.error(t('plan.schedules.loadError'), { description: await describeApiError(e) });
+      return;
+    }
     if (fullSchedule?.items) {
       replaceSchedule(songsService.resolveScheduleItems(fullSchedule.items));
     }

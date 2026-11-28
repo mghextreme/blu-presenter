@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
 import i18next from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { SupportedLanguage, isRoleHigherOrEqualThan } from '@/types';
@@ -50,6 +51,11 @@ export function ImportSong() {
   const navigate = useNavigate();
   const { songsService } = useServices();
 
+  const importSongText = useMutation({
+    mutationFn: ({ text, orgId }: { text: string; orgId: number }) =>
+      songsService.importText(text, orgId),
+  });
+
   const form = useForm<z.infer<typeof ImportSongSchema>>({
     resolver: zodResolver(ImportSongSchema),
     defaultValues: {
@@ -63,7 +69,7 @@ export function ImportSong() {
     const orgId = selectedOrganizations[0]?.id;
 
     if (text.startsWith('---') && !!orgId) {
-      const song = await songsService.importText(text, orgId).catch(() => null);
+      const song = await importSongText.mutateAsync({ text, orgId }).catch(() => null);
 
       if (song) {
         toast.success(t('message.import.successTitle'), {
@@ -137,7 +143,7 @@ export function ImportSong() {
                 ></FormField>
 
                 <div className="flex flex-row align-start space-x-2">
-                  <Button className="flex-0" type="submit">
+                  <Button className="flex-0" type="submit" disabled={importSongText.isPending}>
                     {t('button.continue')}
                   </Button>
                   <Button className="flex-0" type="button" variant="secondary" asChild>

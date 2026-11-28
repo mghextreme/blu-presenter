@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import {
+  isBaseTheme,
   IControllerSelection,
   IScheduleItem,
   ITheme,
@@ -19,7 +20,6 @@ import { ConnectionIndicator } from '@/components/receiver/connection-indicator'
 import i18next from 'i18next';
 
 const SYNC_INTERVAL_MS = 60_000; // Re-sync state every 60 seconds
-const BASE_THEME_PARAMS = ['lyrics', 'subtitles', 'teleprompter'];
 const NO_THEMES: ITheme[] = [];
 
 function resolveTheme(toTheme: string | null | undefined, themes: ITheme[]): ITheme | undefined {
@@ -69,7 +69,7 @@ export function Receiver() {
       params.secret,
       params.theme ? Number(params.theme) : undefined,
     ),
-    enabled: !params.theme || !BASE_THEME_PARAMS.includes(params.theme),
+    enabled: !isBaseTheme(params.theme),
   });
 
   // The provider's setters resolve against committed state, so a selection

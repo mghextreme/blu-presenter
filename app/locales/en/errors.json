@@ -4,7 +4,8 @@
   "actions": {
     "home": "Go to Home",
     "app": "Go to App",
-    "signOut": "Log back in"
+    "signOut": "Log back in",
+    "reload": "Reload"
   },
   "details": "Details"
 }

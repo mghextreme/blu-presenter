@@ -11,6 +11,12 @@ import {
 } from '@/types';
 import { queryOptions } from '@tanstack/react-query';
 
+/** The organization an `['organizations', …]` query belongs to, if any. */
+function organizationIdOfQuery(queryKey: readonly unknown[]): unknown {
+  // ['organizations', 'self', orgId] and ['organizations', orgId, 'members', id]
+  return queryKey[1] === 'self' ? queryKey[2] : queryKey[1];
+}
+
 export class OrganizationsService extends ApiService {
   public invalidateCache(): Promise<unknown> {
     return Promise.all([
@@ -187,7 +193,18 @@ export class OrganizationsService extends ApiService {
       Organization: orgId.toString(),
     });
 
-    void this.invalidateCache();
+    // The left organization's queries would now fail: drop them instead of
+    // refetching them with the rest.
+    const isLeftOrganization = (query: { queryKey: readonly unknown[] }) =>
+      organizationIdOfQuery(query.queryKey) === orgId;
+    this.queryClient.removeQueries({ queryKey: ['organizations'], predicate: isLeftOrganization });
+    void Promise.all([
+      this.queryClient.invalidateQueries({
+        queryKey: ['organizations'],
+        predicate: (query) => !isLeftOrganization(query),
+      }),
+      this.queryClient.invalidateQueries({ queryKey: ['user', 'organizations'] }),
+    ]);
   }
 
   public async removeMember(id: number, orgId: number): Promise<void> {

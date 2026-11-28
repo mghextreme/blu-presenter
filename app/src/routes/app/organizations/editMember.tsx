@@ -93,7 +93,7 @@ export function EditMember() {
       <title>
         {t('title.member', {
           member: data.name || data.email,
-          organization: organization?.name || t('organizations.defaultName'),
+          organization: organization?.name || t('defaultName'),
         }) + ' - BluPresenter'}
       </title>
       <Form {...form}>

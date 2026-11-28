@@ -53,7 +53,7 @@ export function AdvancedSearchForm({ includeBlocks = false }: Readonly<AdvancedS
       languages: values.languages as SupportedLanguage[],
       includeBlocks,
     }).catch((e) => {
-      toast.error(t('errors.search'), {
+      toast.error(t('error.search'), {
         description: e?.message || '',
       });
     });

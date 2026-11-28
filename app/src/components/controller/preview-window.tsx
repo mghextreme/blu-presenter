@@ -11,10 +11,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { SlideVisualizer } from './slide-visualizer';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useEffectEvent, useMemo, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from '@/types';
-import { IBrowserWindow, IScreenDetails } from '@/types/browser';
+import { IScreenDetails } from '@/types/browser';
+import { getScreens, isScreenDetailsGranted } from '@/lib/screen-details';
 import { useController } from '@/hooks/useController';
 import { useServices } from '@/hooks/useServices';
 import { usePreviewConfig } from '@/hooks/usePreviewConfig';
@@ -115,18 +116,25 @@ export function PreviewWindow({
   const initializeMode = useEffectEvent(() => {
     setMode(previewTheme?.extends === 'subtitles' ? 'part' : 'slide');
   });
+  // Screen ratios need the window-management permission, which may prompt:
+  // read them on mount only when already granted, otherwise when the user
+  // opens the ratio selector (a click).
+  const screenRatiosRequestedRef = useRef(false);
+  const loadScreenRatios = async () => {
+    if (screenRatiosRequestedRef.current) return;
+    screenRatiosRequestedRef.current = true;
+
+    const screens = await getScreens(window);
+    if (screens) {
+      setRatioOptions([...defaultRatioOptions, ...toScreenRatioOptions(screens)]);
+    }
+  };
+  const onScreenDetailsGranted = useEffectEvent(() => void loadScreenRatios());
   useEffect(() => {
     initializeMode();
-
-    const browserWindow = window as unknown as IBrowserWindow;
-    if (!browserWindow?.getScreenDetails) return;
-    Promise.resolve(browserWindow.getScreenDetails())
-      .then((details: { screens: IScreenDetails[] } | undefined) => {
-        if (!details) return;
-        setRatioOptions([...defaultRatioOptions, ...toScreenRatioOptions(details.screens)]);
-      })
-      // The window-management permission was denied: keep the default ratios.
-      .catch(() => undefined);
+    void isScreenDetailsGranted(window).then((granted) => {
+      if (granted) onScreenDetailsGranted();
+    });
   }, []);
 
   const onThemePropChange = useEffectEvent((nextTheme: ITheme) => {
@@ -234,7 +242,13 @@ export function PreviewWindow({
               </PopoverContent>
             </Popover>
           )}
-          <Popover open={openPreviewRatioSelector} onOpenChange={setOpenPreviewRatioSelector}>
+          <Popover
+            open={openPreviewRatioSelector}
+            onOpenChange={(open) => {
+              setOpenPreviewRatioSelector(open);
+              if (open) void loadScreenRatios();
+            }}
+          >
             <PopoverTrigger asChild>
               <Button
                 variant="outline"

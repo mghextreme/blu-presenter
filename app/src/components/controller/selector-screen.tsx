@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useWindow } from '@/hooks/useWindow';
 import { useTranslation } from 'react-i18next';
 import { IBrowserWindow, IScreenDetails } from '@/types/browser';
+import { getScreens, isScreenDetailsGranted } from '@/lib/screen-details';
 import { ControllerMode, ITheme, LyricsTheme, SubtitlesTheme, TeleprompterTheme } from '@/types';
 import { SlideVisualizer } from './slide-visualizer';
 import { useServices } from '@/hooks/useServices';
@@ -66,23 +67,27 @@ export function SelectorScreen({
     setSelectedScreen(true);
   };
 
-  const loadDisplayOptions = useEffectEvent(() => {
-    const browserWindow = childWindow as unknown as IBrowserWindow;
-    if (!canChooseScreen(browserWindow)) return;
+  // Reading the screens needs the window-management permission, which may
+  // prompt: load them on mount only when already granted, otherwise from the
+  // "full-screen options" button (a click).
+  const loadDisplayOptions = async () => {
+    if (!childWindow) return;
 
-    Promise.resolve(browserWindow.getScreenDetails())
-      .then((details: { screens: IScreenDetails[] } | undefined) => {
-        if (!details || details.screens.length < 2) {
-          setSelectedScreen(true);
-          return;
-        }
-
-        setDisplayOptions(details.screens);
-      })
-      // The window-management permission was denied: fall back to windowed mode.
-      .catch(() => setSelectedScreen(true));
+    const screens = await getScreens(childWindow);
+    if (!screens || screens.length < 2) {
+      // Denied or a single screen: fall back to windowed mode.
+      setSelectedScreen(true);
+      return;
+    }
+    setDisplayOptions(screens);
+  };
+  const loadGrantedDisplayOptions = useEffectEvent(() => {
+    if (!childWindow || !canChooseScreen(childWindow as unknown as IBrowserWindow)) return;
+    void isScreenDetailsGranted(childWindow).then((granted) => {
+      if (granted) void loadDisplayOptions();
+    });
   });
-  useEffect(() => loadDisplayOptions(), []);
+  useEffect(() => loadGrantedDisplayOptions(), []);
 
   const setThemeAndMode = (theme: ITheme) => {
     setSelectedTheme(theme);
@@ -141,6 +146,11 @@ export function SelectorScreen({
               <Button onClick={() => setSelectedScreen(true)}>
                 {t('watch.screenSelector.windowed')}
               </Button>
+              {displayOptions.length === 0 && (
+                <Button onClick={() => void loadDisplayOptions()}>
+                  {t('watch.screenSelector.showFullScreenOptions')}
+                </Button>
+              )}
               {displayOptions.map((m, ix) => (
                 <Button key={ix} onClick={() => setFullScreen(ix)}>
                   {t('watch.screenSelector.fullScreen')} - {t('watch.screenSelector.display')}{' '}

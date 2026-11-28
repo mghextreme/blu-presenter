@@ -7,6 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import ArrowPathIcon from '@heroicons/react/24/solid/ArrowPathIcon';
+import { toast } from 'sonner';
 
 const basicSearchFormSchema = z.object({
   query: z.string().min(3),
@@ -28,7 +29,11 @@ export function BasicSearchForm({ includeBlocks = false }: Readonly<BasicSearchF
   });
 
   const onSubmit = async (values: z.infer<typeof basicSearchFormSchema>) => {
-    await search(values.query, includeBlocks);
+    await search(values.query, includeBlocks).catch((e) => {
+      toast.error(t('error.search'), {
+        description: e?.message || '',
+      });
+    });
   };
 
   return (

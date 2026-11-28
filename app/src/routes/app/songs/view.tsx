@@ -18,6 +18,7 @@ import { OrganizationBar } from '@/components/app/organization-bar';
 import { pageContentColumn } from '@/components/shared/page-content';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { absoluteUrl, sharedSongPath, sharedSongPrintPath } from '@/lib/share-links';
 
 export function ViewSong() {
   const { t } = useTranslation('songs');
@@ -28,7 +29,7 @@ export function ViewSong() {
   const { isLoggedIn } = useAuth();
 
   if (!data) {
-    throw new Error("Can't find song");
+    throw new Error(t('error.notFound'));
   }
 
   const hasAccess = isRoleHigherOrEqualThan(data.organization?.role, 'guest');
@@ -39,8 +40,7 @@ export function ViewSong() {
   const canEdit = isRoleHigherOrEqualThan(data.organization?.role, 'member');
 
   const copyShareableUrlToClipboard = async () => {
-    const currentUrl = new URL(window.location.href);
-    const shareUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/view/${data.id}/${data.secret ?? ''}`;
+    const shareUrl = absoluteUrl(sharedSongPath(data));
     const clipboard = navigator.clipboard;
     if (!!clipboard) {
       await navigator.clipboard.writeText(shareUrl);
@@ -83,13 +83,7 @@ export function ViewSong() {
           variant="default"
         />
         <Button type="button" size="sm" title={t('actions.print')} asChild>
-          <Link
-            to={
-              hasAccess
-                ? `/app/songs/${data.id}/print`
-                : `/shared/print/${data.id}/${data.secret ?? ''}`
-            }
-          >
+          <Link to={hasAccess ? `/app/songs/${data.id}/print` : sharedSongPrintPath(data)}>
             <PrinterIcon className="size-3" />
           </Link>
         </Button>

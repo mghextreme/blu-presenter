@@ -71,12 +71,13 @@ export function EditTheme({ edit = true }: Readonly<EditThemeProps>) {
 }
 
 function EditExistingTheme() {
+  const { t } = useTranslation('themes');
   const params = useParams();
   const { themesService } = useServices();
   const { data } = useSuspenseQuery(themesService.byIdQuery(Number(params.id)));
 
   if (!data) {
-    throw new Error("Can't find theme");
+    throw new Error(t('error.notFound'));
   }
 
   return <ThemeForm edit={true} data={data} />;

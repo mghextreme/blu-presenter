@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { useInvitation } from '@/hooks/useInvitation';
 import { useServices } from '@/hooks/useServices';
 import { toast } from 'sonner';
-import { ApiError } from '@/types';
+import { describeAuthError } from '@/lib/auth-errors';
 import { SocialLogin } from './social-login';
 import { useSocialSignIn } from './use-social-sign-in';
 
@@ -70,15 +70,9 @@ export function LoginForm({ className, ...props }: Readonly<LoginFormProps>) {
       });
     },
     onError: async (e: unknown) => {
-      const error = e as ApiError;
-      if (error) {
-        const errorContent = await error.raw?.json();
-        if (errorContent) {
-          toast.error(t('signIn.error'), {
-            description: t('errors.' + errorContent?.message || 'default'),
-          });
-        }
-      }
+      toast.error(t('signIn.error'), {
+        description: await describeAuthError(e, t),
+      });
     },
   });
 

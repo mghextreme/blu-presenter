@@ -15,7 +15,8 @@
     "email": "Email",
     "role": "Role",
     "invitedBy": "Invited by",
-    "transferMember": "Transfer to..."
+    "transferMember": "Transfer to...",
+    "selectRole": "Select a role"
   },
   "actions": {
     "create": "New organization",
@@ -100,16 +101,18 @@
     "removeInvitation": "Failed to remove invitation",
     "leaveOrganization": "Failed to leave organization",
     "deleteOrganization": "Failed to delete organization",
-    "noPermissions": "Not enough permissions"
+    "noPermissions": "Not enough permissions",
+    "selectMember": "Select a member to transfer the organization to",
+    "transfer": "Failed to transfer organization"
   },
   "message": {
     "leaveOrganization": {
       "title": "Leave organization",
-      "message": "Are you sure you want to leave this organization? You will lose access to all songs and organization specific items."
+      "description": "Are you sure you want to leave this organization? You will lose access to all songs and organization specific items."
     },
     "deleteOrganization": {
       "title": "Delete organization",
-      "message": "Are you sure you want to remove this organization? All songs and associated data will be removed.\nThis action cannot be undone."
+      "description": "Are you sure you want to remove this organization? All songs and associated data will be removed.\nThis action cannot be undone."
     }
   },
   "searchPlaceholder": "Search...",

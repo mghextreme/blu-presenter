@@ -25,6 +25,12 @@ import { toast } from 'sonner';
 import { OrganizationBar } from '@/components/app/organization-bar';
 import { PageContent } from '@/components/shared/page-content';
 import { ScheduleReferences } from '@/components/app/schedules/schedule-references';
+import {
+  absoluteUrl,
+  sharedRehearsalPath,
+  sharedSchedulePath,
+  sharedSongPath,
+} from '@/lib/share-links';
 
 export function ViewSchedule() {
   const { t, i18n } = useTranslation('schedules');
@@ -34,7 +40,7 @@ export function ViewSchedule() {
   const { data } = useSuspenseQuery(schedulesService.byIdQuery(Number(params.id), params.secret));
 
   if (!data) {
-    throw new Error("Can't find schedule");
+    throw new Error(t('error.notFound'));
   }
 
   const lang = i18n.language?.substring(0, 2) ?? 'en';
@@ -56,17 +62,12 @@ export function ViewSchedule() {
       return `/app/songs/${songItem.id}/view`;
     }
 
-    let songUrl = `/shared/view/${songItem.id}/`;
-    if (songItem.secret) {
-      songUrl += songItem.secret;
-    }
-
-    return songUrl;
+    return sharedSongPath(songItem);
   };
 
   const getRehearsalLink = (): string => {
     if (params.secret) {
-      return `/shared/schedules/${data.id}/${params.secret}/rehearsal`;
+      return sharedRehearsalPath({ id: data.id, secret: params.secret });
     }
     return `/app/schedules/${data.id}/rehearsal`;
   };
@@ -74,8 +75,7 @@ export function ViewSchedule() {
   const hasSongs = data.items?.some((item) => item.type === 'song');
 
   const copyShareableUrlToClipboard = async () => {
-    const currentUrl = new URL(window.location.href);
-    const shareUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/schedules/${data.id}/${data.secret ?? ''}`;
+    const shareUrl = absoluteUrl(sharedSchedulePath(data));
     const clipboard = navigator.clipboard;
     if (!!clipboard) {
       await navigator.clipboard.writeText(shareUrl);

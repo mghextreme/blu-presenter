@@ -18,7 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
 import { useServices } from '@/hooks/useServices';
 import { toast } from 'sonner';
-import { ApiError } from '@/types';
+import { describeAuthError } from '@/lib/auth-errors';
 
 import { captcha } from '@/lib/config';
 
@@ -46,10 +46,8 @@ export function ForgotPasswordForm({ className, ...props }: Readonly<ForgotPassw
         captchaToken,
       }),
     onError: async (e: unknown) => {
-      const error = e as ApiError;
-      const errorContent = await error?.raw?.json().catch(() => null);
       toast.error(t('forgotPassword.title'), {
-        description: t('errors.' + (errorContent?.message ?? 'default')),
+        description: await describeAuthError(e, t),
       });
     },
   });

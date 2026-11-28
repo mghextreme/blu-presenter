@@ -17,6 +17,12 @@ import { OrganizationBar } from '@/components/app/organization-bar';
 import { PageContent, pageContentColumn } from '@/components/shared/page-content';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import {
+  absoluteUrl,
+  sharedRehearsalPath,
+  sharedSchedulePath,
+  sharedSongPrintPath,
+} from '@/lib/share-links';
 
 export function RehearsalSchedule() {
   const { t } = useTranslation('schedules');
@@ -26,7 +32,7 @@ export function RehearsalSchedule() {
   const { data } = useSuspenseQuery(schedulesService.byIdQuery(Number(params.id), params.secret));
 
   if (!data) {
-    throw new Error("Can't find schedule");
+    throw new Error(t('error.notFound'));
   }
 
   const songIndices = useMemo(() => {
@@ -65,8 +71,7 @@ export function RehearsalSchedule() {
   const isShared = !!params.secret;
 
   const copyShareableUrlToClipboard = async () => {
-    const currentUrl = new URL(window.location.href);
-    const shareUrl = `${currentUrl.protocol}//${currentUrl.host}/shared/schedules/${data.id}/${data.secret ?? ''}/rehearsal`;
+    const shareUrl = absoluteUrl(sharedRehearsalPath(data));
     const clipboard = navigator.clipboard;
     if (!!clipboard) {
       await navigator.clipboard.writeText(shareUrl);
@@ -80,7 +85,7 @@ export function RehearsalSchedule() {
 
   const getViewLink = () => {
     if (isShared) {
-      return `/shared/schedules/${data.id}/${params.secret}`;
+      return sharedSchedulePath({ id: data.id, secret: params.secret });
     }
     return `/app/schedules/${data.id}/view`;
   };
@@ -88,7 +93,7 @@ export function RehearsalSchedule() {
   const getPrintLink = () => {
     if (!currentItem) return '#';
     if (isShared) {
-      return `/shared/print/${currentItem.id}/${currentItem.secret ?? ''}`;
+      return sharedSongPrintPath(currentItem);
     }
     return `/app/songs/${currentItem.id}/print`;
   };

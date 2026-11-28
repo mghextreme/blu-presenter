@@ -38,7 +38,9 @@
       "swap": "Trocar acidentes (♯ ↔ ♭)"
     },
     "partName": "Nome da parte",
-    "partAcronym": "Sigla (rótulo curto)"
+    "partAcronym": "Sigla (rótulo curto)",
+    "expand": "Expandir parte",
+    "organization": "Organização"
   },
   "searchInput": {
     "query": "Termo de busca",
@@ -143,7 +145,8 @@
     "export": "Erro ao exportar música",
     "noPermission": "Você não tem permissão para acessar esta música",
     "save": "Erro ao salvar música",
-    "search": "Busca falhou"
+    "search": "Busca falhou",
+    "notFound": "Música não encontrada"
   },
   "warning": {
     "uppercase": {
@@ -160,7 +163,8 @@
     "spanish": "Espanhol",
     "french": "Francês",
     "german": "Alemão",
-    "italian": "Italiano"
+    "italian": "Italiano",
+    "notFound": "Nenhum idioma encontrado."
   },
   "organizations": {
     "defaultName": "Espaço individual",

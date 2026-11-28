@@ -15,7 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useInvitation } from '@/hooks/useInvitation';
 import { useServices } from '@/hooks/useServices';
 import { toast } from 'sonner';
-import { ApiError } from '@/types';
+import { describeAuthError } from '@/lib/auth-errors';
 
 interface OtpVerifyFormProps extends HTMLAttributes<HTMLDivElement> {}
 
@@ -47,10 +47,8 @@ export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormPro
       });
     },
     onError: async (e: unknown) => {
-      const error = e as ApiError;
-      const errorContent = await error?.raw?.json().catch(() => null);
       toast.error(t('otpSignIn.error'), {
-        description: t('errors.' + (errorContent?.message ?? 'Invalid login credentials')),
+        description: await describeAuthError(e, t, 'Invalid login credentials'),
       });
       autoSubmittedRef.current = false;
       setCode('');
@@ -81,10 +79,8 @@ export function OtpVerifyForm({ className, ...props }: Readonly<OtpVerifyFormPro
       toast.success(t('otpSignIn.resent'));
     },
     onError: async (e: unknown) => {
-      const error = e as ApiError;
-      const errorContent = await error?.raw?.json().catch(() => null);
       toast.error(t('otpSignIn.error'), {
-        description: t('errors.' + (errorContent?.message ?? 'default')),
+        description: await describeAuthError(e, t),
       });
     },
   });

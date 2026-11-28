@@ -3,6 +3,9 @@ import { OrganizationRoleOptions } from './organization-user.interface';
 export const BASE_THEME_TYPES = ['lyrics', 'subtitles', 'teleprompter'] as const;
 export type BaseTheme = (typeof BASE_THEME_TYPES)[number];
 
+export const isBaseTheme = (value: unknown): value is BaseTheme =>
+  (BASE_THEME_TYPES as readonly unknown[]).includes(value);
+
 export interface IShadowConfig {
   enabled: boolean;
   color?: string;

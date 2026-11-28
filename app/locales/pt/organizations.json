@@ -15,7 +15,8 @@
     "email": "E-mail",
     "role": "Permissões",
     "invitedBy": "Convidado por",
-    "transferMember": "Transferir para..."
+    "transferMember": "Transferir para...",
+    "selectRole": "Selecione as permissões"
   },
   "actions": {
     "create": "Nova organização",
@@ -100,7 +101,9 @@
     "removeInvitation": "Erro ao remover convite",
     "leaveOrganization": "Erro ao sair da organização",
     "deleteOrganization": "Erro ao remover organização",
-    "noPermissions": "Sem permissões suficientes"
+    "noPermissions": "Sem permissões suficientes",
+    "selectMember": "Selecione um membro para transferir a organização",
+    "transfer": "Erro ao transferir organização"
   },
   "message": {
     "leaveOrganization": {
@@ -109,7 +112,7 @@
     },
     "deleteOrganization": {
       "title": "Excluir organização",
-      "message": "Tem certeza que deseja remover esta organização? Todas as músicas e dados associados a organização serão excluídos.\nEsta ação não pode ser revertida."
+      "description": "Tem certeza que deseja remover esta organização? Todas as músicas e dados associados a organização serão excluídos.\nEsta ação não pode ser revertida."
     }
   },
   "searchPlaceholder": "Pesquisar...",

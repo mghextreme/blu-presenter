@@ -61,7 +61,7 @@ export function TransferOrganization() {
   // After the transfer the organization is refetched with the user no longer
   // owner, while this page is still shown until the navigation completes.
   if (!transferOwnership.isSuccess && !isRoleHigherOrEqualThan(data.role, 'owner')) {
-    throw new Error(t('error.noPermission'));
+    throw new Error(t('error.noPermissions'));
   }
 
   return (

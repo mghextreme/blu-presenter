@@ -177,7 +177,10 @@ export function AppRouter() {
                   index={true}
                   lazy={() => import('./app/songs').then((m) => ({ element: <m.Songs /> }))}
                   loader={() =>
-                    allSongsLoader({ songsService: services.songsService, lang: i18next.language })
+                    allSongsLoader({
+                      songsService: services.songsService,
+                      lang: i18next.resolvedLanguage || 'en',
+                    })
                   }
                 />
                 <Route

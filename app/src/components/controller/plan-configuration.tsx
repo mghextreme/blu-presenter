@@ -29,12 +29,13 @@ import {
 import CheckIcon from '@heroicons/react/24/solid/CheckIcon';
 import ChevronDownIcon from '@heroicons/react/24/solid/ChevronDownIcon';
 import { useServices } from '@/hooks/useServices';
-import { BaseTheme, ISession, ITheme } from '@/types';
+import { BASE_THEME_TYPES, BaseTheme, ISession, ITheme } from '@/types';
 import { useBroadcast } from '@/hooks/useBroadcast';
 import { useController } from '@/hooks/useController';
 import QRCode from 'react-qr-code';
 import { Input } from '../ui/input';
 import { toast } from 'sonner';
+import { absoluteUrl, sharedSessionPath } from '@/lib/share-links';
 
 const NO_SESSIONS: ISession[] = [];
 
@@ -44,7 +45,7 @@ const controllerConfigurationSchema = z.object({
   broadcastSessionUrlTheme: z
     .object({
       label: z.string(),
-      value: z.union([z.enum(['lyrics', 'subtitles', 'teleprompter']), z.number()]),
+      value: z.union([z.enum(BASE_THEME_TYPES), z.number()]),
     })
     .optional(),
 });
@@ -146,9 +147,7 @@ export function PlanConfiguration() {
   const getSessionQrCodeUrl = (): string | undefined => {
     if (!selectedSession) return undefined;
 
-    const currentUrl = new URL(window.location.href);
-    const theme = selectedUrlTheme?.value ? `/${selectedUrlTheme.value}` : '';
-    return `${currentUrl.protocol}//${currentUrl.host}/shared/session/${selectedSession.organization?.id}/${selectedSession.id}/${selectedSession.secret ?? ''}${theme}`;
+    return absoluteUrl(sharedSessionPath(selectedSession, selectedUrlTheme?.value));
   };
   const sessionQrCodeUrl = getSessionQrCodeUrl();
 

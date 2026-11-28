@@ -92,7 +92,8 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
     socketRef.current.emit(event, data);
   }, []);
 
-  const unsubscribe = (socket: Socket) => {
+  // Reads only refs, so it is stable and safe in the unmount cleanup.
+  const unsubscribe = useCallback((socket: Socket) => {
     if (!isSubscribedRef.current) return;
 
     socket.off('connect');
@@ -114,7 +115,7 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
     }
 
     isSubscribedRef.current = false;
-  };
+  }, []);
 
   const subscribe = useCallback(
     (socket: Socket) => {
@@ -254,7 +255,7 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
     socketRef.current = null;
     setSocket(null);
     setIsConnected(false);
-  }, [leaveSession, updateConnectedSessionId]);
+  }, [leaveSession, updateConnectedSessionId, unsubscribe]);
 
   /**
    * Switch to a different session (or disconnect if params is null).
@@ -298,30 +299,11 @@ export function useSessionSocket(socketConfig: SessionSocketConfig): UseSessionS
         socketRef.current.emit('leaveSession', { sessionId: currentSessionId });
       }
 
-      if (isSubscribedRef.current) {
-        socketRef.current.off('connect');
-        socketRef.current.off('disconnect');
-        socketRef.current.off('error');
-        socketRef.current.off('exception');
-        socketRef.current.off('joinedSession');
-        socketRef.current.off('leftSession');
-        socketRef.current.io.off('reconnect');
-        socketRef.current.io.off('reconnect_attempt');
-        socketRef.current.io.off('error');
-
-        if (configRef.current.additionalEvents) {
-          configRef.current.additionalEvents.forEach(({ eventName }) => {
-            socketRef.current?.off(eventName);
-          });
-        }
-
-        isSubscribedRef.current = false;
-      }
-
+      unsubscribe(socketRef.current);
       socketRef.current.disconnect();
       socketRef.current = null;
     };
-  }, []);
+  }, [unsubscribe]);
 
   return {
     socket,

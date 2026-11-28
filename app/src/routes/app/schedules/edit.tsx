@@ -64,12 +64,13 @@ export function EditSchedule({ edit = true }: Readonly<EditScheduleProps>) {
 }
 
 function EditSavedSchedule() {
+  const { t } = useTranslation('schedules');
   const params = useParams();
   const { schedulesService } = useServices();
   const { data } = useSuspenseQuery(schedulesService.byIdQuery(Number(params.id)));
 
   if (!data) {
-    throw new Error("Can't find schedule");
+    throw new Error(t('error.notFound'));
   }
 
   return <ScheduleEditor edit={true} data={data} />;
@@ -227,7 +228,12 @@ function EditScheduleForm({
       );
       return savedSchedule;
     },
-    onSuccess: (savedSchedule) => navigate(`/app/schedules/${savedSchedule?.id}/view`),
+    onSuccess: (savedSchedule, { scheduleId }) => {
+      // An edited schedule keeps its id; a create that returned no schedule
+      // has no page to show, so go back to the list.
+      const id = savedSchedule?.id ?? (edit ? scheduleId : undefined);
+      void navigate(id ? `/app/schedules/${id}/view` : '/app/schedules');
+    },
     onError: (err) => {
       console.error(err);
       toast.error(t('error.save'));

@@ -73,7 +73,8 @@
     "noPermission": "Você não tem permissão para gerenciar programações",
     "save": "Erro ao salvar programação",
     "search": "Erro ao buscar programações",
-    "validation": "Não foi possível salvar: há campos inválidos. Revise o formulário e tente novamente."
+    "validation": "Não foi possível salvar: há campos inválidos. Revise o formulário e tente novamente.",
+    "notFound": "Programação não encontrada"
   },
   "message": {
     "share": {

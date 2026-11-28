@@ -48,6 +48,7 @@ import ChevronDownIcon from '@heroicons/react/24/solid/ChevronDownIcon';
 import CheckIcon from '@heroicons/react/24/solid/CheckIcon';
 import QRCode from 'react-qr-code';
 import { toast } from 'sonner';
+import { absoluteUrl, sharedSessionPath } from '@/lib/share-links';
 
 function LanguageAndIcon({
   t,
@@ -84,12 +85,13 @@ export function EditSession({ edit = true }: Readonly<EditSessionProps>) {
 }
 
 function EditExistingSession() {
+  const { t } = useTranslation('sessions');
   const params = useParams();
   const { sessionsService } = useServices();
   const { data } = useSuspenseQuery(sessionsService.byIdQuery(Number(params.id)));
 
   if (!data) {
-    throw new Error("Can't find session");
+    throw new Error(t('error.notFound'));
   }
 
   return <SessionForm edit={true} data={data} />;
@@ -99,12 +101,6 @@ type SessionFormProps = {
   edit: boolean;
   data: ISession;
 };
-
-function sharedSessionUrl(session: ISession, theme: BaseTheme | number | null | undefined): string {
-  const currentUrl = new URL(window.location.href);
-  const themeParam = theme ? `/${theme}` : '';
-  return `${currentUrl.protocol}//${currentUrl.host}/shared/session/${session.organization?.id}/${session.id}/${session.secret ?? ''}${themeParam}`;
-}
 
 function SessionForm({ edit, data }: Readonly<SessionFormProps>) {
   const { t } = useTranslation('sessions');
@@ -223,7 +219,7 @@ function SessionForm({ edit, data }: Readonly<SessionFormProps>) {
 
   const watchedTheme = useWatch({ control: form.control, name: 'theme' });
   const selectedThemeName = nameFromTheme(watchedTheme);
-  const sessionQrCodeUrl = edit ? sharedSessionUrl(data, watchedTheme) : undefined;
+  const sessionQrCodeUrl = edit ? absoluteUrl(sharedSessionPath(data, watchedTheme)) : undefined;
 
   const copyShareableUrlToClipboard = async () => {
     if (!sessionQrCodeUrl) return;

@@ -60,7 +60,8 @@
     "deleteSession": "Erro ao remover sessão",
     "noPermission": "Você não tem permissão para acessar esta sessão",
     "save": "Erro ao salvar sessão",
-    "search": "Erro ao buscar sessões"
+    "search": "Erro ao buscar sessões",
+    "notFound": "Sessão não encontrada"
   },
   "language": {
     "search": "Buscar idiomas...",

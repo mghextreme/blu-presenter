@@ -59,6 +59,7 @@
       },
       "today": "Hoje",
       "load": "Carregar programação",
+      "loadError": "Não foi possível carregar a programação",
       "noResults": "Nenhuma programação encontrada",
       "confirmReplace": {
         "title": "Substituir programação atual?",
@@ -119,6 +120,7 @@
     "screenSelector": {
       "title": "Selecione a tela",
       "windowed": "Em janela",
+      "showFullScreenOptions": "Mostrar opções de tela cheia",
       "fullScreen": "Tela cheia",
       "display": "Tela"
     },

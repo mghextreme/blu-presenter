@@ -60,7 +60,7 @@ function SongsContent({ userOrganizations }: Readonly<{ userOrganizations: IOrga
     useOrganizationFilter.getState().setFilter(filter);
 
     setOrganizationFilter(filter).catch((e) => {
-      toast.error(t('errors.search'), {
+      toast.error(t('error.search'), {
         description: e?.message || '',
       });
     });
@@ -71,7 +71,7 @@ function SongsContent({ userOrganizations }: Readonly<{ userOrganizations: IOrga
     useOrganizationFilter.getState().reset();
 
     resetFilters().catch((e) => {
-      toast.error(t('errors.search'), {
+      toast.error(t('error.search'), {
         description: e?.message || '',
       });
     });

@@ -4,7 +4,8 @@
   "actions": {
     "home": "Voltar à página inicial",
     "app": "Voltar ao app",
-    "signOut": "Entrar novamente"
+    "signOut": "Entrar novamente",
+    "reload": "Recarregar"
   },
   "details": "Detalhes"
 }

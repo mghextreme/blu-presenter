@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { useInvitation } from '@/hooks/useInvitation';
 import { useServices } from '@/hooks/useServices';
 import { toast } from 'sonner';
-import { ApiError } from '@/types';
+import { describeAuthError } from '@/lib/auth-errors';
 
 import { captcha } from '@/lib/config';
 
@@ -58,10 +58,8 @@ export function OtpRequestForm({ className, ...props }: Readonly<OtpRequestFormP
       void navigate('/login/otp/verify', { state: { email: values.email } });
     },
     onError: async (e: unknown) => {
-      const error = e as ApiError;
-      const errorContent = await error?.raw?.json().catch(() => null);
       toast.error(t('otpSignIn.error'), {
-        description: t('errors.' + (errorContent?.message ?? 'default')),
+        description: await describeAuthError(e, t),
       });
     },
   });

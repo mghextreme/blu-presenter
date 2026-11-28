@@ -12,7 +12,7 @@ export function SearchResultsList(props: Readonly<SearchResultItemProps>) {
 
   const handleLoadMore = () => {
     loadMore().catch((e) => {
-      toast.error(t('errors.search'), {
+      toast.error(t('error.search'), {
         description: e?.message || '',
       });
     });

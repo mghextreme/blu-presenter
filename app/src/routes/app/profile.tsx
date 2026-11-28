@@ -67,7 +67,7 @@ export function Profile() {
   const { data: identities } = useSuspenseQuery(authService.identitiesQuery());
 
   if (!profile) {
-    throw new Error("Can't find user profile");
+    throw new Error(t('error.notFound'));
   }
 
   // Any write on the page (including connecting accounts) blocks the forms.
