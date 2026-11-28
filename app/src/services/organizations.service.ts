@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IOrganization } from '@/types/organization.interface';
 import { ApiService } from './api.service';
+import { secretQuery } from './secret-query';
 import {
   IOrganizationInvitation,
   IOrganizationUser,
@@ -139,7 +140,7 @@ export class OrganizationsService extends ApiService {
 
   public async getInvite(id: number, secret: string): Promise<IOrganizationInvitation> {
     return (await this.getRequest(
-      `/organizations/invitations/${id}?secret=${secret}`,
+      `/organizations/invitations/${id}${secretQuery(secret)}`,
     )) as IOrganizationInvitation;
   }
 

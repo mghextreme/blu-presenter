@@ -6,7 +6,12 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, FindOneOptions, Repository } from 'typeorm';
+import {
+  DataSource,
+  FindOneOptions,
+  FindOptionsSelect,
+  Repository,
+} from 'typeorm';
 import {
   AuthInvitationDataDto,
   CreateOrganizationDto,
@@ -20,6 +25,16 @@ import {
   OrganizationRoleOptions,
   UpdateOrganizationDto,
 } from 'src/types';
+
+/** What invitees may see: the organization's secret must not leak. */
+const INVITATION_FIELDS: FindOptionsSelect<OrganizationInvitation> = {
+  id: true,
+  orgId: true,
+  email: true,
+  role: true,
+  secret: true,
+  organization: { id: true, name: true },
+};
 
 /** The member performing an organization management action. */
 export interface OrganizationActor {
@@ -278,6 +293,12 @@ export class OrganizationsService {
       relations: {
         user: true,
       },
+      select: {
+        orgId: true,
+        userId: true,
+        role: true,
+        user: { id: true, name: true, email: true },
+      },
     });
 
     if (!member) {
@@ -356,7 +377,7 @@ export class OrganizationsService {
       inviterId: inviter.userId,
       email: inviteMemberDto.email,
       role: inviteMemberDto.role,
-      secret: this.createSecret(),
+      secret: generateRandomSecret(32),
     });
 
     return (await this.organizationInvitationsRepository.findOneBy({
@@ -365,19 +386,14 @@ export class OrganizationsService {
     })) as OrganizationInvitation;
   }
 
-  private createSecret(): string {
-    const sec1 = Math.random().toString(36);
-    const sec2 = Math.random().toString(36);
-    const secString = sec1 + sec2;
-    return Buffer.from(secString, 'utf-8')
-      .toString('base64')
-      .replaceAll('=', '');
-  }
-
   async getInvitation(
     id: number,
-    secret: string,
+    secret: string | undefined,
   ): Promise<OrganizationInvitation | null> {
+    if (!secret) {
+      return null;
+    }
+
     return await this.organizationInvitationsRepository.findOne({
       where: {
         id,
@@ -386,6 +402,7 @@ export class OrganizationsService {
       relations: {
         organization: true,
       },
+      select: INVITATION_FIELDS,
     });
   }
 
@@ -403,6 +420,7 @@ export class OrganizationsService {
       relations: {
         organization: true,
       },
+      select: INVITATION_FIELDS,
     });
   }
 

@@ -22,6 +22,7 @@ describe('OrganizationsService', () => {
     delete: jest.fn(),
   };
   const mockDataSource = { transaction: jest.fn() };
+  const mockInvitationsRepository = { findOne: jest.fn(), find: jest.fn() };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -36,7 +37,10 @@ describe('OrganizationsService', () => {
           useValue: mockOrganizationUsersRepository,
         },
         { provide: getRepositoryToken(User), useValue: {} },
-        { provide: getRepositoryToken(OrganizationInvitation), useValue: {} },
+        {
+          provide: getRepositoryToken(OrganizationInvitation),
+          useValue: mockInvitationsRepository,
+        },
       ],
     }).compile();
 
@@ -107,5 +111,29 @@ describe('OrganizationsService', () => {
       ).rejects.toThrow(ForbiddenException);
       expect(mockDataSource.transaction).not.toHaveBeenCalled();
     });
+  });
+
+  describe('invitations', () => {
+    it('finds nothing without a secret', async () => {
+      await expect(service.getInvitation(3, undefined)).resolves.toBeNull();
+      expect(mockInvitationsRepository.findOne).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['getInvitation', () => service.getInvitation(3, 's'), 'findOne'],
+      [
+        'getInvitationsForEmail',
+        () => service.getInvitationsForEmail('a@example.com'),
+        'find',
+      ],
+    ] as const)(
+      '%s never loads the organization secret',
+      async (_name, call, method) => {
+        await call();
+
+        const query = mockInvitationsRepository[method].mock.calls[0][0];
+        expect(query.select.organization).toEqual({ id: true, name: true });
+      },
+    );
   });
 });

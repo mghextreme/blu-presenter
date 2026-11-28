@@ -1,6 +1,7 @@
 import { Link, Outlet, useLoaderData, useLocation } from 'react-router';
 
 import { cn } from '@/lib/utils';
+import { invitationQuery } from '@/lib/invitation-link';
 import { buttonVariants } from '@/components/ui/button';
 import { ThemeToggler } from '@/components/shared/theme-toggler';
 import { LanguageToggler } from '@/components/shared/language-toggler';
@@ -18,7 +19,7 @@ export function AuthLayout() {
   let params = '';
 
   if (inviteData) {
-    params = `?id=${inviteData.id}&secret=${inviteData.secret}`;
+    params = invitationQuery(inviteData);
   }
 
   const isLogin = location.pathname == '/login';

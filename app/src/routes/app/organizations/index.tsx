@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 
 import { useServices } from '@/hooks/useServices';
+import { invitationQuery } from '@/lib/invitation-link';
 import {
   Form,
   FormControl,
@@ -242,7 +243,7 @@ function OrganizationPage({ organization, edit }: Readonly<OrganizationPageProps
 
   const getInvitationActions = (invitation: IOrganizationInvitation) => {
     const copyLink = () => {
-      const link = `${window.location.origin}/signup?id=${invitation.id}&secret=${invitation.secret}`;
+      const link = `${window.location.origin}/signup${invitationQuery(invitation)}`;
       navigator.clipboard.writeText(link).then(
         () => {
           toast.success(t('invite.success'), {

@@ -16,6 +16,7 @@ import {
   UpdateSessionDto,
 } from 'src/types';
 import { isRoleHigherOrEqualThan } from 'src/types/organization-role.type';
+import { generateRandomSecret } from 'src/utils/secret';
 import {
   membershipOrgIds,
   WithOrganizationRole,
@@ -96,10 +97,18 @@ export class SessionsService {
     }
   }
 
-  async findOneBySecret(orgId: number, id: number, secret: string) {
+  async findOneBySecret(
+    orgId: number,
+    id: number,
+    secret: string | undefined,
+  ): Promise<Session | null> {
     await this.organizationsService.assertFeatureEnabled(orgId, 'sessions', {
       notFound: true,
     });
+
+    if (!secret) {
+      return null;
+    }
 
     return this.sessionsRepository.findOne({
       select: {
@@ -129,6 +138,9 @@ export class SessionsService {
 
     const result = await this.sessionsRepository.insert({
       name: createSessionDto.name,
+      language: createSessionDto.language ?? null,
+      theme: createSessionDto.theme ?? null,
+      secret: generateRandomSecret(16),
       orgId,
     });
     const sessionId = result.raw[0].id;

@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Post,
   Put,
@@ -82,8 +83,16 @@ export class SessionsController {
   async findAllForSession(
     @Param('orgId') orgId: number,
     @Param('sessionId') sessionId: number,
-    @Query('secret') secret: string,
-  ): Promise<Session | null> {
-    return await this.sessionsService.findOneBySecret(orgId, sessionId, secret);
+    @Query('secret') secret: string | undefined,
+  ): Promise<Session> {
+    const session = await this.sessionsService.findOneBySecret(
+      orgId,
+      sessionId,
+      secret,
+    );
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+    return session;
   }
 }

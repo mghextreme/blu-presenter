@@ -235,6 +235,39 @@ describe('SessionsService', () => {
     });
   });
 
+  describe('create', () => {
+    it('stores the language, theme and a fresh secret', async () => {
+      mockSessionsRepository.insert.mockResolvedValue({ raw: [{ id: 5 }] });
+      mockSessionsRepository.findOne.mockResolvedValue(mockSession({ id: 5 }));
+
+      await service.create(1, {
+        name: 'Stage',
+        language: 'pt',
+        theme: 'lyrics',
+      });
+
+      expect(mockSessionsRepository.insert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orgId: 1,
+          name: 'Stage',
+          language: 'pt',
+          theme: 'lyrics',
+          secret: expect.stringMatching(/^[A-Za-z0-9]{16}$/),
+        }),
+      );
+    });
+  });
+
+  describe('findOneBySecret', () => {
+    it.each([undefined, ''])(
+      'finds nothing without a secret (%p)',
+      async (secret) => {
+        await expect(service.findOneBySecret(1, 5, secret)).resolves.toBeNull();
+        expect(mockSessionsRepository.findOne).not.toHaveBeenCalled();
+      },
+    );
+  });
+
   describe('feature gating (sessions disabled per organization)', () => {
     it('should exclude orgs with the sessions feature disabled from findAllForUserOrgs', async () => {
       mockUsersService.findUserOrganizations.mockResolvedValue([

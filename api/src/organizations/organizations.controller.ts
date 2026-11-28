@@ -142,7 +142,7 @@ export class OrganizationsController {
   @Get('invitations/:id')
   async getInvitation(
     @Param('id') id: number,
-    @Query('secret') secret: string,
+    @Query('secret') secret: string | undefined,
   ): Promise<OrganizationInvitation | null> {
     return await this.organizationsService.getInvitation(id, secret);
   }
